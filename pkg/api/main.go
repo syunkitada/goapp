@@ -8,8 +8,9 @@ import (
 
 	"github.com/golang/glog"
 	"net/http"
+	"time"
 
-	"github.com/syunkitada/goapp/pkg/api/services"
+	// "github.com/syunkitada/goapp/pkg/api/services"
 	"github.com/syunkitada/goapp/testdata"
 )
 
@@ -42,16 +43,29 @@ func Main() error {
 func Serv() {
 	certPath := testdata.Path("tls-assets/server.pem")
 	keyPath := testdata.Path("tls-assets/server.key")
-	api := NewAPI(certPath, keyPath)
+	// api := NewAPI()
 
-	http.Handle("/hello", api.Hello)
-	http.Handle("/tokens", api.Tokens)
+	handler := NewHandler()
+	// handler.GET("/ping", debug.Ping)
 
-	http.Handle("/users", AddMiddleware(api.Users,
-		api.Authenticate,
-		api.Authorize(services.Permission("user_modify"))))
+	s := &http.Server{
+		Addr:           ":8000",
+		Handler:        handler,
+		ReadTimeout:    10 * time.Second,
+		WriteTimeout:   10 * time.Second,
+		MaxHeaderBytes: 1 << 20,
+	}
 
-	err := http.ListenAndServeTLS(":8000", certPath, keyPath, nil)
+	// s.Handle("/hello", AddMiddleware(api.Hello,
+	// 	api.SecureHeaders))
+	// s.Handle("/tokens", api.Tokens)
+
+	// s.Handle("/users", AddMiddleware(api.Users,
+	// 	api.Authenticate,
+	// 	api.Authorize(services.Permission("user_modify")),
+	// 	api.SecureHeaders))
+
+	err := s.ListenAndServeTLS(certPath, keyPath)
 	if err != nil {
 		glog.Fatal("ListenAndServe: ", err)
 	}

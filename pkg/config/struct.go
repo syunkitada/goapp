@@ -5,9 +5,11 @@ import (
 )
 
 type Config struct {
-	App   *cli.App
-	Api   ApiConfig
-	Agent AgentConfig
+	App      *cli.App
+	Api      ApiConfig
+	Agent    AgentConfig
+	Database DatabaseConfig
+	Admin    AdminConfig
 }
 
 type ApiConfig struct {
@@ -19,6 +21,15 @@ type AgentConfig struct {
 	ReportInterval int
 }
 
+type DatabaseConfig struct {
+	Connection string
+}
+
+type AdminConfig struct {
+	Username string
+	Password string
+}
+
 func newConfig(ctx *cli.Context) *Config {
 	defaultConfig := &Config{
 		App: ctx.App,
@@ -28,6 +39,13 @@ func newConfig(ctx *cli.Context) *Config {
 		},
 		Agent: AgentConfig{
 			ReportInterval: 10,
+		},
+		Database: DatabaseConfig{
+			Connection: "admin:adminpass@tcp(localhost:3306)/goapp?charset=utf8&parseTime=true",
+		},
+		Admin: AdminConfig{
+			Username: "admin",
+			Password: "changeme",
 		},
 	}
 

@@ -14,6 +14,7 @@ import (
 // API holds the api handlers
 type API struct {
 	encryptionKey []byte
+	AllowedHosts  []string
 	AclService    services.ACLService
 
 	Hello  *handlers.Hello
@@ -22,9 +23,13 @@ type API struct {
 }
 
 // NewAPI creates a new API
-func NewAPI(certPath, keyPath string) *API {
+func NewAPI() *API {
 	// TODO: Use generated key from README
 	encryptionKey := []byte("secret")
+
+	allowedHosts := []string{
+		"localhost",
+	}
 
 	aclService := services.NewACLService()
 	tokenService := services.NewTokenService()
@@ -33,6 +38,7 @@ func NewAPI(certPath, keyPath string) *API {
 
 	return &API{
 		encryptionKey: encryptionKey,
+		AllowedHosts:  allowedHosts,
 		AclService:    aclService,
 		Tokens:        handlers.NewTokens(tokenService),
 		Hello:         handlers.NewHello(helloService),
@@ -123,8 +129,44 @@ func (a *API) Authorize(permissions ...services.Permission) func(next http.Handl
 // SecureHeaders adds secure headers to the API
 func (a *API) SecureHeaders(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// TODO: Add security headers here
-		fmt.Print("Secure Header")
+		// Check AllowedHosts
+		var err error
+		if len(a.AllowedHosts) > 0 {
+			isGoodHost := false
+			for _, allowedHost := range a.AllowedHosts {
+				if strings.EqualFold(allowedHost, r.Host) {
+					isGoodHost = true
+					break
+				}
+			}
+			if !isGoodHost {
+				http.Error(w, fmt.Sprintf("Bad host name: %s", r.Host), http.StatusForbidden)
+				return
+			}
+		}
+		// If there was an error, do not continue request
+		if err != nil {
+			http.Error(w, "Failed to check allowed hosts", http.StatusInternalServerError)
+			return
+		}
+
+		// Add X-XSS-Protection header
+		// Enables XSS filtering. Rather than sanitizing the page, the browser will prevent rendering of the page if an attack is detected.
+		w.Header().Add("X-XSS-Protection", "1; mode=blockFilter")
+
+		// Add Content-Type header
+		// Content type tells the browser what type of content you are sending. If you do not include it, the browser will try to guess the type and may get it wrong.
+		// w.Header().Add("Content-Type", "application/json")
+
+		// Add X-Content-Type-Options header
+		// Content Sniffing is the inspecting the content of a byte stream to attempt to deduce the file format of the data within it.
+		// Browsers will do this to try to guess at the content type you are sending.
+		// By setting this header to “nosniff”, it prevents IE and Chrome from content sniffing a response away from its actual content type. This reduces exposure to drive-by download attacks.
+		w.Header().Add("X-Content-Type-Options", "nosniff")
+
+		// Prevent page from being displayed in an iframe
+		w.Header().Add("X-Frame-Options", "DENY")
+
 		next.ServeHTTP(w, r)
 	})
 }

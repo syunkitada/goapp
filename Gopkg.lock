@@ -8,6 +8,12 @@
   version = "v0.3.0"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/MichaelTJones/walk"
+  packages = ["."]
+  revision = "4748e29d5718c2df4028a6543edf86fd8cc0f881"
+
+[[projects]]
   name = "github.com/dgrijalva/jwt-go"
   packages = ["."]
   revision = "06ea1031745cb8b3dab3f6a236daf2b0aa468b7e"
@@ -15,9 +21,37 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/gin-contrib/sse"
+  packages = ["."]
+  revision = "22d885f9ecc78bf4ee5d72b937e4bbcdc58e8cae"
+
+[[projects]]
+  name = "github.com/gin-gonic/gin"
+  packages = [
+    ".",
+    "binding",
+    "render"
+  ]
+  revision = "d459835d2b077e44f7c9b453505ee29881d5d12d"
+  version = "v1.2"
+
+[[projects]]
+  name = "github.com/go-sql-driver/mysql"
+  packages = ["."]
+  revision = "d523deb1b23d913de5bdada721a6071e71283618"
+  version = "v1.4.0"
+
+[[projects]]
+  branch = "master"
   name = "github.com/golang/glog"
   packages = ["."]
   revision = "23def4e6c14b4da8ac2ed8007337bc5eb5007998"
+
+[[projects]]
+  name = "github.com/golang/protobuf"
+  packages = ["proto"]
+  revision = "b4deda0973fb4c70b50d226b1af49f3da59f5265"
+  version = "v1.1.0"
 
 [[projects]]
   name = "github.com/gorilla/context"
@@ -27,9 +61,69 @@
 
 [[projects]]
   branch = "master"
-  name = "github.com/syunkitada/go-sample"
-  packages = ["pkg/simple_app/testdata"]
-  revision = "a686557908e533cf29a179a7ba395fdfe91f4f14"
+  name = "github.com/howeyc/gopass"
+  packages = ["."]
+  revision = "bf9dde6d0d2c004a008c27aaee91170c786f6db8"
+
+[[projects]]
+  name = "github.com/jinzhu/gorm"
+  packages = ["."]
+  revision = "6ed508ec6a4ecb3531899a69cbc746ccf65a4166"
+  version = "v1.9.1"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/jinzhu/inflection"
+  packages = ["."]
+  revision = "04140366298a54a039076d798123ffa108fff46c"
+
+[[projects]]
+  name = "github.com/mattn/go-colorable"
+  packages = ["."]
+  revision = "167de6bfdfba052fa6b2d3664c8f5272e23c9072"
+  version = "v0.0.9"
+
+[[projects]]
+  name = "github.com/mattn/go-isatty"
+  packages = ["."]
+  revision = "0360b2af4f38e8d38c7fce2a9f4e702702d73a39"
+  version = "v0.0.3"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/mgutz/ansi"
+  packages = ["."]
+  revision = "9520e82c474b0a04dd04f8a40959027271bab992"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/mgutz/minimist"
+  packages = ["."]
+  revision = "39eb8cf573ca29344bd7d7e6ba4d7febdebd37a9"
+
+[[projects]]
+  name = "github.com/mgutz/str"
+  packages = ["."]
+  revision = "968bf66e3da857419e4f6e71b2d5c9ae95682dc4"
+  version = "v1.2.0"
+
+[[projects]]
+  name = "github.com/mgutz/to"
+  packages = ["."]
+  revision = "00c06406c2dd2e011f153a6502a21473676db33f"
+  version = "v1.0.0"
+
+[[projects]]
+  name = "github.com/nozzle/throttler"
+  packages = ["."]
+  revision = "d9b45f19996c645d38c9266d1f5cf1990e930119"
+  version = "v1.0"
+
+[[projects]]
+  name = "github.com/ugorji/go"
+  packages = ["codec"]
+  revision = "b4c50a2b199d93b13dc15e78929cfb23bfdf21ab"
+  version = "v1.1.1"
 
 [[projects]]
   name = "github.com/urfave/cli"
@@ -37,9 +131,54 @@
   revision = "cfb38830724cc34fedffe9a2a29fb54fa9169cd1"
   version = "v1.20.0"
 
+[[projects]]
+  branch = "master"
+  name = "golang.org/x/crypto"
+  packages = ["ssh/terminal"]
+  revision = "a49355c7e3f8fe157a85be2f77e6e269a0f89602"
+
+[[projects]]
+  branch = "master"
+  name = "golang.org/x/sys"
+  packages = [
+    "unix",
+    "windows"
+  ]
+  revision = "1b2967e3c290b7c545b3db0deeda16e9be4f98a2"
+
+[[projects]]
+  name = "google.golang.org/appengine"
+  packages = ["cloudsql"]
+  revision = "b1f26356af11148e710935ed1ac8a7f5702c7612"
+  version = "v1.1.0"
+
+[[projects]]
+  name = "gopkg.in/go-playground/validator.v8"
+  packages = ["."]
+  revision = "5f1438d3fca68893a817e4a66806cea46a9e4ebf"
+  version = "v8.18.2"
+
+[[projects]]
+  name = "gopkg.in/godo.v2"
+  packages = [
+    ".",
+    "glob",
+    "util",
+    "watcher",
+    "watcher/fswatch"
+  ]
+  revision = "b5fd2f0bef1ebe832e628cfad18ab1cc707f65a1"
+  version = "v2.0.9"
+
+[[projects]]
+  name = "gopkg.in/yaml.v2"
+  packages = ["."]
+  revision = "5420a8b6744d3b0345ab293f6fcba19c978f1183"
+  version = "v2.2.1"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "91748946e7c6ca83ec279b1d78d2350339da4371ecb9649f69dde47baff4ab2a"
+  inputs-digest = "42dc730b7355d3dad483e8c5734af247c4d4a204c692f0f6832020c67f9fd8f3"
   solver-name = "gps-cdcl"
   solver-version = 1
