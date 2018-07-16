@@ -26,8 +26,10 @@ type DatabaseConfig struct {
 }
 
 type AdminConfig struct {
-	Username string
-	Password string
+	Username    string
+	Password    string
+	Secret      string
+	TokenSecret string
 }
 
 func newConfig(ctx *cli.Context) *Config {
@@ -44,8 +46,10 @@ func newConfig(ctx *cli.Context) *Config {
 			Connection: "admin:adminpass@tcp(localhost:3306)/goapp?charset=utf8&parseTime=true",
 		},
 		Admin: AdminConfig{
-			Username: "admin",
-			Password: "changeme",
+			Username:    "admin",
+			Password:    "changeme",
+			Secret:      "changeme",
+			TokenSecret: "changeme",
 		},
 	}
 

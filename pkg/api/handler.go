@@ -1,10 +1,9 @@
 package api
 
 import (
+	// "github.com/golang/glog"
 	"github.com/gin-gonic/gin"
-	"github.com/golang/glog"
 	"github.com/syunkitada/goapp/pkg/api/app"
-	"github.com/syunkitada/goapp/pkg/api/services"
 	"net/http"
 )
 
@@ -12,24 +11,13 @@ func NewHandler() http.Handler {
 	handler := gin.Default()
 
 	handler.POST("/token", app.IssueToken)
-	handler.GET("/ping", services.Ping)
+	handler.GET("/ping", app.Ping)
 
 	authorized := handler.Group("/")
-	authorized.Use(AuthRequired())
+	authorized.Use(app.AuthRequired())
 	{
-		authorized.GET("/authtest", services.Ping)
+		authorized.GET("/authtest", app.AuthTest)
 	}
 
 	return handler
-}
-
-func AuthRequired() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		glog.Info("hoge")
-		// TODO validate token
-		// Some authorization in Authorization
-		// user := Authorization()
-
-		c.Set("AuthorizedUser", "user")
-	}
 }

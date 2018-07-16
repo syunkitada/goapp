@@ -5,3 +5,8 @@ type AuthRequest struct {
 	Password string
 	Project  string
 }
+
+type TokenAuthRequest struct {
+	Username string
+	Token    string
+}

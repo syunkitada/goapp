@@ -2,6 +2,7 @@ package model_api
 
 import (
 	"github.com/syunkitada/goapp/pkg/model"
+	"github.com/syunkitada/goapp/pkg/util"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
@@ -21,9 +22,14 @@ func CreateUser(name string, password string) error {
 			return err
 		}
 
+		hashedPassword, hashedErr := util.GenerateHashFromPassword(name, password)
+		if hashedErr != nil {
+			return hashedErr
+		}
+
 		user = model.User{
 			Name:     name,
-			Password: password,
+			Password: hashedPassword,
 		}
 		db.Debug().Create(&user)
 
@@ -140,7 +146,12 @@ func IssueToken(authRequest *model.AuthRequest) (string, error) {
 
 	var user model.User
 
-	if err := db.Debug().Where("name = ? and password = ?", authRequest.Username, authRequest.Password).First(&user).Error; err != nil {
+	hashedPassword, hashedErr := util.GenerateHashFromPassword(authRequest.Username, authRequest.Password)
+	if hashedErr != nil {
+		return "", hashedErr
+	}
+
+	if err := db.Debug().Where("name = ? and password = ?", authRequest.Username, hashedPassword).First(&user).Error; err != nil {
 		if gorm.IsRecordNotFoundError(err) {
 			return "", nil
 		}
@@ -148,5 +159,5 @@ func IssueToken(authRequest *model.AuthRequest) (string, error) {
 		return "", err
 	}
 
-	return "token", nil
+	return util.GenerateToken(authRequest)
 }
