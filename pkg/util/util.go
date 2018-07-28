@@ -20,9 +20,11 @@ var (
 )
 
 type CustomClaims struct {
-	Admin    bool   `json:"admin"`
-	Username string `json:"username"`
-	// Project  *Project `json:"project"`
+	Username        string
+	RoleName        string
+	ProjectName     string
+	ProjectRoleName string
+	ExpirationDate  string // TODO
 	jwt.StandardClaims
 }
 
@@ -35,20 +37,22 @@ func GenerateHashFromPassword(username string, password string) (string, error) 
 	return hex.EncodeToString(converted[:]), nil
 }
 
-func GenerateToken(authRequest *model.AuthRequest) (string, error) {
+func GenerateToken(user *model.CustomUser) (string, error) {
 	claims := CustomClaims{
-		Admin:    true,
-		Username: authRequest.Username,
+		Username:        user.Name,
+		RoleName:        user.RoleName,
+		ProjectName:     user.ProjectName,
+		ProjectRoleName: user.ProjectRoleName,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(time.Hour * 24).Unix(),
-			Issuer:    authRequest.Username,
+			Issuer:    user.Name,
 		},
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
 	// Sign token with key
-	tokenString, tokenErr := token.SignedString([]byte(Conf.Admin.TokenSecret + authRequest.Username))
+	tokenString, tokenErr := token.SignedString([]byte(Conf.Admin.TokenSecret + user.Name))
 	return tokenString, tokenErr
 }
 

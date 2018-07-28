@@ -12,15 +12,20 @@ func Ping(c *gin.Context) {
 }
 
 func AuthTest(c *gin.Context) {
-	glog.Info(c)
-	if authUser, ok := c.Get("AuthUser"); ok {
-		c.JSON(200, gin.H{
-			"user":    authUser,
-			"message": "Pong",
+	username, usernameOk := c.Get("Username")
+	roleName, roleNameOk := c.Get("RoleName")
+	if !usernameOk || !roleNameOk {
+		c.JSON(500, gin.H{
+			"message": "Invalid request",
 		})
-	} else {
-		c.JSON(401, gin.H{
-			"message": "Invalid User Pong",
-		})
+		return
 	}
+
+	glog.Info(username, roleName)
+
+	c.JSON(200, gin.H{
+		"user":    username,
+		"role":    roleName,
+		"message": "Pong",
+	})
 }

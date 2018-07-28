@@ -26,30 +26,30 @@ func MigrateDatabase() error {
 
 	db.AutoMigrate(&model.User{})
 	db.AutoMigrate(&model.Role{})
-	db.AutoMigrate(&model.ProjectRole{})
 	db.AutoMigrate(&model.Project{})
+	db.AutoMigrate(&model.ProjectRole{})
 
 	if err := model_api.CreateUser(Conf.Admin.Username, Conf.Admin.Password); err != nil {
 		glog.Error(err)
 		return err
 	}
 
-	if err := model_api.CreateRole("admin"); err != nil {
+	if err := model_api.CreateProjectRole("admin"); err != nil {
+		glog.Error(err)
+		return err
+	}
+
+	if err := model_api.CreateProject("admin", "admin"); err != nil {
+		glog.Error(err)
+		return err
+	}
+
+	if err := model_api.CreateRole("admin", "admin"); err != nil {
 		glog.Error(err)
 		return err
 	}
 
 	if err := model_api.AssignRole("admin", "admin"); err != nil {
-		glog.Error(err)
-		return err
-	}
-
-	if err := model_api.CreateProject("admin"); err != nil {
-		glog.Error(err)
-		return err
-	}
-
-	if err := model_api.CreateProjectRole("admin", "admin", "admin"); err != nil {
 		glog.Error(err)
 		return err
 	}
