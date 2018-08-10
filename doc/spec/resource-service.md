@@ -12,10 +12,6 @@
     * Nodeごとに複数のProviderサポートし、アサインされたResourceを実体化し、状態を管理する
     * Providerを利用してノード自身を監視し、イベントがあればAlertをMonitorControllerに通知する
         * またメトリクスをメトリクスDBに送信する
-* MonitorController
-    * Alertを発行する
-        * メール通知
-        * フック
 
 
 ## Data Model

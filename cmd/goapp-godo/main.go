@@ -5,18 +5,19 @@ import (
 )
 
 func tasks(p *do.Project) {
-	p.Task("default", do.S{"goapp-db-migrate"}, nil)
+	p.Task("default", do.S{"goapp-adminctl-db-migrate"}, nil)
 
-	p.Task("goapp-db-migrate", nil, func(c *do.Context) {
-		c.Bash("go run cmd/goapp-db-migrate/main.go")
+	p.Task("goapp-adminctl-db-migrate", nil, func(c *do.Context) {
+		c.Bash("go run cmd/goapp-adminctl/main.go --use-testdata db-migrate")
+		c.Bash("make compile-pb")
 	}).Src("pkg/model/**/*.go")
 
-	p.Task("goapp-api", nil, func(c *do.Context) {
-		c.Start("main.go", do.M{"$in": "cmd/goapp-api"})
+	p.Task("goapp-authproxy", nil, func(c *do.Context) {
+		c.Start("main.go --use-testdata", do.M{"$in": "cmd/goapp-authproxy"})
 	}).Src("pkg/**/*.go")
 
-	p.Task("goapp-ctl", nil, func(c *do.Context) {
-		c.Start("main.go", do.M{"$in": "cmd/goapp-ctl"})
+	p.Task("goapp-health", nil, func(c *do.Context) {
+		c.Start("main.go --use-testdata", do.M{"$in": "cmd/goapp-health"})
 	}).Src("pkg/**/*.go")
 }
 
