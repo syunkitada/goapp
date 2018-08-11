@@ -1,6 +1,8 @@
 package config
 
 import (
+	"os"
+
 	"github.com/urfave/cli"
 	"path/filepath"
 )
@@ -8,12 +10,13 @@ import (
 type Config struct {
 	App               *cli.App
 	Default           DefaultConfig
-	Authproxy         AuthproxyConfig
+	Authproxy         HttpServerConfig
 	AuthproxyDatabase DatabaseConfig
+	Dashboard         DashboardConfig
+	HealthGrpc        GrpcConfig
 	Agent             AgentConfig
 	ImageDatabase     DatabaseConfig
 	Admin             AdminConfig
-	HealthGrpc        GrpcConfig
 }
 
 type DefaultConfig struct {
@@ -21,12 +24,12 @@ type DefaultConfig struct {
 	ConfigFile string
 }
 
-type AuthproxyConfig struct {
-	Listen       string
-	Interval     int
-	AllowedHosts []string
-	CertFile     string
-	KeyFile      string
+type HttpServerConfig struct {
+	Listen          string
+	AllowedHosts    []string
+	CertFile        string
+	KeyFile         string
+	GracefulTimeout int
 }
 
 type AgentConfig struct {
@@ -35,6 +38,12 @@ type AgentConfig struct {
 
 type DatabaseConfig struct {
 	Connection string
+}
+
+type DashboardConfig struct {
+	HttpServerConfig
+	StaticDir    string
+	TemplatesDir string
 }
 
 type GrpcConfig struct {
@@ -53,27 +62,52 @@ type AdminConfig struct {
 	TokenSecret string
 }
 
-func newConfig(ctx *cli.Context, configDir string) *Config {
+func newConfig(ctx *cli.Context) *Config {
+	configDir := "/etc/goapp"
+	dashboardStaticDir := "/opt/goapp/htdocs/static"
+	dashboardTemplatesDir := "/opt/goapp/htdocs/templates/**/*"
+	if ctx.GlobalBool("use-pwd") {
+		pwd := os.Getenv("PWD")
+		configDir = pwd + "/testdata"
+		dashboardStaticDir = pwd + "/htdocs/static"
+		dashboardTemplatesDir = pwd + "/htdocs/templates/**/*"
+	}
+
 	defaultConfig := &Config{
 		App: ctx.App,
 		Default: DefaultConfig{
 			ConfigDir:  configDir,
 			ConfigFile: filepath.Join(configDir, "config.toml"),
 		},
-		Authproxy: AuthproxyConfig{
+		Authproxy: HttpServerConfig{
 			Listen: "0.0.0.0:8000",
 			AllowedHosts: []string{
 				"localhost:8000",
+				"192.168.10.103:7000",
 			},
-			Interval: 10,
-			CertFile: "tls-assets/server.pem",
-			KeyFile:  "tls-assets/server.key",
-		},
-		Agent: AgentConfig{
-			ReportInterval: 10,
+			CertFile:        "tls-assets/server.pem",
+			KeyFile:         "tls-assets/server.key",
+			GracefulTimeout: 10,
 		},
 		AuthproxyDatabase: DatabaseConfig{
 			Connection: "admin:adminpass@tcp(localhost:3306)/goapp?charset=utf8&parseTime=true",
+		},
+		Dashboard: DashboardConfig{
+			HttpServerConfig: HttpServerConfig{
+				Listen: "0.0.0.0:7000",
+				AllowedHosts: []string{
+					"localhost:7000",
+					"192.168.10.103:7000",
+				},
+				CertFile:        "tls-assets/server.pem",
+				KeyFile:         "tls-assets/server.key",
+				GracefulTimeout: 10,
+			},
+			StaticDir:    dashboardStaticDir,
+			TemplatesDir: dashboardTemplatesDir,
+		},
+		Agent: AgentConfig{
+			ReportInterval: 10,
 		},
 		ImageDatabase: DatabaseConfig{
 			Connection: "admin:adminpass@tcp(localhost:3306)/goapp?charset=utf8&parseTime=true",

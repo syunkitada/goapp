@@ -4,7 +4,6 @@ import (
 	"github.com/BurntSushi/toml"
 	"github.com/golang/glog"
 	"github.com/urfave/cli"
-	"os"
 	"path/filepath"
 )
 
@@ -12,7 +11,7 @@ var Conf Config
 
 var CommonFlags = []cli.Flag{
 	cli.StringFlag{Name: "config-dir", Value: "/etc/goapp", Usage: "config-dir"},
-	cli.BoolFlag{Name: "use-testdata", Usage: "use testdata"},
+	cli.BoolFlag{Name: "use-pwd", Usage: "use PWD"},
 }
 
 var VersionFlag = cli.BoolFlag{Name: "print-version, V", Usage: "print only the version"}
@@ -20,14 +19,7 @@ var VersionFlag = cli.BoolFlag{Name: "print-version, V", Usage: "print only the 
 func Init(ctx *cli.Context) error {
 	glogGangstaShim(ctx)
 
-	var configDir string
-	if ctx.GlobalBool("use-testdata") {
-		configDir = os.Getenv("PWD") + "/testdata"
-	} else {
-		configDir = ctx.GlobalString("config-dir")
-	}
-
-	newConfig := newConfig(ctx, configDir)
+	newConfig := newConfig(ctx)
 	_, err := toml.DecodeFile(newConfig.Default.ConfigFile, newConfig)
 	if err != nil {
 		glog.Errorf("Failed to decode file : %!s(MISSING)", err)

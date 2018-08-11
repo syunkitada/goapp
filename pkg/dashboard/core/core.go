@@ -17,34 +17,37 @@ var (
 	Conf = &config.Conf
 )
 
-type Authproxy struct {
+type Dashboard struct {
 	Listen          string
 	AllowedHosts    []string
 	CertFile        string
 	KeyFile         string
 	HealthClient    *grpc_client.HealthClient
 	GracefulTimeout time.Duration
+	TemplatesDir    string
+	StaticDir       string
 }
 
-func NewAuthproxy() *Authproxy {
-	authproxy := &Authproxy{
-		Listen:          Conf.Authproxy.Listen,
-		AllowedHosts:    Conf.Authproxy.AllowedHosts,
-		CertFile:        Conf.Authproxy.CertFile,
-		KeyFile:         Conf.Authproxy.KeyFile,
-		HealthClient:    grpc_client.NewHealthClient(),
-		GracefulTimeout: time.Duration(Conf.Authproxy.GracefulTimeout) * time.Second,
+func NewDashboard() *Dashboard {
+	dashboard := &Dashboard{
+		Listen:          Conf.Dashboard.Listen,
+		AllowedHosts:    Conf.Dashboard.AllowedHosts,
+		CertFile:        Conf.Dashboard.CertFile,
+		KeyFile:         Conf.Dashboard.KeyFile,
+		GracefulTimeout: time.Duration(Conf.Dashboard.GracefulTimeout) * time.Second,
+		TemplatesDir:    Conf.Dashboard.TemplatesDir,
+		StaticDir:       Conf.Dashboard.StaticDir,
 	}
-	return authproxy
+	return dashboard
 }
 
-func (authproxy *Authproxy) Serv() {
-	certPath := Conf.Path(authproxy.CertFile)
-	keyPath := Conf.Path(authproxy.KeyFile)
-	handler := authproxy.NewHandler()
+func (dashboard *Dashboard) Serv() {
+	certPath := Conf.Path(dashboard.CertFile)
+	keyPath := Conf.Path(dashboard.KeyFile)
+	handler := dashboard.NewHandler()
 
 	s := &http.Server{
-		Addr:           authproxy.Listen,
+		Addr:           dashboard.Listen,
 		Handler:        handler,
 		ReadTimeout:    10 * time.Second,
 		WriteTimeout:   10 * time.Second,
@@ -65,10 +68,11 @@ func (authproxy *Authproxy) Serv() {
 	<-quit
 	glog.Info("Shutdown Server ...")
 
-	ctx, cancel := context.WithTimeout(context.Background(), authproxy.GracefulTimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), dashboard.GracefulTimeout)
 	defer cancel()
 	if err := s.Shutdown(ctx); err != nil {
 		glog.Fatal("Server Shutdown:", err)
 	}
 	glog.Info("Server exiting")
+
 }

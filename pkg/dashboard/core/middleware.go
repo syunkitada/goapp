@@ -2,6 +2,7 @@ package core
 
 import (
 	"fmt"
+	"github.com/dgrijalva/jwt-go"
 	"net/http"
 	"strings"
 
@@ -14,13 +15,13 @@ import (
 // SecureHeaders adds secure headers to the API
 // func (a *API) SecureHeaders(next http.Handler) http.Handler {
 // return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-func (authproxy *Authproxy) ValidateHeaders() gin.HandlerFunc {
+func (dashboard *Dashboard) ValidateHeaders() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Check AllowedHosts
 		var err error
-		if len(authproxy.AllowedHosts) > 0 {
+		if len(dashboard.AllowedHosts) > 0 {
 			isGoodHost := false
-			for _, allowedHost := range authproxy.AllowedHosts {
+			for _, allowedHost := range dashboard.AllowedHosts {
 				if strings.EqualFold(allowedHost, c.Request.Host) {
 					isGoodHost = true
 					break
@@ -60,12 +61,12 @@ func (authproxy *Authproxy) ValidateHeaders() gin.HandlerFunc {
 	}
 }
 
-func (authproxy *Authproxy) AuthRequired() gin.HandlerFunc {
+func (dashboard *Dashboard) AuthRequired() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var tokenAuthRequest model.TokenAuthRequest
 		c.Bind(&tokenAuthRequest)
 
-		claims, err := authproxy.ParseToken(tokenAuthRequest)
+		claims, err := dashboard.ParseToken(tokenAuthRequest)
 		if err != nil {
 			glog.Warning("Invalid AuthRequest: Failed ParseToken")
 			c.JSON(http.StatusUnauthorized, gin.H{
@@ -79,4 +80,24 @@ func (authproxy *Authproxy) AuthRequired() gin.HandlerFunc {
 		c.Set("ProjectName", claims["ProjectName"])
 		c.Set("ProjectRoleName", claims["ProjectRoleName"])
 	}
+}
+
+func (dashboard *Dashboard) ParseToken(request model.TokenAuthRequest) (jwt.MapClaims, error) {
+	token, err := jwt.Parse(request.Token, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			msg := fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+			return nil, msg
+		}
+		return []byte(Conf.Admin.TokenSecret + request.Username), nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		return claims, nil
+	}
+
+	return nil, nil
 }
