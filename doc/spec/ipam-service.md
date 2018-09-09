@@ -27,6 +27,16 @@
     * SubnetID
     * IpAddress
     * MacAddress
+* Link
+    * PortID
+    * PairPortID
+* Node
+    * Name
+    * Type
+    * Model
+* NodePort
+    * NodeID
+    * PortID
 
 
 ## Method
