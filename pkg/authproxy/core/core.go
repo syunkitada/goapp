@@ -9,6 +9,8 @@ import (
 
 	"github.com/golang/glog"
 
+	"github.com/syunkitada/goapp/pkg/authproxy/core/auth"
+	"github.com/syunkitada/goapp/pkg/authproxy/core/dashboard"
 	"github.com/syunkitada/goapp/pkg/config"
 	"github.com/syunkitada/goapp/pkg/health/grpc_client"
 )
@@ -24,6 +26,8 @@ type Authproxy struct {
 	KeyFile         string
 	HealthClient    *grpc_client.HealthClient
 	GracefulTimeout time.Duration
+	Auth            *auth.Auth
+	Dashboard       *dashboard.Dashboard
 }
 
 func NewAuthproxy() *Authproxy {
@@ -34,6 +38,8 @@ func NewAuthproxy() *Authproxy {
 		KeyFile:         Conf.Authproxy.KeyFile,
 		HealthClient:    grpc_client.NewHealthClient(),
 		GracefulTimeout: time.Duration(Conf.Authproxy.GracefulTimeout) * time.Second,
+		Auth:            auth.NewAuth(),
+		Dashboard:       dashboard.NewDashboard(),
 	}
 	return authproxy
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/golang/glog"
 
+	"github.com/syunkitada/goapp/pkg/authproxy/core/auth"
 	"github.com/syunkitada/goapp/pkg/authproxy/model"
 )
 
@@ -31,6 +32,7 @@ func (authproxy *Authproxy) ValidateHeaders() gin.HandlerFunc {
 					"error": fmt.Sprintf("Bad host name: %s", c.Request.Host),
 				})
 				c.Abort()
+				return
 			}
 		}
 		// If there was an error, do not continue request
@@ -39,6 +41,7 @@ func (authproxy *Authproxy) ValidateHeaders() gin.HandlerFunc {
 				"error": fmt.Sprintf("Failed to check allowed hosts"),
 			})
 			c.Abort()
+			return
 		}
 
 		// Add X-XSS-Protection header
@@ -57,26 +60,37 @@ func (authproxy *Authproxy) ValidateHeaders() gin.HandlerFunc {
 
 		// Prevent page from being displayed in an iframe
 		c.Writer.Header().Add("X-Frame-Options", "DENY")
+
+		// Allow Origin
+		c.Writer.Header().Add("Access-Control-Allow-Origin", "http://192.168.10.103:3000")
+		c.Writer.Header().Add("Access-Control-Allow-Credentials", "true")
 	}
 }
 
 func (authproxy *Authproxy) AuthRequired() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		glog.Info("DEBUG Auth")
+
 		var tokenAuthRequest model.TokenAuthRequest
 		c.Bind(&tokenAuthRequest)
 
-		claims, err := authproxy.ParseToken(tokenAuthRequest)
+		value, cookieErr := c.Cookie("token")
+		if cookieErr == nil {
+			tokenAuthRequest.Token = value
+			glog.Info(tokenAuthRequest.Token)
+		}
+
+		claims, err := auth.ParseToken(tokenAuthRequest)
 		if err != nil {
 			glog.Warning("Invalid AuthRequest: Failed ParseToken")
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"error": "Invalid AuthRequest",
 			})
+			glog.Info("hoge")
 			c.Abort()
+			return
 		}
 
-		c.Set("UserName", claims["UserName"])
-		c.Set("RoleName", claims["RoleName"])
-		c.Set("ProjectName", claims["ProjectName"])
-		c.Set("ProjectRoleName", claims["ProjectRoleName"])
+		c.Set("Username", claims["Username"])
 	}
 }

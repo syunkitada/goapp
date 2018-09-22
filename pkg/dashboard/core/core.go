@@ -24,8 +24,7 @@ type Dashboard struct {
 	KeyFile         string
 	HealthClient    *grpc_client.HealthClient
 	GracefulTimeout time.Duration
-	TemplatesDir    string
-	StaticDir       string
+	BuildDir        string
 }
 
 func NewDashboard() *Dashboard {
@@ -35,8 +34,7 @@ func NewDashboard() *Dashboard {
 		CertFile:        Conf.Dashboard.CertFile,
 		KeyFile:         Conf.Dashboard.KeyFile,
 		GracefulTimeout: time.Duration(Conf.Dashboard.GracefulTimeout) * time.Second,
-		TemplatesDir:    Conf.Dashboard.TemplatesDir,
-		StaticDir:       Conf.Dashboard.StaticDir,
+		BuildDir:        Conf.Dashboard.BuildDir,
 	}
 	return dashboard
 }

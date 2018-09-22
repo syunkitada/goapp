@@ -12,11 +12,7 @@ func (dashboard *Dashboard) NewHandler() http.Handler {
 	handler.Use(gin.Recovery())
 	handler.Use(dashboard.ValidateHeaders())
 
-	handler.StaticFS("/static", http.Dir(dashboard.StaticDir))
-	handler.LoadHTMLGlob(dashboard.TemplatesDir)
-
-	handler.GET("/", dashboard.Login)
-	handler.GET("/login", dashboard.LoginIndex)
+	handler.StaticFS("/", http.Dir(dashboard.BuildDir))
 
 	// authorized := handler.Group("/")
 	// authorized.Use(dashboard.AuthRequired())

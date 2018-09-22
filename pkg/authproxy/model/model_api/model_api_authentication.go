@@ -169,15 +169,15 @@ func AssignProjectRole(projectName string, projectRoleName string) error {
 	return nil
 }
 
-func GetAuthUser(authRequest *model.AuthRequest) (*model.CustomUser, error) {
+func GetAuthUser(authRequest *model.AuthRequest) (*model.User, error) {
 	db, err := gorm.Open("mysql", Conf.AuthproxyDatabase.Connection)
 	defer db.Close()
 	if err != nil {
 		return nil, err
 	}
 
-	var users []model.CustomUser
-	if err := db.Debug().Raw(sqlSelectUser+" WHERE u.name LIKE ? AND p.name LIKE ?", authRequest.Username, authRequest.Project).Scan(&users).Error; err != nil {
+	var users []model.User
+	if err := db.Debug().Where("name = ?", authRequest.Username).Find(&users).Error; err != nil {
 		return nil, err
 	}
 

@@ -42,8 +42,7 @@ type DatabaseConfig struct {
 
 type DashboardConfig struct {
 	HttpServerConfig
-	StaticDir    string
-	TemplatesDir string
+	BuildDir string
 }
 
 type GrpcConfig struct {
@@ -64,13 +63,11 @@ type AdminConfig struct {
 
 func newConfig(ctx *cli.Context) *Config {
 	configDir := "/etc/goapp"
-	dashboardStaticDir := "/opt/goapp/htdocs/static"
-	dashboardTemplatesDir := "/opt/goapp/htdocs/templates/**/*"
+	dashboardBuildDir := "/opt/goapp/dashboard/build"
 	if ctx.GlobalBool("use-pwd") {
 		pwd := os.Getenv("PWD")
 		configDir = pwd + "/testdata"
-		dashboardStaticDir = pwd + "/htdocs/static"
-		dashboardTemplatesDir = pwd + "/htdocs/templates/**/*"
+		dashboardBuildDir = pwd + "/dashboard/build"
 	}
 
 	defaultConfig := &Config{
@@ -83,7 +80,8 @@ func newConfig(ctx *cli.Context) *Config {
 			Listen: "0.0.0.0:8000",
 			AllowedHosts: []string{
 				"localhost:8000",
-				"192.168.10.103:7000",
+				"192.168.10.103:3000",
+				"192.168.10.103:8000",
 			},
 			CertFile:        "tls-assets/server.pem",
 			KeyFile:         "tls-assets/server.key",
@@ -103,8 +101,7 @@ func newConfig(ctx *cli.Context) *Config {
 				KeyFile:         "tls-assets/server.key",
 				GracefulTimeout: 10,
 			},
-			StaticDir:    dashboardStaticDir,
-			TemplatesDir: dashboardTemplatesDir,
+			BuildDir: dashboardBuildDir,
 		},
 		Agent: AgentConfig{
 			ReportInterval: 10,

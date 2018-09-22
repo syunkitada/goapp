@@ -14,19 +14,15 @@ func (authproxy *Authproxy) Health(c *gin.Context) {
 }
 
 func (authproxy *Authproxy) AuthHealth(c *gin.Context) {
-	userName, userNameOk := c.Get("UserName")
-	roleName, roleNameOk := c.Get("RoleName")
-	projectName, projectNameOk := c.Get("ProjectName")
-	projectRoleName, projectRoleNameOk := c.Get("ProjectRoleName")
-	if !userNameOk || !roleNameOk || !projectNameOk || !projectRoleNameOk {
-		glog.Error("Success AuthHealth: userName(%v), roleName(%v), projectName(%v), projectRoleName(%v)", userNameOk, roleNameOk, projectNameOk, projectRoleNameOk)
+	username, usernameOk := c.Get("Username")
+	if !usernameOk {
 		c.JSON(500, gin.H{
 			"message": "Invalid request",
 		})
 		return
 	}
 
-	glog.Info("Success AuthHealth: userName(%v), roleName(%v), projectName(%v), projectRoleName(%v)", userName, roleName, projectName, projectRoleName)
+	glog.Info("Success AuthHealth: username(%v)", username)
 
 	c.JSON(200, gin.H{
 		"message": "Health",

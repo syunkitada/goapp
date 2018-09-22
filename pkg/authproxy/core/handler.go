@@ -12,13 +12,15 @@ func (authproxy *Authproxy) NewHandler() http.Handler {
 	handler.Use(gin.Recovery())
 	handler.Use(authproxy.ValidateHeaders())
 
-	handler.POST("/token", authproxy.IssueToken)
+	handler.POST("/token", authproxy.Auth.IssueToken)
+	handler.POST("/dashboard/login", authproxy.Dashboard.Login)
 	handler.GET("/health", authproxy.Health)
 	handler.GET("/health-grpc", authproxy.HealthGrpc)
 
 	authorized := handler.Group("/")
 	authorized.Use(authproxy.AuthRequired())
 	{
+		authorized.GET("/dashboard/state", authproxy.Dashboard.GetState)
 		authorized.GET("/auth-health", authproxy.AuthHealth)
 	}
 
