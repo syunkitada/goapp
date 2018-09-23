@@ -2,7 +2,7 @@ import React, {Component} from 'react'
 import { connect } from 'react-redux'
 import { BrowserRouter, Route, Link, Switch, Redirect, withRouter } from 'react-router-dom';
 
-class AuthenticatedRoute extends Component {
+class AuthRoute extends Component {
   render() {
     const { component: Component, auth, ...rest } = this.props
     return (
@@ -34,4 +34,4 @@ function mapStateToProps(state, ownProps) {
 
 export default connect(
   mapStateToProps,
-)(AuthenticatedRoute)
+)(AuthRoute)

@@ -39,3 +39,6 @@ type CustomUser struct {
 	ProjectName     string
 	ProjectRoleName string
 }
+
+type CustomProject struct {
+}

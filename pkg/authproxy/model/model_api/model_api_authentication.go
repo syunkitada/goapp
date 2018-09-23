@@ -206,3 +206,8 @@ func GenerateHashFromPassword(username string, password string) (string, error) 
 
 	return hex.EncodeToString(converted[:]), nil
 }
+
+func GetProjects(username string) ([]model.CustomProject, error) {
+	// TODO
+	return nil, nil
+}

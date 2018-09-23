@@ -10,6 +10,7 @@ import (
 
 	"github.com/syunkitada/goapp/pkg/authproxy/core/auth"
 	"github.com/syunkitada/goapp/pkg/authproxy/model"
+	"github.com/syunkitada/goapp/pkg/authproxy/model/model_api"
 )
 
 // SecureHeaders adds secure headers to the API
@@ -90,6 +91,17 @@ func (authproxy *Authproxy) AuthRequired() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
+
+		username := claims["Username"].(string)
+
+		projects, getProjectsErr := model_api.GetProjects(username)
+		if getProjectsErr != nil {
+			glog.Error(getProjectsErr)
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"error": "Invalid AuthRequest",
+			})
+		}
+		glog.Info(projects)
 
 		c.Set("Username", claims["Username"])
 	}

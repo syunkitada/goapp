@@ -34,7 +34,7 @@ func (dashboard *Dashboard) Login(c *gin.Context) {
 	}
 
 	glog.Info("Success Login: ", authRequest)
-	c.SetCookie("token", token, 3600, "/", "192.168.10.103", false, false)
+	c.SetCookie("token", token, 3600, "/", "192.168.10.103", true, true)
 	c.JSON(http.StatusOK, gin.H{
 		"username": authRequest.Username,
 	})
