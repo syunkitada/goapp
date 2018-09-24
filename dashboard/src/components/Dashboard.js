@@ -19,7 +19,9 @@ import NotificationsIcon from '@material-ui/icons/Notifications';
 import SearchIcon from '@material-ui/icons/Search';
 import Input from '@material-ui/core/Input';
 import AccountCircle from '@material-ui/icons/AccountCircle';
-import { mainListItems, secondaryListItems } from './listItems';
+import Sidebar from './Sidebar'
+import MainListItems from './MainListItems'
+import SecondaryListItems from './SecondaryListItems'
 import MoreIcon from '@material-ui/icons/MoreVert';
 import MenuItem from '@material-ui/core/MenuItem';
 import Menu from '@material-ui/core/Menu';
@@ -236,10 +238,7 @@ class Dashboard extends React.Component {
     const drawer = (
       <div>
         <div className={classes.toolbar} />
-        <Divider />
-        <List>{mainListItems}</List>
-        <Divider />
-        <List>{secondaryListItems}</List>
+        <Sidebar />
       </div>
     );
 
