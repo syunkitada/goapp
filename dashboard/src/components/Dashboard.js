@@ -19,13 +19,12 @@ import NotificationsIcon from '@material-ui/icons/Notifications';
 import SearchIcon from '@material-ui/icons/Search';
 import Input from '@material-ui/core/Input';
 import AccountCircle from '@material-ui/icons/AccountCircle';
-import Sidebar from './Sidebar'
-import MainListItems from './MainListItems'
-import SecondaryListItems from './SecondaryListItems'
 import MoreIcon from '@material-ui/icons/MoreVert';
 import MenuItem from '@material-ui/core/MenuItem';
 import Menu from '@material-ui/core/Menu';
 import MailIcon from '@material-ui/icons/Mail';
+
+import LeftSidebar from '../containers/LeftSidebar'
 
 const drawerWidth = 240;
 
@@ -184,7 +183,7 @@ class Dashboard extends React.Component {
 
   render() {
     const { anchorEl, mobileMoreAnchorEl } = this.state;
-    const { classes, theme, children } = this.props;
+    const { classes, theme, children, projectService, match } = this.props;
     const isMenuOpen = Boolean(anchorEl);
     const isMobileMenuOpen = Boolean(mobileMoreAnchorEl);
 
@@ -238,7 +237,7 @@ class Dashboard extends React.Component {
     const drawer = (
       <div>
         <div className={classes.toolbar} />
-        <Sidebar />
+        <LeftSidebar projectService={projectService} match={match} />
       </div>
     );
 
@@ -317,18 +316,7 @@ class Dashboard extends React.Component {
 
           <main className={classes.content}>
             <div className={classes.appBarSpacer} />
-            <Typography variant="display1" gutterBottom>
-              Orders
-            </Typography>
-            <Typography component="div" className={classes.chartContainer}>
-              SimpleLineChart
-            </Typography>
-            <Typography variant="display1" gutterBottom>
-              Products
-            </Typography>
-            <div className={classes.tableContainer}>
-              {children}
-            </div>
+            {children}
           </main>
         </div>
       </React.Fragment>

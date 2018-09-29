@@ -5,9 +5,9 @@ import (
 	"errors"
 
 	_ "github.com/go-sql-driver/mysql"
-	"golang.org/x/crypto/scrypt"
-	// "github.com/golang/glog"
+	"github.com/golang/glog"
 	"github.com/jinzhu/gorm"
+	"golang.org/x/crypto/scrypt"
 
 	"github.com/syunkitada/goapp/pkg/authproxy/model"
 )
@@ -169,6 +169,50 @@ func AssignProjectRole(projectName string, projectRoleName string) error {
 	return nil
 }
 
+func CreateService(name string, scope string) error {
+	db, err := gorm.Open("mysql", Conf.AuthproxyDatabase.Connection)
+	defer db.Close()
+	if err != nil {
+		return err
+	}
+
+	var service model.Service
+
+	if err := db.Debug().Where("name = ?", name).First(&service).Error; err != nil {
+		if !gorm.IsRecordNotFoundError(err) {
+			return err
+		}
+
+		service = model.Service{
+			Name:  name,
+			Scope: scope,
+		}
+		db.Debug().Create(&service)
+
+		return nil
+	}
+
+	return nil
+}
+
+func AssignService(projectRoleName string, serviceName string) error {
+	db, err := gorm.Open("mysql", Conf.AuthproxyDatabase.Connection)
+	defer db.Close()
+	if err != nil {
+		return err
+	}
+
+	var projectRole model.ProjectRole
+	var service model.Service
+
+	db.Debug().Where("name = ?", serviceName).First(&service)
+
+	db.Debug().Preload("Services").First(&projectRole, "name = ?", projectRoleName)
+	db.Debug().Model(&projectRole).Association("Services").Append(&service)
+
+	return nil
+}
+
 func GetAuthUser(authRequest *model.AuthRequest) (*model.User, error) {
 	db, err := gorm.Open("mysql", Conf.AuthproxyDatabase.Connection)
 	defer db.Close()
@@ -207,7 +251,45 @@ func GenerateHashFromPassword(username string, password string) (string, error) 
 	return hex.EncodeToString(converted[:]), nil
 }
 
-func GetProjects(username string) ([]model.CustomProject, error) {
-	// TODO
-	return nil, nil
+func GetUserAuthority(username string) (*model.UserAuthority, error) {
+	db, err := gorm.Open("mysql", Conf.AuthproxyDatabase.Connection)
+	defer db.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	var users []model.CustomUser
+	if err := db.Debug().Raw(sqlSelectUser+"WHERE u.name = ?", username).Scan(&users).Error; err != nil {
+		return nil, err
+	}
+
+	serviceMap := map[string]bool{}
+	projectServiceMap := map[string]model.ProjectService{}
+	for _, user := range users {
+		switch user.ServiceScope {
+		case "user":
+			serviceMap[user.ServiceName] = true
+		case "project":
+			glog.Info(user)
+			if projectService, ok := projectServiceMap[user.ProjectName]; ok {
+				projectService.ServiceMap[user.ServiceName] = true
+			} else {
+				projectService := model.ProjectService{
+					RoleName:        user.RoleName,
+					ProjectName:     user.ProjectName,
+					ProjectRoleName: user.ProjectRoleName,
+					ServiceMap:      map[string]bool{},
+				}
+				projectService.ServiceMap[user.ServiceName] = true
+				projectServiceMap[user.ProjectName] = projectService
+			}
+		}
+	}
+
+	userAuthority := model.UserAuthority{
+		ServiceMap:        serviceMap,
+		ProjectServiceMap: projectServiceMap,
+	}
+
+	return &userAuthority, nil
 }

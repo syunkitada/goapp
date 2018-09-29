@@ -13,7 +13,8 @@ function* syncState(action) {
     yield put(actions.auth.loginFailure(""))
   } else {
     const user = {
-      name: payload.username,
+      Name: payload.Name,
+      Authority: payload.Authority,
     }
     yield put(actions.auth.loginSuccess(user))
   }
@@ -32,7 +33,8 @@ function* login(action) {
     yield put(actions.auth.loginFailure(""))
   } else {
     const user = {
-      name: payload.username,
+      Name: payload.Username,
+      Authority: payload.Authority,
     }
     yield put(actions.auth.loginSuccess(user))
   }

@@ -28,17 +28,50 @@ type Project struct {
 
 type ProjectRole struct {
 	gorm.Model
-	Name string
+	Name     string
+	Services []Service `gorm:"many2many:project_role_services"`
+}
+
+type Service struct {
+	gorm.Model
+	Name  string
+	Scope string
+}
+
+type Action struct {
+	Name          string
+	Service       Service `gorm:"foreignkey:ServiceID;association_foreignkey:Refer;"`
+	ServiceID     uint
+	Role          Role `gorm:"foreignkey:RoleID;association_foreignkey:Refer;"`
+	RoleID        uint
+	ProjectRole   ProjectRole `gorm:"foreignkey:ProjectRoleID;association_foreignkey:Refer;"`
+	ProjectRoleID uint
 }
 
 type CustomUser struct {
 	gorm.Model
 	Name            string
-	Password        string
 	RoleName        string
 	ProjectName     string
 	ProjectRoleName string
+	ServiceName     string
+	ServiceScope    string
 }
 
 type CustomProject struct {
+	Name            string
+	RoleName        string
+	ProjectRoleName string
+}
+
+type UserAuthority struct {
+	ServiceMap        map[string]bool
+	ProjectServiceMap map[string]ProjectService
+}
+
+type ProjectService struct {
+	RoleName        string
+	ProjectName     string
+	ProjectRoleName string
+	ServiceMap      map[string]bool
 }

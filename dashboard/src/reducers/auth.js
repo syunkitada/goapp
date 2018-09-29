@@ -6,8 +6,8 @@ const defaultState = {
   isSyncState: false,
   isFetching: false,
   redirectToReferrer: false,
-  user: null,
   error: null,
+  user: null,
 };
 
 export default handleActions({

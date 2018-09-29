@@ -23,6 +23,7 @@ func MigrateDatabase() error {
 	db.AutoMigrate(&model.Role{})
 	db.AutoMigrate(&model.Project{})
 	db.AutoMigrate(&model.ProjectRole{})
+	db.AutoMigrate(&model.Service{})
 
 	if err := model_api.CreateUser(Conf.Admin.Username, Conf.Admin.Password); err != nil {
 		glog.Error(err)
@@ -30,6 +31,11 @@ func MigrateDatabase() error {
 	}
 
 	if err := model_api.CreateProjectRole("admin"); err != nil {
+		glog.Error(err)
+		return err
+	}
+
+	if err := model_api.CreateProjectRole("tenant"); err != nil {
 		glog.Error(err)
 		return err
 	}
@@ -47,6 +53,56 @@ func MigrateDatabase() error {
 	if err := model_api.AssignRole("admin", "admin"); err != nil {
 		glog.Error(err)
 		return err
+	}
+
+	userTenantServices := []string{"Wiki", "Chat", "Ticket"}
+	userAdminServices := []string{"Datacenter"}
+	projectTenantServices := []string{"Resource"}
+
+	for _, userTenantService := range userTenantServices {
+		if err := model_api.CreateService(userTenantService, "user"); err != nil {
+			glog.Error(err)
+			return err
+		}
+
+		if err := model_api.AssignService("tenant", userTenantService); err != nil {
+			glog.Error(err)
+			return err
+		}
+
+		if err := model_api.AssignService("admin", userTenantService); err != nil {
+			glog.Error(err)
+			return err
+		}
+	}
+
+	for _, userAdminService := range userAdminServices {
+		if err := model_api.CreateService(userAdminService, "user"); err != nil {
+			glog.Error(err)
+			return err
+		}
+
+		if err := model_api.AssignService("admin", userAdminService); err != nil {
+			glog.Error(err)
+			return err
+		}
+	}
+
+	for _, projectTenantService := range projectTenantServices {
+		if err := model_api.CreateService(projectTenantService, "project"); err != nil {
+			glog.Error(err)
+			return err
+		}
+
+		if err := model_api.AssignService("tenant", projectTenantService); err != nil {
+			glog.Error(err)
+			return err
+		}
+
+		if err := model_api.AssignService("admin", projectTenantService); err != nil {
+			glog.Error(err)
+			return err
+		}
 	}
 
 	return nil

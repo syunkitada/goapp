@@ -7,7 +7,8 @@ import (
 
 func (dashboard *Dashboard) GetState(c *gin.Context) {
 	username, usernameOk := c.Get("Username")
-	if !usernameOk {
+	userAuthority, userAuthorityOk := c.Get("UserAuthority")
+	if !usernameOk || !userAuthorityOk {
 		c.JSON(500, gin.H{
 			"error": "Invalid request",
 		})
@@ -15,8 +16,10 @@ func (dashboard *Dashboard) GetState(c *gin.Context) {
 	}
 
 	glog.Info("Success AuthHealth: username(%v)", username)
+	glog.Info(userAuthority)
 
 	c.JSON(200, gin.H{
-		"username": username,
+		"Name":      username,
+		"Authority": userAuthority,
 	})
 }

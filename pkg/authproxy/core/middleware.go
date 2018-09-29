@@ -94,15 +94,15 @@ func (authproxy *Authproxy) AuthRequired() gin.HandlerFunc {
 
 		username := claims["Username"].(string)
 
-		projects, getProjectsErr := model_api.GetProjects(username)
-		if getProjectsErr != nil {
-			glog.Error(getProjectsErr)
+		userAuthority, getUserAuthorityErr := model_api.GetUserAuthority(username)
+		if getUserAuthorityErr != nil {
+			glog.Error(getUserAuthorityErr)
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"error": "Invalid AuthRequest",
 			})
 		}
-		glog.Info(projects)
 
 		c.Set("Username", claims["Username"])
+		c.Set("UserAuthority", userAuthority)
 	}
 }

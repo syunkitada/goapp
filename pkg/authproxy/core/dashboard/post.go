@@ -9,6 +9,7 @@ import (
 
 	"github.com/syunkitada/goapp/pkg/authproxy/core/auth"
 	"github.com/syunkitada/goapp/pkg/authproxy/model"
+	"github.com/syunkitada/goapp/pkg/authproxy/model/model_api"
 )
 
 func (dashboard *Dashboard) Login(c *gin.Context) {
@@ -33,10 +34,19 @@ func (dashboard *Dashboard) Login(c *gin.Context) {
 		return
 	}
 
+	userAuthority, getUserAuthorityErr := model_api.GetUserAuthority(authRequest.Username)
+	if getUserAuthorityErr != nil {
+		glog.Error(getUserAuthorityErr)
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "Invalid AuthRequest",
+		})
+	}
+
 	glog.Info("Success Login: ", authRequest)
 	c.SetCookie("token", token, 3600, "/", "192.168.10.103", true, true)
 	c.JSON(http.StatusOK, gin.H{
-		"username": authRequest.Username,
+		"Name":      authRequest.Username,
+		"Authority": userAuthority,
 	})
 
 	return
