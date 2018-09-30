@@ -1,16 +1,21 @@
 package auth
 
 import (
+	"github.com/syunkitada/goapp/pkg/authproxy/model/model_api"
 	"github.com/syunkitada/goapp/pkg/config"
 )
 
-var (
-	Conf = &config.Conf
-)
+type Auth struct {
+	Conf     *config.Config
+	ModelApi *model_api.ModelApi
+	Token    *Token
+}
 
-type Auth struct{}
-
-func NewAuth() *Auth {
-	auth := Auth{}
+func NewAuth(conf *config.Config, modelApi *model_api.ModelApi, token *Token) *Auth {
+	auth := Auth{
+		Conf:     conf,
+		ModelApi: modelApi,
+		Token:    token,
+	}
 	return &auth
 }

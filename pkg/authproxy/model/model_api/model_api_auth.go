@@ -12,8 +12,8 @@ import (
 	"github.com/syunkitada/goapp/pkg/authproxy/model"
 )
 
-func CreateUser(name string, password string) error {
-	db, err := gorm.Open("mysql", Conf.AuthproxyDatabase.Connection)
+func (modelApi *ModelApi) CreateUser(name string, password string) error {
+	db, err := gorm.Open("mysql", modelApi.Conf.AuthproxyDatabase.Connection)
 	defer db.Close()
 	if err != nil {
 		return err
@@ -26,7 +26,7 @@ func CreateUser(name string, password string) error {
 			return err
 		}
 
-		hashedPassword, hashedErr := GenerateHashFromPassword(name, password)
+		hashedPassword, hashedErr := modelApi.GenerateHashFromPassword(name, password)
 		if hashedErr != nil {
 			return hashedErr
 		}
@@ -43,8 +43,8 @@ func CreateUser(name string, password string) error {
 	return nil
 }
 
-func CreateRole(name string, projectName string) error {
-	db, err := gorm.Open("mysql", Conf.AuthproxyDatabase.Connection)
+func (modelApi *ModelApi) CreateRole(name string, projectName string) error {
+	db, err := gorm.Open("mysql", modelApi.Conf.AuthproxyDatabase.Connection)
 	defer db.Close()
 	if err != nil {
 		return err
@@ -76,8 +76,8 @@ func CreateRole(name string, projectName string) error {
 	return nil
 }
 
-func AssignRole(userName string, roleName string) error {
-	db, err := gorm.Open("mysql", Conf.AuthproxyDatabase.Connection)
+func (modelApi *ModelApi) AssignRole(userName string, roleName string) error {
+	db, err := gorm.Open("mysql", modelApi.Conf.AuthproxyDatabase.Connection)
 	defer db.Close()
 	if err != nil {
 		return err
@@ -93,8 +93,8 @@ func AssignRole(userName string, roleName string) error {
 	return nil
 }
 
-func CreateProject(name string, projectRoleName string) error {
-	db, err := gorm.Open("mysql", Conf.AuthproxyDatabase.Connection)
+func (modelApi *ModelApi) CreateProject(name string, projectRoleName string) error {
+	db, err := gorm.Open("mysql", modelApi.Conf.AuthproxyDatabase.Connection)
 	defer db.Close()
 	if err != nil {
 		return err
@@ -126,8 +126,8 @@ func CreateProject(name string, projectRoleName string) error {
 	return nil
 }
 
-func CreateProjectRole(name string) error {
-	db, err := gorm.Open("mysql", Conf.AuthproxyDatabase.Connection)
+func (modelApi *ModelApi) CreateProjectRole(name string) error {
+	db, err := gorm.Open("mysql", modelApi.Conf.AuthproxyDatabase.Connection)
 	defer db.Close()
 	if err != nil {
 		return err
@@ -152,8 +152,8 @@ func CreateProjectRole(name string) error {
 
 }
 
-func AssignProjectRole(projectName string, projectRoleName string) error {
-	db, err := gorm.Open("mysql", Conf.AuthproxyDatabase.Connection)
+func (modelApi *ModelApi) AssignProjectRole(projectName string, projectRoleName string) error {
+	db, err := gorm.Open("mysql", modelApi.Conf.AuthproxyDatabase.Connection)
 	defer db.Close()
 	if err != nil {
 		return err
@@ -169,8 +169,8 @@ func AssignProjectRole(projectName string, projectRoleName string) error {
 	return nil
 }
 
-func CreateService(name string, scope string) error {
-	db, err := gorm.Open("mysql", Conf.AuthproxyDatabase.Connection)
+func (modelApi *ModelApi) CreateService(name string, scope string) error {
+	db, err := gorm.Open("mysql", modelApi.Conf.AuthproxyDatabase.Connection)
 	defer db.Close()
 	if err != nil {
 		return err
@@ -195,8 +195,8 @@ func CreateService(name string, scope string) error {
 	return nil
 }
 
-func AssignService(projectRoleName string, serviceName string) error {
-	db, err := gorm.Open("mysql", Conf.AuthproxyDatabase.Connection)
+func (modelApi *ModelApi) AssignService(projectRoleName string, serviceName string) error {
+	db, err := gorm.Open("mysql", modelApi.Conf.AuthproxyDatabase.Connection)
 	defer db.Close()
 	if err != nil {
 		return err
@@ -213,8 +213,8 @@ func AssignService(projectRoleName string, serviceName string) error {
 	return nil
 }
 
-func GetAuthUser(authRequest *model.AuthRequest) (*model.User, error) {
-	db, err := gorm.Open("mysql", Conf.AuthproxyDatabase.Connection)
+func (modelApi *ModelApi) GetAuthUser(authRequest *model.AuthRequest) (*model.User, error) {
+	db, err := gorm.Open("mysql", modelApi.Conf.AuthproxyDatabase.Connection)
 	defer db.Close()
 	if err != nil {
 		return nil, err
@@ -229,7 +229,7 @@ func GetAuthUser(authRequest *model.AuthRequest) (*model.User, error) {
 		return nil, errors.New("Invalid User")
 	}
 
-	hashedPassword, hashedErr := GenerateHashFromPassword(authRequest.Username, authRequest.Password)
+	hashedPassword, hashedErr := modelApi.GenerateHashFromPassword(authRequest.Username, authRequest.Password)
 	if hashedErr != nil {
 		return nil, hashedErr
 	}
@@ -242,8 +242,8 @@ func GetAuthUser(authRequest *model.AuthRequest) (*model.User, error) {
 	return &user, nil
 }
 
-func GenerateHashFromPassword(username string, password string) (string, error) {
-	converted, err := scrypt.Key([]byte(password), []byte(Conf.Admin.Secret+username), 16384, 8, 1, 32)
+func (modelApi *ModelApi) GenerateHashFromPassword(username string, password string) (string, error) {
+	converted, err := scrypt.Key([]byte(password), []byte(modelApi.Conf.Admin.Secret+username), 16384, 8, 1, 32)
 	if err != nil {
 		return "", err
 	}
@@ -251,8 +251,8 @@ func GenerateHashFromPassword(username string, password string) (string, error) 
 	return hex.EncodeToString(converted[:]), nil
 }
 
-func GetUserAuthority(username string) (*model.UserAuthority, error) {
-	db, err := gorm.Open("mysql", Conf.AuthproxyDatabase.Connection)
+func (modelApi *ModelApi) GetUserAuthority(username string) (*model.UserAuthority, error) {
+	db, err := gorm.Open("mysql", modelApi.Conf.AuthproxyDatabase.Connection)
 	defer db.Close()
 	if err != nil {
 		return nil, err

@@ -7,9 +7,7 @@ import (
 	"github.com/gin-gonic/gin/binding"
 	"github.com/golang/glog"
 
-	"github.com/syunkitada/goapp/pkg/authproxy/core/auth"
 	"github.com/syunkitada/goapp/pkg/authproxy/model"
-	"github.com/syunkitada/goapp/pkg/authproxy/model/model_api"
 )
 
 func (dashboard *Dashboard) Login(c *gin.Context) {
@@ -24,7 +22,7 @@ func (dashboard *Dashboard) Login(c *gin.Context) {
 		return
 	}
 
-	token, err := auth.AuthAndIssueToken(&authRequest)
+	token, err := dashboard.Token.AuthAndIssueToken(&authRequest)
 	if err != nil {
 		glog.Error("Failed AuthAndIssueToken", err)
 		c.JSON(http.StatusUnauthorized, gin.H{
@@ -34,7 +32,7 @@ func (dashboard *Dashboard) Login(c *gin.Context) {
 		return
 	}
 
-	userAuthority, getUserAuthorityErr := model_api.GetUserAuthority(authRequest.Username)
+	userAuthority, getUserAuthorityErr := dashboard.ModelApi.GetUserAuthority(authRequest.Username)
 	if getUserAuthorityErr != nil {
 		glog.Error(getUserAuthorityErr)
 		c.JSON(http.StatusUnauthorized, gin.H{

@@ -12,6 +12,7 @@ var Conf Config
 var CommonFlags = []cli.Flag{
 	cli.StringFlag{Name: "config-dir", Value: "/etc/goapp", Usage: "config-dir"},
 	cli.BoolFlag{Name: "use-pwd", Usage: "use PWD"},
+	cli.BoolFlag{Name: "test-mode", Usage: "use test-mode"},
 }
 
 var VersionFlag = cli.BoolFlag{Name: "print-version, V", Usage: "print only the version"}

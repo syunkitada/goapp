@@ -6,10 +6,10 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
-	"github.com/golang/glog"
 
 	"github.com/syunkitada/goapp/pkg/authproxy/model"
 	"github.com/syunkitada/goapp/pkg/authproxy/model/model_api"
+	"github.com/syunkitada/goapp/pkg/config"
 )
 
 type CustomClaims struct {
@@ -17,13 +17,26 @@ type CustomClaims struct {
 	jwt.StandardClaims
 }
 
-func AuthAndIssueToken(authRequest *model.AuthRequest) (string, error) {
-	user, userErr := model_api.GetAuthUser(authRequest)
+type Token struct {
+	Conf     *config.Config
+	ModelApi *model_api.ModelApi
+}
+
+func NewToken(conf *config.Config, modelApi *model_api.ModelApi) *Token {
+	token := Token{
+		Conf:     conf,
+		ModelApi: modelApi,
+	}
+	return &token
+}
+
+func (token *Token) AuthAndIssueToken(authRequest *model.AuthRequest) (string, error) {
+	user, userErr := token.ModelApi.GetAuthUser(authRequest)
 	if userErr != nil {
 		return "", errors.New("Failed GetAuthUser")
 	}
 
-	if token, err := GenerateToken(user); err != nil {
+	if token, err := token.Generate(user); err != nil {
 		return "", err
 	} else if token == "" {
 		return "", errors.New("Failed GenerateToken")
@@ -32,7 +45,7 @@ func AuthAndIssueToken(authRequest *model.AuthRequest) (string, error) {
 	}
 }
 
-func GenerateToken(user *model.User) (string, error) {
+func (token *Token) Generate(user *model.User) (string, error) {
 	claims := CustomClaims{
 		Username: user.Name,
 		StandardClaims: jwt.StandardClaims{
@@ -41,32 +54,29 @@ func GenerateToken(user *model.User) (string, error) {
 		},
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	newToken := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
 	// Sign token with key
-	tokenString, tokenErr := token.SignedString([]byte(Conf.Admin.TokenSecret))
+	tokenString, tokenErr := newToken.SignedString([]byte(token.Conf.Admin.TokenSecret))
 	return tokenString, tokenErr
 }
 
-func ParseToken(request model.TokenAuthRequest) (jwt.MapClaims, error) {
-	token, err := jwt.Parse(request.Token, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			msg := fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+func (token *Token) ParseToken(request model.TokenAuthRequest) (jwt.MapClaims, error) {
+	parsedToken, err := jwt.Parse(request.Token, func(t *jwt.Token) (interface{}, error) {
+		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+			msg := fmt.Errorf("Unexpected signing method: %v", t.Header["alg"])
 			return nil, msg
 		}
-		return []byte(Conf.Admin.TokenSecret), nil
+		return []byte(token.Conf.Admin.TokenSecret), nil
 	})
-	glog.Info("DEBUGaaaa")
 
 	if err != nil {
 		return nil, err
 	}
-	glog.Info("DEBUGaaaabbb")
 
-	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+	if claims, ok := parsedToken.Claims.(jwt.MapClaims); ok && parsedToken.Valid {
 		return claims, nil
 	}
-	glog.Info("DEBUGaaaabbbaaaee")
 
 	return nil, nil
 }

@@ -23,7 +23,7 @@ func NewHealthClient() *HealthClient {
 }
 
 func (healthClient *HealthClient) Status() (*grpc_pb.StatusReply, error) {
-	conn, connErr := lib_grpc.NewClientConnection(&Conf.HealthGrpc)
+	conn, connErr := lib_grpc.NewClientConnection(Conf.HealthGrpc)
 	defer conn.Close()
 	if connErr != nil {
 		glog.Warning("Failed NewClientConnection")

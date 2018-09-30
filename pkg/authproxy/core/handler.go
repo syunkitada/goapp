@@ -10,7 +10,9 @@ func (authproxy *Authproxy) NewHandler() http.Handler {
 	handler := gin.New()
 	handler.Use(gin.Logger())
 	handler.Use(gin.Recovery())
-	handler.Use(authproxy.ValidateHeaders())
+	if !authproxy.Conf.Default.TestMode {
+		handler.Use(authproxy.ValidateHeaders())
+	}
 
 	handler.POST("/token", authproxy.Auth.IssueToken)
 	handler.POST("/dashboard/login", authproxy.Dashboard.Login)

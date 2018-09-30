@@ -22,7 +22,7 @@ func (auth *Auth) IssueToken(c *gin.Context) {
 		return
 	}
 
-	token, err := AuthAndIssueToken(&authRequest)
+	token, err := auth.Token.AuthAndIssueToken(&authRequest)
 	if err != nil {
 		glog.Error("Failed AuthAndIssueToken", err)
 		c.JSON(http.StatusUnauthorized, gin.H{

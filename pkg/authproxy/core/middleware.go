@@ -8,9 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/golang/glog"
 
-	"github.com/syunkitada/goapp/pkg/authproxy/core/auth"
 	"github.com/syunkitada/goapp/pkg/authproxy/model"
-	"github.com/syunkitada/goapp/pkg/authproxy/model/model_api"
 )
 
 // SecureHeaders adds secure headers to the API
@@ -81,7 +79,7 @@ func (authproxy *Authproxy) AuthRequired() gin.HandlerFunc {
 			glog.Info(tokenAuthRequest.Token)
 		}
 
-		claims, err := auth.ParseToken(tokenAuthRequest)
+		claims, err := authproxy.Token.ParseToken(tokenAuthRequest)
 		if err != nil {
 			glog.Warning("Invalid AuthRequest: Failed ParseToken")
 			c.JSON(http.StatusUnauthorized, gin.H{
@@ -94,7 +92,7 @@ func (authproxy *Authproxy) AuthRequired() gin.HandlerFunc {
 
 		username := claims["Username"].(string)
 
-		userAuthority, getUserAuthorityErr := model_api.GetUserAuthority(username)
+		userAuthority, getUserAuthorityErr := authproxy.ModelApi.GetUserAuthority(username)
 		if getUserAuthorityErr != nil {
 			glog.Error(getUserAuthorityErr)
 			c.JSON(http.StatusUnauthorized, gin.H{

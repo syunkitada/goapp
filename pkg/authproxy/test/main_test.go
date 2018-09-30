@@ -1,7 +1,7 @@
-package authproxy
+package test
 
 import (
-	"os"
+	"testing"
 
 	"github.com/golang/glog"
 	"github.com/urfave/cli"
@@ -14,7 +14,7 @@ var (
 	Conf = &config.Conf
 )
 
-func Main() error {
+func TestMain(t *testing.T) {
 	cli.VersionFlag = config.VersionFlag
 
 	app := cli.NewApp()
@@ -22,18 +22,24 @@ func Main() error {
 	app.Usage = "goapp-authproxy"
 	app.Version = "0.0.1"
 	app.Flags = append(config.CommonFlags, config.GlogFlags...)
+	args := []string{app.Name, "--use-pwd", "--test-mode"}
 
 	app.Action = func(c *cli.Context) error {
 		config.Init(c)
 		authproxy := core.NewAuthproxy(Conf)
-		authproxy.Serv()
+		glog.Info(authproxy)
+		authproxy.Auth.TestAuthAndIssueToken(t)
+
 		return nil
 	}
 
-	if err := app.Run(os.Args); err != nil {
+	if err := app.Run(args); err != nil {
 		glog.Error(err)
-		return err
 	}
 
-	return nil
+	actual := "hello"
+	expected := "hello"
+	if actual != expected {
+		t.Errorf("actual %v\nwant %v", actual, expected)
+	}
 }

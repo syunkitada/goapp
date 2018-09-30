@@ -11,42 +11,50 @@ import (
 
 	"github.com/syunkitada/goapp/pkg/authproxy/core/auth"
 	"github.com/syunkitada/goapp/pkg/authproxy/core/dashboard"
+	"github.com/syunkitada/goapp/pkg/authproxy/model/model_api"
 	"github.com/syunkitada/goapp/pkg/config"
 	"github.com/syunkitada/goapp/pkg/health/grpc_client"
 )
 
-var (
-	Conf = &config.Conf
-)
-
 type Authproxy struct {
+	Conf            *config.Config
 	Listen          string
 	AllowedHosts    []string
-	CertFile        string
-	KeyFile         string
+	CertFilePath    string
+	KeyFilePath     string
 	HealthClient    *grpc_client.HealthClient
 	GracefulTimeout time.Duration
+	ModelApi        *model_api.ModelApi
+	Token           *auth.Token
 	Auth            *auth.Auth
 	Dashboard       *dashboard.Dashboard
 }
 
-func NewAuthproxy() *Authproxy {
+func NewAuthproxy(conf *config.Config) *Authproxy {
+	modelApi := model_api.NewModelApi(conf)
+	token := auth.NewToken(conf, modelApi)
+
 	authproxy := &Authproxy{
-		Listen:          Conf.Authproxy.Listen,
-		AllowedHosts:    Conf.Authproxy.AllowedHosts,
-		CertFile:        Conf.Authproxy.CertFile,
-		KeyFile:         Conf.Authproxy.KeyFile,
+		Conf:            conf,
+		Listen:          conf.Authproxy.Listen,
+		AllowedHosts:    conf.Authproxy.AllowedHosts,
+		CertFilePath:    conf.Path(conf.Authproxy.CertFile),
+		KeyFilePath:     conf.Path(conf.Authproxy.KeyFile),
 		HealthClient:    grpc_client.NewHealthClient(),
-		GracefulTimeout: time.Duration(Conf.Authproxy.GracefulTimeout) * time.Second,
-		Auth:            auth.NewAuth(),
-		Dashboard:       dashboard.NewDashboard(),
+		GracefulTimeout: time.Duration(conf.Authproxy.GracefulTimeout) * time.Second,
+		Token:           token,
+		Auth:            auth.NewAuth(conf, modelApi, token),
+		Dashboard:       dashboard.NewDashboard(conf, modelApi, token),
 	}
+
+	if conf.Default.TestMode {
+		conf.Authproxy.TestHandler = authproxy.NewHandler()
+	}
+
 	return authproxy
 }
 
 func (authproxy *Authproxy) Serv() {
-	certPath := Conf.Path(authproxy.CertFile)
-	keyPath := Conf.Path(authproxy.KeyFile)
 	handler := authproxy.NewHandler()
 
 	s := &http.Server{
@@ -59,7 +67,7 @@ func (authproxy *Authproxy) Serv() {
 
 	go func() {
 		// service connections
-		if err := s.ListenAndServeTLS(certPath, keyPath); err != nil && err != http.ErrServerClosed {
+		if err := s.ListenAndServeTLS(authproxy.CertFilePath, authproxy.KeyFilePath); err != nil && err != http.ErrServerClosed {
 			glog.Fatalf("listen: %s\n", err)
 		}
 	}()
