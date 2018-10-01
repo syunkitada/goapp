@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import actions from '../actions'
+import actions from '../../actions'
 
-class App extends Component {
+class Auth extends Component {
   componentWillMount() {
     if (!this.props.auth.isSyncState) {
       console.log("Debug App WillMount")
@@ -22,7 +22,7 @@ class App extends Component {
   }
 }
 
-App.propTypes = {
+Auth.propTypes = {
   auth: PropTypes.object.isRequired,
   children: PropTypes.object.isRequired,
   syncState: PropTypes.func.isRequired
@@ -41,7 +41,7 @@ function mapStateToProps(state, ownProps) {
 function mapDispatchToProps(dispatch, ownProps) {
   return {
     syncState: () => {
-      dispatch(actions.auth.syncState());
+      dispatch(actions.auth.authSyncState());
     }
   }
 }
@@ -49,4 +49,4 @@ function mapDispatchToProps(dispatch, ownProps) {
 export default connect(
   mapStateToProps,
   mapDispatchToProps
-)(App)
+)(Auth)

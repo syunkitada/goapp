@@ -9,15 +9,15 @@ import Login from './Login'
 import Logout from './Logout'
 import AuthRoute from './AuthRoute'
 import Dashboard from '../components/Dashboard'
-import App from './App'
 
-import Home from '../services/home'
-import Chat from '../services/chat'
-import Datacenter from '../services/datacenter'
-import Ticket from '../services/ticket'
-import Wiki from '../services/wiki'
-import ProjectHome from '../services/project/home'
-import ProjectResource from '../services/project/resource'
+import Auth from '../apps/auth'
+import Home from '../apps/home'
+import Chat from '../apps/chat'
+import Datacenter from '../apps/datacenter'
+import Ticket from '../apps/ticket'
+import Wiki from '../apps/wiki'
+import ProjectHome from '../apps/project/home'
+import ProjectResource from '../apps/project/resource'
 
 const store = configureStore()
 
@@ -25,7 +25,7 @@ export default class Root extends Component {
   render() {
     return (
       <Provider store={store}>
-        <App>
+        <Auth>
           <BrowserRouter>
             <Switch>
               <Route path="/login" component={Login} />
@@ -39,7 +39,7 @@ export default class Root extends Component {
               <Route component={NotFound} />
             </Switch>
           </BrowserRouter>
-        </App>
+        </Auth>
       </Provider>
     )
   }

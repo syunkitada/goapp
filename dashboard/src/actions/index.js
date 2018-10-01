@@ -1,3 +1,7 @@
-import auth from './auth';
+import auth from '../apps/auth/actions';
+import home from '../apps/home/actions';
 
-export default { auth };
+export default {
+  auth,
+  home,
+};

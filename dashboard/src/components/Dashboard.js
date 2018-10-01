@@ -256,7 +256,7 @@ class Dashboard extends React.Component {
                 <MenuIcon />
               </IconButton>
               <Typography variant="title" color="inherit" noWrap>
-                Responsive drawer
+                {match.url}
               </Typography>
 
               <div className={classes.grow} />

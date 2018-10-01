@@ -5,6 +5,10 @@ import actions from '../../actions'
 
 
 class Home extends Component {
+  componentWillMount() {
+    this.props.syncState()
+  }
+
   render() {
     const {match, auth} = this.props
 
@@ -30,6 +34,15 @@ function mapStateToProps(state, ownProps) {
   }
 }
 
+function mapDispatchToProps(dispatch, ownProps) {
+  return {
+    syncState: () => {
+      dispatch(actions.home.homeSyncState());
+    }
+  }
+}
+
 export default connect(
   mapStateToProps,
+  mapDispatchToProps,
 )(Home)

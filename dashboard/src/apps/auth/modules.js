@@ -1,7 +1,7 @@
 import fetch from 'cross-fetch'
 
 function syncState() {
-  return fetch('https://192.168.10.103:8000/dashboard/state', {
+  return fetch(process.env.REACT_APP_AUTHPROXY_URL + '/dashboard/state', {
     method: 'GET',
     credentials: 'include',
     mode: 'cors',
@@ -22,7 +22,7 @@ function login({name, password}) {
     password: password
   });
 
-  return fetch('https://192.168.10.103:8000/dashboard/login', {
+  return fetch(process.env.REACT_APP_AUTHPROXY_URL + '/dashboard/login', {
     method: "POST",
     mode: 'cors',
     credentials: 'include',

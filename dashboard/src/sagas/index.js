@@ -1,5 +1,6 @@
 import { all } from 'redux-saga/effects';
-import auth from './auth';
+import auth from '../apps/auth/sagas';
+import home from '../apps/home/sagas';
 
 // redux-sagaのMiddlewareが rootSaga タスクを起動する
 
@@ -10,5 +11,6 @@ export default function* rootSaga() {
     auth.watchSyncState(),
     auth.watchLogin(),
     auth.watchLogout(),
+    home.watchSyncState(),
   ])
 }
