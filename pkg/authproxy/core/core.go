@@ -42,6 +42,7 @@ func NewAuthproxy(conf *config.Config) *Authproxy {
 		KeyFilePath:     conf.Path(conf.Authproxy.KeyFile),
 		HealthClient:    grpc_client.NewHealthClient(),
 		GracefulTimeout: time.Duration(conf.Authproxy.GracefulTimeout) * time.Second,
+		ModelApi:        modelApi,
 		Token:           token,
 		Auth:            auth.NewAuth(conf, modelApi, token),
 		Dashboard:       dashboard.NewDashboard(conf, modelApi, token),

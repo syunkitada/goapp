@@ -34,7 +34,7 @@ func (auth *Auth) IssueToken(c *gin.Context) {
 
 	glog.Info("Success Login: ", authRequest)
 	c.JSON(http.StatusOK, gin.H{
-		"token": token,
+		"Token": token,
 	})
 
 	return

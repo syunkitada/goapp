@@ -28,7 +28,12 @@ func TestMain(t *testing.T) {
 		config.Init(c)
 		authproxy := core.NewAuthproxy(Conf)
 		glog.Info(authproxy)
-		authproxy.Auth.TestAuthAndIssueToken(t)
+		responseIssueToken := authproxy.Auth.TestIssueToken(t)
+		responseLogin := authproxy.Dashboard.TestLogin(t)
+		responseGetState := authproxy.Dashboard.TestGetState(t, responseIssueToken)
+		glog.Info(responseIssueToken)
+		glog.Info(responseLogin)
+		glog.Info(responseGetState)
 
 		return nil
 	}
