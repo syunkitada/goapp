@@ -11,6 +11,7 @@ import (
 
 	"github.com/syunkitada/goapp/pkg/authproxy/core/auth"
 	"github.com/syunkitada/goapp/pkg/authproxy/core/dashboard"
+	"github.com/syunkitada/goapp/pkg/authproxy/core/resource"
 	"github.com/syunkitada/goapp/pkg/authproxy/model/model_api"
 	"github.com/syunkitada/goapp/pkg/config"
 	"github.com/syunkitada/goapp/pkg/health/grpc_client"
@@ -28,6 +29,7 @@ type Authproxy struct {
 	Token           *auth.Token
 	Auth            *auth.Auth
 	Dashboard       *dashboard.Dashboard
+	Resource        *resource.Resource
 }
 
 func NewAuthproxy(conf *config.Config) *Authproxy {
@@ -46,6 +48,7 @@ func NewAuthproxy(conf *config.Config) *Authproxy {
 		Token:           token,
 		Auth:            auth.NewAuth(conf, modelApi, token),
 		Dashboard:       dashboard.NewDashboard(conf, modelApi, token),
+		Resource:        resource.NewResource(conf),
 	}
 
 	if conf.Default.TestMode {

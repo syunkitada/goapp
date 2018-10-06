@@ -16,6 +16,7 @@ type Config struct {
 	AuthproxyDatabase DatabaseConfig
 	Dashboard         DashboardConfig
 	HealthGrpc        GrpcConfig
+	Resource          ResourceConfig
 	Agent             AgentConfig
 	ImageDatabase     DatabaseConfig
 	Admin             AdminConfig
@@ -63,6 +64,11 @@ type AdminConfig struct {
 	Password    string
 	Secret      string
 	TokenSecret string
+}
+
+type ResourceConfig struct {
+	Database DatabaseConfig
+	Grpc     GrpcConfig
 }
 
 func newConfig(ctx *cli.Context) *Config {
@@ -130,6 +136,21 @@ func newConfig(ctx *cli.Context) *Config {
 			Password:    "changeme",
 			Secret:      "changeme",
 			TokenSecret: "changeme",
+		},
+		Resource: ResourceConfig{
+			Grpc: GrpcConfig{
+				Listen:             "localhost:13300",
+				CertFile:           "server1.pem",
+				KeyFile:            "server1.key",
+				CaFile:             "ca.pem",
+				ServerHostOverride: "x.test.youtube.com",
+				Targets: []string{
+					"localhost:10080",
+				},
+			},
+			Database: DatabaseConfig{
+				Connection: "admin:adminpass@tcp(localhost:3306)/resource?charset=utf8&parseTime=true",
+			},
 		},
 	}
 

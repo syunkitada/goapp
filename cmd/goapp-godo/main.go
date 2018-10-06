@@ -16,12 +16,16 @@ func tasks(p *do.Project) {
 		c.Start("main.go --use-pwd", do.M{"$in": "cmd/goapp-authproxy"})
 	}).Src("pkg/**/*.go")
 
+	p.Task("goapp-dashboard", nil, func(c *do.Context) {
+		c.Start("main.go --use-pwd", do.M{"$in": "cmd/goapp-dashboard"})
+	}).Src("pkg/**/*.go")
+
 	p.Task("goapp-health", nil, func(c *do.Context) {
 		c.Start("main.go --use-pwd", do.M{"$in": "cmd/goapp-health"})
 	}).Src("pkg/**/*.go")
 
-	p.Task("goapp-dashboard", nil, func(c *do.Context) {
-		c.Start("main.go --use-pwd", do.M{"$in": "cmd/goapp-dashboard"})
+	p.Task("goapp-resource-server", nil, func(c *do.Context) {
+		c.Start("main.go --use-pwd", do.M{"$in": "cmd/goapp-resource-server"})
 	}).Src("pkg/**/*.go")
 }
 
