@@ -38,13 +38,20 @@ function login({name, password}) {
   });
 }
 
-function logout({name}) {
-  const user = {
-    name: name,
-  }
-
-  console.log("DEBUG: api logout")
-  return {user: user, error: null}
+function logout() {
+  return fetch(process.env.REACT_APP_AUTHPROXY_URL + '/dashboard/logout', {
+    method: "POST",
+    mode: 'cors',
+    credentials: 'include',
+  }).then(res => res.json()).then(function(payload) {
+    return {
+      payload: payload,
+    };
+  }).catch(function(error) {
+    return {
+      error: error
+    };
+  });
 }
 
 export default {

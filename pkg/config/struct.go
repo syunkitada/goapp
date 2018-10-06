@@ -11,14 +11,14 @@ import (
 
 type Config struct {
 	App               *cli.App
-	Default           *DefaultConfig
-	Authproxy         *HttpServerConfig
-	AuthproxyDatabase *DatabaseConfig
-	Dashboard         *DashboardConfig
-	HealthGrpc        *GrpcConfig
-	Agent             *AgentConfig
-	ImageDatabase     *DatabaseConfig
-	Admin             *AdminConfig
+	Default           DefaultConfig
+	Authproxy         HttpServerConfig
+	AuthproxyDatabase DatabaseConfig
+	Dashboard         DashboardConfig
+	HealthGrpc        GrpcConfig
+	Agent             AgentConfig
+	ImageDatabase     DatabaseConfig
+	Admin             AdminConfig
 }
 
 type DefaultConfig struct {
@@ -77,12 +77,12 @@ func newConfig(ctx *cli.Context) *Config {
 
 	defaultConfig := &Config{
 		App: ctx.App,
-		Default: &DefaultConfig{
+		Default: DefaultConfig{
 			ConfigDir:  configDir,
 			ConfigFile: filepath.Join(configDir, "config.toml"),
 			TestMode:   ctx.GlobalBool("test-mode"),
 		},
-		Authproxy: &HttpServerConfig{
+		Authproxy: HttpServerConfig{
 			Listen: "0.0.0.0:8000",
 			AllowedHosts: []string{
 				"localhost:8000",
@@ -93,10 +93,10 @@ func newConfig(ctx *cli.Context) *Config {
 			KeyFile:         "tls-assets/server.key",
 			GracefulTimeout: 10,
 		},
-		AuthproxyDatabase: &DatabaseConfig{
+		AuthproxyDatabase: DatabaseConfig{
 			Connection: "admin:adminpass@tcp(localhost:3306)/goapp?charset=utf8&parseTime=true",
 		},
-		Dashboard: &DashboardConfig{
+		Dashboard: DashboardConfig{
 			HttpServerConfig: HttpServerConfig{
 				Listen: "0.0.0.0:7000",
 				AllowedHosts: []string{
@@ -109,13 +109,13 @@ func newConfig(ctx *cli.Context) *Config {
 			},
 			BuildDir: dashboardBuildDir,
 		},
-		Agent: &AgentConfig{
+		Agent: AgentConfig{
 			ReportInterval: 10,
 		},
-		ImageDatabase: &DatabaseConfig{
+		ImageDatabase: DatabaseConfig{
 			Connection: "admin:adminpass@tcp(localhost:3306)/goapp?charset=utf8&parseTime=true",
 		},
-		HealthGrpc: &GrpcConfig{
+		HealthGrpc: GrpcConfig{
 			Listen:             "localhost:10080",
 			CertFile:           "server1.pem",
 			KeyFile:            "server1.key",
@@ -125,7 +125,7 @@ func newConfig(ctx *cli.Context) *Config {
 				"localhost:10080",
 			},
 		},
-		Admin: &AdminConfig{
+		Admin: AdminConfig{
 			Username:    "admin",
 			Password:    "changeme",
 			Secret:      "changeme",

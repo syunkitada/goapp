@@ -7,7 +7,7 @@ export default createActions({
   AUTH_LOGIN_SUCCESS: (user) => ({user: user}),
   AUTH_LOGIN_FAILURE: (error) => ({error: error}),
 
-  AUTH_LOGOUT: (user) => ({user: user}),
+  AUTH_LOGOUT: () => ({}),
   AUTH_LOGOUT_SUCCESS: () => ({}),
-  AUTH_LOGOUT_FAILURE: () => ({}),
+  AUTH_LOGOUT_FAILURE: (error) => ({error: error}),
 })

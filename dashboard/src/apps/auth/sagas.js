@@ -33,7 +33,7 @@ function* login(action) {
     yield put(actions.auth.authLoginFailure(""))
   } else {
     const user = {
-      Name: payload.Username,
+      Name: payload.Name,
       Authority: payload.Authority,
     }
     yield put(actions.auth.authLoginSuccess(user))
@@ -46,12 +46,12 @@ function* watchLogin() {
 
 function* logout(action) {
   console.log("logout", action.payload)
-  const {user, error} = yield call(modules.auth.authLogout, action.payload)
+  const {payload, error} = yield call(modules.auth.logout)
 
   if (error) {
     yield put(actions.auth.authLogoutFailure(error))
   } else {
-    yield put(actions.auth.authLogoutSuccess(user))
+    yield put(actions.auth.authLogoutSuccess())
   }
 }
 

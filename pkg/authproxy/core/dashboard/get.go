@@ -16,7 +16,6 @@ func (dashboard *Dashboard) GetState(c *gin.Context) {
 	}
 
 	glog.Info("Success AuthHealth: username(%v)", username)
-	glog.Info(userAuthority)
 
 	c.JSON(200, gin.H{
 		"Name":      username,

@@ -27,13 +27,14 @@ export default handleActions({
     isFetching: false,
     error: action.payload.error,
   }),
-  [actions.auth.authLogout]: () => Object.assign({}, defaultState, {
+  [actions.auth.authLogout]: (state) => Object.assign({}, state, {
     isFetching: true,
   }),
-  [actions.auth.authLogoutSuccess]: () => Object.assign({}, defaultState, {
+  [actions.auth.authLogoutSuccess]: (state, action) => Object.assign({}, defaultState, {
     isFetching: false,
   }),
-  [actions.auth.authLogoutFailure]: () => Object.assign({}, defaultState, {
+  [actions.auth.authLogoutFailure]: (state, action) => Object.assign({}, state, {
     isFetching: false,
+    error: action.payload.error,
   }),
 }, defaultState);

@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {Redirect} from 'react-router-dom';
+import { connect } from 'react-redux';
 
 import Avatar from '@material-ui/core/Avatar';
 import Button from '@material-ui/core/Button';
@@ -12,6 +13,8 @@ import LockIcon from '@material-ui/icons/LockOutlined';
 import Paper from '@material-ui/core/Paper';
 import Typography from '@material-ui/core/Typography';
 import withStyles from '@material-ui/core/styles/withStyles';
+
+import actions from '../../../actions'
 
 const styles = theme => ({
   layout: {
@@ -124,4 +127,26 @@ Login.propTypes = {
   history: PropTypes.object.isRequired,
 }
 
-export default withStyles(styles)(Login);
+function mapStateToProps(state, ownProps) {
+  const auth = state.auth
+
+  return {
+    auth: auth,
+  }
+}
+
+function mapDispatchToProps(dispatch, ownProps) {
+  return {
+    onSubmit: (e) => {
+      e.preventDefault()
+      const name = e.target.name.value.trim()
+      const password = e.target.password.value.trim()
+      dispatch(actions.auth.authLogin(name, password));
+    }
+  }
+}
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(withStyles(styles)(Login))

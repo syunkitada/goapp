@@ -40,12 +40,27 @@ func (dashboard *Dashboard) Login(c *gin.Context) {
 		})
 	}
 
-	glog.Info("Success Login: ", authRequest)
 	c.SetCookie("token", token, 3600, "/", "192.168.10.103", true, true)
 	c.JSON(http.StatusOK, gin.H{
 		"Name":      authRequest.Username,
 		"Authority": userAuthority,
 	})
 
-	return
+	glog.Info("Success Login: ", authRequest.Username)
+}
+
+func (dashboard *Dashboard) Logout(c *gin.Context) {
+	username, usernameOk := c.Get("Username")
+	_, userAuthorityOk := c.Get("UserAuthority")
+	if !usernameOk || !userAuthorityOk {
+		c.JSON(500, gin.H{
+			"error": "Invalid request",
+		})
+		return
+	}
+
+	c.SetCookie("token", "", 0, "/", "192.168.10.103", true, true)
+	c.JSON(200, gin.H{})
+
+	glog.Info("Success Logout: ", username)
 }

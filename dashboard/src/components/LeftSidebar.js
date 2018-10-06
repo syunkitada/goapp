@@ -1,4 +1,6 @@
+import { connect } from 'react-redux';
 import React, {Component} from 'react';
+import actions from '../actions'
 import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
 import Divider from '@material-ui/core/Divider';
@@ -38,7 +40,7 @@ const styles = theme => ({
   },
 });
 
-class Sidebar extends Component {
+class LeftSidebar extends Component {
   state = {
     open: false,
   };
@@ -146,9 +148,19 @@ class Sidebar extends Component {
   }
 }
 
-Sidebar.propTypes = {
+LeftSidebar.propTypes = {
   classes: PropTypes.object.isRequired,
   auth: PropTypes.object.isRequired,
 };
 
-export default withStyles(styles)(Sidebar);
+function mapStateToProps(state, ownProps) {
+  const auth = state.auth
+
+  return {
+    auth: auth,
+  }
+}
+
+export default connect(
+  mapStateToProps,
+)(withStyles(styles)(LeftSidebar))

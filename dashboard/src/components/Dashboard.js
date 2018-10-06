@@ -1,3 +1,4 @@
+import { connect } from 'react-redux';
 import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
@@ -23,8 +24,16 @@ import MoreIcon from '@material-ui/icons/MoreVert';
 import MenuItem from '@material-ui/core/MenuItem';
 import Menu from '@material-ui/core/Menu';
 import MailIcon from '@material-ui/icons/Mail';
+import LeftSidebar from './LeftSidebar'
+import ClickAwayListener from '@material-ui/core/ClickAwayListener';
+import Grow from '@material-ui/core/Grow';
+import Paper from '@material-ui/core/Paper';
+import Popper from '@material-ui/core/Popper';
+import MenuList from '@material-ui/core/MenuList';
 
-import LeftSidebar from '../containers/LeftSidebar'
+import { Link } from 'react-router-dom';
+
+import actions from '../actions'
 
 const drawerWidth = 240;
 
@@ -164,75 +173,20 @@ class Dashboard extends React.Component {
     this.setState({ open: false });
   };
 
-  handleProfileMenuOpen = event => {
+  handleMenuOpen = event => {
     this.setState({ anchorEl: event.currentTarget });
   };
 
   handleMenuClose = () => {
     this.setState({ anchorEl: null });
-    this.handleMobileMenuClose();
-  };
-
-  handleMobileMenuOpen = event => {
-    this.setState({ mobileMoreAnchorEl: event.currentTarget });
-  };
-
-  handleMobileMenuClose = () => {
-    this.setState({ mobileMoreAnchorEl: null });
   };
 
   render() {
     const { anchorEl, mobileMoreAnchorEl } = this.state;
-    const { classes, theme, children, projectService, match } = this.props;
+    const { classes, theme, children, projectService, match, auth, onClickLogout } = this.props;
     const isMenuOpen = Boolean(anchorEl);
     const isMobileMenuOpen = Boolean(mobileMoreAnchorEl);
-
-    const renderMenu = (
-      <Menu
-        anchorEl={anchorEl}
-        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-        open={isMenuOpen}
-        onClose={this.handleMenuClose}
-      >
-        <MenuItem onClick={this.handleClose}>Profile</MenuItem>
-        <MenuItem onClick={this.handleClose}>My account</MenuItem>
-      </Menu>
-    );
-
-    const renderMobileMenu = (
-      <Menu
-        anchorEl={mobileMoreAnchorEl}
-        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-        open={isMobileMenuOpen}
-        onClose={this.handleMobileMenuClose}
-      >
-        <MenuItem>
-          <IconButton color="inherit">
-            <Badge className={classes.margin} badgeContent={4} color="secondary">
-              <MailIcon />
-            </Badge>
-          </IconButton>
-          <p>Messages</p>
-        </MenuItem>
-        <MenuItem>
-          <IconButton color="inherit">
-            <Badge className={classes.margin} badgeContent={11} color="secondary">
-              <NotificationsIcon />
-            </Badge>
-          </IconButton>
-          <p>Notifications</p>
-        </MenuItem>
-        <MenuItem onClick={this.handleProfileMenuOpen}>
-          <IconButton color="inherit">
-            <AccountCircle />
-          </IconButton>
-          <p>Profile</p>
-        </MenuItem>
-      </Menu>
-    );
-
+    const title = match.url
 
     const drawer = (
       <div>
@@ -256,35 +210,46 @@ class Dashboard extends React.Component {
                 <MenuIcon />
               </IconButton>
               <Typography variant="title" color="inherit" noWrap>
-                {match.url}
+                {title}
               </Typography>
 
               <div className={classes.grow} />
-              <div className={classes.sectionDesktop}>
-                <IconButton color="inherit">
-                  <Badge className={classes.margin} badgeContent={17} color="secondary">
-                    <NotificationsIcon />
-                  </Badge>
-                </IconButton>
-                <IconButton
-                  aria-owns={isMenuOpen ? 'material-appbar' : null}
-                  aria-haspopup="true"
-                  onClick={this.handleProfileMenuOpen}
-                  color="inherit"
-                >
-                  <AccountCircle />
-                </IconButton>
-              </div>
-              <div className={classes.sectionMobile}>
-                <IconButton aria-haspopup="true" onClick={this.handleMobileMenuOpen} color="inherit">
-                  <MoreIcon />
-                </IconButton>
-              </div>
+
+              <IconButton
+                buttonRef={node => {
+                  this.anchorEl = node;
+                }}
+                aria-owns={isMenuOpen ? 'menu-list-grow' : null}
+                aria-haspopup="true"
+                color="inherit"
+                onClick={this.handleMenuOpen}
+              >
+                <AccountCircle />
+                <span>&nbsp;&nbsp;</span>
+                {auth.user.Name}
+              </IconButton>
+              <Popper open={isMenuOpen} anchorEl={this.anchorEl} transition disablePortal>
+                {({ TransitionProps, placement }) => (
+                  <Grow
+                    {...TransitionProps}
+                    id="menu-list-grow"
+                    style={{ transformOrigin: placement === 'bottom' ? 'center top' : 'center bottom' }}
+                  >
+                    <Paper>
+                      <ClickAwayListener onClickAway={this.handleMenuClose}>
+                        <MenuList>
+                          <Link to="/User" style={{ textDecoration: 'none', display: 'block', backgroundColor: 'none', border: 'none' }}>
+                            <MenuItem onClick={this.handleMenuClose}>User Settings</MenuItem>
+                          </Link>
+                          <MenuItem onClick={onClickLogout}>Logout</MenuItem>
+                        </MenuList>
+                      </ClickAwayListener>
+                    </Paper>
+                  </Grow>
+                )}
+              </Popper>
             </Toolbar>
           </AppBar>
-
-          {renderMenu}
-          {renderMobileMenu}
 
           <Hidden mdUp>
             <Drawer
@@ -326,6 +291,24 @@ class Dashboard extends React.Component {
 
 Dashboard.propTypes = {
   classes: PropTypes.object.isRequired,
+  auth: PropTypes.object.isRequired,
 };
 
-export default withStyles(styles)(Dashboard);
+function mapStateToProps(state, ownProps) {
+  const auth = state.auth
+
+  return {
+    auth: auth,
+  }
+}
+
+function mapDispatchToProps(dispatch, ownProps) {
+  return {
+    onClickLogout: () => dispatch(actions.auth.authLogout())
+  }
+}
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(withStyles(styles)(Dashboard))
