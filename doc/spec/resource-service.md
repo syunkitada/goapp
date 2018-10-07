@@ -6,10 +6,19 @@
 * ResourceApi
     * ResourceFlavorの管理
     * Resourceの管理
+    * Resourceの作成リクエストなどをデータベースに保存する
 * ResourceController
+    * Resourceをバッチ処理するコントローラ
+    * Resourceの作成リクエストをResourceRegionApiにリクエストし伝搬させる
+    * ResourceRegionApiからResource実態の状態を取得し、データベースに保存する
+* ResourceRegionApi
+    * RegionのApi
+* ResourceRegionController
+    * ResourceをRegion単位でバッチ処理するコントローラ
     * ResourceをResourceAgentにアサインする
 * ResourceAgent
-    * Nodeごとに複数のProviderサポートし、アサインされたResourceを実体化し、状態を管理する
+    * Regionに所属し、アサインされたResourceを実体化し、状態を管理する
+    * Nodeごとに複数のProviderサポートできる
     * Providerを利用してノード自身を監視し、イベントがあればAlertをMonitorControllerに通知する
         * またメトリクスをメトリクスDBに送信する
 
@@ -19,6 +28,64 @@
     * Name
     * Provider
     * Spec
+* ComputeResource
+    * Name
+    * Provider
+    * Labels
+    * ScheduleRule
+    * Provider
+    * RequestMethod
+    * Status
+    * StatusReason
+    * MaxRevisionHistory
+    * ResourceRevisionID
+* VolumeResource
+    * Name
+    * Provider
+    * Labels
+    * ScheduleRule
+    * Provider
+    * RequestMethod
+    * Status
+    * StatusReason
+    * MaxRevisionHistory
+    * ResourceRevisionID
+* ImageResource
+    * Name
+    * Provider
+    * Labels
+    * ScheduleRule
+    * Provider
+    * RequestMethod
+    * Status
+    * StatusReason
+    * MaxRevisionHistory
+    * ResourceRevisionID
+* LoadbalancerResource
+    * Name
+    * Provider
+    * Labels
+    * ScheduleRule
+    * Provider
+    * RequestMethod
+    * Status
+    * StatusReason
+    * MaxRevisionHistory
+    * ResourceRevisionID
+* Provider
+    * Name
+    * Description
+    * Kind
+        * VirtualMachine, Pod, VirtualMachineDeployment, PodDeployment, Configmap, Secret, Loadbalancer, CI, CD
+    * Driver
+        * Libvirt, Docker, Vpp, Xdp, Etcd
+* RegionAavailabilityZone
+    * Name
+* NetworkV4
+* NetworkV4Port
+
+
+## Region Data Model
 * Resource
     * Name
     * Provider
@@ -83,3 +150,8 @@
 
 ## Api RPC Method
 * UpdateNode
+
+
+## ApiとRegionApi
+* ルートデータベース
+

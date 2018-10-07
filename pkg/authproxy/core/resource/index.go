@@ -7,7 +7,7 @@ import (
 
 type Resource struct {
 	Conf           *config.Config
-	ResourceClient resource_client.ResourceClient
+	ResourceClient *resource_client.ResourceClient
 }
 
 func NewResource(conf *config.Config) *Resource {

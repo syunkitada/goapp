@@ -3,6 +3,7 @@ package model_api
 import (
 	"encoding/hex"
 	"errors"
+	"fmt"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/golang/glog"
@@ -213,6 +214,49 @@ func (modelApi *ModelApi) AssignService(projectRoleName string, serviceName stri
 	return nil
 }
 
+func (modelApi *ModelApi) AssignAction(serviceName string, projectRoleName string, roleName string, actionName string) error {
+	db, dbErr := gorm.Open("mysql", modelApi.Conf.AuthproxyDatabase.Connection)
+	defer db.Close()
+	if dbErr != nil {
+		return dbErr
+	}
+
+	var action model.Action
+	var service model.Service
+	var projectRole model.ProjectRole
+	var role model.Role
+	var roleID uint
+
+	db.Debug().Where("name = ?", serviceName).First(&service)
+	db.Debug().Where("name = ?", projectRoleName).First(&projectRole)
+	if roleName != "" {
+		if err := db.Debug().Where("name = ?", roleName).First(&role).Error; err != nil {
+			return err
+		}
+		roleID = role.ID
+	} else {
+		roleID = 0
+	}
+
+	if err := db.Debug().Where("name = ? and service_id = ? and project_role_id = ?",
+		actionName, service.ID, projectRole.ID).First(&action).Error; err != nil {
+
+		if !gorm.IsRecordNotFoundError(err) {
+			return err
+		}
+
+		action = model.Action{
+			Name:          actionName,
+			ServiceID:     service.ID,
+			ProjectRoleID: projectRole.ID,
+			RoleID:        roleID,
+		}
+		db.Debug().Create(&action)
+	}
+
+	return nil
+}
+
 func (modelApi *ModelApi) GetAuthUser(authRequest *model.AuthRequest) (*model.User, error) {
 	db, err := gorm.Open("mysql", modelApi.Conf.AuthproxyDatabase.Connection)
 	defer db.Close()
@@ -251,7 +295,7 @@ func (modelApi *ModelApi) GenerateHashFromPassword(username string, password str
 	return hex.EncodeToString(converted[:]), nil
 }
 
-func (modelApi *ModelApi) GetUserAuthority(username string) (*model.UserAuthority, error) {
+func (modelApi *ModelApi) GetUserAuthority(username string, actionRequest *model.ActionRequest) (*model.UserAuthority, error) {
 	db, err := gorm.Open("mysql", modelApi.Conf.AuthproxyDatabase.Connection)
 	defer db.Close()
 	if err != nil {
@@ -263,24 +307,26 @@ func (modelApi *ModelApi) GetUserAuthority(username string) (*model.UserAuthorit
 		return nil, err
 	}
 
-	serviceMap := map[string]bool{}
+	serviceMap := map[string]uint{}
 	projectServiceMap := map[string]model.ProjectService{}
 	for _, user := range users {
 		switch user.ServiceScope {
 		case "user":
-			serviceMap[user.ServiceName] = true
+			serviceMap[user.ServiceName] = user.ServiceID
 		case "project":
 			glog.Info(user)
 			if projectService, ok := projectServiceMap[user.ProjectName]; ok {
-				projectService.ServiceMap[user.ServiceName] = true
+				projectService.ServiceMap[user.ServiceName] = user.ServiceID
 			} else {
 				projectService := model.ProjectService{
+					RoleID:          user.RoleID,
 					RoleName:        user.RoleName,
 					ProjectName:     user.ProjectName,
+					ProjectRoleID:   user.ProjectRoleID,
 					ProjectRoleName: user.ProjectRoleName,
-					ServiceMap:      map[string]bool{},
+					ServiceMap:      map[string]uint{},
 				}
-				projectService.ServiceMap[user.ServiceName] = true
+				projectService.ServiceMap[user.ServiceName] = user.ServiceID
 				projectServiceMap[user.ProjectName] = projectService
 			}
 		}
@@ -289,6 +335,31 @@ func (modelApi *ModelApi) GetUserAuthority(username string) (*model.UserAuthorit
 	userAuthority := model.UserAuthority{
 		ServiceMap:        serviceMap,
 		ProjectServiceMap: projectServiceMap,
+	}
+
+	glog.Info("DEBUGLALALALALALA")
+	if actionRequest != nil && actionRequest.ProjectName != "" && actionRequest.ServiceName != "" && actionRequest.Name != "" {
+		projectService, projectServiceOk := projectServiceMap[actionRequest.ProjectName]
+		if !projectServiceOk {
+			return nil, errors.New(fmt.Sprintf("NotFound %v in projectServiceMap", actionRequest.ProjectName))
+		}
+
+		serviceID, serviceOk := projectService.ServiceMap[actionRequest.ServiceName]
+		if !serviceOk {
+			return nil, errors.New(fmt.Sprintf("NotFound %v in projectService.ServiceMap", actionRequest.ServiceName))
+		}
+
+		var action model.Action
+		if err := db.Debug().Where("service_id = ? and name = ? and project_role_id = ?", serviceID, actionRequest.Name, projectService.ProjectRoleID).First(&action).Error; err != nil {
+			return nil, err
+		}
+
+		if action.RoleID != 0 && action.RoleID != projectService.RoleID {
+			return nil, errors.New(fmt.Sprintf("action.RoleID(%v) != projectService.RoleID(%v)",
+				action.RoleID, projectService.RoleID))
+		}
+
+		userAuthority.ActionProjectService = projectService
 	}
 
 	return &userAuthority, nil

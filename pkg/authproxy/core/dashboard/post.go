@@ -32,7 +32,7 @@ func (dashboard *Dashboard) Login(c *gin.Context) {
 		return
 	}
 
-	userAuthority, getUserAuthorityErr := dashboard.ModelApi.GetUserAuthority(authRequest.Username)
+	userAuthority, getUserAuthorityErr := dashboard.ModelApi.GetUserAuthority(authRequest.Username, &authRequest.Action)
 	if getUserAuthorityErr != nil {
 		glog.Error(getUserAuthorityErr)
 		c.JSON(http.StatusUnauthorized, gin.H{

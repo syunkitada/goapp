@@ -23,8 +23,9 @@ func (authproxy *Authproxy) NewHandler() http.Handler {
 	authorized.Use(authproxy.AuthRequired())
 	{
 		authorized.POST("/dashboard/logout", authproxy.Dashboard.Logout)
-		authorized.GET("/dashboard/state", authproxy.Dashboard.GetState)
+		authorized.POST("/dashboard/state", authproxy.Dashboard.GetState)
 		authorized.GET("/auth-health", authproxy.AuthHealth)
+		authorized.POST("/resource", authproxy.Resource.Action)
 	}
 
 	return handler

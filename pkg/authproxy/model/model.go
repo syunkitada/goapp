@@ -51,9 +51,12 @@ type Action struct {
 type CustomUser struct {
 	gorm.Model
 	Name            string
+	RoleID          uint
 	RoleName        string
 	ProjectName     string
+	ProjectRoleID   uint
 	ProjectRoleName string
+	ServiceID       uint
 	ServiceName     string
 	ServiceScope    string
 }
@@ -65,13 +68,16 @@ type CustomProject struct {
 }
 
 type UserAuthority struct {
-	ServiceMap        map[string]bool
-	ProjectServiceMap map[string]ProjectService
+	ServiceMap           map[string]uint
+	ProjectServiceMap    map[string]ProjectService
+	ActionProjectService ProjectService
 }
 
 type ProjectService struct {
+	RoleID          uint
 	RoleName        string
 	ProjectName     string
+	ProjectRoleID   uint
 	ProjectRoleName string
-	ServiceMap      map[string]bool
+	ServiceMap      map[string]uint
 }

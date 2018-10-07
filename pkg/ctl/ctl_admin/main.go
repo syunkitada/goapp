@@ -6,11 +6,27 @@ import (
 	"github.com/golang/glog"
 	"github.com/syunkitada/goapp/pkg/config"
 	"github.com/urfave/cli"
+
+	"github.com/syunkitada/goapp/pkg/authproxy/model/model_api"
 )
 
 var (
 	Conf = &config.Conf
 )
+
+type AdminCtl struct {
+	Conf     *config.Config
+	ModelApi *model_api.ModelApi
+}
+
+func NewAdminCtl(conf *config.Config) *AdminCtl {
+	adminCtl := AdminCtl{
+		Conf:     conf,
+		ModelApi: model_api.NewModelApi(conf),
+	}
+
+	return &adminCtl
+}
 
 func Main() error {
 	cli.VersionFlag = config.VersionFlag
@@ -27,7 +43,8 @@ func Main() error {
 			Usage: "db-migrate help",
 			Action: func(c *cli.Context) error {
 				config.Init(c)
-				if err := MigrateDatabase(); err != nil {
+				adminCtl := NewAdminCtl(Conf)
+				if err := adminCtl.MigrateDatabase(); err != nil {
 					return err
 				}
 

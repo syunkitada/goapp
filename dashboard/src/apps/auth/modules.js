@@ -1,10 +1,13 @@
 import fetch from 'cross-fetch'
 
 function syncState() {
+  const body = JSON.stringify({});
+
   return fetch(process.env.REACT_APP_AUTHPROXY_URL + '/dashboard/state', {
-    method: 'GET',
+    method: 'POST',
     credentials: 'include',
     mode: 'cors',
+    body: body,
   }).then(res => res.json()).then(function(payload) {
     return {
       payload: payload,

@@ -2,7 +2,6 @@ package resource_client
 
 import (
 	"errors"
-	"net"
 	"time"
 
 	"github.com/golang/glog"
@@ -15,16 +14,18 @@ import (
 )
 
 type ResourceClient struct {
-	Conf       *config.Conf
-	CaFilePath string
-	Targets    []string
+	Conf               *config.Config
+	CaFilePath         string
+	ServerHostOverride string
+	Targets            []string
 }
 
-func NewResourceClient(conf *config.Conf) *ResourceClient {
+func NewResourceClient(conf *config.Config) *ResourceClient {
 	resourceClient := ResourceClient{
-		Conf:       conf,
-		CaFilePath: conf.Path(conf.Resoruce.Grpc.CaFile),
-		Targets:    conf.Resoruce.Grpc.Targets,
+		Conf:               conf,
+		CaFilePath:         conf.Path(conf.Resource.Grpc.CaFile),
+		ServerHostOverride: conf.Resource.Grpc.ServerHostOverride,
+		Targets:            conf.Resource.Grpc.Targets,
 	}
 	return &resourceClient
 }
@@ -33,7 +34,7 @@ func (resourceClient *ResourceClient) NewClientConnection() (*grpc.ClientConn, e
 	var opts []grpc.DialOption
 
 	for _, target := range resourceClient.Targets {
-		creds, credsErr := credentials.NewClientTLSFromFile(resourceClient.CaFilePath, conf.ServerHostOverride)
+		creds, credsErr := credentials.NewClientTLSFromFile(resourceClient.CaFilePath, resourceClient.ServerHostOverride)
 		if credsErr != nil {
 			glog.Warning("Failed to create TLS credentials %v", credsErr)
 			continue

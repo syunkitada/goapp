@@ -6,11 +6,10 @@ import (
 
 	"github.com/golang/glog"
 	"github.com/syunkitada/goapp/pkg/authproxy/model"
-	"github.com/syunkitada/goapp/pkg/authproxy/model/model_api"
 	"os/exec"
 )
 
-func MigrateDatabase() error {
+func (adminCtl *AdminCtl) MigrateDatabase() error {
 	db, err := gorm.Open("mysql", Conf.AuthproxyDatabase.Connection)
 	defer db.Close()
 	if err != nil {
@@ -24,33 +23,34 @@ func MigrateDatabase() error {
 	db.AutoMigrate(&model.Project{})
 	db.AutoMigrate(&model.ProjectRole{})
 	db.AutoMigrate(&model.Service{})
+	db.AutoMigrate(&model.Action{})
 
-	if err := model_api.CreateUser(Conf.Admin.Username, Conf.Admin.Password); err != nil {
+	if err := adminCtl.ModelApi.CreateUser(adminCtl.Conf.Admin.Username, adminCtl.Conf.Admin.Password); err != nil {
 		glog.Error(err)
 		return err
 	}
 
-	if err := model_api.CreateProjectRole("admin"); err != nil {
+	if err := adminCtl.ModelApi.CreateProjectRole("admin"); err != nil {
 		glog.Error(err)
 		return err
 	}
 
-	if err := model_api.CreateProjectRole("tenant"); err != nil {
+	if err := adminCtl.ModelApi.CreateProjectRole("tenant"); err != nil {
 		glog.Error(err)
 		return err
 	}
 
-	if err := model_api.CreateProject("admin", "admin"); err != nil {
+	if err := adminCtl.ModelApi.CreateProject("admin", "admin"); err != nil {
 		glog.Error(err)
 		return err
 	}
 
-	if err := model_api.CreateRole("admin", "admin"); err != nil {
+	if err := adminCtl.ModelApi.CreateRole("admin", "admin"); err != nil {
 		glog.Error(err)
 		return err
 	}
 
-	if err := model_api.AssignRole("admin", "admin"); err != nil {
+	if err := adminCtl.ModelApi.AssignRole("admin", "admin"); err != nil {
 		glog.Error(err)
 		return err
 	}
@@ -58,50 +58,66 @@ func MigrateDatabase() error {
 	userTenantServices := []string{"Wiki", "Chat", "Ticket"}
 	userAdminServices := []string{"Datacenter"}
 	projectTenantServices := []string{"Resource"}
+	actionMap := map[string][]string{}
+	actionMap["Resource"] = []string{"GetState"}
 
 	for _, userTenantService := range userTenantServices {
-		if err := model_api.CreateService(userTenantService, "user"); err != nil {
+		if err := adminCtl.ModelApi.CreateService(userTenantService, "user"); err != nil {
 			glog.Error(err)
 			return err
 		}
 
-		if err := model_api.AssignService("tenant", userTenantService); err != nil {
+		if err := adminCtl.ModelApi.AssignService("tenant", userTenantService); err != nil {
 			glog.Error(err)
 			return err
 		}
 
-		if err := model_api.AssignService("admin", userTenantService); err != nil {
+		if err := adminCtl.ModelApi.AssignService("admin", userTenantService); err != nil {
 			glog.Error(err)
 			return err
 		}
 	}
 
 	for _, userAdminService := range userAdminServices {
-		if err := model_api.CreateService(userAdminService, "user"); err != nil {
+		if err := adminCtl.ModelApi.CreateService(userAdminService, "user"); err != nil {
 			glog.Error(err)
 			return err
 		}
 
-		if err := model_api.AssignService("admin", userAdminService); err != nil {
+		if err := adminCtl.ModelApi.AssignService("admin", userAdminService); err != nil {
 			glog.Error(err)
 			return err
 		}
 	}
 
 	for _, projectTenantService := range projectTenantServices {
-		if err := model_api.CreateService(projectTenantService, "project"); err != nil {
+		if err := adminCtl.ModelApi.CreateService(projectTenantService, "project"); err != nil {
 			glog.Error(err)
 			return err
 		}
 
-		if err := model_api.AssignService("tenant", projectTenantService); err != nil {
+		if err := adminCtl.ModelApi.AssignService("tenant", projectTenantService); err != nil {
 			glog.Error(err)
 			return err
 		}
 
-		if err := model_api.AssignService("admin", projectTenantService); err != nil {
+		if err := adminCtl.ModelApi.AssignService("admin", projectTenantService); err != nil {
 			glog.Error(err)
 			return err
+		}
+	}
+
+	for serviceName, actions := range actionMap {
+		for _, actionName := range actions {
+			if err := adminCtl.ModelApi.AssignAction(serviceName, "admin", "", actionName); err != nil {
+				glog.Error(err)
+				return err
+			}
+
+			if err := adminCtl.ModelApi.AssignAction(serviceName, "tenant", "", actionName); err != nil {
+				glog.Error(err)
+				return err
+			}
 		}
 	}
 

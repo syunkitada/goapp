@@ -145,7 +145,7 @@ func newConfig(ctx *cli.Context) *Config {
 				CaFile:             "ca.pem",
 				ServerHostOverride: "x.test.youtube.com",
 				Targets: []string{
-					"localhost:10080",
+					"localhost:13300",
 				},
 			},
 			Database: DatabaseConfig{
