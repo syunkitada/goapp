@@ -8,6 +8,7 @@ import (
 	"github.com/urfave/cli"
 
 	"github.com/syunkitada/goapp/pkg/authproxy/model/model_api"
+	"github.com/syunkitada/goapp/pkg/resource/resource_model/resource_model_api"
 )
 
 var (
@@ -15,14 +16,16 @@ var (
 )
 
 type AdminCtl struct {
-	Conf     *config.Config
-	ModelApi *model_api.ModelApi
+	Conf             *config.Config
+	ModelApi         *model_api.ModelApi
+	ResourceModelApi *resource_model_api.ResourceModelApi
 }
 
 func NewAdminCtl(conf *config.Config) *AdminCtl {
 	adminCtl := AdminCtl{
-		Conf:     conf,
-		ModelApi: model_api.NewModelApi(conf),
+		Conf:             conf,
+		ModelApi:         model_api.NewModelApi(conf),
+		ResourceModelApi: resource_model_api.NewResourceModelApi(conf),
 	}
 
 	return &adminCtl
