@@ -48,7 +48,8 @@ func (resourceServer *ResourceServer) Serv() error {
 
 	grpcServer := grpc.NewServer(opts...)
 
-	grpc_pb.RegisterHealthServer(grpcServer, resourceServer)
+	grpc_pb.RegisterResourceServer(grpcServer, resourceServer)
+	glog.Infof("Serve: %v", grpcConfig.Listen)
 	grpcServer.Serve(lis)
 
 	return nil

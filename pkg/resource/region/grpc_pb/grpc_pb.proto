@@ -7,13 +7,13 @@ option java_outer_classname = "RouteGuideProto";
 package grpc_pb;
 
 
-service Resource {
-  rpc Status(StatusRequest) returns (StatusReply) {}
+service ResourceRegion {
+  rpc Health(HealthRequest) returns (HealthReply) {}
 }
 
-message StatusRequest {}
+message HealthRequest {}
 
-message StatusReply {
+message HealthReply {
     string msg = 1;
     string err = 2;
 }

@@ -1,39 +1,32 @@
 package authproxy
 
 import (
-	"os"
-
 	"github.com/golang/glog"
-	"github.com/urfave/cli"
+	"github.com/spf13/cobra"
 
 	"github.com/syunkitada/goapp/pkg/authproxy/core"
 	"github.com/syunkitada/goapp/pkg/config"
 )
 
-var (
-	Conf = &config.Conf
-)
-
-func Main() error {
-	cli.VersionFlag = config.VersionFlag
-
-	app := cli.NewApp()
-	app.Name = "goapp-authproxy"
-	app.Usage = "goapp-authproxy"
-	app.Version = "0.0.1"
-	app.Flags = append(config.CommonFlags, config.GlogFlags...)
-
-	app.Action = func(c *cli.Context) error {
-		config.Init(c)
-		authproxy := core.NewAuthproxy(Conf)
+var rootCmd = &cobra.Command{
+	Use:   "goapp-authproxy",
+	Short: "goapp-authproxy",
+	Long: `goapp-authproxy
+                This is sample description1.
+                This is sample description2.`,
+	Run: func(cmd *cobra.Command, args []string) {
+		authproxy := core.NewAuthproxy(&config.Conf)
 		authproxy.Serv()
-		return nil
-	}
+	},
+}
 
-	if err := app.Run(os.Args); err != nil {
-		glog.Error(err)
-		return err
+func Main() {
+	if err := rootCmd.Execute(); err != nil {
+		glog.Fatal(err)
 	}
+}
 
-	return nil
+func init() {
+	cobra.OnInitialize(config.InitConfig)
+	config.InitFlags(rootCmd)
 }

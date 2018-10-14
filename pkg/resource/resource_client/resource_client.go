@@ -61,7 +61,7 @@ func (resourceClient *ResourceClient) Status() (*grpc_pb.StatusReply, error) {
 		return nil, connErr
 	}
 
-	client := grpc_pb.NewHealthClient(conn)
+	client := grpc_pb.NewResourceClient(conn)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()

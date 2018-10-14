@@ -2,15 +2,10 @@ package config
 
 import (
 	"net/http"
-	"os"
-	"strings"
-
-	"github.com/urfave/cli"
 	"path/filepath"
 )
 
 type Config struct {
-	App               *cli.App
 	Default           DefaultConfig
 	Authproxy         HttpServerConfig
 	AuthproxyDatabase DatabaseConfig
@@ -67,26 +62,25 @@ type AdminConfig struct {
 }
 
 type ResourceConfig struct {
-	Database DatabaseConfig
-	Grpc     GrpcConfig
+	Database  DatabaseConfig
+	Grpc      GrpcConfig
+	Region    RegionConfig
+	RegionMap map[string]*ResourceRegionConfig
 }
 
-func newConfig(ctx *cli.Context) *Config {
-	configDir := "/etc/goapp"
-	dashboardBuildDir := "/opt/goapp/dashboard/build"
-	if ctx.GlobalBool("use-pwd") {
-		pwd := os.Getenv("PWD")
-		splitedPwd := strings.Split(pwd, "/pkg/")
-		configDir = splitedPwd[0] + "/testdata"
-		dashboardBuildDir = splitedPwd[0] + "/dashboard/build"
-	}
+type RegionConfig struct {
+	Name string
+}
 
+type ResourceRegionConfig struct {
+	Database DatabaseConfig
+	ApiGrpc  GrpcConfig
+}
+
+func newConfig(configDir string) *Config {
 	defaultConfig := &Config{
-		App: ctx.App,
 		Default: DefaultConfig{
-			ConfigDir:  configDir,
-			ConfigFile: filepath.Join(configDir, "config.toml"),
-			TestMode:   ctx.GlobalBool("test-mode"),
+			ConfigDir: configDir,
 		},
 		Authproxy: HttpServerConfig{
 			Listen: "0.0.0.0:8000",
@@ -113,7 +107,7 @@ func newConfig(ctx *cli.Context) *Config {
 				KeyFile:         "tls-assets/server.key",
 				GracefulTimeout: 10,
 			},
-			BuildDir: dashboardBuildDir,
+			BuildDir: filepath.Join(configDir, "dashboard/build"),
 		},
 		Agent: AgentConfig{
 			ReportInterval: 10,
@@ -151,8 +145,29 @@ func newConfig(ctx *cli.Context) *Config {
 			Database: DatabaseConfig{
 				Connection: "admin:adminpass@tcp(localhost:3306)/resource?charset=utf8&parseTime=true",
 			},
+			Region: RegionConfig{
+				Name: "region1",
+			},
+			RegionMap: map[string]*ResourceRegionConfig{
+				"region1": &ResourceRegionConfig{
+					ApiGrpc: GrpcConfig{
+						Listen:             "localhost:13310",
+						CertFile:           "server1.pem",
+						KeyFile:            "server1.key",
+						CaFile:             "ca.pem",
+						ServerHostOverride: "x.test.youtube.com",
+						Targets: []string{
+							"localhost:13310",
+						},
+					},
+				},
+			},
 		},
 	}
 
 	return defaultConfig
+}
+
+func (conf *Config) Path(path string) string {
+	return filepath.Join(conf.Default.ConfigDir, path)
 }
