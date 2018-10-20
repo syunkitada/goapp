@@ -29,7 +29,7 @@ func (resource *Resource) Action(c *gin.Context) {
 	switch action.Name {
 	case "GetState":
 		glog.Info("itest")
-		status, err := resource.ResourceClient.Status()
+		status, err := resource.ResourceApiClient.Status()
 		if err != nil {
 			glog.Error("Failed HealthClient.Status", err)
 			c.JSON(http.StatusUnauthorized, gin.H{

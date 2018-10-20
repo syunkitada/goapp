@@ -9,7 +9,7 @@ import (
 	"google.golang.org/grpc/credentials"
 
 	"github.com/syunkitada/goapp/pkg/config"
-	"github.com/syunkitada/goapp/pkg/resource/region/grpc_pb"
+	"github.com/syunkitada/goapp/pkg/resource/region/resource_region_grpc_pb"
 )
 
 type ResourceRegionServer struct {
@@ -30,9 +30,9 @@ func NewResourceRegionServer(conf *config.Config) *ResourceRegionServer {
 	return &server
 }
 
-func (resourceRegionServer *ResourceRegionServer) Health(ctx context.Context, statusRequest *grpc_pb.HealthRequest) (*grpc_pb.HealthReply, error) {
+func (resourceRegionServer *ResourceRegionServer) Health(ctx context.Context, statusRequest *resource_region_grpc_pb.HealthRequest) (*resource_region_grpc_pb.HealthReply, error) {
 	glog.Info("Health")
-	return &grpc_pb.HealthReply{Msg: "Health", Err: ""}, nil
+	return &resource_region_grpc_pb.HealthReply{Msg: "Health", Err: ""}, nil
 }
 
 func (resourceRegionServer *ResourceRegionServer) Serv() error {
@@ -55,7 +55,7 @@ func (resourceRegionServer *ResourceRegionServer) Serv() error {
 
 	grpcServer := grpc.NewServer(opts...)
 
-	grpc_pb.RegisterResourceRegionServer(grpcServer, resourceRegionServer)
+	resource_region_grpc_pb.RegisterResourceRegionServer(grpcServer, resourceRegionServer)
 	glog.Infof("Serve: %v", grpcConfig.Listen)
 	grpcServer.Serve(lis)
 

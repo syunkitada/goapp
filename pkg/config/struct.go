@@ -62,10 +62,11 @@ type AdminConfig struct {
 }
 
 type ResourceConfig struct {
-	Database  DatabaseConfig
-	Grpc      GrpcConfig
-	Region    RegionConfig
-	RegionMap map[string]*ResourceRegionConfig
+	Database       DatabaseConfig
+	ApiGrpc        GrpcConfig
+	ControllerGrpc GrpcConfig
+	Region         RegionConfig
+	RegionMap      map[string]*ResourceRegionConfig
 }
 
 type RegionConfig struct {
@@ -132,7 +133,7 @@ func newConfig(configDir string) *Config {
 			TokenSecret: "changeme",
 		},
 		Resource: ResourceConfig{
-			Grpc: GrpcConfig{
+			ApiGrpc: GrpcConfig{
 				Listen:             "localhost:13300",
 				CertFile:           "server1.pem",
 				KeyFile:            "server1.key",
@@ -140,6 +141,16 @@ func newConfig(configDir string) *Config {
 				ServerHostOverride: "x.test.youtube.com",
 				Targets: []string{
 					"localhost:13300",
+				},
+			},
+			ControllerGrpc: GrpcConfig{
+				Listen:             "localhost:13301",
+				CertFile:           "server1.pem",
+				KeyFile:            "server1.key",
+				CaFile:             "ca.pem",
+				ServerHostOverride: "x.test.youtube.com",
+				Targets: []string{
+					"localhost:13301",
 				},
 			},
 			Database: DatabaseConfig{

@@ -8,7 +8,7 @@ import (
 
 	"github.com/olekukonko/tablewriter"
 	"github.com/syunkitada/goapp/pkg/config"
-	"github.com/syunkitada/goapp/pkg/resource/resource_client"
+	"github.com/syunkitada/goapp/pkg/resource/resource_api/resource_api_client"
 )
 
 func init() {
@@ -22,8 +22,8 @@ var StatusCmd = &cobra.Command{
                 This is sample description1.
                 This is sample description2.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		resourceClient := resource_client.NewResourceClient(&config.Conf)
-		reply, err := resourceClient.Status()
+		client := resource_api_client.NewResourceClient(&config.Conf)
+		reply, err := client.Status()
 		if err != nil {
 			glog.Fatal(err)
 		}

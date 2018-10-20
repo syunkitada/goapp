@@ -24,8 +24,12 @@ func tasks(p *do.Project) {
 		c.Start("main.go", do.M{"$in": "cmd/goapp-health"})
 	}).Src("pkg/**/*.go")
 
-	p.Task("goapp-resource-server", nil, func(c *do.Context) {
-		c.Start("main.go server", do.M{"$in": "cmd/goapp-resource"})
+	p.Task("goapp-resource-api", nil, func(c *do.Context) {
+		c.Start("main.go api", do.M{"$in": "cmd/goapp-resource"})
+	}).Src("pkg/**/*.go")
+
+	p.Task("goapp-resource-controller", nil, func(c *do.Context) {
+		c.Start("main.go controller", do.M{"$in": "cmd/goapp-resource"})
 	}).Src("pkg/**/*.go")
 
 	p.Task("goapp-resource-region-server", nil, func(c *do.Context) {

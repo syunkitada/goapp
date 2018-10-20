@@ -4,10 +4,10 @@ option java_multiple_files = true;
 option java_package = "io.grpc.examples.routeguide";
 option java_outer_classname = "RouteGuideProto";
 
-package grpc_pb;
+package resource_controller_grpc_pb;
 
 
-service Resource {
+service ResourceController {
   rpc Status(StatusRequest) returns (StatusReply) {}
 }
 

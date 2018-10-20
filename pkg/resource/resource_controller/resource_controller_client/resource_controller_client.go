@@ -1,4 +1,4 @@
-package resource_client
+package resource_controller_client
 
 import (
 	"errors"
@@ -10,7 +10,7 @@ import (
 	"google.golang.org/grpc/credentials"
 
 	"github.com/syunkitada/goapp/pkg/config"
-	"github.com/syunkitada/goapp/pkg/resource/grpc_pb"
+	"github.com/syunkitada/goapp/pkg/resource/resource_controller/resource_controller_grpc_pb"
 )
 
 type ResourceClient struct {
@@ -53,7 +53,7 @@ func (resourceClient *ResourceClient) NewClientConnection() (*grpc.ClientConn, e
 	return nil, errors.New("Failed NewGrpcConnection")
 }
 
-func (resourceClient *ResourceClient) Status() (*grpc_pb.StatusReply, error) {
+func (resourceClient *ResourceClient) Status() (*resource_controller_grpc_pb.StatusReply, error) {
 	conn, connErr := resourceClient.NewClientConnection()
 	defer conn.Close()
 	if connErr != nil {
@@ -61,12 +61,12 @@ func (resourceClient *ResourceClient) Status() (*grpc_pb.StatusReply, error) {
 		return nil, connErr
 	}
 
-	client := grpc_pb.NewResourceClient(conn)
+	client := resource_controller_grpc_pb.NewResourceClient(conn)
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Second)
 	defer cancel()
 
-	statusResponse, err := client.Status(ctx, &grpc_pb.StatusRequest{})
+	statusResponse, err := client.Status(ctx, &resource_controller_grpc_pb.StatusRequest{})
 	if err != nil {
 		glog.Error("%v.GetFeatures(_) = _, %v: ", client, err)
 		return nil, err
