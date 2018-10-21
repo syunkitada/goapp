@@ -6,21 +6,45 @@ import (
 )
 
 type Config struct {
-	Default           DefaultConfig
-	Authproxy         HttpServerConfig
-	AuthproxyDatabase DatabaseConfig
-	Dashboard         DashboardConfig
-	HealthGrpc        GrpcConfig
-	Resource          ResourceConfig
-	Agent             AgentConfig
-	ImageDatabase     DatabaseConfig
-	Admin             AdminConfig
+	Default   DefaultConfig
+	Admin     AdminConfig
+	Authproxy AuthproxyConfig
+	Dashboard DashboardConfig
+	Resource  ResourceConfig
 }
 
 type DefaultConfig struct {
-	ConfigDir  string
-	ConfigFile string
-	TestMode   bool
+	ConfigDir         string
+	ConfigFile        string
+	EnableTest        bool
+	EnableDevelop     bool
+	EnableDebug       bool
+	EnableDatabaseLog bool
+}
+
+type AdminConfig struct {
+	Username    string
+	Password    string
+	Secret      string
+	TokenSecret string
+}
+
+type AuthproxyConfig struct {
+	HttpServer HttpServerConfig
+	Database   DatabaseConfig
+}
+
+type DashboardConfig struct {
+	HttpServer HttpServerConfig
+	BuildDir   string
+}
+
+type ResourceConfig struct {
+	Database       DatabaseConfig
+	ApiGrpc        GrpcConfig
+	ControllerGrpc GrpcConfig
+	Region         RegionConfig
+	RegionMap      map[string]*ResourceRegionConfig
 }
 
 type HttpServerConfig struct {
@@ -32,17 +56,8 @@ type HttpServerConfig struct {
 	TestHandler     http.Handler
 }
 
-type AgentConfig struct {
-	ReportInterval int
-}
-
 type DatabaseConfig struct {
 	Connection string
-}
-
-type DashboardConfig struct {
-	HttpServerConfig
-	BuildDir string
 }
 
 type GrpcConfig struct {
@@ -54,21 +69,6 @@ type GrpcConfig struct {
 	Targets            []string
 }
 
-type AdminConfig struct {
-	Username    string
-	Password    string
-	Secret      string
-	TokenSecret string
-}
-
-type ResourceConfig struct {
-	Database       DatabaseConfig
-	ApiGrpc        GrpcConfig
-	ControllerGrpc GrpcConfig
-	Region         RegionConfig
-	RegionMap      map[string]*ResourceRegionConfig
-}
-
 type RegionConfig struct {
 	Name string
 }
@@ -78,27 +78,33 @@ type ResourceRegionConfig struct {
 	ApiGrpc  GrpcConfig
 }
 
-func newConfig(configDir string) *Config {
-	defaultConfig := &Config{
-		Default: DefaultConfig{
-			ConfigDir: configDir,
+func newConfig(defaultConfig *DefaultConfig) *Config {
+	config := &Config{
+		Default: *defaultConfig,
+		Admin: AdminConfig{
+			Username:    "admin",
+			Password:    "changeme",
+			Secret:      "changeme",
+			TokenSecret: "changeme",
 		},
-		Authproxy: HttpServerConfig{
-			Listen: "0.0.0.0:8000",
-			AllowedHosts: []string{
-				"localhost:8000",
-				"192.168.10.103:3000",
-				"192.168.10.103:8000",
+		Authproxy: AuthproxyConfig{
+			HttpServer: HttpServerConfig{
+				Listen: "0.0.0.0:8000",
+				AllowedHosts: []string{
+					"localhost:8000",
+					"192.168.10.103:3000",
+					"192.168.10.103:8000",
+				},
+				CertFile:        "tls-assets/server.pem",
+				KeyFile:         "tls-assets/server.key",
+				GracefulTimeout: 10,
 			},
-			CertFile:        "tls-assets/server.pem",
-			KeyFile:         "tls-assets/server.key",
-			GracefulTimeout: 10,
-		},
-		AuthproxyDatabase: DatabaseConfig{
-			Connection: "admin:adminpass@tcp(localhost:3306)/goapp?charset=utf8&parseTime=true",
+			Database: DatabaseConfig{
+				Connection: "admin:adminpass@tcp(localhost:3306)/goapp_authproxy?charset=utf8&parseTime=true",
+			},
 		},
 		Dashboard: DashboardConfig{
-			HttpServerConfig: HttpServerConfig{
+			HttpServer: HttpServerConfig{
 				Listen: "0.0.0.0:7000",
 				AllowedHosts: []string{
 					"localhost:7000",
@@ -109,28 +115,6 @@ func newConfig(configDir string) *Config {
 				GracefulTimeout: 10,
 			},
 			BuildDir: filepath.Join(configDir, "dashboard/build"),
-		},
-		Agent: AgentConfig{
-			ReportInterval: 10,
-		},
-		ImageDatabase: DatabaseConfig{
-			Connection: "admin:adminpass@tcp(localhost:3306)/goapp?charset=utf8&parseTime=true",
-		},
-		HealthGrpc: GrpcConfig{
-			Listen:             "localhost:10080",
-			CertFile:           "server1.pem",
-			KeyFile:            "server1.key",
-			CaFile:             "ca.pem",
-			ServerHostOverride: "x.test.youtube.com",
-			Targets: []string{
-				"localhost:10080",
-			},
-		},
-		Admin: AdminConfig{
-			Username:    "admin",
-			Password:    "changeme",
-			Secret:      "changeme",
-			TokenSecret: "changeme",
 		},
 		Resource: ResourceConfig{
 			ApiGrpc: GrpcConfig{
@@ -154,7 +138,7 @@ func newConfig(configDir string) *Config {
 				},
 			},
 			Database: DatabaseConfig{
-				Connection: "admin:adminpass@tcp(localhost:3306)/resource?charset=utf8&parseTime=true",
+				Connection: "admin:adminpass@tcp(localhost:3306)/goapp_resource?charset=utf8&parseTime=true",
 			},
 			Region: RegionConfig{
 				Name: "region1",
@@ -176,7 +160,7 @@ func newConfig(configDir string) *Config {
 		},
 	}
 
-	return defaultConfig
+	return config
 }
 
 func (conf *Config) Path(path string) string {

@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/golang/glog"
 
-	"github.com/syunkitada/goapp/pkg/authproxy/model"
+	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_model"
 )
 
 func (resource *Resource) Action(c *gin.Context) {
@@ -20,7 +20,7 @@ func (resource *Resource) Action(c *gin.Context) {
 		return
 	}
 
-	action := tmpAction.(model.ActionRequest)
+	action := tmpAction.(authproxy_model.ActionRequest)
 
 	glog.Info(username)
 	glog.Info(userAuthority)

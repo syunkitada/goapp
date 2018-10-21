@@ -7,8 +7,8 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 
-	"github.com/syunkitada/goapp/pkg/authproxy/model"
-	"github.com/syunkitada/goapp/pkg/authproxy/model/model_api"
+	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_model"
+	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_model/authproxy_model_api"
 	"github.com/syunkitada/goapp/pkg/config"
 )
 
@@ -18,20 +18,20 @@ type CustomClaims struct {
 }
 
 type Token struct {
-	Conf     *config.Config
-	ModelApi *model_api.ModelApi
+	Conf              *config.Config
+	AuthproxyModelApi *authproxy_model_api.AuthproxyModelApi
 }
 
-func NewToken(conf *config.Config, modelApi *model_api.ModelApi) *Token {
+func NewToken(conf *config.Config, authproxyModelApi *authproxy_model_api.AuthproxyModelApi) *Token {
 	token := Token{
-		Conf:     conf,
-		ModelApi: modelApi,
+		Conf:              conf,
+		AuthproxyModelApi: authproxyModelApi,
 	}
 	return &token
 }
 
-func (token *Token) AuthAndIssueToken(authRequest *model.AuthRequest) (string, error) {
-	user, userErr := token.ModelApi.GetAuthUser(authRequest)
+func (token *Token) AuthAndIssueToken(authRequest *authproxy_model.AuthRequest) (string, error) {
+	user, userErr := token.AuthproxyModelApi.GetAuthUser(authRequest)
 	if userErr != nil {
 		return "", errors.New("Failed GetAuthUser")
 	}
@@ -45,7 +45,7 @@ func (token *Token) AuthAndIssueToken(authRequest *model.AuthRequest) (string, e
 	}
 }
 
-func (token *Token) Generate(user *model.User) (string, error) {
+func (token *Token) Generate(user *authproxy_model.User) (string, error) {
 	claims := CustomClaims{
 		Username: user.Name,
 		StandardClaims: jwt.StandardClaims{
@@ -61,7 +61,7 @@ func (token *Token) Generate(user *model.User) (string, error) {
 	return tokenString, tokenErr
 }
 
-func (token *Token) ParseToken(request model.TokenAuthRequest) (jwt.MapClaims, error) {
+func (token *Token) ParseToken(request authproxy_model.TokenAuthRequest) (jwt.MapClaims, error) {
 	parsedToken, err := jwt.Parse(request.Token, func(t *jwt.Token) (interface{}, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 			msg := fmt.Errorf("Unexpected signing method: %v", t.Header["alg"])

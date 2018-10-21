@@ -1,66 +1,27 @@
 package ctl_admin
 
 import (
-	"os"
-
 	"github.com/golang/glog"
+	"github.com/spf13/cobra"
+
 	"github.com/syunkitada/goapp/pkg/config"
-	"github.com/urfave/cli"
-
-	"github.com/syunkitada/goapp/pkg/authproxy/model/model_api"
-	"github.com/syunkitada/goapp/pkg/resource/resource_model/resource_model_api"
+	// "github.com/syunkitada/goapp/pkg/ctl/ctl_main/resource"
 )
 
-var (
-	Conf = &config.Conf
-)
-
-type AdminCtl struct {
-	Conf             *config.Config
-	ModelApi         *model_api.ModelApi
-	ResourceModelApi *resource_model_api.ResourceModelApi
+var RootCmd = &cobra.Command{
+	Use:   "goapp-adminctl",
+	Short: "goapp-adminctl is command line interface for running command to API",
+	Long: `goapp-adminctl is command line interface for running command to API
+	`,
 }
 
-func NewAdminCtl(conf *config.Config) *AdminCtl {
-	adminCtl := AdminCtl{
-		Conf:             conf,
-		ModelApi:         model_api.NewModelApi(conf),
-		ResourceModelApi: resource_model_api.NewResourceModelApi(conf),
+func Main() {
+	if err := RootCmd.Execute(); err != nil {
+		glog.Fatal(err)
 	}
-
-	return &adminCtl
 }
 
-func Main() error {
-	cli.VersionFlag = config.VersionFlag
-
-	app := cli.NewApp()
-	app.Name = "goapp-admin-ctl"
-	app.Usage = "help"
-	app.Version = "0.0.1"
-	app.Flags = append(config.CommonFlags, config.GlogFlags...)
-
-	app.Commands = []cli.Command{
-		{
-			Name:  "db-migrate",
-			Usage: "db-migrate help",
-			Action: func(c *cli.Context) error {
-				config.Init(c)
-				adminCtl := NewAdminCtl(Conf)
-				if err := adminCtl.MigrateDatabase(); err != nil {
-					return err
-				}
-
-				glog.Info("Success DB Migrate")
-				return nil
-			},
-		},
-	}
-
-	if err := app.Run(os.Args); err != nil {
-		glog.Error(err)
-		return err
-	}
-
-	return nil
+func init() {
+	cobra.OnInitialize(config.InitConfig)
+	config.InitFlags(RootCmd)
 }

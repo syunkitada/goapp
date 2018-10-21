@@ -7,11 +7,11 @@ import (
 	"github.com/gin-gonic/gin/binding"
 	"github.com/golang/glog"
 
-	"github.com/syunkitada/goapp/pkg/authproxy/model"
+	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_model"
 )
 
 func (dashboard *Dashboard) Login(c *gin.Context) {
-	var authRequest model.AuthRequest
+	var authRequest authproxy_model.AuthRequest
 
 	if err := c.ShouldBindWith(&authRequest, binding.JSON); err != nil {
 		glog.Warningf("Invalid AuthRequest: Failed ShouldBindJSON: %v", err)
@@ -32,7 +32,7 @@ func (dashboard *Dashboard) Login(c *gin.Context) {
 		return
 	}
 
-	userAuthority, getUserAuthorityErr := dashboard.ModelApi.GetUserAuthority(authRequest.Username, &authRequest.Action)
+	userAuthority, getUserAuthorityErr := dashboard.AuthproxyModelApi.GetUserAuthority(authRequest.Username, &authRequest.Action)
 	if getUserAuthorityErr != nil {
 		glog.Error(getUserAuthorityErr)
 		c.JSON(http.StatusUnauthorized, gin.H{

@@ -9,19 +9,19 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_model"
 	"github.com/syunkitada/goapp/pkg/authproxy/core/auth"
-	"github.com/syunkitada/goapp/pkg/authproxy/model"
 )
 
 type ResponseLogin struct {
 	Name      string
-	Authority model.UserAuthority
+	Authority authproxy_model.UserAuthority
 }
 
 func (dashboard *Dashboard) TestLogin(t *testing.T) *ResponseLogin {
-	handler := dashboard.Conf.Authproxy.TestHandler
+	handler := dashboard.Conf.Authproxy.HttpServer.TestHandler
 
-	authRequest := model.AuthRequest{
+	authRequest := authproxy_model.AuthRequest{
 		Username: dashboard.Conf.Admin.Username,
 		Password: dashboard.Conf.Admin.Password,
 	}
@@ -50,9 +50,15 @@ func (dashboard *Dashboard) TestLogin(t *testing.T) *ResponseLogin {
 }
 
 func (dashboard *Dashboard) TestGetState(t *testing.T, token *auth.ResponseIssueToken) *ResponseLogin {
-	handler := dashboard.Conf.Authproxy.TestHandler
+	handler := dashboard.Conf.Authproxy.HttpServer.TestHandler
 
-	req, newRequestErr := http.NewRequest("GET", "/dashboard/state", nil)
+	request := authproxy_model.TokenAuthRequest{}
+	requestJson, marshalErr := json.Marshal(request)
+	if marshalErr != nil {
+		t.Fatalf("Failed json.Marshal: %v", marshalErr)
+	}
+
+	req, newRequestErr := http.NewRequest("POST", "/dashboard/state", bytes.NewBuffer(requestJson))
 	if newRequestErr != nil {
 		t.Fatalf("Failed http.NewRequest: %v", newRequestErr)
 	}

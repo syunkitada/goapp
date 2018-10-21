@@ -9,7 +9,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/syunkitada/goapp/pkg/authproxy/model"
+	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_model"
 )
 
 type ResponseIssueToken struct {
@@ -17,9 +17,9 @@ type ResponseIssueToken struct {
 }
 
 func (auth *Auth) TestIssueToken(t *testing.T) *ResponseIssueToken {
-	handler := auth.Conf.Authproxy.TestHandler
+	handler := auth.Conf.Authproxy.HttpServer.TestHandler
 
-	authRequest := model.AuthRequest{
+	authRequest := authproxy_model.AuthRequest{
 		Username: auth.Conf.Admin.Username,
 		Password: auth.Conf.Admin.Password,
 	}

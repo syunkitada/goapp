@@ -12,8 +12,12 @@ import (
 )
 
 var (
-	Conf      Config
-	configDir string
+	Conf              Config
+	configDir         string
+	configFile        string
+	enableDebug       bool
+	enableDevelop     bool
+	enableDatabaseLog bool
 )
 
 var (
@@ -27,7 +31,13 @@ var (
 )
 
 func InitFlags(rootCmd *cobra.Command) {
-	rootCmd.PersistentFlags().StringVar(&configDir, "config-dir", "", "config directory (default is $HOME/.etc)")
+	rootCmd.PersistentFlags().StringVar(&configDir, "config-dir", "", "config directory (default is $PWD/ci/etc)")
+	rootCmd.PersistentFlags().StringVar(&configFile, "config-file", "", "config file (default is config.toml)")
+	rootCmd.PersistentFlags().BoolVar(&enableDebug, "debug", false, "enable debug mode")
+	rootCmd.PersistentFlags().BoolVar(&enableDevelop, "develop", false, "enable develop mode")
+	rootCmd.PersistentFlags().BoolVar(&enableDatabaseLog, "database-log", false, "enable database logging")
+
+	// glog flags
 	rootCmd.PersistentFlags().IntVar(&glogV, "glog-v", 0, "log level for V logs")
 	rootCmd.PersistentFlags().BoolVar(&glogLogtostderr, "glog-logtostderr", true, "log to standard error instead of files")
 	rootCmd.PersistentFlags().IntVar(&glogStderrthreshold, "glog-stderrthreshold", 0, "logs at or above this threshold go to stderr")
@@ -50,11 +60,35 @@ func InitConfig() {
 	})
 
 	if configDir == "" {
-		pwd := os.Getenv("PWD")
-		configDir = filepath.Join(pwd, "ci", "etc")
+		configDir = os.Getenv("CONFIG_DIR")
+		if configDir == "" {
+			pwd := os.Getenv("PWD")
+			configDir = filepath.Join(pwd, "ci", "etc")
+		}
 	}
 
-	err := loadConfig(configDir)
+	if configFile == "" {
+		configFile = os.Getenv("CONFIG_FILE")
+		if configFile == "" {
+			configFile = "config.toml"
+		}
+	}
+
+	if enableDebug {
+		enableDatabaseLog = true
+	}
+
+	defaultConfig := DefaultConfig{
+		ConfigDir:         configDir,
+		ConfigFile:        filepath.Join(configDir, configFile),
+		EnableDebug:       enableDebug,
+		EnableDevelop:     enableDevelop,
+		EnableDatabaseLog: enableDatabaseLog,
+	}
+
+	glog.Info(defaultConfig.ConfigFile)
+
+	err := loadConfig(&defaultConfig)
 	if err != nil {
 		glog.Fatal(err)
 	}
@@ -68,10 +102,9 @@ func flagShim(fakeVals map[string]string) {
 	})
 }
 
-func loadConfig(configDir string) error {
-	newConfig := newConfig(configDir)
-	configFile := filepath.Join(configDir, "config.toml")
-	_, err := toml.DecodeFile(configFile, newConfig)
+func loadConfig(defaultConfig *DefaultConfig) error {
+	newConfig := newConfig(defaultConfig)
+	_, err := toml.DecodeFile(defaultConfig.ConfigFile, newConfig)
 	if err != nil {
 		return err
 	}

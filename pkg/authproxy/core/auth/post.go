@@ -7,11 +7,11 @@ import (
 	"github.com/gin-gonic/gin/binding"
 	"github.com/golang/glog"
 
-	"github.com/syunkitada/goapp/pkg/authproxy/model"
+	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_model"
 )
 
 func (auth *Auth) IssueToken(c *gin.Context) {
-	var authRequest model.AuthRequest
+	var authRequest authproxy_model.AuthRequest
 
 	if err := c.ShouldBindWith(&authRequest, binding.JSON); err != nil {
 		glog.Warningf("Invalid AuthRequest: Failed ShouldBindJSON: %v", err)

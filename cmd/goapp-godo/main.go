@@ -20,10 +20,6 @@ func tasks(p *do.Project) {
 		c.Start("main.go", do.M{"$in": "cmd/goapp-dashboard"})
 	}).Src("pkg/**/*.go")
 
-	p.Task("goapp-health", nil, func(c *do.Context) {
-		c.Start("main.go", do.M{"$in": "cmd/goapp-health"})
-	}).Src("pkg/**/*.go")
-
 	p.Task("goapp-resource-api", nil, func(c *do.Context) {
 		c.Start("main.go api", do.M{"$in": "cmd/goapp-resource"})
 	}).Src("pkg/**/*.go")
@@ -32,8 +28,14 @@ func tasks(p *do.Project) {
 		c.Start("main.go controller", do.M{"$in": "cmd/goapp-resource"})
 	}).Src("pkg/**/*.go")
 
-	p.Task("goapp-resource-region-server", nil, func(c *do.Context) {
-		c.Start("main.go region-server", do.M{"$in": "cmd/goapp-resource"})
+	p.Task("goapp-resource-region-api", nil, func(c *do.Context) {
+		c.Start("main.go region-api", do.M{"$in": "cmd/goapp-resource"})
+	}).Src("pkg/**/*.go")
+
+	p.Task("goapp-all", nil, func(c *do.Context) {
+		c.Start("main.go", do.M{"$in": "cmd/goapp-authproxy"})
+		c.Start("main.go api", do.M{"$in": "cmd/goapp-resource"})
+		c.Start("main.go controller", do.M{"$in": "cmd/goapp-resource"})
 	}).Src("pkg/**/*.go")
 }
 

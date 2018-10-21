@@ -9,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin/binding"
 	"github.com/golang/glog"
 
-	"github.com/syunkitada/goapp/pkg/authproxy/model"
+	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_model"
 )
 
 // SecureHeaders adds secure headers to the API
@@ -69,7 +69,7 @@ func (authproxy *Authproxy) ValidateHeaders() gin.HandlerFunc {
 
 func (authproxy *Authproxy) AuthRequired() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var tokenAuthRequest model.TokenAuthRequest
+		var tokenAuthRequest authproxy_model.TokenAuthRequest
 
 		if err := c.ShouldBindWith(&tokenAuthRequest, binding.JSON); err != nil {
 			glog.Warningf("Invalid TokenAuthRequest: Failed ShouldBindJSON: %v", err)
@@ -101,7 +101,7 @@ func (authproxy *Authproxy) AuthRequired() gin.HandlerFunc {
 		}
 
 		username := claims["Username"].(string)
-		userAuthority, getUserAuthorityErr := authproxy.ModelApi.GetUserAuthority(username, &tokenAuthRequest.Action)
+		userAuthority, getUserAuthorityErr := authproxy.AuthproxyModelApi.GetUserAuthority(username, &tokenAuthRequest.Action)
 		if getUserAuthorityErr != nil {
 			glog.Error(getUserAuthorityErr)
 			c.JSON(http.StatusUnauthorized, gin.H{

@@ -1,4 +1,4 @@
-package model
+package authproxy_model
 
 import (
 	"github.com/jinzhu/gorm"

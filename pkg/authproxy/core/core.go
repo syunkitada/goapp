@@ -9,50 +9,48 @@ import (
 
 	"github.com/golang/glog"
 
+	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_model/authproxy_model_api"
 	"github.com/syunkitada/goapp/pkg/authproxy/core/auth"
 	"github.com/syunkitada/goapp/pkg/authproxy/core/dashboard"
 	"github.com/syunkitada/goapp/pkg/authproxy/core/resource"
-	"github.com/syunkitada/goapp/pkg/authproxy/model/model_api"
 	"github.com/syunkitada/goapp/pkg/config"
-	"github.com/syunkitada/goapp/pkg/health/grpc_client"
 )
 
 type Authproxy struct {
-	Conf            *config.Config
-	Listen          string
-	AllowedHosts    []string
-	CertFilePath    string
-	KeyFilePath     string
-	HealthClient    *grpc_client.HealthClient
-	GracefulTimeout time.Duration
-	ModelApi        *model_api.ModelApi
-	Token           *auth.Token
-	Auth            *auth.Auth
-	Dashboard       *dashboard.Dashboard
-	Resource        *resource.Resource
+	Conf              *config.Config
+	Listen            string
+	AllowedHosts      []string
+	CertFilePath      string
+	KeyFilePath       string
+	GracefulTimeout   time.Duration
+	AuthproxyModelApi *authproxy_model_api.AuthproxyModelApi
+	Token             *auth.Token
+	Auth              *auth.Auth
+	Dashboard         *dashboard.Dashboard
+	Resource          *resource.Resource
 }
 
 func NewAuthproxy(conf *config.Config) *Authproxy {
-	modelApi := model_api.NewModelApi(conf)
-	token := auth.NewToken(conf, modelApi)
+	authproxyModelApi := authproxy_model_api.NewAuthproxyModelApi(conf)
+	token := auth.NewToken(conf, authproxyModelApi)
 
 	authproxy := &Authproxy{
-		Conf:            conf,
-		Listen:          conf.Authproxy.Listen,
-		AllowedHosts:    conf.Authproxy.AllowedHosts,
-		CertFilePath:    conf.Path(conf.Authproxy.CertFile),
-		KeyFilePath:     conf.Path(conf.Authproxy.KeyFile),
-		HealthClient:    grpc_client.NewHealthClient(),
-		GracefulTimeout: time.Duration(conf.Authproxy.GracefulTimeout) * time.Second,
-		ModelApi:        modelApi,
-		Token:           token,
-		Auth:            auth.NewAuth(conf, modelApi, token),
-		Dashboard:       dashboard.NewDashboard(conf, modelApi, token),
-		Resource:        resource.NewResource(conf),
+		Conf:              conf,
+		Listen:            conf.Authproxy.HttpServer.Listen,
+		AllowedHosts:      conf.Authproxy.HttpServer.AllowedHosts,
+		CertFilePath:      conf.Path(conf.Authproxy.HttpServer.CertFile),
+		KeyFilePath:       conf.Path(conf.Authproxy.HttpServer.KeyFile),
+		GracefulTimeout:   time.Duration(conf.Authproxy.HttpServer.GracefulTimeout) * time.Second,
+		AuthproxyModelApi: authproxyModelApi,
+		Token:             token,
+		Auth:              auth.NewAuth(conf, authproxyModelApi, token),
+		Dashboard:         dashboard.NewDashboard(conf, authproxyModelApi, token),
+		Resource:          resource.NewResource(conf),
 	}
 
-	if conf.Default.TestMode {
-		conf.Authproxy.TestHandler = authproxy.NewHandler()
+	if conf.Default.EnableTest {
+		glog.Info("DEBUGaa")
+		conf.Authproxy.HttpServer.TestHandler = authproxy.NewHandler()
 	}
 
 	return authproxy

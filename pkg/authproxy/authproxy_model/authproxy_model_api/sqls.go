@@ -1,4 +1,4 @@
-package model_api
+package authproxy_model_api
 
 var (
 	sqlSelectUser string = "SELECT u.name, r.id as role_id, r.name as role_name, p.name as project_name, pr.id as project_role_id, pr.name as project_role_name, s.id as service_id, s.name as service_name, s.scope as service_scope " +

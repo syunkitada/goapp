@@ -1,4 +1,4 @@
-package model
+package authproxy_model
 
 type AuthRequest struct {
 	Username string `binding:"required"`

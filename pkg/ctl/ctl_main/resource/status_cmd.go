@@ -22,7 +22,7 @@ var StatusCmd = &cobra.Command{
                 This is sample description1.
                 This is sample description2.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		client := resource_api_client.NewResourceClient(&config.Conf)
+		client := resource_api_client.NewResourceApiClient(&config.Conf)
 		reply, err := client.Status()
 		if err != nil {
 			glog.Fatal(err)
