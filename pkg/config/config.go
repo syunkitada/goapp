@@ -78,7 +78,15 @@ func InitConfig() {
 		enableDatabaseLog = true
 	}
 
+	var err error
+
+	hostname, err := os.Hostname()
+	if err != nil {
+		glog.Fatal(err)
+	}
+
 	defaultConfig := DefaultConfig{
+		Name:              hostname,
 		ConfigDir:         configDir,
 		ConfigFile:        filepath.Join(configDir, configFile),
 		EnableDebug:       enableDebug,
@@ -86,7 +94,7 @@ func InitConfig() {
 		EnableDatabaseLog: enableDatabaseLog,
 	}
 
-	err := loadConfig(&defaultConfig)
+	err = loadConfig(&defaultConfig)
 	if err != nil {
 		glog.Fatal(err)
 	}

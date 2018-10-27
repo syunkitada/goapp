@@ -74,3 +74,25 @@ func (client *ResourceApiClient) Status() (*resource_api_grpc_pb.StatusReply, er
 
 	return statusResponse, nil
 }
+
+func (client *ResourceApiClient) UpdateNode(request *resource_api_grpc_pb.UpdateNodeRequest) (*resource_api_grpc_pb.UpdateNodeReply, error) {
+	conn, connErr := client.NewClientConnection()
+	defer conn.Close()
+	if connErr != nil {
+		glog.Warning("Failed NewClientConnection")
+		return nil, connErr
+	}
+
+	grpcClient := resource_api_grpc_pb.NewResourceApiClient(conn)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Second)
+	defer cancel()
+
+	reply, err := grpcClient.UpdateNode(ctx, request)
+	if err != nil {
+		glog.Error("%v.GetFeatures(_) = _, %v: ", grpcClient, err)
+		return nil, err
+	}
+
+	return reply, nil
+}

@@ -13,6 +13,7 @@ import (
 	"google.golang.org/grpc/credentials"
 
 	"github.com/syunkitada/goapp/pkg/config"
+	"github.com/syunkitada/goapp/pkg/resource/resource_api/resource_api_client"
 	"github.com/syunkitada/goapp/pkg/resource/resource_controller/resource_controller_grpc_pb"
 )
 
@@ -22,6 +23,7 @@ type ResourceControllerServer struct {
 	ShutdownTimeout    time.Duration
 	loopInterval       time.Duration
 	isGracefulShutdown bool
+	resourceApiClient  *resource_api_client.ResourceApiClient
 }
 
 func NewResourceControllerServer(conf *config.Config) *ResourceControllerServer {
@@ -30,6 +32,7 @@ func NewResourceControllerServer(conf *config.Config) *ResourceControllerServer 
 		ShutdownTimeout:    time.Duration(10) * time.Second,
 		loopInterval:       time.Duration(5) * time.Second,
 		isGracefulShutdown: false,
+		resourceApiClient:  resource_api_client.NewResourceApiClient(conf),
 	}
 	return &server
 }

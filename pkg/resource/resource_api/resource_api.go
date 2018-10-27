@@ -14,25 +14,23 @@ import (
 
 	"github.com/syunkitada/goapp/pkg/config"
 	"github.com/syunkitada/goapp/pkg/resource/resource_api/resource_api_grpc_pb"
+	"github.com/syunkitada/goapp/pkg/resource/resource_model/resource_model_api"
 )
 
 type ResourceApiServer struct {
-	Conf            *config.Config
-	GrpcServer      *grpc.Server
-	ShutdownTimeout time.Duration
+	Conf             *config.Config
+	GrpcServer       *grpc.Server
+	ShutdownTimeout  time.Duration
+	resourceModelApi *resource_model_api.ResourceModelApi
 }
 
 func NewResourceApiServer(conf *config.Config) *ResourceApiServer {
 	server := ResourceApiServer{
-		Conf:            conf,
-		ShutdownTimeout: time.Duration(10) * time.Second,
+		Conf:             conf,
+		ShutdownTimeout:  time.Duration(10) * time.Second,
+		resourceModelApi: resource_model_api.NewResourceModelApi(conf),
 	}
 	return &server
-}
-
-func (server *ResourceApiServer) Status(ctx context.Context, statusRequest *resource_api_grpc_pb.StatusRequest) (*resource_api_grpc_pb.StatusReply, error) {
-	glog.Info("Status")
-	return &resource_api_grpc_pb.StatusReply{Msg: "Status", Err: "OK"}, nil
 }
 
 func (server *ResourceApiServer) Serv() error {
@@ -94,4 +92,23 @@ func (server *ResourceApiServer) GracefulShutdown(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+func (srv *ResourceApiServer) Status(ctx context.Context, statusRequest *resource_api_grpc_pb.StatusRequest) (*resource_api_grpc_pb.StatusReply, error) {
+	glog.Info("Status")
+	return &resource_api_grpc_pb.StatusReply{Msg: "Status"}, nil
+}
+
+func (srv *ResourceApiServer) GetNode(ctx context.Context, request *resource_api_grpc_pb.GetNodeRequest) (*resource_api_grpc_pb.GetNodeReply, error) {
+	glog.Info("GetNode")
+	return &resource_api_grpc_pb.GetNodeReply{}, nil
+}
+
+func (srv *ResourceApiServer) UpdateNode(ctx context.Context, req *resource_api_grpc_pb.UpdateNodeRequest) (*resource_api_grpc_pb.UpdateNodeReply, error) {
+	var err error
+	glog.Info("UpdateNode")
+	if err = srv.resourceModelApi.UpdateNode(req); err != nil {
+		glog.Error(err)
+	}
+	return &resource_api_grpc_pb.UpdateNodeReply{}, err
 }

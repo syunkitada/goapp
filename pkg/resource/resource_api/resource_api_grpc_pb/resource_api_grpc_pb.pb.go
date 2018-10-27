@@ -33,7 +33,7 @@ func (m *StatusRequest) Reset()         { *m = StatusRequest{} }
 func (m *StatusRequest) String() string { return proto.CompactTextString(m) }
 func (*StatusRequest) ProtoMessage()    {}
 func (*StatusRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_resource_api_grpc_pb_87ee6824ebae24ed, []int{0}
+	return fileDescriptor_resource_api_grpc_pb_62a71da89d4dce18, []int{0}
 }
 func (m *StatusRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_StatusRequest.Unmarshal(m, b)
@@ -55,7 +55,6 @@ var xxx_messageInfo_StatusRequest proto.InternalMessageInfo
 
 type StatusReply struct {
 	Msg                  string   `protobuf:"bytes,1,opt,name=msg" json:"msg,omitempty"`
-	Err                  string   `protobuf:"bytes,2,opt,name=err" json:"err,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -65,7 +64,7 @@ func (m *StatusReply) Reset()         { *m = StatusReply{} }
 func (m *StatusReply) String() string { return proto.CompactTextString(m) }
 func (*StatusReply) ProtoMessage()    {}
 func (*StatusReply) Descriptor() ([]byte, []int) {
-	return fileDescriptor_resource_api_grpc_pb_87ee6824ebae24ed, []int{1}
+	return fileDescriptor_resource_api_grpc_pb_62a71da89d4dce18, []int{1}
 }
 func (m *StatusReply) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_StatusReply.Unmarshal(m, b)
@@ -92,18 +91,96 @@ func (m *StatusReply) GetMsg() string {
 	return ""
 }
 
-func (m *StatusReply) GetErr() string {
+type GetNodeRequest struct {
+	Target               string   `protobuf:"bytes,1,opt,name=target" json:"target,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *GetNodeRequest) Reset()         { *m = GetNodeRequest{} }
+func (m *GetNodeRequest) String() string { return proto.CompactTextString(m) }
+func (*GetNodeRequest) ProtoMessage()    {}
+func (*GetNodeRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_resource_api_grpc_pb_62a71da89d4dce18, []int{2}
+}
+func (m *GetNodeRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GetNodeRequest.Unmarshal(m, b)
+}
+func (m *GetNodeRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GetNodeRequest.Marshal(b, m, deterministic)
+}
+func (dst *GetNodeRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetNodeRequest.Merge(dst, src)
+}
+func (m *GetNodeRequest) XXX_Size() int {
+	return xxx_messageInfo_GetNodeRequest.Size(m)
+}
+func (m *GetNodeRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetNodeRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetNodeRequest proto.InternalMessageInfo
+
+func (m *GetNodeRequest) GetTarget() string {
 	if m != nil {
-		return m.Err
+		return m.Target
 	}
 	return ""
+}
+
+type GetNodeReply struct {
+	Msg                  string   `protobuf:"bytes,1,opt,name=msg" json:"msg,omitempty"`
+	Nodes                []*Node  `protobuf:"bytes,2,rep,name=nodes" json:"nodes,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *GetNodeReply) Reset()         { *m = GetNodeReply{} }
+func (m *GetNodeReply) String() string { return proto.CompactTextString(m) }
+func (*GetNodeReply) ProtoMessage()    {}
+func (*GetNodeReply) Descriptor() ([]byte, []int) {
+	return fileDescriptor_resource_api_grpc_pb_62a71da89d4dce18, []int{3}
+}
+func (m *GetNodeReply) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GetNodeReply.Unmarshal(m, b)
+}
+func (m *GetNodeReply) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GetNodeReply.Marshal(b, m, deterministic)
+}
+func (dst *GetNodeReply) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetNodeReply.Merge(dst, src)
+}
+func (m *GetNodeReply) XXX_Size() int {
+	return xxx_messageInfo_GetNodeReply.Size(m)
+}
+func (m *GetNodeReply) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetNodeReply.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetNodeReply proto.InternalMessageInfo
+
+func (m *GetNodeReply) GetMsg() string {
+	if m != nil {
+		return m.Msg
+	}
+	return ""
+}
+
+func (m *GetNodeReply) GetNodes() []*Node {
+	if m != nil {
+		return m.Nodes
+	}
+	return nil
 }
 
 type UpdateNodeRequest struct {
 	Name                 string   `protobuf:"bytes,1,opt,name=name" json:"name,omitempty"`
 	Kind                 string   `protobuf:"bytes,2,opt,name=kind" json:"kind,omitempty"`
-	Status               string   `protobuf:"bytes,3,opt,name=status" json:"status,omitempty"`
-	StatusReason         string   `protobuf:"bytes,4,opt,name=status_reason,json=statusReason" json:"status_reason,omitempty"`
+	Role                 string   `protobuf:"bytes,3,opt,name=role" json:"role,omitempty"`
+	Status               string   `protobuf:"bytes,4,opt,name=status" json:"status,omitempty"`
+	StatusReason         string   `protobuf:"bytes,5,opt,name=status_reason,json=statusReason" json:"status_reason,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -113,7 +190,7 @@ func (m *UpdateNodeRequest) Reset()         { *m = UpdateNodeRequest{} }
 func (m *UpdateNodeRequest) String() string { return proto.CompactTextString(m) }
 func (*UpdateNodeRequest) ProtoMessage()    {}
 func (*UpdateNodeRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_resource_api_grpc_pb_87ee6824ebae24ed, []int{2}
+	return fileDescriptor_resource_api_grpc_pb_62a71da89d4dce18, []int{4}
 }
 func (m *UpdateNodeRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_UpdateNodeRequest.Unmarshal(m, b)
@@ -147,6 +224,13 @@ func (m *UpdateNodeRequest) GetKind() string {
 	return ""
 }
 
+func (m *UpdateNodeRequest) GetRole() string {
+	if m != nil {
+		return m.Role
+	}
+	return ""
+}
+
 func (m *UpdateNodeRequest) GetStatus() string {
 	if m != nil {
 		return m.Status
@@ -162,7 +246,6 @@ func (m *UpdateNodeRequest) GetStatusReason() string {
 }
 
 type UpdateNodeReply struct {
-	Err                  string   `protobuf:"bytes,1,opt,name=err" json:"err,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -172,7 +255,7 @@ func (m *UpdateNodeReply) Reset()         { *m = UpdateNodeReply{} }
 func (m *UpdateNodeReply) String() string { return proto.CompactTextString(m) }
 func (*UpdateNodeReply) ProtoMessage()    {}
 func (*UpdateNodeReply) Descriptor() ([]byte, []int) {
-	return fileDescriptor_resource_api_grpc_pb_87ee6824ebae24ed, []int{3}
+	return fileDescriptor_resource_api_grpc_pb_62a71da89d4dce18, []int{5}
 }
 func (m *UpdateNodeReply) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_UpdateNodeReply.Unmarshal(m, b)
@@ -192,9 +275,72 @@ func (m *UpdateNodeReply) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_UpdateNodeReply proto.InternalMessageInfo
 
-func (m *UpdateNodeReply) GetErr() string {
+type Node struct {
+	Name                 string   `protobuf:"bytes,1,opt,name=name" json:"name,omitempty"`
+	Kind                 string   `protobuf:"bytes,2,opt,name=kind" json:"kind,omitempty"`
+	Role                 string   `protobuf:"bytes,3,opt,name=role" json:"role,omitempty"`
+	Status               string   `protobuf:"bytes,4,opt,name=status" json:"status,omitempty"`
+	StatusReason         string   `protobuf:"bytes,5,opt,name=status_reason,json=statusReason" json:"status_reason,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *Node) Reset()         { *m = Node{} }
+func (m *Node) String() string { return proto.CompactTextString(m) }
+func (*Node) ProtoMessage()    {}
+func (*Node) Descriptor() ([]byte, []int) {
+	return fileDescriptor_resource_api_grpc_pb_62a71da89d4dce18, []int{6}
+}
+func (m *Node) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_Node.Unmarshal(m, b)
+}
+func (m *Node) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_Node.Marshal(b, m, deterministic)
+}
+func (dst *Node) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Node.Merge(dst, src)
+}
+func (m *Node) XXX_Size() int {
+	return xxx_messageInfo_Node.Size(m)
+}
+func (m *Node) XXX_DiscardUnknown() {
+	xxx_messageInfo_Node.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_Node proto.InternalMessageInfo
+
+func (m *Node) GetName() string {
 	if m != nil {
-		return m.Err
+		return m.Name
+	}
+	return ""
+}
+
+func (m *Node) GetKind() string {
+	if m != nil {
+		return m.Kind
+	}
+	return ""
+}
+
+func (m *Node) GetRole() string {
+	if m != nil {
+		return m.Role
+	}
+	return ""
+}
+
+func (m *Node) GetStatus() string {
+	if m != nil {
+		return m.Status
+	}
+	return ""
+}
+
+func (m *Node) GetStatusReason() string {
+	if m != nil {
+		return m.StatusReason
 	}
 	return ""
 }
@@ -202,8 +348,11 @@ func (m *UpdateNodeReply) GetErr() string {
 func init() {
 	proto.RegisterType((*StatusRequest)(nil), "resource_api_grpc_pb.StatusRequest")
 	proto.RegisterType((*StatusReply)(nil), "resource_api_grpc_pb.StatusReply")
+	proto.RegisterType((*GetNodeRequest)(nil), "resource_api_grpc_pb.GetNodeRequest")
+	proto.RegisterType((*GetNodeReply)(nil), "resource_api_grpc_pb.GetNodeReply")
 	proto.RegisterType((*UpdateNodeRequest)(nil), "resource_api_grpc_pb.UpdateNodeRequest")
 	proto.RegisterType((*UpdateNodeReply)(nil), "resource_api_grpc_pb.UpdateNodeReply")
+	proto.RegisterType((*Node)(nil), "resource_api_grpc_pb.Node")
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -219,6 +368,7 @@ const _ = grpc.SupportPackageIsVersion4
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type ResourceApiClient interface {
 	Status(ctx context.Context, in *StatusRequest, opts ...grpc.CallOption) (*StatusReply, error)
+	GetNode(ctx context.Context, in *GetNodeRequest, opts ...grpc.CallOption) (*GetNodeReply, error)
 	UpdateNode(ctx context.Context, in *UpdateNodeRequest, opts ...grpc.CallOption) (*UpdateNodeReply, error)
 }
 
@@ -239,6 +389,15 @@ func (c *resourceApiClient) Status(ctx context.Context, in *StatusRequest, opts 
 	return out, nil
 }
 
+func (c *resourceApiClient) GetNode(ctx context.Context, in *GetNodeRequest, opts ...grpc.CallOption) (*GetNodeReply, error) {
+	out := new(GetNodeReply)
+	err := c.cc.Invoke(ctx, "/resource_api_grpc_pb.ResourceApi/GetNode", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *resourceApiClient) UpdateNode(ctx context.Context, in *UpdateNodeRequest, opts ...grpc.CallOption) (*UpdateNodeReply, error) {
 	out := new(UpdateNodeReply)
 	err := c.cc.Invoke(ctx, "/resource_api_grpc_pb.ResourceApi/UpdateNode", in, out, opts...)
@@ -251,6 +410,7 @@ func (c *resourceApiClient) UpdateNode(ctx context.Context, in *UpdateNodeReques
 // ResourceApiServer is the server API for ResourceApi service.
 type ResourceApiServer interface {
 	Status(context.Context, *StatusRequest) (*StatusReply, error)
+	GetNode(context.Context, *GetNodeRequest) (*GetNodeReply, error)
 	UpdateNode(context.Context, *UpdateNodeRequest) (*UpdateNodeReply, error)
 }
 
@@ -272,6 +432,24 @@ func _ResourceApi_Status_Handler(srv interface{}, ctx context.Context, dec func(
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ResourceApiServer).Status(ctx, req.(*StatusRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ResourceApi_GetNode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetNodeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ResourceApiServer).GetNode(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/resource_api_grpc_pb.ResourceApi/GetNode",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ResourceApiServer).GetNode(ctx, req.(*GetNodeRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -303,6 +481,10 @@ var _ResourceApi_serviceDesc = grpc.ServiceDesc{
 			Handler:    _ResourceApi_Status_Handler,
 		},
 		{
+			MethodName: "GetNode",
+			Handler:    _ResourceApi_GetNode_Handler,
+		},
+		{
 			MethodName: "UpdateNode",
 			Handler:    _ResourceApi_UpdateNode_Handler,
 		},
@@ -312,27 +494,32 @@ var _ResourceApi_serviceDesc = grpc.ServiceDesc{
 }
 
 func init() {
-	proto.RegisterFile("resource_api_grpc_pb.proto", fileDescriptor_resource_api_grpc_pb_87ee6824ebae24ed)
+	proto.RegisterFile("resource_api_grpc_pb.proto", fileDescriptor_resource_api_grpc_pb_62a71da89d4dce18)
 }
 
-var fileDescriptor_resource_api_grpc_pb_87ee6824ebae24ed = []byte{
-	// 286 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x84, 0x91, 0x5d, 0x4b, 0xf3, 0x30,
-	0x14, 0xc7, 0x9f, 0x3e, 0x1b, 0x05, 0xcf, 0x1c, 0xd5, 0x20, 0x52, 0xea, 0x8d, 0x76, 0x88, 0x5e,
-	0x15, 0x5f, 0x3e, 0x81, 0xbb, 0xf1, 0x4e, 0x46, 0x87, 0xb7, 0x96, 0x6c, 0x3d, 0x94, 0x60, 0xdb,
-	0xc4, 0x93, 0x04, 0xb6, 0x8f, 0xe7, 0x37, 0x93, 0x64, 0xf1, 0x0d, 0x8b, 0xde, 0xfd, 0xf3, 0x3b,
-	0x6f, 0xff, 0x9c, 0x03, 0x19, 0xa1, 0x96, 0x96, 0xd6, 0x58, 0x71, 0x25, 0xaa, 0x86, 0xd4, 0xba,
-	0x52, 0xab, 0x42, 0x91, 0x34, 0x92, 0x1d, 0x0d, 0xc5, 0xf2, 0x04, 0xa6, 0x4b, 0xc3, 0x8d, 0xd5,
-	0x25, 0xbe, 0x58, 0xd4, 0x26, 0xbf, 0x86, 0xc9, 0x3b, 0x50, 0xed, 0x96, 0x1d, 0xc0, 0xa8, 0xd3,
-	0x4d, 0x1a, 0x9d, 0x46, 0x97, 0x7b, 0xa5, 0x93, 0x8e, 0x20, 0x51, 0xfa, 0x7f, 0x47, 0x90, 0x28,
-	0xdf, 0xc0, 0xe1, 0xa3, 0xaa, 0xb9, 0xc1, 0x07, 0x59, 0x63, 0xe8, 0xc3, 0x18, 0x8c, 0x7b, 0xde,
-	0x61, 0xa8, 0xf4, 0xda, 0xb1, 0x67, 0xd1, 0xd7, 0xa1, 0xd6, 0x6b, 0x76, 0x0c, 0xb1, 0xf6, 0xf3,
-	0xd2, 0x91, 0xa7, 0xe1, 0xc5, 0x66, 0x30, 0xdd, 0xa9, 0x8a, 0x90, 0x6b, 0xd9, 0xa7, 0x63, 0x1f,
-	0xde, 0xd7, 0xc1, 0x9c, 0x63, 0xf9, 0x0c, 0x92, 0xaf, 0x93, 0x83, 0x61, 0x67, 0x2f, 0xfa, 0xb0,
-	0x77, 0xf3, 0x1a, 0xc1, 0xa4, 0x0c, 0x7f, 0xbf, 0x53, 0x82, 0x95, 0x10, 0x2f, 0xc3, 0x8c, 0x62,
-	0x70, 0x5f, 0xdf, 0x16, 0x92, 0x9d, 0xfd, 0x9e, 0xa4, 0xda, 0x6d, 0xfe, 0x8f, 0x3d, 0x01, 0x7c,
-	0x1a, 0x61, 0x17, 0xc3, 0x25, 0x3f, 0x96, 0x94, 0x9d, 0xff, 0x9d, 0xe8, 0xfb, 0xcf, 0xaf, 0xe0,
-	0x44, 0xc8, 0xc2, 0xc5, 0x0b, 0xdc, 0xf0, 0x4e, 0xb5, 0xa8, 0x0b, 0x92, 0xd6, 0x60, 0x63, 0x45,
-	0x8d, 0xf3, 0xa4, 0x74, 0xfa, 0xde, 0xe9, 0x85, 0x3b, 0xf6, 0x22, 0x5a, 0xc5, 0xfe, 0xea, 0xb7,
-	0x6f, 0x01, 0x00, 0x00, 0xff, 0xff, 0x77, 0xe8, 0x1d, 0x44, 0x13, 0x02, 0x00, 0x00,
+var fileDescriptor_resource_api_grpc_pb_62a71da89d4dce18 = []byte{
+	// 357 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xc4, 0x53, 0x4d, 0x4f, 0xe3, 0x30,
+	0x10, 0xdd, 0xf4, 0x6b, 0xb5, 0xd3, 0x76, 0xbb, 0xb5, 0x56, 0x28, 0x0a, 0x07, 0x8a, 0x01, 0xd1,
+	0x53, 0x54, 0x95, 0x5f, 0x40, 0x2f, 0xbd, 0xa1, 0x2a, 0x55, 0xaf, 0x44, 0x6e, 0x33, 0x8a, 0x22,
+	0xd2, 0xd8, 0xd8, 0x8e, 0x44, 0x4f, 0xfc, 0x01, 0x7e, 0x00, 0x3f, 0x17, 0x39, 0x36, 0xd0, 0x8a,
+	0x88, 0x1e, 0xb9, 0xbd, 0x79, 0xf3, 0xe6, 0xe9, 0x79, 0x6c, 0x43, 0x20, 0x51, 0xf1, 0x52, 0x6e,
+	0x30, 0x66, 0x22, 0x8b, 0x53, 0x29, 0x36, 0xb1, 0x58, 0x87, 0x42, 0x72, 0xcd, 0xc9, 0xff, 0xba,
+	0x1e, 0x1d, 0x40, 0x7f, 0xa9, 0x99, 0x2e, 0x55, 0x84, 0x8f, 0x25, 0x2a, 0x4d, 0xcf, 0xa0, 0xfb,
+	0x4e, 0x88, 0x7c, 0x47, 0xfe, 0x41, 0x73, 0xab, 0x52, 0xdf, 0x1b, 0x79, 0xe3, 0x3f, 0x91, 0x81,
+	0x74, 0x0c, 0x7f, 0xe7, 0xa8, 0xef, 0x78, 0x82, 0x6e, 0x84, 0x9c, 0x40, 0x47, 0x33, 0x99, 0xa2,
+	0x76, 0x32, 0x57, 0xd1, 0x08, 0x7a, 0x1f, 0xca, 0x5a, 0x2f, 0x32, 0x81, 0x76, 0xc1, 0x13, 0x54,
+	0x7e, 0x63, 0xd4, 0x1c, 0x77, 0xa7, 0x41, 0x58, 0x9b, 0xbf, 0x72, 0xb0, 0x42, 0xfa, 0xe2, 0xc1,
+	0x70, 0x25, 0x12, 0xa6, 0x71, 0x3f, 0x01, 0x81, 0x56, 0xc1, 0xb6, 0xe8, 0xac, 0x2b, 0x6c, 0xb8,
+	0x87, 0xac, 0x48, 0xfc, 0x86, 0xe5, 0x0c, 0x36, 0x9c, 0xe4, 0x39, 0xfa, 0x4d, 0xcb, 0x19, 0x6c,
+	0xd2, 0xab, 0xea, 0xc0, 0x7e, 0xcb, 0xa6, 0xb7, 0x15, 0xb9, 0x80, 0xbe, 0x45, 0xb1, 0x44, 0xa6,
+	0x78, 0xe1, 0xb7, 0xab, 0x76, 0x4f, 0xb9, 0xed, 0x18, 0x8e, 0x0e, 0x61, 0xb0, 0x9f, 0x46, 0xe4,
+	0x3b, 0xfa, 0x0c, 0x2d, 0x53, 0xfc, 0x58, 0xa6, 0xe9, 0x6b, 0x03, 0xba, 0x91, 0xdb, 0xe3, 0xad,
+	0xc8, 0x48, 0x04, 0x9d, 0xa5, 0x1b, 0xaf, 0xdf, 0xef, 0xc1, 0x03, 0x08, 0xce, 0xbf, 0x17, 0x99,
+	0x23, 0xfe, 0x22, 0x2b, 0xf8, 0xed, 0xae, 0x96, 0x5c, 0xd6, 0xeb, 0x0f, 0xdf, 0x48, 0x40, 0x8f,
+	0xa8, 0xac, 0xed, 0x3d, 0xc0, 0xe7, 0x3a, 0xc9, 0x75, 0xfd, 0xcc, 0x97, 0xeb, 0x0f, 0xae, 0x8e,
+	0x0b, 0x2b, 0xff, 0xd9, 0x04, 0x4e, 0x33, 0x1e, 0x9a, 0x7e, 0x88, 0x4f, 0x6c, 0x2b, 0x72, 0x54,
+	0xa1, 0xe4, 0xa5, 0xc6, 0xb4, 0xcc, 0x12, 0x9c, 0x0d, 0x22, 0x83, 0xe7, 0x06, 0x2f, 0xcc, 0x9f,
+	0x59, 0x78, 0xeb, 0x4e, 0xf5, 0x79, 0x6e, 0xde, 0x02, 0x00, 0x00, 0xff, 0xff, 0xe7, 0xd4, 0xe7,
+	0xbc, 0x5a, 0x03, 0x00, 0x00,
 }
