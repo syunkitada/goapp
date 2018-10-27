@@ -86,8 +86,6 @@ func InitConfig() {
 		EnableDatabaseLog: enableDatabaseLog,
 	}
 
-	glog.Info(defaultConfig.ConfigFile)
-
 	err := loadConfig(&defaultConfig)
 	if err != nil {
 		glog.Fatal(err)

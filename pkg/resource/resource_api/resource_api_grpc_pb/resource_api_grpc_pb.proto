@@ -9,6 +9,7 @@ package resource_api_grpc_pb;
 
 service ResourceApi {
   rpc Status(StatusRequest) returns (StatusReply) {}
+  rpc UpdateNode(UpdateNodeRequest) returns (UpdateNodeReply) {}
 }
 
 message StatusRequest {}
@@ -16,4 +17,15 @@ message StatusRequest {}
 message StatusReply {
     string msg = 1;
     string err = 2;
+}
+
+message UpdateNodeRequest {
+    string name = 1;
+    string kind = 2;
+    string status = 3;
+    string status_reason = 4;
+}
+
+message UpdateNodeReply {
+    string err = 1;
 }
