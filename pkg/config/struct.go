@@ -41,11 +41,11 @@ type DashboardConfig struct {
 }
 
 type ResourceConfig struct {
-	Database       DatabaseConfig
 	ApiGrpc        GrpcConfig
 	ControllerGrpc GrpcConfig
-	Region         RegionConfig
-	RegionMap      map[string]*ResourceRegionConfig
+	Database       DatabaseConfig
+	Cluster        ClusterConfig
+	ClusterMap     map[string]*ResourceClusterConfig
 }
 
 type HttpServerConfig struct {
@@ -70,13 +70,15 @@ type GrpcConfig struct {
 	Targets            []string
 }
 
-type RegionConfig struct {
+type ClusterConfig struct {
 	Name string
 }
 
-type ResourceRegionConfig struct {
-	Database DatabaseConfig
-	ApiGrpc  GrpcConfig
+type ResourceClusterConfig struct {
+	ApiGrpc        GrpcConfig
+	ControllerGrpc GrpcConfig
+	AgentGrpc      GrpcConfig
+	Database       DatabaseConfig
 }
 
 func newConfig(defaultConfig *DefaultConfig) *Config {
@@ -116,48 +118,6 @@ func newConfig(defaultConfig *DefaultConfig) *Config {
 				GracefulTimeout: 10,
 			},
 			BuildDir: filepath.Join(configDir, "dashboard/build"),
-		},
-		Resource: ResourceConfig{
-			ApiGrpc: GrpcConfig{
-				Listen:             "localhost:13300",
-				CertFile:           "server1.pem",
-				KeyFile:            "server1.key",
-				CaFile:             "ca.pem",
-				ServerHostOverride: "x.test.youtube.com",
-				Targets: []string{
-					"localhost:13300",
-				},
-			},
-			ControllerGrpc: GrpcConfig{
-				Listen:             "localhost:13301",
-				CertFile:           "server1.pem",
-				KeyFile:            "server1.key",
-				CaFile:             "ca.pem",
-				ServerHostOverride: "x.test.youtube.com",
-				Targets: []string{
-					"localhost:13301",
-				},
-			},
-			Database: DatabaseConfig{
-				Connection: "admin:adminpass@tcp(localhost:3306)/goapp_resource?charset=utf8&parseTime=true",
-			},
-			Region: RegionConfig{
-				Name: "region1",
-			},
-			RegionMap: map[string]*ResourceRegionConfig{
-				"region1": &ResourceRegionConfig{
-					ApiGrpc: GrpcConfig{
-						Listen:             "localhost:13310",
-						CertFile:           "server1.pem",
-						KeyFile:            "server1.key",
-						CaFile:             "ca.pem",
-						ServerHostOverride: "x.test.youtube.com",
-						Targets: []string{
-							"localhost:13310",
-						},
-					},
-				},
-			},
 		},
 	}
 

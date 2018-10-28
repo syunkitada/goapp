@@ -76,6 +76,10 @@ func (ctl *Ctl) CreateDatabases(isRecreate bool) error {
 		ctl.Conf.Resource.Database.Connection,
 	}
 
+	for _, cluster := range ctl.Conf.Resource.ClusterMap {
+		databaseConnections = append(databaseConnections, cluster.Database.Connection)
+	}
+
 	for _, conn := range databaseConnections {
 		if err := ctl.CreateDatabase(isRecreate, conn); err != nil {
 			return err

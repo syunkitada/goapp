@@ -192,15 +192,15 @@
         * Nodeの一覧から中期間更新のないNodeは、StatusApiをたたいてNodeの状態を更新する
     * MainLoop
         * 自身のRoleがMasterなら処理を行う
-        * MasterデータベースからResource作成リクエスト作成しResourceRegionApiに伝搬させる
-        * ResourceRegionApiからResource実態の状態を取得し、Masterデータベースを更新する
-* ResourceRegionApi
-    * RegionのApi
-* ResourceRegionController
-    * ResourceをRegion単位でバッチ処理するコントローラ
+        * MasterデータベースからResource作成リクエスト作成しResourceClusterApiに伝搬させる
+        * ResourceClusterApiからResource実態の状態を取得し、Masterデータベースを更新する
+* ResourceClusterApi
+    * ClusterのApi
+* ResourceClusterController
+    * ResourceをCluster単位でバッチ処理するコントローラ
     * ResourceをResourceAgentにアサインする
 * ResourceAgent
-    * Regionに所属し、アサインされたResourceを実体化し、状態を管理する
+    * Clusterに所属し、アサインされたResourceを実体化し、状態を管理する
     * Nodeごとに複数のProviderサポートできる
     * Providerを利用してノード自身を監視し、イベントがあればAlertをMonitorControllerに通知する
         * またメトリクスをメトリクスDBに送信する

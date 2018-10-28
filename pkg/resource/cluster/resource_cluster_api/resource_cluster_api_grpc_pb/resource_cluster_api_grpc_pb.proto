@@ -1,0 +1,50 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "io.grpc.examples.routeguide";
+option java_outer_classname = "RouteGuideProto";
+
+package resource_cluster_api_grpc_pb;
+
+
+service ResourceClusterApi {
+  rpc Status(StatusRequest) returns (StatusReply) {}
+  rpc GetNode(GetNodeRequest) returns (GetNodeReply) {}
+  rpc UpdateNode(UpdateNodeRequest) returns (UpdateNodeReply) {}
+}
+
+message StatusRequest {}
+
+message StatusReply {
+    string msg = 1;
+}
+
+message GetNodeRequest {
+    string target = 1;
+}
+
+message GetNodeReply {
+    repeated Node nodes = 1;
+}
+
+message UpdateNodeRequest {
+    string name = 1;
+    string kind = 2;
+    string role = 3;
+    string enable = 4;
+    string enable_reason = 5;
+    string status = 6;
+    string status_reason = 7;
+}
+
+message UpdateNodeReply {}
+
+message Node {
+    string name = 1;
+    string kind = 2;
+    string role = 3;
+    string enable = 4;
+    string enable_reason = 5;
+    string status = 6;
+    string status_reason = 7;
+}

@@ -4,16 +4,16 @@ option java_multiple_files = true;
 option java_package = "io.grpc.examples.routeguide";
 option java_outer_classname = "RouteGuideProto";
 
-package resource_region_grpc_pb;
+package resource_cluster_controller_grpc_pb;
 
 
-service ResourceRegion {
-  rpc Health(HealthRequest) returns (HealthReply) {}
+service ResourceClusterController {
+  rpc Status(StatusRequest) returns (StatusReply) {}
 }
 
-message HealthRequest {}
+message StatusRequest {}
 
-message HealthReply {
+message StatusReply {
     string msg = 1;
     string err = 2;
 }
