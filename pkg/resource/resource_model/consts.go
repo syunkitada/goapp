@@ -6,11 +6,15 @@ const (
 )
 
 const (
-	StatusActive = "Active"
-	StatusDown   = "Down"
+	StatusActive    = "Active"
+	StatusDown      = "Down"
+	StatusDisabled  = "Disabled"
+	StatusDisabling = "Disabling"
+	StatusEnabled   = "Enabled"
+	StatusEnabling  = "Enabling"
 )
 
 const (
-	RoleMaster = "Master"
-	RoleSlave  = "Slave"
+	RoleLeader = "Leader"
+	RoleMember = "Member"
 )

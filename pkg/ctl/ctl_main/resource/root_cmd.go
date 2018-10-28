@@ -10,8 +10,7 @@ var RootCmd = &cobra.Command{
 	Use:   "resource",
 	Short: "resource service",
 	Long: `resource service
-                This is sample description1.
-                This is sample description2.`,
+	`,
 }
 
 func init() {

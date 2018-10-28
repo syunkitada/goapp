@@ -1,4 +1,4 @@
-package resource_controller
+package resource_api
 
 import (
 	"github.com/golang/glog"
@@ -7,17 +7,17 @@ import (
 	"github.com/syunkitada/goapp/pkg/resource/resource_model"
 )
 
-func (server *ResourceControllerServer) MainTask() error {
+func (server *ResourceApiServer) MainTask() error {
 	glog.Info("Run MainTask")
-	server.UpdateNode()
+	server.UpdateNodeTask()
 
 	return nil
 }
 
-func (server *ResourceControllerServer) UpdateNode() error {
+func (server *ResourceApiServer) UpdateNodeTask() error {
 	request := resource_api_grpc_pb.UpdateNodeRequest{
 		Name:         server.Conf.Default.Name,
-		Kind:         resource_model.KindResourceController,
+		Kind:         resource_model.KindResourceApi,
 		Role:         resource_model.RoleMember,
 		Enable:       resource_model.StatusEnabled,
 		EnableReason: "Always Enabled by UpdateNode",

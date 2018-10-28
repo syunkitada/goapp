@@ -24,16 +24,17 @@ message GetNodeRequest {
 }
 
 message GetNodeReply {
-    string msg = 1;
-    repeated Node nodes = 2;
+    repeated Node nodes = 1;
 }
 
 message UpdateNodeRequest {
     string name = 1;
     string kind = 2;
     string role = 3;
-    string status = 4;
-    string status_reason = 5;
+    string enable = 4;
+    string enable_reason = 5;
+    string status = 6;
+    string status_reason = 7;
 }
 
 message UpdateNodeReply {}
@@ -42,6 +43,8 @@ message Node {
     string name = 1;
     string kind = 2;
     string role = 3;
-    string status = 4;
-    string status_reason = 5;
+    string enable = 4;
+    string enable_reason = 5;
+    string status = 6;
+    string status_reason = 7;
 }

@@ -14,6 +14,10 @@ var RootCmd = &cobra.Command{
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
 		server := NewResourceApiServer(&config.Conf)
+		if err := server.StartMainLoop(); err != nil {
+			glog.Fatal(err)
+		}
+
 		if err := server.Serv(); err != nil {
 			glog.Fatal(err)
 		}

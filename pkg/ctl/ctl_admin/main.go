@@ -5,7 +5,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/syunkitada/goapp/pkg/config"
-	// "github.com/syunkitada/goapp/pkg/ctl/ctl_main/resource"
+	"github.com/syunkitada/goapp/pkg/ctl/ctl_admin/resource"
 )
 
 var RootCmd = &cobra.Command{
@@ -24,4 +24,6 @@ func Main() {
 func init() {
 	cobra.OnInitialize(config.InitConfig)
 	config.InitFlags(RootCmd)
+
+	RootCmd.AddCommand(resource.RootCmd)
 }

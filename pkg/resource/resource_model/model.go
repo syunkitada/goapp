@@ -6,11 +6,13 @@ import (
 
 type Node struct {
 	gorm.Model
-	Name         string `gorm:"not null;size:255;unique_index;"`
-	Kind         string `gorm:"not null;size:25;unique_index;"`
-	Role         string `gorm:"not null;size:25;unique_index;"`
-	Status       string `gorm:"not null;size:25;unique_index;"`
-	StatusReason string `gorm:"not null;size:50;unique_index;"`
+	Name         string `gorm:"not null;size:255;"`
+	Kind         string `gorm:"not null;size:25;"`
+	Role         string `gorm:"not null;size:25;"`
+	Enable       string `gorm:"not null;size:25;"`
+	EnableReason string `gorm:"not null;size:50;"`
+	Status       string `gorm:"not null;size:25;"`
+	StatusReason string `gorm:"not null;size:50;"`
 }
 
 type Region struct {
