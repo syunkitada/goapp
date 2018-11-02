@@ -23,9 +23,9 @@ type ResourceApiClient struct {
 func NewResourceApiClient(conf *config.Config) *ResourceApiClient {
 	resourceClient := ResourceApiClient{
 		Conf:               conf,
-		CaFilePath:         conf.Path(conf.Resource.ApiGrpc.CaFile),
-		ServerHostOverride: conf.Resource.ApiGrpc.ServerHostOverride,
-		Targets:            conf.Resource.ApiGrpc.Targets,
+		CaFilePath:         conf.Path(conf.Resource.ApiApp.Grpc.CaFile),
+		ServerHostOverride: conf.Resource.ApiApp.Grpc.ServerHostOverride,
+		Targets:            conf.Resource.ApiApp.Grpc.Targets,
 	}
 	return &resourceClient
 }

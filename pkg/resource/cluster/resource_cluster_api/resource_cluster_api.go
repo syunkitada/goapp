@@ -1,6 +1,7 @@
 package resource_cluster_api
 
 import (
+	"fmt"
 	"net"
 	"os"
 	"os/signal"
@@ -19,22 +20,29 @@ import (
 )
 
 type ResourceClusterApiServer struct {
-	Conf               *config.Config
-	GrpcServer         *grpc.Server
-	ShutdownTimeout    time.Duration
-	loopInterval       time.Duration
-	isGracefulShutdown bool
-	resourceModelApi   *resource_cluster_model_api.ResourceModelApi
-	resourceApiClient  *resource_cluster_api_client.ResourceApiClient
+	Conf                     *config.Config
+	GrpcServer               *grpc.Server
+	ShutdownTimeout          time.Duration
+	cluster                  *config.ResourceClusterConfig
+	loopInterval             time.Duration
+	isGracefulShutdown       bool
+	resourceClusterModelApi  *resource_cluster_model_api.ResourceClusterModelApi
+	resourceClusterApiClient *resource_cluster_api_client.ResourceClusterApiClient
 }
 
 func NewResourceClusterApiServer(conf *config.Config) *ResourceClusterApiServer {
+	cluster, ok := conf.Resource.ClusterMap[conf.Resource.Cluster.Name]
+	if !ok {
+		glog.Fatal(fmt.Errorf("Cluster(%v) is not found in ClusterMap", conf.Resource.Cluster.Name))
+	}
+
 	server := ResourceClusterApiServer{
 		Conf:                     conf,
+		cluster:                  cluster,
 		ShutdownTimeout:          time.Duration(10) * time.Second,
 		loopInterval:             time.Duration(5) * time.Second,
 		isGracefulShutdown:       false,
-		resourceClusterModelApi:  resource_model_api.NewResourceClusterModelApi(conf),
+		resourceClusterModelApi:  resource_cluster_model_api.NewResourceClusterModelApi(conf),
 		resourceClusterApiClient: resource_cluster_api_client.NewResourceClusterApiClient(conf),
 	}
 	return &server
@@ -86,7 +94,7 @@ func (server *ResourceClusterApiServer) Serv() error {
 
 	server.GrpcServer = grpc.NewServer(opts...)
 
-	resource_api_cluster_grpc_pb.RegisterResourceApiServer(server.GrpcServer, server)
+	resource_cluster_api_grpc_pb.RegisterResourceClusterApiServer(server.GrpcServer, server)
 	glog.Infof("Serve: %v", grpcConfig.Listen)
 
 	go func() {
@@ -111,12 +119,7 @@ func (server *ResourceClusterApiServer) GracefulShutdown(ctx context.Context) er
 	ctx, cancel := context.WithTimeout(ctx, server.ShutdownTimeout)
 	defer cancel()
 
-	go func() {
-		glog.Info("Start GracefulStop")
-		server.GrpcServer.GracefulStop()
-		glog.Info("Success GracefulStop")
-		os.Exit(0)
-	}()
+	server.isGracefulShutdown = true
 
 	select {
 	case <-ctx.Done():
@@ -129,14 +132,14 @@ func (server *ResourceClusterApiServer) GracefulShutdown(ctx context.Context) er
 
 func (srv *ResourceClusterApiServer) Status(ctx context.Context, statusRequest *resource_cluster_api_grpc_pb.StatusRequest) (*resource_cluster_api_grpc_pb.StatusReply, error) {
 	glog.Info("Status")
-	return &resource_api_grpc_pb.StatusReply{Msg: "Status"}, nil
+	return &resource_cluster_api_grpc_pb.StatusReply{Msg: "Status"}, nil
 }
 
 func (srv *ResourceClusterApiServer) GetNode(ctx context.Context, req *resource_cluster_api_grpc_pb.GetNodeRequest) (*resource_cluster_api_grpc_pb.GetNodeReply, error) {
 	glog.Info("GetNode")
 	var err error
 	var rep *resource_cluster_api_grpc_pb.GetNodeReply
-	if rep, err = srv.resourceModelApi.GetNode(req); err != nil {
+	if rep, err = srv.resourceClusterModelApi.GetNode(req); err != nil {
 		glog.Error(err)
 	}
 	return rep, err

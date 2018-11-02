@@ -16,7 +16,7 @@ func (server *ResourceApiServer) MainTask() error {
 
 func (server *ResourceApiServer) UpdateNodeTask() error {
 	request := resource_api_grpc_pb.UpdateNodeRequest{
-		Name:         server.Conf.Default.Name,
+		Name:         server.conf.Default.Name,
 		Kind:         resource_model.KindResourceApi,
 		Role:         resource_model.RoleMember,
 		Enable:       resource_model.StatusEnabled,

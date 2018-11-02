@@ -23,6 +23,13 @@ type DefaultConfig struct {
 	EnableDatabaseLog bool
 }
 
+type AppConfig struct {
+	Name            string
+	ShutdownTimeout int
+	LoopInterval    int
+	Grpc            GrpcConfig
+}
+
 type AdminConfig struct {
 	Username    string
 	Password    string
@@ -41,7 +48,7 @@ type DashboardConfig struct {
 }
 
 type ResourceConfig struct {
-	ApiGrpc        GrpcConfig
+	ApiApp         *AppConfig
 	ControllerGrpc GrpcConfig
 	Database       DatabaseConfig
 	Cluster        ClusterConfig

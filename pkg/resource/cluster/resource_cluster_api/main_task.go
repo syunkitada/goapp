@@ -17,11 +17,11 @@ func (server *ResourceClusterApiServer) MainTask() error {
 func (server *ResourceClusterApiServer) UpdateNodeTask() error {
 	request := resource_cluster_api_grpc_pb.UpdateNodeRequest{
 		Name:         server.Conf.Default.Name,
-		Kind:         resource_model.KindResourceApi,
-		Role:         resource_model.RoleMember,
-		Enable:       resource_model.StatusEnabled,
+		Kind:         resource_cluster_model.KindResourceApi,
+		Role:         resource_cluster_model.RoleMember,
+		Enable:       resource_cluster_model.StatusEnabled,
 		EnableReason: "Always Enabled by UpdateNode",
-		Status:       resource_model.StatusActive,
+		Status:       resource_cluster_model.StatusActive,
 		StatusReason: "UpdateNode",
 	}
 	server.resourceClusterApiClient.UpdateNode(&request)

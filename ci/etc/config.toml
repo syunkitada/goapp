@@ -1,6 +1,11 @@
 [Resource]
 
-[Resource.ApiGrpc]
+[Resource.ApiApp]
+Name = "api"
+ShutdownTimeout = 10
+LoopInterval = 10
+
+[Resource.ApiApp.Grpc]
 CertFile = "server.pem"
 KeyFile = "server.key"
 CaFile = "ca.pem"

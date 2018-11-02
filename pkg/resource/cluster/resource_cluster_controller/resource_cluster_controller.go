@@ -83,7 +83,7 @@ func (server *ResourceClusterControllerServer) Serv() error {
 
 	server.GrpcServer = grpc.NewServer(opts...)
 
-	resource_controller_grpc_pb.RegisterResourceControllerServer(server.GrpcServer, server)
+	resource_cluster_controller_grpc_pb.RegisterResourceClusterControllerServer(server.GrpcServer, server)
 	glog.Infof("Serve: %v", grpcConfig.Listen)
 
 	go func() {

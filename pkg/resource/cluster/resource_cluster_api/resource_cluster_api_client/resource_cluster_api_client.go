@@ -2,6 +2,7 @@ package resource_cluster_api_client
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/golang/glog"
@@ -15,7 +16,7 @@ import (
 
 type ResourceClusterApiClient struct {
 	conf               *config.Config
-	cluster            *config.ClusterConfig
+	cluster            *config.ResourceClusterConfig
 	caFilePath         string
 	serverHostOverride string
 	targets            []string
@@ -40,8 +41,8 @@ func NewResourceClusterApiClient(conf *config.Config) *ResourceClusterApiClient 
 func (client *ResourceClusterApiClient) NewClientConnection() (*grpc.ClientConn, error) {
 	var opts []grpc.DialOption
 
-	for _, target := range client.Targets {
-		creds, credsErr := credentials.NewClientTLSFromFile(client.CaFilePath, client.ServerHostOverride)
+	for _, target := range client.targets {
+		creds, credsErr := credentials.NewClientTLSFromFile(client.caFilePath, client.serverHostOverride)
 		if credsErr != nil {
 			glog.Warning("Failed to create TLS credentials %v", credsErr)
 			continue

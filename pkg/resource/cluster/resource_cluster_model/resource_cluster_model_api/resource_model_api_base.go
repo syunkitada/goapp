@@ -1,4 +1,4 @@
-package resource_model_api
+package resource_cluster_model_api
 
 import (
 	_ "github.com/go-sql-driver/mysql"
@@ -45,10 +45,10 @@ func (modelApi *ResourceClusterModelApi) GetNode(req *resource_cluster_api_grpc_
 
 func (modelApi *ResourceClusterModelApi) UpdateNode(req *resource_cluster_api_grpc_pb.UpdateNodeRequest) error {
 	var err error
-	db, dbErr := gorm.Open("mysql", modelApi.cluser.Database.Connection)
+	db, err := gorm.Open("mysql", modelApi.cluster.Database.Connection)
 	defer db.Close()
-	if dbErr != nil {
-		return dbErr
+	if err != nil {
+		return err
 	}
 	db.LogMode(modelApi.conf.Default.EnableDatabaseLog)
 
