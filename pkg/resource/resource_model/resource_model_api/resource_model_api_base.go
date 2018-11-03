@@ -29,10 +29,10 @@ func (modelApi *ResourceModelApi) GetNode(req *resource_api_grpc_pb.GetNodeReque
 			Name:         node.Name,
 			Kind:         node.Kind,
 			Role:         node.Role,
-			Enable:       node.Enable,
-			EnableReason: node.EnableReason,
 			Status:       node.Status,
 			StatusReason: node.StatusReason,
+			State:        node.State,
+			StateReason:  node.StateReason,
 		}
 	}
 
@@ -43,45 +43,47 @@ func (modelApi *ResourceModelApi) GetNode(req *resource_api_grpc_pb.GetNodeReque
 	return reply, nil
 }
 
-func (modelApi *ResourceModelApi) UpdateNode(req *resource_api_grpc_pb.UpdateNodeRequest) error {
+func (modelApi *ResourceModelApi) UpdateNode(req *resource_api_grpc_pb.UpdateNodeRequest) (*resource_api_grpc_pb.UpdateNodeReply, error) {
+	var rep *resource_api_grpc_pb.UpdateNodeReply
 	var err error
-	db, dbErr := gorm.Open("mysql", modelApi.Conf.Resource.Database.Connection)
+
+	db, err := gorm.Open("mysql", modelApi.Conf.Resource.Database.Connection)
 	defer db.Close()
-	if dbErr != nil {
-		return dbErr
+	if err != nil {
+		return rep, err
 	}
 	db.LogMode(modelApi.Conf.Default.EnableDatabaseLog)
 
 	var node resource_model.Node
 	if err = db.Where("name = ? and kind = ?", req.Name, req.Kind).First(&node).Error; err != nil {
 		if !gorm.IsRecordNotFoundError(err) {
-			return err
+			return rep, err
 		}
 
 		node = resource_model.Node{
 			Name:         req.Name,
 			Kind:         req.Kind,
 			Role:         req.Role,
-			Enable:       resource_model.StatusDisabled,
-			EnableReason: "Registerd default status",
-			Status:       req.Status,
-			StatusReason: req.StatusReason,
+			Status:       resource_model.StatusDisabled,
+			StatusReason: "Default status",
+			State:        req.State,
+			StateReason:  req.StateReason,
 		}
 		if err = db.Create(&node).Error; err != nil {
-			return err
+			return rep, err
 		}
 	} else {
-		if req.Enable != "" && req.EnableReason != "" {
-			node.Enable = req.Enable
-			node.EnableReason = req.EnableReason
+		if req.Status != "" && req.StatusReason != "" {
+			node.Status = req.Status
+			node.StatusReason = req.StatusReason
 		}
-		node.Status = req.Status
-		node.StatusReason = req.StatusReason
+		node.State = req.State
+		node.StateReason = req.StateReason
 		if err = db.Save(&node).Error; err != nil {
-			return err
+			return rep, err
 		}
 	}
 
-	glog.Info("Updated Node")
-	return nil
+	glog.Info("Completed UpdateNode")
+	return rep, err
 }

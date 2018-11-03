@@ -14,18 +14,23 @@ func (server *ResourceApiServer) MainTask() error {
 	return nil
 }
 
-func (server *ResourceApiServer) UpdateNodeTask() error {
-	request := resource_api_grpc_pb.UpdateNodeRequest{
-		Name:         server.conf.Default.Name,
+func (srv *ResourceApiServer) UpdateNodeTask() error {
+	var err error
+	req := &resource_api_grpc_pb.UpdateNodeRequest{
+		Name:         srv.conf.Default.Name,
 		Kind:         resource_model.KindResourceApi,
 		Role:         resource_model.RoleMember,
-		Enable:       resource_model.StatusEnabled,
-		EnableReason: "Always Enabled by UpdateNode",
-		Status:       resource_model.StatusActive,
-		StatusReason: "UpdateNode",
+		Status:       resource_model.StatusEnabled,
+		StatusReason: "Always Enabled",
+		State:        resource_model.StateUp,
+		StateReason:  "UpdateNode",
 	}
-	server.resourceApiClient.UpdateNode(&request)
 
-	glog.Info("UpdatedNode")
+	rep, err := srv.resourceModelApi.UpdateNode(req)
+	if err != nil {
+		return nil
+	}
+	glog.Info(rep)
+	glog.Info("UpdatedNodeTask")
 	return nil
 }

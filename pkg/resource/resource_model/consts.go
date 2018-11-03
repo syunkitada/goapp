@@ -6,12 +6,12 @@ const (
 )
 
 const (
-	StatusActive    = "Active"
-	StatusDown      = "Down"
-	StatusDisabled  = "Disabled"
-	StatusDisabling = "Disabling"
 	StatusEnabled   = "Enabled"
 	StatusEnabling  = "Enabling"
+	StatusDisabled  = "Disabled"
+	StatusDisabling = "Disabling"
+	StateUp         = "Up"
+	StateDown       = "Down"
 )
 
 const (

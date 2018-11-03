@@ -2,10 +2,9 @@
 
 [Resource.ApiApp]
 Name = "api"
+ClientTimeout = 5
 ShutdownTimeout = 10
 LoopInterval = 10
-
-[Resource.ApiApp.Grpc]
 CertFile = "server.pem"
 KeyFile = "server.key"
 CaFile = "ca.pem"
@@ -13,7 +12,11 @@ ServerHostOverride = "x.test.youtube.com"
 Listen = "localhost:13300"
 Targets = ["localhost:13300"]
 
-[Resource.ControllerGrpc]
+[Resource.ControllerApp]
+Name = "api"
+ClientTimeout = 5
+ShutdownTimeout = 10
+LoopInterval = 10
 CertFile = "server.pem"
 KeyFile = "server.key"
 CaFile = "ca.pem"
@@ -27,7 +30,11 @@ Connection = "admin:adminpass@tcp(localhost:3306)/goapp_resource?charset=utf8&pa
 [Resource.Cluster]
 Name = "cluster1"
 
-[Resource.ClusterMap."cluster1".ApiGrpc]
+[Resource.ClusterMap."cluster1".ApiApp]
+Name = "api"
+ClientTimeout = 5
+ShutdownTimeout = 10
+LoopInterval = 10
 CertFile = "server.pem"
 KeyFile = "server.key"
 CaFile = "ca.pem"
@@ -35,7 +42,11 @@ ServerHostOverride = "x.test.youtube.com"
 Listen = "localhost:13310"
 Targets = ["localhost:13310"]
 
-[Resource.ClusterMap."cluster1".ControllerGrpc]
+[Resource.ClusterMap."cluster1".ControllerApp]
+Name = "api"
+ClientTimeout = 5
+ShutdownTimeout = 10
+LoopInterval = 10
 CertFile = "server.pem"
 KeyFile = "server.key"
 CaFile = "ca.pem"

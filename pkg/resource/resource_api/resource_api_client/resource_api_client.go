@@ -1,120 +1,90 @@
 package resource_api_client
 
 import (
-	"errors"
-	"time"
-
-	"github.com/golang/glog"
-	"golang.org/x/net/context"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials"
-
+	"github.com/syunkitada/goapp/pkg/base"
 	"github.com/syunkitada/goapp/pkg/config"
+	"github.com/syunkitada/goapp/pkg/resource/resource_api"
 	"github.com/syunkitada/goapp/pkg/resource/resource_api/resource_api_grpc_pb"
 )
 
 type ResourceApiClient struct {
-	Conf               *config.Config
-	CaFilePath         string
-	ServerHostOverride string
-	Targets            []string
+	*base.BaseClient
+	conf        *config.Config
+	localServer *resource_api.ResourceApiServer
 }
 
 func NewResourceApiClient(conf *config.Config) *ResourceApiClient {
 	resourceClient := ResourceApiClient{
-		Conf:               conf,
-		CaFilePath:         conf.Path(conf.Resource.ApiApp.Grpc.CaFile),
-		ServerHostOverride: conf.Resource.ApiApp.Grpc.ServerHostOverride,
-		Targets:            conf.Resource.ApiApp.Grpc.Targets,
+		BaseClient:  base.NewBaseClient(conf, &conf.Resource.ApiApp),
+		conf:        conf,
+		localServer: resource_api.NewResourceApiServer(conf),
 	}
 	return &resourceClient
 }
 
-func (client *ResourceApiClient) NewClientConnection() (*grpc.ClientConn, error) {
-	var opts []grpc.DialOption
+func (cli *ResourceApiClient) Status() (*resource_api_grpc_pb.StatusReply, error) {
+	var rep *resource_api_grpc_pb.StatusReply
+	var err error
 
-	for _, target := range client.Targets {
-		creds, credsErr := credentials.NewClientTLSFromFile(client.CaFilePath, client.ServerHostOverride)
-		if credsErr != nil {
-			glog.Warning("Failed to create TLS credentials %v", credsErr)
-			continue
-		}
-		opts = append(opts, grpc.WithTransportCredentials(creds))
+	conn, err := cli.NewClientConnection()
+	if err != nil {
+		return rep, err
+	}
+	defer conn.Close()
 
-		conn, err := grpc.Dial(target, opts...)
-		if err != nil {
-			glog.Warning("fail to dial: %v", err)
-			continue
-		}
-
-		return conn, nil
+	req := &resource_api_grpc_pb.StatusRequest{}
+	ctx, cancel := cli.GetContext()
+	defer cancel()
+	if cli.conf.Default.EnableTest {
+		rep, err = cli.localServer.Status(ctx, req)
+	} else {
+		grpcClient := resource_api_grpc_pb.NewResourceApiClient(conn)
+		rep, err = grpcClient.Status(ctx, req)
 	}
 
-	return nil, errors.New("Failed NewGrpcConnection")
+	return rep, err
 }
 
-func (client *ResourceApiClient) Status() (*resource_api_grpc_pb.StatusReply, error) {
-	conn, connErr := client.NewClientConnection()
+func (cli *ResourceApiClient) GetNode(req *resource_api_grpc_pb.GetNodeRequest) (*resource_api_grpc_pb.GetNodeReply, error) {
+	var rep *resource_api_grpc_pb.GetNodeReply
+	var err error
+	conn, err := cli.NewClientConnection()
 	defer conn.Close()
-	if connErr != nil {
-		glog.Warning("Failed NewClientConnection")
-		return nil, connErr
-	}
-
-	grpcClient := resource_api_grpc_pb.NewResourceApiClient(conn)
-
-	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Second)
-	defer cancel()
-
-	statusResponse, err := grpcClient.Status(ctx, &resource_api_grpc_pb.StatusRequest{})
 	if err != nil {
-		glog.Error("%v.GetFeatures(_) = _, %v: ", grpcClient, err)
-		return nil, err
+		return rep, err
 	}
 
-	return statusResponse, nil
+	ctx, cancel := cli.GetContext()
+	defer cancel()
+	if cli.conf.Default.EnableTest {
+		rep, err = cli.localServer.GetNode(ctx, req)
+	} else {
+		grpcClient := resource_api_grpc_pb.NewResourceApiClient(conn)
+		rep, err = grpcClient.GetNode(ctx, req)
+	}
+
+	return rep, err
 }
 
-func (cli *ResourceApiClient) GetNode(request *resource_api_grpc_pb.GetNodeRequest) (*resource_api_grpc_pb.GetNodeReply, error) {
-	conn, connErr := cli.NewClientConnection()
+func (cli *ResourceApiClient) UpdateNode(req *resource_api_grpc_pb.UpdateNodeRequest) (*resource_api_grpc_pb.UpdateNodeReply, error) {
+	var rep *resource_api_grpc_pb.UpdateNodeReply
+	var err error
+
+	conn, err := cli.NewClientConnection()
 	defer conn.Close()
-	if connErr != nil {
-		glog.Warning("Failed NewClientConnection")
-		return nil, connErr
+	if err != nil {
+		return rep, err
 	}
 
-	grpcClient := resource_api_grpc_pb.NewResourceApiClient(conn)
-
-	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Second)
+	ctx, cancel := cli.GetContext()
 	defer cancel()
 
-	reply, err := grpcClient.GetNode(ctx, request)
-	if err != nil {
-		glog.Error("%v.GetFeatures(_) = _, %v: ", grpcClient, err)
-		return nil, err
+	if cli.conf.Default.EnableTest {
+		rep, err = cli.localServer.UpdateNode(ctx, req)
+	} else {
+		grpcClient := resource_api_grpc_pb.NewResourceApiClient(conn)
+		rep, err = grpcClient.UpdateNode(ctx, req)
 	}
 
-	return reply, nil
-}
-
-func (client *ResourceApiClient) UpdateNode(request *resource_api_grpc_pb.UpdateNodeRequest) (*resource_api_grpc_pb.UpdateNodeReply, error) {
-	conn, connErr := client.NewClientConnection()
-	defer conn.Close()
-	if connErr != nil {
-		glog.Warning("Failed NewClientConnection")
-		return nil, connErr
-	}
-
-	grpcClient := resource_api_grpc_pb.NewResourceApiClient(conn)
-
-	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Second)
-	defer cancel()
-
-	reply, err := grpcClient.UpdateNode(ctx, request)
-	if err != nil {
-		glog.Error("%v.GetFeatures(_) = _, %v: ", grpcClient, err)
-		return nil, err
-	}
-
-	return reply, nil
+	return rep, err
 }

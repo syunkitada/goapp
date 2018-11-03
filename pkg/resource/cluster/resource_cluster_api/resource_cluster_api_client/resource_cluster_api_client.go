@@ -31,9 +31,9 @@ func NewResourceClusterApiClient(conf *config.Config) *ResourceClusterApiClient 
 	resourceClient := ResourceClusterApiClient{
 		conf:               conf,
 		cluster:            cluster,
-		caFilePath:         conf.Path(cluster.ApiGrpc.CaFile),
-		serverHostOverride: cluster.ApiGrpc.ServerHostOverride,
-		targets:            cluster.ApiGrpc.Targets,
+		caFilePath:         conf.Path(cluster.ApiApp.CaFile),
+		serverHostOverride: cluster.ApiApp.ServerHostOverride,
+		targets:            cluster.ApiApp.Targets,
 	}
 	return &resourceClient
 }

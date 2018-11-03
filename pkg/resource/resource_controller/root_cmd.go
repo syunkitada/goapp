@@ -18,7 +18,7 @@ var RootCmd = &cobra.Command{
 			glog.Fatal(err)
 		}
 
-		if err := server.Serv(); err != nil {
+		if err := server.Serve(); err != nil {
 			glog.Fatal(err)
 		}
 	},

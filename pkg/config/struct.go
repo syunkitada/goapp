@@ -24,10 +24,16 @@ type DefaultConfig struct {
 }
 
 type AppConfig struct {
-	Name            string
-	ShutdownTimeout int
-	LoopInterval    int
-	Grpc            GrpcConfig
+	Name               string
+	ClientTimeout      int
+	ShutdownTimeout    int
+	LoopInterval       int
+	Listen             string
+	CertFile           string
+	KeyFile            string
+	CaFile             string
+	ServerHostOverride string
+	Targets            []string
 }
 
 type AdminConfig struct {
@@ -48,11 +54,11 @@ type DashboardConfig struct {
 }
 
 type ResourceConfig struct {
-	ApiApp         *AppConfig
-	ControllerGrpc GrpcConfig
-	Database       DatabaseConfig
-	Cluster        ClusterConfig
-	ClusterMap     map[string]*ResourceClusterConfig
+	ApiApp        AppConfig
+	ControllerApp AppConfig
+	Database      DatabaseConfig
+	Cluster       ClusterConfig
+	ClusterMap    map[string]*ResourceClusterConfig
 }
 
 type HttpServerConfig struct {
@@ -68,24 +74,15 @@ type DatabaseConfig struct {
 	Connection string
 }
 
-type GrpcConfig struct {
-	Listen             string
-	CertFile           string
-	KeyFile            string
-	CaFile             string
-	ServerHostOverride string
-	Targets            []string
-}
-
 type ClusterConfig struct {
 	Name string
 }
 
 type ResourceClusterConfig struct {
-	ApiGrpc        GrpcConfig
-	ControllerGrpc GrpcConfig
-	AgentGrpc      GrpcConfig
-	Database       DatabaseConfig
+	ApiApp        AppConfig
+	ControllerApp AppConfig
+	AgentApp      AppConfig
+	Database      DatabaseConfig
 }
 
 func newConfig(defaultConfig *DefaultConfig) *Config {

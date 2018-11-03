@@ -16,13 +16,13 @@ func (server *ResourceControllerServer) MainTask() error {
 
 func (server *ResourceControllerServer) UpdateNode() error {
 	request := resource_api_grpc_pb.UpdateNodeRequest{
-		Name:         server.Conf.Default.Name,
+		Name:         server.conf.Default.Name,
 		Kind:         resource_model.KindResourceController,
 		Role:         resource_model.RoleMember,
-		Enable:       resource_model.StatusEnabled,
-		EnableReason: "Always Enabled by UpdateNode",
-		Status:       resource_model.StatusActive,
-		StatusReason: "UpdateNode",
+		Status:       resource_model.StatusEnabled,
+		StatusReason: "Always Enabled",
+		State:        resource_model.StateUp,
+		StateReason:  "UpdateNode",
 	}
 	server.resourceApiClient.UpdateNode(&request)
 

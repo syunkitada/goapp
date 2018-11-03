@@ -82,16 +82,16 @@ func (ctl *ResourceCtl) GetNode() error {
 	}
 
 	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"Name", "Kind", "Role", "Enable", "Enable Reason", "Status", "Status Reason"})
+	table.SetHeader([]string{"Name", "Kind", "Role", "Status", "Status Reason", "State", "State Reason"})
 	for _, node := range reply.Nodes {
 		table.Append([]string{
 			node.Name,
 			node.Kind,
 			node.Role,
-			node.Enable,
-			node.EnableReason,
 			node.Status,
 			node.StatusReason,
+			node.State,
+			node.StateReason,
 		})
 	}
 	table.Render()

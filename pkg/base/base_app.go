@@ -72,15 +72,15 @@ func (app *BaseApp) mainLoop() {
 }
 
 func (app *BaseApp) Serve() error {
-	lis, err := net.Listen("tcp", app.appConf.Grpc.Listen)
+	lis, err := net.Listen("tcp", app.appConf.Listen)
 	if err != nil {
 		return err
 	}
 
 	var opts []grpc.ServerOption
 	creds, err := credentials.NewServerTLSFromFile(
-		app.conf.Path(app.appConf.Grpc.CertFile),
-		app.conf.Path(app.appConf.Grpc.KeyFile),
+		app.conf.Path(app.appConf.CertFile),
+		app.conf.Path(app.appConf.KeyFile),
 	)
 	if err != nil {
 		return err
@@ -102,7 +102,7 @@ func (app *BaseApp) Serve() error {
 		}
 	}()
 
-	glog.Infof("Serve: %v", app.appConf.Grpc.Listen)
+	glog.Infof("Serve: %v", app.appConf.Listen)
 	if err := app.grpcServer.Serve(lis); err != nil {
 		glog.Infof("Failed Serve: %v\n", err)
 	}
