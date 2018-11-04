@@ -24,6 +24,7 @@ type BaseApp struct {
 	conf               *config.Config
 	appConf            *config.AppConfig
 	driver             BaseAppDriver
+	Monitors           int
 	grpcServer         *grpc.Server
 	loopInterval       time.Duration
 	isGracefulShutdown bool
@@ -34,6 +35,7 @@ func NewBaseApp(conf *config.Config, appConf *config.AppConfig) BaseApp {
 	return BaseApp{
 		conf:               conf,
 		appConf:            appConf,
+		Monitors:           appConf.Monitors,
 		loopInterval:       time.Duration(appConf.LoopInterval) * time.Second,
 		isGracefulShutdown: false,
 		shutdownTimeout:    time.Duration(appConf.ShutdownTimeout) * time.Second,
@@ -95,7 +97,6 @@ func (app *BaseApp) Serve() error {
 	go func() {
 		shutdown := make(chan os.Signal, 1)
 		signal.Notify(shutdown, syscall.SIGTERM)
-		signal.Notify(shutdown, syscall.SIGINT)
 		<-shutdown
 		if err := app.gracefulShutdown(context.Background()); err != nil {
 			glog.Errorf("Failed gracefulShutdown: %v\n", err)

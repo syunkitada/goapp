@@ -88,3 +88,24 @@ func (cli *ResourceApiClient) UpdateNode(req *resource_api_grpc_pb.UpdateNodeReq
 
 	return rep, err
 }
+
+func (cli *ResourceApiClient) ReassignRole(req *resource_api_grpc_pb.ReassignRoleRequest) (*resource_api_grpc_pb.ReassignRoleReply, error) {
+	var rep *resource_api_grpc_pb.ReassignRoleReply
+	var err error
+	conn, err := cli.NewClientConnection()
+	defer conn.Close()
+	if err != nil {
+		return rep, err
+	}
+
+	ctx, cancel := cli.GetContext()
+	defer cancel()
+	if cli.conf.Default.EnableTest {
+		rep, err = cli.localServer.ReassignRole(ctx, req)
+	} else {
+		grpcClient := resource_api_grpc_pb.NewResourceApiClient(conn)
+		rep, err = grpcClient.ReassignRole(ctx, req)
+	}
+
+	return rep, err
+}

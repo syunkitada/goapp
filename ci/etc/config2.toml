@@ -1,3 +1,6 @@
+[Default]
+Name = "host2"
+
 [Resource]
 
 [Resource.ApiApp]
@@ -9,8 +12,8 @@ CertFile = "server.pem"
 KeyFile = "server.key"
 CaFile = "ca.pem"
 ServerHostOverride = "x.test.youtube.com"
-Listen = "localhost:13300"
-Targets = ["localhost:13300"]
+Listen = "localhost:14300"
+Targets = ["localhost:14300"]
 
 [Resource.ControllerApp]
 Name = "api"
@@ -22,16 +25,16 @@ CertFile = "server.pem"
 KeyFile = "server.key"
 CaFile = "ca.pem"
 ServerHostOverride = "x.test.youtube.com"
-Listen = "localhost:13301"
-Targets = ["localhost:13301"]
+Listen = "localhost:14301"
+Targets = ["localhost:14301"]
 
 [Resource.Database]
 Connection = "admin:adminpass@tcp(localhost:3306)/goapp_resource?charset=utf8&parseTime=true"
 
 [Resource.Cluster]
-Name = "cluster1"
+Name = "cluster2"
 
-[Resource.ClusterMap."cluster1".ApiApp]
+[Resource.ClusterMap."cluster2".ApiApp]
 Name = "api"
 ClientTimeout = 5
 ShutdownTimeout = 10
@@ -40,10 +43,10 @@ CertFile = "server.pem"
 KeyFile = "server.key"
 CaFile = "ca.pem"
 ServerHostOverride = "x.test.youtube.com"
-Listen = "localhost:13310"
-Targets = ["localhost:13310"]
+Listen = "localhost:14310"
+Targets = ["localhost:14310"]
 
-[Resource.ClusterMap."cluster1".ControllerApp]
+[Resource.ClusterMap."cluster2".ControllerApp]
 Name = "api"
 ClientTimeout = 5
 ShutdownTimeout = 10
@@ -52,8 +55,8 @@ CertFile = "server.pem"
 KeyFile = "server.key"
 CaFile = "ca.pem"
 ServerHostOverride = "x.test.youtube.com"
-Listen = "localhost:13311"
-Targets = ["localhost:13311"]
+Listen = "localhost:14311"
+Targets = ["localhost:14311"]
 
-[Resource.ClusterMap."cluster1".Database]
-Connection = "admin:adminpass@tcp(localhost:3306)/goapp_resource_cluster1?charset=utf8&parseTime=true"
+[Resource.ClusterMap."cluster2".Database]
+Connection = "admin:adminpass@tcp(localhost:3306)/goapp_resource_cluster2?charset=utf8&parseTime=true"

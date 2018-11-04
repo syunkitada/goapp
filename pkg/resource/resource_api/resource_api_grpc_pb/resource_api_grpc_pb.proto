@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+import "google/protobuf/timestamp.proto";
+
 option java_multiple_files = true;
 option java_package = "io.grpc.examples.routeguide";
 option java_outer_classname = "RouteGuideProto";
@@ -11,6 +13,7 @@ service ResourceApi {
   rpc Status(StatusRequest) returns (StatusReply) {}
   rpc GetNode(GetNodeRequest) returns (GetNodeReply) {}
   rpc UpdateNode(UpdateNodeRequest) returns (UpdateNodeReply) {}
+  rpc ReassignRole(ReassignRoleRequest) returns (ReassignRoleReply) {}
 }
 
 message StatusRequest {}
@@ -47,4 +50,13 @@ message Node {
     string status_reason = 5;
     string state = 6;
     string state_reason = 7;
+    google.protobuf.Timestamp updated_at = 8;
+}
+
+message ReassignRoleRequest {
+    string kind = 1;
+}
+
+message ReassignRoleReply {
+    repeated Node nodes = 1;
 }

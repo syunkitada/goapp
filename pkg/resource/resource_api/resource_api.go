@@ -1,6 +1,7 @@
 package resource_api
 
 import (
+	"github.com/golang/glog"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 
@@ -41,6 +42,7 @@ func (srv *ResourceApiServer) GetNode(ctx context.Context, req *resource_api_grp
 	var rep *resource_api_grpc_pb.GetNodeReply
 	var err error
 	rep, err = srv.resourceModelApi.GetNode(req)
+	glog.Infof("Completed GetNode: %v", err)
 	return rep, err
 }
 
@@ -48,5 +50,14 @@ func (srv *ResourceApiServer) UpdateNode(ctx context.Context, req *resource_api_
 	var rep *resource_api_grpc_pb.UpdateNodeReply
 	var err error
 	rep, err = srv.resourceModelApi.UpdateNode(req)
+	glog.Infof("Completed UpdateNode: %v", err)
+	return rep, err
+}
+
+func (srv *ResourceApiServer) ReassignRole(ctx context.Context, req *resource_api_grpc_pb.ReassignRoleRequest) (*resource_api_grpc_pb.ReassignRoleReply, error) {
+	var rep *resource_api_grpc_pb.ReassignRoleReply
+	var err error
+	rep, err = srv.resourceModelApi.ReassignRole(req)
+	glog.Infof("Completed ReassignRole: %v", err)
 	return rep, err
 }

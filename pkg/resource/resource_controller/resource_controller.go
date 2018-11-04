@@ -13,6 +13,7 @@ type ResourceControllerServer struct {
 	base.BaseApp
 	conf              *config.Config
 	resourceApiClient *resource_api_client.ResourceApiClient
+	role              string
 }
 
 func NewResourceControllerServer(conf *config.Config) *ResourceControllerServer {

@@ -24,18 +24,28 @@ func tasks(p *do.Project) {
 		c.Start("main.go api", do.M{"$in": "cmd/goapp-resource"})
 	}).Src("pkg/**/*.go")
 
+	p.Task("goapp-resource-api2", nil, func(c *do.Context) {
+		c.Start("main.go api --config-file config2.toml", do.M{"$in": "cmd/goapp-resource"})
+	}).Src("pkg/**/*.go")
+
+	p.Task("goapp-resource-api3", nil, func(c *do.Context) {
+		c.Start("main.go api --config-file config3.toml", do.M{"$in": "cmd/goapp-resource"})
+	}).Src("pkg/**/*.go")
+
 	p.Task("goapp-resource-controller", nil, func(c *do.Context) {
 		c.Start("main.go controller", do.M{"$in": "cmd/goapp-resource"})
 	}).Src("pkg/**/*.go")
 
-	p.Task("goapp-resource-region-api", nil, func(c *do.Context) {
-		c.Start("main.go region-api", do.M{"$in": "cmd/goapp-resource"})
+	p.Task("goapp-resource-controller2", nil, func(c *do.Context) {
+		c.Start("main.go controller --config-file config2.toml", do.M{"$in": "cmd/goapp-resource"})
 	}).Src("pkg/**/*.go")
 
-	p.Task("goapp-all", nil, func(c *do.Context) {
-		c.Start("main.go", do.M{"$in": "cmd/goapp-authproxy"})
-		c.Start("main.go api", do.M{"$in": "cmd/goapp-resource"})
-		c.Start("main.go controller", do.M{"$in": "cmd/goapp-resource"})
+	p.Task("goapp-resource-controller3", nil, func(c *do.Context) {
+		c.Start("main.go controller --config-file config3.toml", do.M{"$in": "cmd/goapp-resource"})
+	}).Src("pkg/**/*.go")
+
+	p.Task("goapp-resource-region-api", nil, func(c *do.Context) {
+		c.Start("main.go region-api", do.M{"$in": "cmd/goapp-resource"})
 	}).Src("pkg/**/*.go")
 }
 
