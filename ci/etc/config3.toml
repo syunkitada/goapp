@@ -2,6 +2,7 @@
 Name = "host3"
 
 [Resource]
+AppDownTime = 120
 
 [Resource.ApiApp]
 Name = "api"

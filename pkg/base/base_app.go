@@ -35,7 +35,6 @@ func NewBaseApp(conf *config.Config, appConf *config.AppConfig) BaseApp {
 	return BaseApp{
 		conf:               conf,
 		appConf:            appConf,
-		Monitors:           appConf.Monitors,
 		loopInterval:       time.Duration(appConf.LoopInterval) * time.Second,
 		isGracefulShutdown: false,
 		shutdownTimeout:    time.Duration(appConf.ShutdownTimeout) * time.Second,

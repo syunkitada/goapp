@@ -1,7 +1,9 @@
 package resource
 
 import (
+	"fmt"
 	"os"
+	"time"
 
 	"github.com/golang/glog"
 	"github.com/spf13/cobra"
@@ -82,7 +84,7 @@ func (ctl *ResourceCtl) GetNode() error {
 	}
 
 	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"Name", "Kind", "Role", "Status", "Status Reason", "State", "State Reason"})
+	table.SetHeader([]string{"Name", "Kind", "Role", "Status", "Status Reason", "State", "State Reason", "Updated At"})
 	for _, node := range reply.Nodes {
 		table.Append([]string{
 			node.Name,
@@ -92,6 +94,7 @@ func (ctl *ResourceCtl) GetNode() error {
 			node.StatusReason,
 			node.State,
 			node.StateReason,
+			fmt.Sprint(time.Unix(node.UpdatedAt.Seconds, 0)),
 		})
 	}
 	table.Render()

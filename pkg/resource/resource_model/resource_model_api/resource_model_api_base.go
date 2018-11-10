@@ -1,6 +1,8 @@
 package resource_model_api
 
 import (
+	"time"
+
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/ptypes"
@@ -12,12 +14,12 @@ import (
 
 func (modelApi *ResourceModelApi) GetNode(req *resource_api_grpc_pb.GetNodeRequest) (*resource_api_grpc_pb.GetNodeReply, error) {
 	var err error
-	db, err := gorm.Open("mysql", modelApi.Conf.Resource.Database.Connection)
+	db, err := gorm.Open("mysql", modelApi.conf.Resource.Database.Connection)
 	defer db.Close()
 	if err != nil {
 		return nil, err
 	}
-	db.LogMode(modelApi.Conf.Default.EnableDatabaseLog)
+	db.LogMode(modelApi.conf.Default.EnableDatabaseLog)
 
 	var nodes []resource_model.Node
 	if err = db.Where("name like ?", req.Target).Find(&nodes).Error; err != nil {
@@ -25,7 +27,7 @@ func (modelApi *ResourceModelApi) GetNode(req *resource_api_grpc_pb.GetNodeReque
 	}
 
 	return &resource_api_grpc_pb.GetNodeReply{
-		Nodes: modelApi.ConvertNodes(nodes),
+		Nodes: modelApi.convertNodes(nodes),
 	}, nil
 }
 
@@ -33,12 +35,12 @@ func (modelApi *ResourceModelApi) UpdateNode(req *resource_api_grpc_pb.UpdateNod
 	var rep *resource_api_grpc_pb.UpdateNodeReply
 	var err error
 
-	db, err := gorm.Open("mysql", modelApi.Conf.Resource.Database.Connection)
+	db, err := gorm.Open("mysql", modelApi.conf.Resource.Database.Connection)
 	defer db.Close()
 	if err != nil {
 		return rep, err
 	}
-	db.LogMode(modelApi.Conf.Default.EnableDatabaseLog)
+	db.LogMode(modelApi.conf.Default.EnableDatabaseLog)
 
 	var node resource_model.Node
 	if err = db.Where("name = ? and kind = ?", req.Name, req.Kind).First(&node).Error; err != nil {
@@ -50,8 +52,8 @@ func (modelApi *ResourceModelApi) UpdateNode(req *resource_api_grpc_pb.UpdateNod
 			Name:         req.Name,
 			Kind:         req.Kind,
 			Role:         req.Role,
-			Status:       resource_model.StatusDisabled,
-			StatusReason: "Default status",
+			Status:       req.Status,
+			StatusReason: req.StatusReason,
 			State:        req.State,
 			StateReason:  req.StateReason,
 		}
@@ -59,10 +61,6 @@ func (modelApi *ResourceModelApi) UpdateNode(req *resource_api_grpc_pb.UpdateNod
 			return rep, err
 		}
 	} else {
-		if req.Status != "" && req.StatusReason != "" {
-			node.Status = req.Status
-			node.StatusReason = req.StatusReason
-		}
 		node.State = req.State
 		node.StateReason = req.StateReason
 		if err = db.Save(&node).Error; err != nil {
@@ -74,67 +72,76 @@ func (modelApi *ResourceModelApi) UpdateNode(req *resource_api_grpc_pb.UpdateNod
 	return rep, err
 }
 
-func (modelApi *ResourceModelApi) ReassignRole(req *resource_api_grpc_pb.ReassignRoleRequest) (*resource_api_grpc_pb.ReassignRoleReply, error) {
-	var rep *resource_api_grpc_pb.ReassignRoleReply
+func (modelApi *ResourceModelApi) SyncRole(kind string) ([]resource_model.Node, error) {
+	var nodes []resource_model.Node
 	var err error
 
-	db, err := gorm.Open("mysql", modelApi.Conf.Resource.Database.Connection)
+	db, err := gorm.Open("mysql", modelApi.conf.Resource.Database.Connection)
 	defer db.Close()
 	if err != nil {
-		return rep, err
+		return nodes, err
 	}
-	db.LogMode(modelApi.Conf.Default.EnableDatabaseLog)
+	db.LogMode(modelApi.conf.Default.EnableDatabaseLog)
 
 	tx := db.Begin()
 	defer tx.Rollback()
-	var nodes []resource_model.Node
-	if err = tx.Where("kind = ?", req.Kind).Find(&nodes).Error; err != nil {
+	if err = tx.Where("kind = ?", kind).Find(&nodes).Error; err != nil {
 		return nil, err
 	}
+
+	downTime := time.Now().Add(modelApi.downTimeDuration)
 	existsActiveLeader := false
 	for _, node := range nodes {
 		if node.Role == resource_model.RoleLeader {
-			if node.Status == resource_model.StatusEnabled && node.State == resource_model.StateUp {
+			if node.Status == resource_model.StatusEnabled && node.State == resource_model.StateUp && node.UpdatedAt.After(downTime) {
+				glog.Infof("Found Active Leader: %v", node.Name)
 				existsActiveLeader = true
 			}
 			break
 		}
 	}
 	if existsActiveLeader {
-		return &resource_api_grpc_pb.ReassignRoleReply{
-			Nodes: modelApi.ConvertNodes(nodes),
-		}, nil
+		return nodes, nil
 	}
+	glog.Info("Active Leader is not exists, Leader will be assigned.")
 
 	isReassignLeader := false
+	newNodes := []resource_model.Node{}
 	for _, node := range nodes {
 		if isReassignLeader {
 			node.Role = resource_model.RoleMember
 			if err = tx.Save(&node).Error; err != nil {
 				return nil, err
 			}
-		} else if node.Status == resource_model.StatusEnabled && node.State == resource_model.StateUp {
+		} else if node.Status == resource_model.StatusEnabled &&
+			node.State == resource_model.StateUp &&
+			node.UpdatedAt.After(downTime) {
+
 			node.Role = resource_model.RoleLeader
 			if err = tx.Save(&node).Error; err != nil {
 				return nil, err
 			}
 			isReassignLeader = true
+			glog.Infof("Leader is assigned: %v", node.Name)
+		} else {
+			node.Role = resource_model.RoleMember
+			if err = tx.Save(&node).Error; err != nil {
+				return nil, err
+			}
 		}
+		newNodes = append(newNodes, node)
 	}
-
-	glog.Info("Completed UpdateNode")
 	tx.Commit()
 
-	return &resource_api_grpc_pb.ReassignRoleReply{
-		Nodes: modelApi.ConvertNodes(nodes),
-	}, nil
+	glog.Info("Completed SyncNode")
+	return newNodes, nil
 }
 
-func (modelApi *ResourceModelApi) ConvertNodes(nodes []resource_model.Node) []*resource_api_grpc_pb.Node {
+func (modelApi *ResourceModelApi) convertNodes(nodes []resource_model.Node) []*resource_api_grpc_pb.Node {
 	pbNodes := make([]*resource_api_grpc_pb.Node, len(nodes))
 	for i, node := range nodes {
-		glog.Info(node.Model.UpdatedAt)
 		updatedAt, err := ptypes.TimestampProto(node.Model.UpdatedAt)
+		createdAt, err := ptypes.TimestampProto(node.Model.CreatedAt)
 		if err != nil {
 			glog.Warningf("Invalid timestamp: %v", err)
 			continue
@@ -149,8 +156,43 @@ func (modelApi *ResourceModelApi) ConvertNodes(nodes []resource_model.Node) []*r
 			State:        node.State,
 			StateReason:  node.StateReason,
 			UpdatedAt:    updatedAt,
+			CreatedAt:    createdAt,
 		}
 	}
 
 	return pbNodes
+}
+
+func (modelApi *ResourceModelApi) CheckNodes() error {
+	var err error
+
+	db, err := gorm.Open("mysql", modelApi.conf.Resource.Database.Connection)
+	defer db.Close()
+	if err != nil {
+		return err
+	}
+	db.LogMode(modelApi.conf.Default.EnableDatabaseLog)
+
+	tx := db.Begin()
+	defer tx.Rollback()
+	var nodes []resource_model.Node
+	if err = tx.Find(&nodes).Error; err != nil {
+		return err
+	}
+
+	downTimeDuration := -1 * time.Duration(modelApi.conf.Resource.AppDownTime) * time.Second
+	downTime := time.Now().Add(downTimeDuration)
+
+	for _, node := range nodes {
+		if node.UpdatedAt.Before(downTime) {
+			node.State = resource_model.StateDown
+			if err = tx.Save(&node).Error; err != nil {
+				return err
+			}
+		}
+	}
+	tx.Commit()
+
+	glog.Info("Completed CheckNodes")
+	return nil
 }

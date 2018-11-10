@@ -25,7 +25,6 @@ type DefaultConfig struct {
 
 type AppConfig struct {
 	Name               string
-	Monitors           int
 	ClientTimeout      int
 	ShutdownTimeout    int
 	LoopInterval       int
@@ -55,6 +54,7 @@ type DashboardConfig struct {
 }
 
 type ResourceConfig struct {
+	AppDownTime   int
 	ApiApp        AppConfig
 	ControllerApp AppConfig
 	Database      DatabaseConfig

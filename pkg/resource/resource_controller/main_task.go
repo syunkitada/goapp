@@ -11,84 +11,20 @@ import (
 
 func (srv *ResourceControllerServer) MainTask() error {
 	glog.Info("Run MainTask")
-	srv.UpdateNode()
-	srv.MonitorTask()
-
-	return nil
-}
-
-func (srv *ResourceControllerServer) MonitorTask() error {
-	var err error
-	rep, err := srv.resourceApiClient.GetNode(&resource_api_grpc_pb.GetNodeRequest{
-		Target: "%",
-	})
-	if err != nil {
+	if err := srv.UpdateNode(); err != nil {
 		return err
 	}
-	existsSelfNode := false
-	var selfRole string
-	existsActiveLeader := false
-	lenActiveMembers := 0
-	for _, node := range rep.Nodes {
-		if node.Kind != resource_model.KindResourceController {
-			continue
-		}
-		if node.Name == srv.conf.Default.Name && node.Status == resource_model.StatusEnabled && node.State == resource_model.StateUp {
-			existsSelfNode = true
-			selfRole = node.Role
-		}
-		if node.Status == resource_model.StatusEnabled && node.State == resource_model.StateUp {
-			if node.Role == resource_model.RoleLeader {
-				existsActiveLeader = true
-			} else {
-				lenActiveMembers += 1
-			}
-		}
+	if err := srv.SyncRole(); err != nil {
+		return err
+	}
+	if srv.role == resource_model.RoleMember {
+		return nil
 	}
 
-	if !existsSelfNode {
-		return fmt.Errorf("This node is not activated")
+	if err := srv.resourceModelApi.CheckNodes(); err != nil {
+		return err
 	}
 
-	if !existsActiveLeader {
-		glog.Info("Active Leader is not exists, all node will be reassigned")
-		rep, err := srv.resourceApiClient.ReassignRole(&resource_api_grpc_pb.ReassignRoleRequest{
-			Kind: resource_model.KindResourceController,
-		})
-		if err != nil {
-			return err
-		}
-
-		for _, node := range rep.Nodes {
-			lenActiveMembers = 0
-			if node.Kind != resource_model.KindResourceController {
-				continue
-			}
-			if node.Name == srv.conf.Default.Name {
-				existsSelfNode = true
-				selfRole = node.Role
-			}
-			if node.Status == resource_model.StatusEnabled && node.State == resource_model.StateUp {
-				if node.Role == resource_model.RoleLeader {
-					existsActiveLeader = true
-				} else {
-					lenActiveMembers += 1
-				}
-			}
-		}
-	}
-
-	if !existsSelfNode {
-		return fmt.Errorf("This node is not activated")
-	}
-
-	if !existsActiveLeader {
-		return fmt.Errorf("Active Leader is not exists, after ReassignNode")
-	}
-
-	srv.role = selfRole
-
-	glog.Info("Completed MonitorTask")
 	return nil
 }
 
@@ -102,8 +38,46 @@ func (server *ResourceControllerServer) UpdateNode() error {
 		State:        resource_model.StateUp,
 		StateReason:  "UpdateNode",
 	}
-	server.resourceApiClient.UpdateNode(&request)
+	if _, err := server.resourceApiClient.UpdateNode(&request); err != nil {
+		return err
+	}
 
 	glog.Info("UpdatedNode")
+	return nil
+}
+
+func (srv *ResourceControllerServer) SyncRole() error {
+	var err error
+	nodes, err := srv.resourceModelApi.SyncRole(resource_model.KindResourceController)
+	if err != nil {
+		return err
+	}
+
+	existsSelfNode := false
+	existsActiveLeader := false
+	for _, node := range nodes {
+		if node.Kind != resource_model.KindResourceController {
+			continue
+		}
+		if node.Name == srv.conf.Default.Name && node.Status == resource_model.StatusEnabled && node.State == resource_model.StateUp {
+			existsSelfNode = true
+			srv.role = node.Role
+		}
+		if node.Status == resource_model.StatusEnabled && node.State == resource_model.StateUp {
+			if node.Role == resource_model.RoleLeader {
+				existsActiveLeader = true
+			}
+		}
+	}
+
+	if !existsSelfNode {
+		return fmt.Errorf("This node is not activated")
+	}
+
+	if !existsActiveLeader {
+		return fmt.Errorf("Active Leader is not exists, after ReassignNode")
+	}
+
+	glog.Infof("Completed SyncRole: role=%v", srv.role)
 	return nil
 }

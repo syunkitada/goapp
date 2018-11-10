@@ -53,11 +53,3 @@ func (srv *ResourceApiServer) UpdateNode(ctx context.Context, req *resource_api_
 	glog.Infof("Completed UpdateNode: %v", err)
 	return rep, err
 }
-
-func (srv *ResourceApiServer) ReassignRole(ctx context.Context, req *resource_api_grpc_pb.ReassignRoleRequest) (*resource_api_grpc_pb.ReassignRoleReply, error) {
-	var rep *resource_api_grpc_pb.ReassignRoleReply
-	var err error
-	rep, err = srv.resourceModelApi.ReassignRole(req)
-	glog.Infof("Completed ReassignRole: %v", err)
-	return rep, err
-}

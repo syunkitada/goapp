@@ -1,6 +1,8 @@
 package resource_model_api
 
 import (
+	"time"
+
 	_ "github.com/go-sql-driver/mysql"
 	// "github.com/golang/glog"
 	"github.com/jinzhu/gorm"
@@ -10,24 +12,26 @@ import (
 )
 
 type ResourceModelApi struct {
-	Conf *config.Config
+	conf             *config.Config
+	downTimeDuration time.Duration
 }
 
 func NewResourceModelApi(conf *config.Config) *ResourceModelApi {
 	modelApi := ResourceModelApi{
-		Conf: conf,
+		conf:             conf,
+		downTimeDuration: -1 * time.Duration(conf.Resource.AppDownTime) * time.Second,
 	}
 
 	return &modelApi
 }
 
 func (modelApi *ResourceModelApi) Bootstrap() error {
-	db, dbErr := gorm.Open("mysql", modelApi.Conf.Resource.Database.Connection)
+	db, dbErr := gorm.Open("mysql", modelApi.conf.Resource.Database.Connection)
 	defer db.Close()
 	if dbErr != nil {
 		return dbErr
 	}
-	db.LogMode(modelApi.Conf.Default.EnableDatabaseLog)
+	db.LogMode(modelApi.conf.Default.EnableDatabaseLog)
 
 	db.AutoMigrate(&resource_model.Node{})
 	db.AutoMigrate(&resource_model.Region{})

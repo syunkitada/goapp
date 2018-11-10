@@ -2,6 +2,7 @@
 Name = "host2"
 
 [Resource]
+AppDownTime = 120
 
 [Resource.ApiApp]
 Name = "api"
@@ -13,7 +14,7 @@ KeyFile = "server.key"
 CaFile = "ca.pem"
 ServerHostOverride = "x.test.youtube.com"
 Listen = "localhost:14300"
-Targets = ["localhost:14300"]
+Targets = ["localhost:13300", "localhost:14300"]
 
 [Resource.ControllerApp]
 Name = "api"

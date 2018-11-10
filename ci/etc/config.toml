@@ -1,4 +1,5 @@
 [Resource]
+AppDownTime = 120
 
 [Resource.ApiApp]
 Name = "api"
@@ -14,7 +15,6 @@ Targets = ["localhost:13300"]
 
 [Resource.ControllerApp]
 Name = "api"
-Monitors = 2
 ClientTimeout = 5
 ShutdownTimeout = 10
 LoopInterval = 10
