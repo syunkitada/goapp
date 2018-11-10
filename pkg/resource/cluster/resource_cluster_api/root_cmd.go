@@ -9,8 +9,8 @@ import (
 
 var RootCmd = &cobra.Command{
 	Use:   "cluster-api",
-	Short: "This is api for controlle all resources",
-	Long: `This is api for controlle all resources
+	Short: "This is api for controlle cluster resources",
+	Long: `This is api for controlle cluster resources
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
 		server := NewResourceClusterApiServer(&config.Conf)

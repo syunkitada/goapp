@@ -16,7 +16,7 @@ import (
 
 type ResourceClusterApiServer struct {
 	base.BaseApp
-	Conf                     *config.Config
+	conf                     *config.Config
 	cluster                  *config.ResourceClusterConfig
 	resourceClusterModelApi  *resource_cluster_model_api.ResourceClusterModelApi
 	resourceClusterApiClient *resource_cluster_api_client.ResourceClusterApiClient
@@ -30,7 +30,7 @@ func NewResourceClusterApiServer(conf *config.Config) *ResourceClusterApiServer 
 
 	server := ResourceClusterApiServer{
 		BaseApp:                  base.NewBaseApp(conf, &cluster.ControllerApp),
-		Conf:                     conf,
+		conf:                     conf,
 		cluster:                  cluster,
 		resourceClusterModelApi:  resource_cluster_model_api.NewResourceClusterModelApi(conf),
 		resourceClusterApiClient: resource_cluster_api_client.NewResourceClusterApiClient(conf),
@@ -51,7 +51,6 @@ func (srv *ResourceClusterApiServer) Status(ctx context.Context, statusRequest *
 }
 
 func (srv *ResourceClusterApiServer) GetNode(ctx context.Context, req *resource_cluster_api_grpc_pb.GetNodeRequest) (*resource_cluster_api_grpc_pb.GetNodeReply, error) {
-	glog.Info("GetNode")
 	var err error
 	var rep *resource_cluster_api_grpc_pb.GetNodeReply
 	if rep, err = srv.resourceClusterModelApi.GetNode(req); err != nil {
@@ -61,10 +60,8 @@ func (srv *ResourceClusterApiServer) GetNode(ctx context.Context, req *resource_
 }
 
 func (srv *ResourceClusterApiServer) UpdateNode(ctx context.Context, req *resource_cluster_api_grpc_pb.UpdateNodeRequest) (*resource_cluster_api_grpc_pb.UpdateNodeReply, error) {
+	var rep *resource_cluster_api_grpc_pb.UpdateNodeReply
 	var err error
-	glog.Info("UpdateNode")
-	if err = srv.resourceClusterModelApi.UpdateNode(req); err != nil {
-		glog.Error(err)
-	}
-	return &resource_cluster_api_grpc_pb.UpdateNodeReply{}, err
+	rep, err = srv.resourceClusterModelApi.UpdateNode(req)
+	return rep, err
 }

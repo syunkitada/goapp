@@ -7,24 +7,27 @@ import (
 	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_model"
 )
 
-func (server *ResourceClusterApiServer) MainTask() error {
+func (srv *ResourceClusterApiServer) MainTask() error {
 	glog.Info("Run MainTask")
-	server.UpdateNodeTask()
+	srv.UpdateNodeTask()
 
 	return nil
 }
 
-func (server *ResourceClusterApiServer) UpdateNodeTask() error {
-	request := resource_cluster_api_grpc_pb.UpdateNodeRequest{
-		Name:         server.Conf.Default.Name,
-		Kind:         resource_cluster_model.KindResourceApi,
+func (srv *ResourceClusterApiServer) UpdateNodeTask() error {
+	req := &resource_cluster_api_grpc_pb.UpdateNodeRequest{
+		Name:         srv.conf.Default.Name,
+		Kind:         resource_cluster_model.KindResourceClusterApi,
 		Role:         resource_cluster_model.RoleMember,
-		Enable:       resource_cluster_model.StatusEnabled,
-		EnableReason: "Always Enabled by UpdateNode",
-		Status:       resource_cluster_model.StatusActive,
-		StatusReason: "UpdateNode",
+		Status:       resource_cluster_model.StatusEnabled,
+		StatusReason: "Always Enabled",
+		State:        resource_cluster_model.StateUp,
+		StateReason:  "UpdateNode",
 	}
-	server.resourceClusterApiClient.UpdateNode(&request)
+
+	if _, err := srv.resourceClusterModelApi.UpdateNode(req); err != nil {
+		return err
+	}
 
 	glog.Info("UpdatedNode")
 	return nil

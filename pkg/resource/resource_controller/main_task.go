@@ -28,9 +28,9 @@ func (srv *ResourceControllerServer) MainTask() error {
 	return nil
 }
 
-func (server *ResourceControllerServer) UpdateNode() error {
-	request := resource_api_grpc_pb.UpdateNodeRequest{
-		Name:         server.conf.Default.Name,
+func (srv *ResourceControllerServer) UpdateNode() error {
+	req := resource_api_grpc_pb.UpdateNodeRequest{
+		Name:         srv.conf.Default.Name,
 		Kind:         resource_model.KindResourceController,
 		Role:         resource_model.RoleMember,
 		Status:       resource_model.StatusEnabled,
@@ -38,7 +38,7 @@ func (server *ResourceControllerServer) UpdateNode() error {
 		State:        resource_model.StateUp,
 		StateReason:  "UpdateNode",
 	}
-	if _, err := server.resourceApiClient.UpdateNode(&request); err != nil {
+	if _, err := srv.resourceApiClient.UpdateNode(&req); err != nil {
 		return err
 	}
 

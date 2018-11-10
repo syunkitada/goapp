@@ -15,7 +15,6 @@ func (server *ResourceApiServer) MainTask() error {
 }
 
 func (srv *ResourceApiServer) UpdateNodeTask() error {
-	var err error
 	req := &resource_api_grpc_pb.UpdateNodeRequest{
 		Name:         srv.conf.Default.Name,
 		Kind:         resource_model.KindResourceApi,
@@ -26,11 +25,10 @@ func (srv *ResourceApiServer) UpdateNodeTask() error {
 		StateReason:  "UpdateNode",
 	}
 
-	rep, err := srv.resourceModelApi.UpdateNode(req)
-	if err != nil {
-		return nil
+	if _, err := srv.resourceModelApi.UpdateNode(req); err != nil {
+		return err
 	}
-	glog.Info(rep)
+
 	glog.Info("UpdatedNodeTask")
 	return nil
 }

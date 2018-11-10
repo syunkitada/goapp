@@ -34,7 +34,7 @@ func (modelApi *ResourceModelApi) Bootstrap() error {
 	db.LogMode(modelApi.conf.Default.EnableDatabaseLog)
 
 	db.AutoMigrate(&resource_model.Node{})
-	db.AutoMigrate(&resource_model.Region{})
+	db.AutoMigrate(&resource_model.Cluster{})
 	db.AutoMigrate(&resource_model.ComputeResource{})
 	db.AutoMigrate(&resource_model.VolumeResource{})
 	db.AutoMigrate(&resource_model.ImageResource{})

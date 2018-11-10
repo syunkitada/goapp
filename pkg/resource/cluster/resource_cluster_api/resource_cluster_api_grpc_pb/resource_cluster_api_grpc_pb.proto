@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+import "google/protobuf/timestamp.proto";
+
 option java_multiple_files = true;
 option java_package = "io.grpc.examples.routeguide";
 option java_outer_classname = "RouteGuideProto";
@@ -31,10 +33,10 @@ message UpdateNodeRequest {
     string name = 1;
     string kind = 2;
     string role = 3;
-    string enable = 4;
-    string enable_reason = 5;
-    string status = 6;
-    string status_reason = 7;
+    string status = 4;
+    string status_reason = 5;
+    string state = 6;
+    string state_reason = 7;
 }
 
 message UpdateNodeReply {}
@@ -43,8 +45,10 @@ message Node {
     string name = 1;
     string kind = 2;
     string role = 3;
-    string enable = 4;
-    string enable_reason = 5;
-    string status = 6;
-    string status_reason = 7;
+    string status = 4;
+    string status_reason = 5;
+    string state = 6;
+    string state_reason = 7;
+    google.protobuf.Timestamp updated_at = 8;
+    google.protobuf.Timestamp created_at = 9;
 }

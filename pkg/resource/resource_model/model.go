@@ -15,7 +15,7 @@ type Node struct {
 	StateReason  string `gorm:"not null;size:50;"`
 }
 
-type Region struct {
+type Cluster struct {
 	gorm.Model
 	Name string `gorm:"not null;"`
 }

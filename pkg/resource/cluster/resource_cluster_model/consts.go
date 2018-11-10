@@ -1,17 +1,16 @@
 package resource_cluster_model
 
 const (
-	KindResourceController = "ResourceController"
-	KindResourceApi        = "ResourceApi"
+	KindResourceClusterController = "ResourceClusterController"
+	KindResourceClusterApi        = "ResourceClusterApi"
 )
 
 const (
-	StatusActive    = "Active"
-	StatusDown      = "Down"
+	StatusEnabled   = "Enabled"
 	StatusDisabled  = "Disabled"
 	StatusDisabling = "Disabling"
-	StatusEnabled   = "Enabled"
-	StatusEnabling  = "Enabling"
+	StateUp         = "Up"
+	StateDown       = "Down"
 )
 
 const (

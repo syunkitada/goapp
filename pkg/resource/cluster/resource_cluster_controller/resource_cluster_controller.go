@@ -10,13 +10,16 @@ import (
 	"github.com/syunkitada/goapp/pkg/config"
 	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_api/resource_cluster_api_client"
 	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_controller/resource_cluster_controller_grpc_pb"
+	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_model/resource_cluster_model_api"
 )
 
 type ResourceClusterControllerServer struct {
 	base.BaseApp
-	Conf                     *config.Config
+	conf                     *config.Config
 	cluster                  *config.ResourceClusterConfig
+	resourceClusterModelApi  *resource_cluster_model_api.ResourceClusterModelApi
 	resourceClusterApiClient *resource_cluster_api_client.ResourceClusterApiClient
+	role                     string
 }
 
 func NewResourceClusterControllerServer(conf *config.Config) *ResourceClusterControllerServer {
@@ -27,7 +30,8 @@ func NewResourceClusterControllerServer(conf *config.Config) *ResourceClusterCon
 
 	server := ResourceClusterControllerServer{
 		BaseApp: base.NewBaseApp(conf, &cluster.ApiApp),
-		Conf:    conf,
+		conf:    conf,
+		resourceClusterModelApi:  resource_cluster_model_api.NewResourceClusterModelApi(conf),
 		resourceClusterApiClient: resource_cluster_api_client.NewResourceClusterApiClient(conf),
 	}
 

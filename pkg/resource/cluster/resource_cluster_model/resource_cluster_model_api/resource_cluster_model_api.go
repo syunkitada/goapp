@@ -2,6 +2,7 @@ package resource_cluster_model_api
 
 import (
 	"fmt"
+	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/golang/glog"
@@ -12,8 +13,9 @@ import (
 )
 
 type ResourceClusterModelApi struct {
-	conf    *config.Config
-	cluster *config.ResourceClusterConfig
+	conf             *config.Config
+	cluster          *config.ResourceClusterConfig
+	downTimeDuration time.Duration
 }
 
 func NewResourceClusterModelApi(conf *config.Config) *ResourceClusterModelApi {
@@ -23,8 +25,9 @@ func NewResourceClusterModelApi(conf *config.Config) *ResourceClusterModelApi {
 	}
 
 	modelApi := ResourceClusterModelApi{
-		conf:    conf,
-		cluster: cluster,
+		conf:             conf,
+		cluster:          cluster,
+		downTimeDuration: -1 * time.Duration(conf.Resource.AppDownTime) * time.Second,
 	}
 
 	return &modelApi
