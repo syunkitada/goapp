@@ -44,8 +44,12 @@ func tasks(p *do.Project) {
 		c.Start("main.go controller --config-file config3.toml", do.M{"$in": "cmd/goapp-resource"})
 	}).Src("pkg/**/*.go")
 
-	p.Task("goapp-resource-region-api", nil, func(c *do.Context) {
-		c.Start("main.go region-api", do.M{"$in": "cmd/goapp-resource"})
+	p.Task("goapp-resource-cluster-api", nil, func(c *do.Context) {
+		c.Start("main.go cluster-api", do.M{"$in": "cmd/goapp-resource"})
+	}).Src("pkg/**/*.go")
+
+	p.Task("goapp-resource-cluster-controller", nil, func(c *do.Context) {
+		c.Start("main.go cluster-controller", do.M{"$in": "cmd/goapp-resource"})
 	}).Src("pkg/**/*.go")
 }
 

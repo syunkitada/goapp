@@ -6,16 +6,16 @@ import (
 )
 
 type Auth struct {
-	Conf              *config.Config
-	AuthproxyModelApi *authproxy_model_api.AuthproxyModelApi
-	Token             *Token
+	conf              *config.Config
+	authproxyModelApi *authproxy_model_api.AuthproxyModelApi
+	token             *Token
 }
 
 func NewAuth(conf *config.Config, authproxyModelApi *authproxy_model_api.AuthproxyModelApi, token *Token) *Auth {
 	auth := Auth{
-		Conf:              conf,
-		AuthproxyModelApi: authproxyModelApi,
-		Token:             token,
+		conf:              conf,
+		authproxyModelApi: authproxyModelApi,
+		token:             token,
 	}
 	return &auth
 }

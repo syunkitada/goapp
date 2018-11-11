@@ -46,6 +46,38 @@ func (srv *ResourceApiServer) GetNode(ctx context.Context, req *resource_api_grp
 	return rep, err
 }
 
+func (srv *ResourceApiServer) GetCluster(ctx context.Context, req *resource_api_grpc_pb.GetClusterRequest) (*resource_api_grpc_pb.GetClusterReply, error) {
+	var rep *resource_api_grpc_pb.GetClusterReply
+	var err error
+	rep, err = srv.resourceModelApi.GetCluster(req)
+	glog.Infof("Completed GetCluster: %v", err)
+	return rep, err
+}
+
+func (srv *ResourceApiServer) GetCompute(ctx context.Context, req *resource_api_grpc_pb.GetComputeRequest) (*resource_api_grpc_pb.GetComputeReply, error) {
+	var rep *resource_api_grpc_pb.GetComputeReply
+	var err error
+	rep, err = srv.resourceModelApi.GetCompute(req)
+	glog.Infof("Completed GetCompute: %v", err)
+	return rep, err
+}
+
+func (srv *ResourceApiServer) GetImage(ctx context.Context, req *resource_api_grpc_pb.GetImageRequest) (*resource_api_grpc_pb.GetImageReply, error) {
+	var rep *resource_api_grpc_pb.GetImageReply
+	var err error
+	rep, err = srv.resourceModelApi.GetImage(req)
+	glog.Infof("Completed GetImage: %v", err)
+	return rep, err
+}
+
+func (srv *ResourceApiServer) GetVolume(ctx context.Context, req *resource_api_grpc_pb.GetVolumeRequest) (*resource_api_grpc_pb.GetVolumeReply, error) {
+	var rep *resource_api_grpc_pb.GetVolumeReply
+	var err error
+	rep, err = srv.resourceModelApi.GetVolume(req)
+	glog.Infof("Completed GetVolume: %v", err)
+	return rep, err
+}
+
 func (srv *ResourceApiServer) UpdateNode(ctx context.Context, req *resource_api_grpc_pb.UpdateNodeRequest) (*resource_api_grpc_pb.UpdateNodeReply, error) {
 	var rep *resource_api_grpc_pb.UpdateNodeReply
 	var err error

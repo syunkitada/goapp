@@ -351,12 +351,12 @@ func (modelApi *AuthproxyModelApi) GetUserAuthority(username string, actionReque
 	if actionRequest != nil && actionRequest.ProjectName != "" && actionRequest.ServiceName != "" && actionRequest.Name != "" {
 		projectService, projectServiceOk := projectServiceMap[actionRequest.ProjectName]
 		if !projectServiceOk {
-			return nil, errors.New(fmt.Sprintf("NotFound %v in projectServiceMap", actionRequest.ProjectName))
+			return nil, fmt.Errorf("NotFound %v in projectServiceMap", actionRequest.ProjectName)
 		}
 
 		serviceID, serviceOk := projectService.ServiceMap[actionRequest.ServiceName]
 		if !serviceOk {
-			return nil, errors.New(fmt.Sprintf("NotFound %v in projectService.ServiceMap", actionRequest.ServiceName))
+			return nil, fmt.Errorf("NotFound %v in projectService.ServiceMap", actionRequest.ServiceName)
 		}
 
 		var action authproxy_model.Action

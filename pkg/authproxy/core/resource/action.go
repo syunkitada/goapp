@@ -7,6 +7,7 @@ import (
 	"github.com/golang/glog"
 
 	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_model"
+	"github.com/syunkitada/goapp/pkg/resource/resource_api/resource_api_grpc_pb"
 )
 
 func (resource *Resource) Action(c *gin.Context) {
@@ -27,9 +28,26 @@ func (resource *Resource) Action(c *gin.Context) {
 	glog.Info(action)
 
 	switch action.Name {
+	case "GetCluster":
+		rep, err := resource.resourceApiClient.GetCluster(&resource_api_grpc_pb.GetClusterRequest{
+			Target: "%",
+		})
+		if err != nil {
+			glog.Error("Failed HealthClient.Status", err)
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"error": "Invalid AuthRequest",
+			})
+			c.Abort()
+			return
+		}
+		c.JSON(200, gin.H{
+			"clusters": rep.Clusters,
+			"err":      err,
+		})
+		return
+
 	case "GetState":
-		glog.Info("itest")
-		status, err := resource.ResourceApiClient.Status()
+		status, err := resource.resourceApiClient.Status()
 		if err != nil {
 			glog.Error("Failed HealthClient.Status", err)
 			c.JSON(http.StatusUnauthorized, gin.H{

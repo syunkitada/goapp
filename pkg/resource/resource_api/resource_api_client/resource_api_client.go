@@ -66,6 +66,90 @@ func (cli *ResourceApiClient) GetNode(req *resource_api_grpc_pb.GetNodeRequest) 
 	return rep, err
 }
 
+func (cli *ResourceApiClient) GetCluster(req *resource_api_grpc_pb.GetClusterRequest) (*resource_api_grpc_pb.GetClusterReply, error) {
+	var rep *resource_api_grpc_pb.GetClusterReply
+	var err error
+	conn, err := cli.NewClientConnection()
+	defer conn.Close()
+	if err != nil {
+		return rep, err
+	}
+
+	ctx, cancel := cli.GetContext()
+	defer cancel()
+	if cli.conf.Default.EnableTest {
+		rep, err = cli.localServer.GetCluster(ctx, req)
+	} else {
+		grpcClient := resource_api_grpc_pb.NewResourceApiClient(conn)
+		rep, err = grpcClient.GetCluster(ctx, req)
+	}
+
+	return rep, err
+}
+
+func (cli *ResourceApiClient) GetCompute(req *resource_api_grpc_pb.GetComputeRequest) (*resource_api_grpc_pb.GetComputeReply, error) {
+	var rep *resource_api_grpc_pb.GetComputeReply
+	var err error
+	conn, err := cli.NewClientConnection()
+	defer conn.Close()
+	if err != nil {
+		return rep, err
+	}
+
+	ctx, cancel := cli.GetContext()
+	defer cancel()
+	if cli.conf.Default.EnableTest {
+		rep, err = cli.localServer.GetCompute(ctx, req)
+	} else {
+		grpcClient := resource_api_grpc_pb.NewResourceApiClient(conn)
+		rep, err = grpcClient.GetCompute(ctx, req)
+	}
+
+	return rep, err
+}
+
+func (cli *ResourceApiClient) GetImage(req *resource_api_grpc_pb.GetImageRequest) (*resource_api_grpc_pb.GetImageReply, error) {
+	var rep *resource_api_grpc_pb.GetImageReply
+	var err error
+	conn, err := cli.NewClientConnection()
+	defer conn.Close()
+	if err != nil {
+		return rep, err
+	}
+
+	ctx, cancel := cli.GetContext()
+	defer cancel()
+	if cli.conf.Default.EnableTest {
+		rep, err = cli.localServer.GetImage(ctx, req)
+	} else {
+		grpcClient := resource_api_grpc_pb.NewResourceApiClient(conn)
+		rep, err = grpcClient.GetImage(ctx, req)
+	}
+
+	return rep, err
+}
+
+func (cli *ResourceApiClient) GetVolume(req *resource_api_grpc_pb.GetVolumeRequest) (*resource_api_grpc_pb.GetVolumeReply, error) {
+	var rep *resource_api_grpc_pb.GetVolumeReply
+	var err error
+	conn, err := cli.NewClientConnection()
+	defer conn.Close()
+	if err != nil {
+		return rep, err
+	}
+
+	ctx, cancel := cli.GetContext()
+	defer cancel()
+	if cli.conf.Default.EnableTest {
+		rep, err = cli.localServer.GetVolume(ctx, req)
+	} else {
+		grpcClient := resource_api_grpc_pb.NewResourceApiClient(conn)
+		rep, err = grpcClient.GetVolume(ctx, req)
+	}
+
+	return rep, err
+}
+
 func (cli *ResourceApiClient) UpdateNode(req *resource_api_grpc_pb.UpdateNodeRequest) (*resource_api_grpc_pb.UpdateNodeReply, error) {
 	var rep *resource_api_grpc_pb.UpdateNodeReply
 	var err error

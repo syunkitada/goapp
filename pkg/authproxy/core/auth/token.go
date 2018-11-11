@@ -18,20 +18,20 @@ type CustomClaims struct {
 }
 
 type Token struct {
-	Conf              *config.Config
-	AuthproxyModelApi *authproxy_model_api.AuthproxyModelApi
+	conf              *config.Config
+	authproxyModelApi *authproxy_model_api.AuthproxyModelApi
 }
 
 func NewToken(conf *config.Config, authproxyModelApi *authproxy_model_api.AuthproxyModelApi) *Token {
 	token := Token{
-		Conf:              conf,
-		AuthproxyModelApi: authproxyModelApi,
+		conf:              conf,
+		authproxyModelApi: authproxyModelApi,
 	}
 	return &token
 }
 
 func (token *Token) AuthAndIssueToken(authRequest *authproxy_model.AuthRequest) (string, error) {
-	user, userErr := token.AuthproxyModelApi.GetAuthUser(authRequest)
+	user, userErr := token.authproxyModelApi.GetAuthUser(authRequest)
 	if userErr != nil {
 		return "", errors.New("Failed GetAuthUser")
 	}
@@ -57,7 +57,7 @@ func (token *Token) Generate(user *authproxy_model.User) (string, error) {
 	newToken := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
 	// Sign token with key
-	tokenString, tokenErr := newToken.SignedString([]byte(token.Conf.Admin.TokenSecret))
+	tokenString, tokenErr := newToken.SignedString([]byte(token.conf.Admin.TokenSecret))
 	return tokenString, tokenErr
 }
 
@@ -67,7 +67,7 @@ func (token *Token) ParseToken(request authproxy_model.TokenAuthRequest) (jwt.Ma
 			msg := fmt.Errorf("Unexpected signing method: %v", t.Header["alg"])
 			return nil, msg
 		}
-		return []byte(token.Conf.Admin.TokenSecret), nil
+		return []byte(token.conf.Admin.TokenSecret), nil
 	})
 
 	if err != nil {

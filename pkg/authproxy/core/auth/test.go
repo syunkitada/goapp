@@ -12,16 +12,12 @@ import (
 	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_model"
 )
 
-type ResponseIssueToken struct {
-	Token string
-}
-
 func (auth *Auth) TestIssueToken(t *testing.T) *ResponseIssueToken {
-	handler := auth.Conf.Authproxy.HttpServer.TestHandler
+	handler := auth.conf.Authproxy.HttpServer.TestHandler
 
 	authRequest := authproxy_model.AuthRequest{
-		Username: auth.Conf.Admin.Username,
-		Password: auth.Conf.Admin.Password,
+		Username: auth.conf.Admin.Username,
+		Password: auth.conf.Admin.Password,
 	}
 	authRequestJson, marshalErr := json.Marshal(authRequest)
 	if marshalErr != nil {

@@ -70,7 +70,9 @@ func (modelApi *AuthproxyModelApi) Bootstrap() error {
 	userAdminServices := []string{"Datacenter"}
 	projectTenantServices := []string{"Resource"}
 	actionMap := map[string][]string{}
-	actionMap["Resource"] = []string{"GetState"}
+	actionMap["Resource"] = []string{
+		"GetState", "GetCluster", "GetNode",
+	}
 
 	for _, userTenantService := range userTenantServices {
 		if err := modelApi.CreateService(userTenantService, "user"); err != nil {

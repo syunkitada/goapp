@@ -31,6 +31,82 @@ func (modelApi *ResourceModelApi) GetNode(req *resource_api_grpc_pb.GetNodeReque
 	}, nil
 }
 
+func (modelApi *ResourceModelApi) GetCluster(req *resource_api_grpc_pb.GetClusterRequest) (*resource_api_grpc_pb.GetClusterReply, error) {
+	var err error
+	db, err := gorm.Open("mysql", modelApi.conf.Resource.Database.Connection)
+	defer db.Close()
+	if err != nil {
+		return nil, err
+	}
+	db.LogMode(modelApi.conf.Default.EnableDatabaseLog)
+
+	var nodes []resource_model.Cluster
+	if err = db.Where("name like ?", req.Target).Find(&nodes).Error; err != nil {
+		return nil, err
+	}
+
+	return &resource_api_grpc_pb.GetClusterReply{
+		Clusters: modelApi.convertClusters(nodes),
+	}, nil
+}
+
+func (modelApi *ResourceModelApi) GetCompute(req *resource_api_grpc_pb.GetComputeRequest) (*resource_api_grpc_pb.GetComputeReply, error) {
+	var err error
+	db, err := gorm.Open("mysql", modelApi.conf.Resource.Database.Connection)
+	defer db.Close()
+	if err != nil {
+		return nil, err
+	}
+	db.LogMode(modelApi.conf.Default.EnableDatabaseLog)
+
+	var nodes []resource_model.Compute
+	if err = db.Where("name like ?", req.Target).Find(&nodes).Error; err != nil {
+		return nil, err
+	}
+
+	return &resource_api_grpc_pb.GetComputeReply{
+		Computes: modelApi.convertComputes(nodes),
+	}, nil
+}
+
+func (modelApi *ResourceModelApi) GetImage(req *resource_api_grpc_pb.GetImageRequest) (*resource_api_grpc_pb.GetImageReply, error) {
+	var err error
+	db, err := gorm.Open("mysql", modelApi.conf.Resource.Database.Connection)
+	defer db.Close()
+	if err != nil {
+		return nil, err
+	}
+	db.LogMode(modelApi.conf.Default.EnableDatabaseLog)
+
+	var nodes []resource_model.Image
+	if err = db.Where("name like ?", req.Target).Find(&nodes).Error; err != nil {
+		return nil, err
+	}
+
+	return &resource_api_grpc_pb.GetImageReply{
+		Images: modelApi.convertImages(nodes),
+	}, nil
+}
+
+func (modelApi *ResourceModelApi) GetVolume(req *resource_api_grpc_pb.GetVolumeRequest) (*resource_api_grpc_pb.GetVolumeReply, error) {
+	var err error
+	db, err := gorm.Open("mysql", modelApi.conf.Resource.Database.Connection)
+	defer db.Close()
+	if err != nil {
+		return nil, err
+	}
+	db.LogMode(modelApi.conf.Default.EnableDatabaseLog)
+
+	var nodes []resource_model.Volume
+	if err = db.Where("name like ?", req.Target).Find(&nodes).Error; err != nil {
+		return nil, err
+	}
+
+	return &resource_api_grpc_pb.GetVolumeReply{
+		Volumes: modelApi.convertVolumes(nodes),
+	}, nil
+}
+
 func (modelApi *ResourceModelApi) UpdateNode(req *resource_api_grpc_pb.UpdateNodeRequest) (*resource_api_grpc_pb.UpdateNodeReply, error) {
 	var rep *resource_api_grpc_pb.UpdateNodeReply
 	var err error
@@ -161,6 +237,86 @@ func (modelApi *ResourceModelApi) convertNodes(nodes []resource_model.Node) []*r
 	}
 
 	return pbNodes
+}
+
+func (modelApi *ResourceModelApi) convertClusters(clusters []resource_model.Cluster) []*resource_api_grpc_pb.Cluster {
+	pbClusters := make([]*resource_api_grpc_pb.Cluster, len(clusters))
+	for i, cluster := range clusters {
+		updatedAt, err := ptypes.TimestampProto(cluster.Model.UpdatedAt)
+		createdAt, err := ptypes.TimestampProto(cluster.Model.CreatedAt)
+		if err != nil {
+			glog.Warningf("Invalid timestamp: %v", err)
+			continue
+		}
+
+		pbClusters[i] = &resource_api_grpc_pb.Cluster{
+			Name:      cluster.Name,
+			UpdatedAt: updatedAt,
+			CreatedAt: createdAt,
+		}
+	}
+
+	return pbClusters
+}
+
+func (modelApi *ResourceModelApi) convertComputes(computes []resource_model.Compute) []*resource_api_grpc_pb.Compute {
+	pbComputes := make([]*resource_api_grpc_pb.Compute, len(computes))
+	for i, compute := range computes {
+		updatedAt, err := ptypes.TimestampProto(compute.Model.UpdatedAt)
+		createdAt, err := ptypes.TimestampProto(compute.Model.CreatedAt)
+		if err != nil {
+			glog.Warningf("Invalid timestamp: %v", err)
+			continue
+		}
+
+		pbComputes[i] = &resource_api_grpc_pb.Compute{
+			Name:      compute.Name,
+			UpdatedAt: updatedAt,
+			CreatedAt: createdAt,
+		}
+	}
+
+	return pbComputes
+}
+
+func (modelApi *ResourceModelApi) convertImages(images []resource_model.Image) []*resource_api_grpc_pb.Image {
+	pbImages := make([]*resource_api_grpc_pb.Image, len(images))
+	for i, image := range images {
+		updatedAt, err := ptypes.TimestampProto(image.Model.UpdatedAt)
+		createdAt, err := ptypes.TimestampProto(image.Model.CreatedAt)
+		if err != nil {
+			glog.Warningf("Invalid timestamp: %v", err)
+			continue
+		}
+
+		pbImages[i] = &resource_api_grpc_pb.Image{
+			Name:      image.Name,
+			UpdatedAt: updatedAt,
+			CreatedAt: createdAt,
+		}
+	}
+
+	return pbImages
+}
+
+func (modelApi *ResourceModelApi) convertVolumes(volumes []resource_model.Volume) []*resource_api_grpc_pb.Volume {
+	pbVolumes := make([]*resource_api_grpc_pb.Volume, len(volumes))
+	for i, volume := range volumes {
+		updatedAt, err := ptypes.TimestampProto(volume.Model.UpdatedAt)
+		createdAt, err := ptypes.TimestampProto(volume.Model.CreatedAt)
+		if err != nil {
+			glog.Warningf("Invalid timestamp: %v", err)
+			continue
+		}
+
+		pbVolumes[i] = &resource_api_grpc_pb.Volume{
+			Name:      volume.Name,
+			UpdatedAt: updatedAt,
+			CreatedAt: createdAt,
+		}
+	}
+
+	return pbVolumes
 }
 
 func (modelApi *ResourceModelApi) CheckNodes() error {

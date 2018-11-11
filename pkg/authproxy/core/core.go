@@ -17,7 +17,7 @@ import (
 )
 
 type Authproxy struct {
-	Conf              *config.Config
+	conf              *config.Config
 	Listen            string
 	AllowedHosts      []string
 	CertFilePath      string
@@ -35,7 +35,7 @@ func NewAuthproxy(conf *config.Config) *Authproxy {
 	token := auth.NewToken(conf, authproxyModelApi)
 
 	authproxy := &Authproxy{
-		Conf:              conf,
+		conf:              conf,
 		Listen:            conf.Authproxy.HttpServer.Listen,
 		AllowedHosts:      conf.Authproxy.HttpServer.AllowedHosts,
 		CertFilePath:      conf.Path(conf.Authproxy.HttpServer.CertFile),

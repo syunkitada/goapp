@@ -20,7 +20,7 @@ type Cluster struct {
 	Name string `gorm:"not null;"`
 }
 
-type ComputeResource struct {
+type Compute struct {
 	gorm.Model
 	Name         string `gorm:"not null;size:255;"`
 	Labels       string `gorm:"not null;size:255;"`
@@ -30,7 +30,7 @@ type ComputeResource struct {
 	Spec         string `gorm:"not null;size:5000;"`
 }
 
-type VolumeResource struct {
+type Volume struct {
 	gorm.Model
 	Name         string `gorm:"not null;size:255;"`
 	Labels       string `gorm:"not null;size:255;"`
@@ -40,7 +40,7 @@ type VolumeResource struct {
 	Spec         string `gorm:"not null;size:5000;"`
 }
 
-type ImageResource struct {
+type Image struct {
 	gorm.Model
 	Name         string `gorm:"not null;size:255;"`
 	Labels       string `gorm:"not null;size:255;"`
@@ -50,7 +50,7 @@ type ImageResource struct {
 	Spec         string `gorm:"not null;size:5000;"`
 }
 
-type LoadbalancerResource struct {
+type Loadbalancer struct {
 	gorm.Model
 	Name         string `gorm:"not null;size:255;"`
 	Labels       string `gorm:"not null;size:255;"`

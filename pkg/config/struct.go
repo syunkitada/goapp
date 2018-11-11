@@ -8,6 +8,7 @@ import (
 type Config struct {
 	Default   DefaultConfig
 	Admin     AdminConfig
+	Ctl       CtlConfig
 	Authproxy AuthproxyConfig
 	Dashboard DashboardConfig
 	Resource  ResourceConfig
@@ -41,6 +42,13 @@ type AdminConfig struct {
 	Password    string
 	Secret      string
 	TokenSecret string
+}
+
+type CtlConfig struct {
+	Username string
+	Password string
+	Project  string
+	ApiUrl   string
 }
 
 type AuthproxyConfig struct {
@@ -95,10 +103,17 @@ func newConfig(defaultConfig *DefaultConfig) *Config {
 			Secret:      "changeme",
 			TokenSecret: "changeme",
 		},
+		Ctl: CtlConfig{
+			Username: "admin",
+			Password: "changeme",
+			Project:  "admin",
+			ApiUrl:   "https://127.0.0.1:8000",
+		},
 		Authproxy: AuthproxyConfig{
 			HttpServer: HttpServerConfig{
 				Listen: "0.0.0.0:8000",
 				AllowedHosts: []string{
+					"127.0.0.1:8000",
 					"localhost:8000",
 					"192.168.10.103:3000",
 					"192.168.10.103:8000",

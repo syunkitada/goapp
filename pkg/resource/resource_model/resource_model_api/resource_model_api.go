@@ -4,7 +4,7 @@ import (
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
-	// "github.com/golang/glog"
+	"github.com/golang/glog"
 	"github.com/jinzhu/gorm"
 
 	"github.com/syunkitada/goapp/pkg/config"
@@ -35,12 +35,51 @@ func (modelApi *ResourceModelApi) Bootstrap() error {
 
 	db.AutoMigrate(&resource_model.Node{})
 	db.AutoMigrate(&resource_model.Cluster{})
-	db.AutoMigrate(&resource_model.ComputeResource{})
-	db.AutoMigrate(&resource_model.VolumeResource{})
-	db.AutoMigrate(&resource_model.ImageResource{})
-	db.AutoMigrate(&resource_model.LoadbalancerResource{})
+	db.AutoMigrate(&resource_model.Compute{})
+	db.AutoMigrate(&resource_model.Volume{})
+	db.AutoMigrate(&resource_model.Image{})
+	db.AutoMigrate(&resource_model.Loadbalancer{})
 	db.AutoMigrate(&resource_model.NetworkV4{})
 	db.AutoMigrate(&resource_model.NetworkV4Port{})
+
+	if err := modelApi.bootstrapClusters(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (modelApi *ResourceModelApi) bootstrapClusters() error {
+	db, err := gorm.Open("mysql", modelApi.conf.Resource.Database.Connection)
+	defer db.Close()
+	if err != nil {
+		return err
+	}
+	db.LogMode(modelApi.conf.Default.EnableDatabaseLog)
+
+	for clusterName, clusterConf := range modelApi.conf.Resource.ClusterMap {
+		glog.Info(clusterConf)
+		var cluster resource_model.Cluster
+		if err = db.Where("name = ?", clusterName).First(&cluster).Error; err != nil {
+			if !gorm.IsRecordNotFoundError(err) {
+				return err
+			}
+
+			cluster = resource_model.Cluster{
+				Name: clusterName,
+			}
+			if err = db.Create(&cluster).Error; err != nil {
+				return err
+			}
+		} else {
+			continue
+			// node.State = req.State
+			// node.StateReason = req.StateReason
+			// if err = db.Save(&node).Error; err != nil {
+			// 	return err
+			// }
+		}
+	}
 
 	return nil
 }

@@ -12,6 +12,10 @@ package resource_api_grpc_pb;
 service ResourceApi {
   rpc Status(StatusRequest) returns (StatusReply) {}
   rpc GetNode(GetNodeRequest) returns (GetNodeReply) {}
+  rpc GetCluster(GetClusterRequest) returns (GetClusterReply) {}
+  rpc GetCompute(GetComputeRequest) returns (GetComputeReply) {}
+  rpc GetImage(GetImageRequest) returns (GetImageReply) {}
+  rpc GetVolume(GetVolumeRequest) returns (GetVolumeReply) {}
   rpc UpdateNode(UpdateNodeRequest) returns (UpdateNodeReply) {}
 }
 
@@ -27,6 +31,38 @@ message GetNodeRequest {
 
 message GetNodeReply {
     repeated Node nodes = 1;
+}
+
+message GetClusterRequest {
+    string target = 1;
+}
+
+message GetClusterReply {
+    repeated Cluster clusters = 1;
+}
+
+message GetComputeRequest {
+    string target = 1;
+}
+
+message GetComputeReply {
+    repeated Compute computes = 1;
+}
+
+message GetImageRequest {
+    string target = 1;
+}
+
+message GetImageReply {
+    repeated Image images = 1;
+}
+
+message GetVolumeRequest {
+    string target = 1;
+}
+
+message GetVolumeReply {
+    repeated Volume volumes = 1;
 }
 
 message UpdateNodeRequest {
@@ -51,4 +87,34 @@ message Node {
     string state_reason = 7;
     google.protobuf.Timestamp updated_at = 8;
     google.protobuf.Timestamp created_at = 9;
+}
+
+message Cluster {
+    string name = 1;
+    google.protobuf.Timestamp updated_at = 2;
+    google.protobuf.Timestamp created_at = 3;
+}
+
+message Compute {
+    string name = 1;
+    google.protobuf.Timestamp updated_at = 2;
+    google.protobuf.Timestamp created_at = 3;
+}
+
+message Image {
+    string name = 1;
+    google.protobuf.Timestamp updated_at = 2;
+    google.protobuf.Timestamp created_at = 3;
+}
+
+message Volume {
+    string name = 1;
+    google.protobuf.Timestamp updated_at = 2;
+    google.protobuf.Timestamp created_at = 3;
+}
+
+message Loadbalancer {
+    string name = 1;
+    google.protobuf.Timestamp updated_at = 2;
+    google.protobuf.Timestamp created_at = 3;
 }
