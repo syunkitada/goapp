@@ -1,7 +1,9 @@
 package resource
 
 import (
+	"fmt"
 	"os"
+	"time"
 
 	"github.com/golang/glog"
 	"github.com/spf13/cobra"
@@ -9,11 +11,15 @@ import (
 	"github.com/olekukonko/tablewriter"
 	"github.com/syunkitada/goapp/pkg/authproxy/core"
 	"github.com/syunkitada/goapp/pkg/config"
-	"github.com/syunkitada/goapp/pkg/resource/resource_api/resource_api_client"
-	"github.com/syunkitada/goapp/pkg/resource/resource_api/resource_api_grpc_pb"
+)
+
+var (
+	GetCmdClusterFlag string
 )
 
 func init() {
+	GetCmd.PersistentFlags().StringVarP(&GetCmdClusterFlag, "cluster", "c", "all", "Filtering by cluster")
+
 	GetCmd.AddCommand(GetClusterCmd)
 	GetCmd.AddCommand(GetNodeCmd)
 	RootCmd.AddCommand(GetCmd)
@@ -67,17 +73,24 @@ var GetNodeCmd = &cobra.Command{
 			glog.Fatal(err)
 		}
 
-		resp, err := authproxy.Resource.CtlGetNode(token.Token)
+		resp, err := authproxy.Resource.CtlGetNode(token.Token, GetCmdClusterFlag, "%")
 		if err != nil {
 			glog.Info(resp)
 			glog.Fatal(err)
 		}
 
 		table := tablewriter.NewWriter(os.Stdout)
-		table.SetHeader([]string{"Name"})
+		table.SetHeader([]string{"Name", "Kind", "Role", "Status", "Status Reason", "State", "State Reason", "Updated At"})
 		for _, node := range resp.Nodes {
 			table.Append([]string{
 				node.Name,
+				node.Kind,
+				node.Role,
+				node.Status,
+				node.StatusReason,
+				node.State,
+				node.StateReason,
+				fmt.Sprint(time.Unix(node.UpdatedAt.Seconds, 0)),
 			})
 		}
 		table.Render()

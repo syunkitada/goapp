@@ -11,6 +11,7 @@ import (
 	"google.golang.org/grpc/credentials"
 
 	"github.com/syunkitada/goapp/pkg/config"
+	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_api"
 	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_api/resource_cluster_api_grpc_pb"
 )
 
@@ -20,9 +21,10 @@ type ResourceClusterApiClient struct {
 	caFilePath         string
 	serverHostOverride string
 	targets            []string
+	localApiServer     *resource_cluster_api.ResourceClusterApiServer
 }
 
-func NewResourceClusterApiClient(conf *config.Config) *ResourceClusterApiClient {
+func NewResourceClusterApiClient(conf *config.Config, localApiServer *resource_cluster_api.ResourceClusterApiServer) *ResourceClusterApiClient {
 	cluster, ok := conf.Resource.ClusterMap[conf.Resource.Cluster.Name]
 	if !ok {
 		glog.Fatal(fmt.Errorf("Cluster(%v) is not found in ClusterMap", conf.Resource.Cluster.Name))
@@ -30,10 +32,11 @@ func NewResourceClusterApiClient(conf *config.Config) *ResourceClusterApiClient 
 
 	resourceClient := ResourceClusterApiClient{
 		conf:               conf,
-		cluster:            cluster,
+		cluster:            &cluster,
 		caFilePath:         conf.Path(cluster.ApiApp.CaFile),
 		serverHostOverride: cluster.ApiApp.ServerHostOverride,
 		targets:            cluster.ApiApp.Targets,
+		localApiServer:     localApiServer,
 	}
 	return &resourceClient
 }

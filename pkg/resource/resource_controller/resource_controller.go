@@ -23,7 +23,7 @@ func NewResourceControllerServer(conf *config.Config) *ResourceControllerServer 
 		BaseApp:           base.NewBaseApp(conf, &conf.Resource.ControllerApp),
 		conf:              conf,
 		resourceApiClient: resource_api_client.NewResourceApiClient(conf),
-		resourceModelApi:  resource_model_api.NewResourceModelApi(conf),
+		resourceModelApi:  resource_model_api.NewResourceModelApi(conf, nil),
 	}
 
 	server.RegisterDriver(&server)

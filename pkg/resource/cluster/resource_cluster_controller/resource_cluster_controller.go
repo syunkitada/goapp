@@ -32,7 +32,7 @@ func NewResourceClusterControllerServer(conf *config.Config) *ResourceClusterCon
 		BaseApp: base.NewBaseApp(conf, &cluster.ApiApp),
 		conf:    conf,
 		resourceClusterModelApi:  resource_cluster_model_api.NewResourceClusterModelApi(conf),
-		resourceClusterApiClient: resource_cluster_api_client.NewResourceClusterApiClient(conf),
+		resourceClusterApiClient: resource_cluster_api_client.NewResourceClusterApiClient(conf, nil),
 	}
 
 	server.RegisterDriver(&server)

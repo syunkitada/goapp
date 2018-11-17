@@ -1,6 +1,7 @@
 package resource
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -43,6 +44,33 @@ func (resource *Resource) Action(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"clusters": rep.Clusters,
 			"err":      err,
+		})
+		return
+
+	case "GetNode":
+		var reqData resource_api_grpc_pb.GetNodeRequest
+		if err := json.Unmarshal([]byte(action.Data), &reqData); err != nil {
+			glog.Errorf("Invalid Request: %v", err)
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "Invalid Request",
+			})
+			c.Abort()
+			return
+		}
+		glog.Info(reqData)
+
+		rep, err := resource.resourceApiClient.GetNode(&reqData)
+		if err != nil {
+			glog.Error("Failed HealthClient.Status", err)
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"error": "Invalid AuthRequest",
+			})
+			c.Abort()
+			return
+		}
+		c.JSON(200, gin.H{
+			"nodes": rep.Nodes,
+			"err":   err,
 		})
 		return
 

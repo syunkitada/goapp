@@ -1,6 +1,7 @@
 package resource_model_api
 
 import (
+	"fmt"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -20,6 +21,15 @@ func (modelApi *ResourceModelApi) GetNode(req *resource_api_grpc_pb.GetNodeReque
 		return nil, err
 	}
 	db.LogMode(modelApi.conf.Default.EnableDatabaseLog)
+
+	if req.Cluster != "all" {
+		clusterClient, ok := modelApi.clusterClientMap[req.Cluster]
+		if !ok {
+			return nil, fmt.Errorf("NotFound cluster: ", req.Cluster)
+		}
+		// TODO get cluster nodes
+		glog.Info(clusterClient)
+	}
 
 	var nodes []resource_model.Node
 	if err = db.Where("name like ?", req.Target).Find(&nodes).Error; err != nil {

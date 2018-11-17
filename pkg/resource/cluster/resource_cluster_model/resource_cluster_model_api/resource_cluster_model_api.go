@@ -26,7 +26,7 @@ func NewResourceClusterModelApi(conf *config.Config) *ResourceClusterModelApi {
 
 	modelApi := ResourceClusterModelApi{
 		conf:             conf,
-		cluster:          cluster,
+		cluster:          &cluster,
 		downTimeDuration: -1 * time.Duration(conf.Resource.AppDownTime) * time.Second,
 	}
 

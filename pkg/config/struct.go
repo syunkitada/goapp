@@ -67,7 +67,7 @@ type ResourceConfig struct {
 	ControllerApp AppConfig
 	Database      DatabaseConfig
 	Cluster       ClusterConfig
-	ClusterMap    map[string]*ResourceClusterConfig
+	ClusterMap    map[string]ResourceClusterConfig
 }
 
 type HttpServerConfig struct {

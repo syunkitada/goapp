@@ -27,6 +27,7 @@ message StatusReply {
 
 message GetNodeRequest {
     string target = 1;
+    string cluster = 2;
 }
 
 message GetNodeReply {

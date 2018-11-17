@@ -9,17 +9,15 @@ import (
 
 	"github.com/syunkitada/goapp/pkg/base"
 	"github.com/syunkitada/goapp/pkg/config"
-	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_api/resource_cluster_api_client"
 	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_api/resource_cluster_api_grpc_pb"
 	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_model/resource_cluster_model_api"
 )
 
 type ResourceClusterApiServer struct {
 	base.BaseApp
-	conf                     *config.Config
-	cluster                  *config.ResourceClusterConfig
-	resourceClusterModelApi  *resource_cluster_model_api.ResourceClusterModelApi
-	resourceClusterApiClient *resource_cluster_api_client.ResourceClusterApiClient
+	conf                    *config.Config
+	cluster                 *config.ResourceClusterConfig
+	resourceClusterModelApi *resource_cluster_model_api.ResourceClusterModelApi
 }
 
 func NewResourceClusterApiServer(conf *config.Config) *ResourceClusterApiServer {
@@ -29,11 +27,10 @@ func NewResourceClusterApiServer(conf *config.Config) *ResourceClusterApiServer 
 	}
 
 	server := ResourceClusterApiServer{
-		BaseApp:                  base.NewBaseApp(conf, &cluster.ControllerApp),
-		conf:                     conf,
-		cluster:                  cluster,
-		resourceClusterModelApi:  resource_cluster_model_api.NewResourceClusterModelApi(conf),
-		resourceClusterApiClient: resource_cluster_api_client.NewResourceClusterApiClient(conf),
+		BaseApp:                 base.NewBaseApp(conf, &cluster.ControllerApp),
+		conf:                    conf,
+		cluster:                 &cluster,
+		resourceClusterModelApi: resource_cluster_model_api.NewResourceClusterModelApi(conf),
 	}
 
 	server.RegisterDriver(&server)

@@ -21,7 +21,7 @@ func NewResourceApiServer(conf *config.Config) *ResourceApiServer {
 	server := ResourceApiServer{
 		BaseApp:          base.NewBaseApp(conf, &conf.Resource.ApiApp),
 		conf:             conf,
-		resourceModelApi: resource_model_api.NewResourceModelApi(conf),
+		resourceModelApi: resource_model_api.NewResourceModelApi(conf, nil),
 	}
 
 	server.RegisterDriver(&server)

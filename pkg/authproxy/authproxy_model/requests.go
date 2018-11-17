@@ -15,4 +15,5 @@ type ActionRequest struct {
 	ProjectName string
 	ServiceName string
 	Name        string
+	Data        string
 }
