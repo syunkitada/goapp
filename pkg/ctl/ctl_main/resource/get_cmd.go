@@ -18,7 +18,7 @@ var (
 )
 
 func init() {
-	GetCmd.PersistentFlags().StringVarP(&GetCmdClusterFlag, "cluster", "c", "all", "Filtering by cluster")
+	GetCmd.PersistentFlags().StringVarP(&GetCmdClusterFlag, "cluster", "c", "", "Filtering by cluster")
 
 	GetCmd.AddCommand(GetClusterCmd)
 	GetCmd.AddCommand(GetNodeCmd)

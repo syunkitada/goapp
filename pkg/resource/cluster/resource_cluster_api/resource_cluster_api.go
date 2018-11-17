@@ -27,7 +27,7 @@ func NewResourceClusterApiServer(conf *config.Config) *ResourceClusterApiServer 
 	}
 
 	server := ResourceClusterApiServer{
-		BaseApp:                 base.NewBaseApp(conf, &cluster.ControllerApp),
+		BaseApp:                 base.NewBaseApp(conf, &cluster.ApiApp),
 		conf:                    conf,
 		cluster:                 &cluster,
 		resourceClusterModelApi: resource_cluster_model_api.NewResourceClusterModelApi(conf),
@@ -50,6 +50,7 @@ func (srv *ResourceClusterApiServer) Status(ctx context.Context, statusRequest *
 func (srv *ResourceClusterApiServer) GetNode(ctx context.Context, req *resource_cluster_api_grpc_pb.GetNodeRequest) (*resource_cluster_api_grpc_pb.GetNodeReply, error) {
 	var err error
 	var rep *resource_cluster_api_grpc_pb.GetNodeReply
+	glog.Info("DEBUGlalala")
 	if rep, err = srv.resourceClusterModelApi.GetNode(req); err != nil {
 		glog.Error(err)
 	}

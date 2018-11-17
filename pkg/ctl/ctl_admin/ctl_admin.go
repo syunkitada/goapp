@@ -16,7 +16,7 @@ func NewCtl(conf *config.Config) *Ctl {
 	ctl := Ctl{
 		Conf:              conf,
 		AuthproxyModelApi: authproxy_model_api.NewAuthproxyModelApi(conf),
-		ResourceModelApi:  resource_model_api.NewResourceModelApi(conf),
+		ResourceModelApi:  resource_model_api.NewResourceModelApi(conf, nil),
 	}
 
 	return &ctl

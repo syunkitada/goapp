@@ -9,6 +9,7 @@ import (
 	"github.com/golang/protobuf/ptypes"
 	"github.com/jinzhu/gorm"
 
+	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_api/resource_cluster_api_grpc_pb"
 	"github.com/syunkitada/goapp/pkg/resource/resource_api/resource_api_grpc_pb"
 	"github.com/syunkitada/goapp/pkg/resource/resource_model"
 )
@@ -22,13 +23,24 @@ func (modelApi *ResourceModelApi) GetNode(req *resource_api_grpc_pb.GetNodeReque
 	}
 	db.LogMode(modelApi.conf.Default.EnableDatabaseLog)
 
-	if req.Cluster != "all" {
+	if req.Cluster != "" {
 		clusterClient, ok := modelApi.clusterClientMap[req.Cluster]
 		if !ok {
 			return nil, fmt.Errorf("NotFound cluster: ", req.Cluster)
 		}
 		// TODO get cluster nodes
 		glog.Info(clusterClient)
+		getNodeReq := &resource_cluster_api_grpc_pb.GetNodeRequest{
+			Target: req.Target,
+		}
+		rep, err := clusterClient.GetNode(getNodeReq)
+		if err != nil {
+			return nil, err
+		}
+
+		return &resource_api_grpc_pb.GetNodeReply{
+			Nodes: modelApi.convertClusterNodes(rep.Nodes),
+		}, nil
 	}
 
 	var nodes []resource_model.Node
@@ -243,6 +255,25 @@ func (modelApi *ResourceModelApi) convertNodes(nodes []resource_model.Node) []*r
 			StateReason:  node.StateReason,
 			UpdatedAt:    updatedAt,
 			CreatedAt:    createdAt,
+		}
+	}
+
+	return pbNodes
+}
+
+func (modelApi *ResourceModelApi) convertClusterNodes(nodes []*resource_cluster_api_grpc_pb.Node) []*resource_api_grpc_pb.Node {
+	pbNodes := make([]*resource_api_grpc_pb.Node, len(nodes))
+	for i, node := range nodes {
+		pbNodes[i] = &resource_api_grpc_pb.Node{
+			Name:         node.Name,
+			Kind:         node.Kind,
+			Role:         node.Role,
+			Status:       node.Status,
+			StatusReason: node.StatusReason,
+			State:        node.State,
+			StateReason:  node.StateReason,
+			UpdatedAt:    node.UpdatedAt,
+			CreatedAt:    node.CreatedAt,
 		}
 	}
 

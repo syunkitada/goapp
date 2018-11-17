@@ -1,131 +1,102 @@
 package resource_cluster_api_client
 
 import (
-	"errors"
 	"fmt"
-	"time"
 
 	"github.com/golang/glog"
-	"golang.org/x/net/context"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials"
 
+	"github.com/syunkitada/goapp/pkg/base"
 	"github.com/syunkitada/goapp/pkg/config"
 	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_api"
 	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_api/resource_cluster_api_grpc_pb"
 )
 
 type ResourceClusterApiClient struct {
-	conf               *config.Config
-	cluster            *config.ResourceClusterConfig
-	caFilePath         string
-	serverHostOverride string
-	targets            []string
-	localApiServer     *resource_cluster_api.ResourceClusterApiServer
+	*base.BaseClient
+	conf        *config.Config
+	cluster     *config.ResourceClusterConfig
+	localServer *resource_cluster_api.ResourceClusterApiServer
 }
 
-func NewResourceClusterApiClient(conf *config.Config, localApiServer *resource_cluster_api.ResourceClusterApiServer) *ResourceClusterApiClient {
+func NewResourceClusterApiClient(conf *config.Config, localServer *resource_cluster_api.ResourceClusterApiServer) *ResourceClusterApiClient {
 	cluster, ok := conf.Resource.ClusterMap[conf.Resource.Cluster.Name]
 	if !ok {
 		glog.Fatal(fmt.Errorf("Cluster(%v) is not found in ClusterMap", conf.Resource.Cluster.Name))
 	}
 
 	resourceClient := ResourceClusterApiClient{
-		conf:               conf,
-		cluster:            &cluster,
-		caFilePath:         conf.Path(cluster.ApiApp.CaFile),
-		serverHostOverride: cluster.ApiApp.ServerHostOverride,
-		targets:            cluster.ApiApp.Targets,
-		localApiServer:     localApiServer,
+		BaseClient:  base.NewBaseClient(conf, &cluster.ApiApp),
+		conf:        conf,
+		cluster:     &cluster,
+		localServer: localServer,
 	}
 	return &resourceClient
 }
 
-func (client *ResourceClusterApiClient) NewClientConnection() (*grpc.ClientConn, error) {
-	var opts []grpc.DialOption
+func (cli *ResourceClusterApiClient) Status() (*resource_cluster_api_grpc_pb.StatusReply, error) {
+	var rep *resource_cluster_api_grpc_pb.StatusReply
+	var err error
 
-	for _, target := range client.targets {
-		creds, credsErr := credentials.NewClientTLSFromFile(client.caFilePath, client.serverHostOverride)
-		if credsErr != nil {
-			glog.Warning("Failed to create TLS credentials %v", credsErr)
-			continue
-		}
-		opts = append(opts, grpc.WithTransportCredentials(creds))
+	conn, err := cli.NewClientConnection()
+	if err != nil {
+		return rep, err
+	}
+	defer conn.Close()
 
-		conn, err := grpc.Dial(target, opts...)
-		if err != nil {
-			glog.Warning("fail to dial: %v", err)
-			continue
-		}
-
-		return conn, nil
+	req := &resource_cluster_api_grpc_pb.StatusRequest{}
+	ctx, cancel := cli.GetContext()
+	defer cancel()
+	if cli.conf.Default.EnableTest {
+		rep, err = cli.localServer.Status(ctx, req)
+	} else {
+		grpcClient := resource_cluster_api_grpc_pb.NewResourceClusterApiClient(conn)
+		rep, err = grpcClient.Status(ctx, req)
 	}
 
-	return nil, errors.New("Failed NewGrpcConnection")
+	return rep, err
 }
 
-func (client *ResourceClusterApiClient) Status() (*resource_cluster_api_grpc_pb.StatusReply, error) {
-	conn, connErr := client.NewClientConnection()
+func (cli *ResourceClusterApiClient) GetNode(req *resource_cluster_api_grpc_pb.GetNodeRequest) (*resource_cluster_api_grpc_pb.GetNodeReply, error) {
+	var rep *resource_cluster_api_grpc_pb.GetNodeReply
+	var err error
+	conn, err := cli.NewClientConnection()
 	defer conn.Close()
-	if connErr != nil {
-		glog.Warning("Failed NewClientConnection")
-		return nil, connErr
-	}
-
-	grpcClient := resource_cluster_api_grpc_pb.NewResourceClusterApiClient(conn)
-
-	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Second)
-	defer cancel()
-
-	statusResponse, err := grpcClient.Status(ctx, &resource_cluster_api_grpc_pb.StatusRequest{})
 	if err != nil {
-		glog.Error("%v.GetFeatures(_) = _, %v: ", grpcClient, err)
-		return nil, err
+		return rep, err
 	}
 
-	return statusResponse, nil
+	ctx, cancel := cli.GetContext()
+	defer cancel()
+	if cli.conf.Default.EnableTest {
+		rep, err = cli.localServer.GetNode(ctx, req)
+	} else {
+		grpcClient := resource_cluster_api_grpc_pb.NewResourceClusterApiClient(conn)
+		rep, err = grpcClient.GetNode(ctx, req)
+		glog.Info(err)
+	}
+
+	return rep, err
 }
 
-func (cli *ResourceClusterApiClient) GetNode(request *resource_cluster_api_grpc_pb.GetNodeRequest) (*resource_cluster_api_grpc_pb.GetNodeReply, error) {
-	conn, connErr := cli.NewClientConnection()
+func (cli *ResourceClusterApiClient) UpdateNode(req *resource_cluster_api_grpc_pb.UpdateNodeRequest) (*resource_cluster_api_grpc_pb.UpdateNodeReply, error) {
+	var rep *resource_cluster_api_grpc_pb.UpdateNodeReply
+	var err error
+
+	conn, err := cli.NewClientConnection()
 	defer conn.Close()
-	if connErr != nil {
-		glog.Warning("Failed NewClientConnection")
-		return nil, connErr
+	if err != nil {
+		return rep, err
 	}
 
-	grpcClient := resource_cluster_api_grpc_pb.NewResourceClusterApiClient(conn)
-
-	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Second)
+	ctx, cancel := cli.GetContext()
 	defer cancel()
 
-	reply, err := grpcClient.GetNode(ctx, request)
-	if err != nil {
-		glog.Error("%v.GetFeatures(_) = _, %v: ", grpcClient, err)
-		return nil, err
+	if cli.conf.Default.EnableTest {
+		rep, err = cli.localServer.UpdateNode(ctx, req)
+	} else {
+		grpcClient := resource_cluster_api_grpc_pb.NewResourceClusterApiClient(conn)
+		rep, err = grpcClient.UpdateNode(ctx, req)
 	}
 
-	return reply, nil
-}
-
-func (client *ResourceClusterApiClient) UpdateNode(request *resource_cluster_api_grpc_pb.UpdateNodeRequest) (*resource_cluster_api_grpc_pb.UpdateNodeReply, error) {
-	conn, connErr := client.NewClientConnection()
-	defer conn.Close()
-	if connErr != nil {
-		glog.Warning("Failed NewClientConnection")
-		return nil, connErr
-	}
-
-	grpcClient := resource_cluster_api_grpc_pb.NewResourceClusterApiClient(conn)
-
-	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Second)
-	defer cancel()
-
-	reply, err := grpcClient.UpdateNode(ctx, request)
-	if err != nil {
-		glog.Error("%v.GetFeatures(_) = _, %v: ", grpcClient, err)
-		return nil, err
-	}
-
-	return reply, nil
+	return rep, err
 }

@@ -29,7 +29,7 @@ func NewResourceClusterControllerServer(conf *config.Config) *ResourceClusterCon
 	}
 
 	server := ResourceClusterControllerServer{
-		BaseApp: base.NewBaseApp(conf, &cluster.ApiApp),
+		BaseApp: base.NewBaseApp(conf, &cluster.ControllerApp),
 		conf:    conf,
 		resourceClusterModelApi:  resource_cluster_model_api.NewResourceClusterModelApi(conf),
 		resourceClusterApiClient: resource_cluster_api_client.NewResourceClusterApiClient(conf, nil),

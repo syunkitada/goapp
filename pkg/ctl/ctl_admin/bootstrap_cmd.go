@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/syunkitada/goapp/pkg/config"
+	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_model/resource_cluster_model_api"
 )
 
 type DatabaseConnection struct {
@@ -65,6 +66,13 @@ func (ctl *Ctl) Bootstrap(isRecreate bool) error {
 
 	if err := ctl.ResourceModelApi.Bootstrap(); err != nil {
 		return err
+	}
+
+	for clusterName, _ := range ctl.Conf.Resource.ClusterMap {
+		clusterConf := *ctl.Conf
+		clusterConf.Resource.Cluster.Name = clusterName
+		resourceClusterModelApi := resource_cluster_model_api.NewResourceClusterModelApi(&clusterConf)
+		resourceClusterModelApi.Bootstrap()
 	}
 
 	return nil
