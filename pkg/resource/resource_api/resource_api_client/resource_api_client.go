@@ -1,6 +1,8 @@
 package resource_api_client
 
 import (
+	"github.com/golang/glog"
+
 	"github.com/syunkitada/goapp/pkg/base"
 	"github.com/syunkitada/goapp/pkg/config"
 	"github.com/syunkitada/goapp/pkg/resource/resource_api"
@@ -67,6 +69,7 @@ func (cli *ResourceApiClient) GetNode(req *resource_api_grpc_pb.GetNodeRequest) 
 }
 
 func (cli *ResourceApiClient) GetCluster(req *resource_api_grpc_pb.GetClusterRequest) (*resource_api_grpc_pb.GetClusterReply, error) {
+	glog.V(2).Info("Called GetCluster")
 	var rep *resource_api_grpc_pb.GetClusterReply
 	var err error
 	conn, err := cli.NewClientConnection()
@@ -168,6 +171,48 @@ func (cli *ResourceApiClient) UpdateNode(req *resource_api_grpc_pb.UpdateNodeReq
 	} else {
 		grpcClient := resource_api_grpc_pb.NewResourceApiClient(conn)
 		rep, err = grpcClient.UpdateNode(ctx, req)
+	}
+
+	return rep, err
+}
+
+func (cli *ResourceApiClient) CreateCompute(req *resource_api_grpc_pb.CreateComputeRequest) (*resource_api_grpc_pb.CreateComputeReply, error) {
+	var rep *resource_api_grpc_pb.CreateComputeReply
+	var err error
+	conn, err := cli.NewClientConnection()
+	defer conn.Close()
+	if err != nil {
+		return rep, err
+	}
+
+	ctx, cancel := cli.GetContext()
+	defer cancel()
+	if cli.conf.Default.EnableTest {
+		rep, err = cli.localServer.CreateCompute(ctx, req)
+	} else {
+		grpcClient := resource_api_grpc_pb.NewResourceApiClient(conn)
+		rep, err = grpcClient.CreateCompute(ctx, req)
+	}
+
+	return rep, err
+}
+
+func (cli *ResourceApiClient) UpdateCompute(req *resource_api_grpc_pb.UpdateComputeRequest) (*resource_api_grpc_pb.UpdateComputeReply, error) {
+	var rep *resource_api_grpc_pb.UpdateComputeReply
+	var err error
+	conn, err := cli.NewClientConnection()
+	defer conn.Close()
+	if err != nil {
+		return rep, err
+	}
+
+	ctx, cancel := cli.GetContext()
+	defer cancel()
+	if cli.conf.Default.EnableTest {
+		rep, err = cli.localServer.UpdateCompute(ctx, req)
+	} else {
+		grpcClient := resource_api_grpc_pb.NewResourceApiClient(conn)
+		rep, err = grpcClient.UpdateCompute(ctx, req)
 	}
 
 	return rep, err

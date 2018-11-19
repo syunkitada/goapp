@@ -2,6 +2,7 @@ package resource
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -34,9 +35,9 @@ func (resource *Resource) Action(c *gin.Context) {
 			Target: "%",
 		})
 		if err != nil {
-			glog.Error("Failed HealthClient.Status", err)
-			c.JSON(http.StatusUnauthorized, gin.H{
-				"error": "Invalid AuthRequest",
+			glog.Error("Failed GetCluster: %v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"err": fmt.Sprintf("Failed GetCluster: %v", err),
 			})
 			c.Abort()
 			return
@@ -61,9 +62,9 @@ func (resource *Resource) Action(c *gin.Context) {
 
 		rep, err := resource.resourceApiClient.GetNode(&reqData)
 		if err != nil {
-			glog.Error("Failed HealthClient.Status", err)
-			c.JSON(http.StatusUnauthorized, gin.H{
-				"error": "Invalid AuthRequest",
+			glog.Error("Failed GetNode: %v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"err": fmt.Sprintf("Failed GetNode: %v", err),
 			})
 			c.Abort()
 			return
@@ -71,6 +72,33 @@ func (resource *Resource) Action(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"nodes": rep.Nodes,
 			"err":   err,
+		})
+		return
+
+	case "GetCompute":
+		var reqData resource_api_grpc_pb.GetComputeRequest
+		if err := json.Unmarshal([]byte(action.Data), &reqData); err != nil {
+			glog.Error("Failed GetNode: %v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"err": fmt.Sprintf("Failed GetNode: %v", err),
+			})
+			c.Abort()
+			return
+		}
+		glog.Info(reqData)
+
+		rep, err := resource.resourceApiClient.GetCompute(&reqData)
+		if err != nil {
+			glog.Error("Failed GetNode: %v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"err": fmt.Sprintf("Failed GetNode: %v", err),
+			})
+			c.Abort()
+			return
+		}
+		c.JSON(200, gin.H{
+			"computes": rep.Computes,
+			"err":      err,
 		})
 		return
 
@@ -90,17 +118,34 @@ func (resource *Resource) Action(c *gin.Context) {
 
 		return
 
-	}
+	case "CreateCompute":
+		var reqData resource_api_grpc_pb.CreateComputeRequest
+		if err := json.Unmarshal([]byte(action.Data), &reqData); err != nil {
+			glog.Error("Failed unmarshal request: %v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"err": fmt.Sprintf("Failed  unmarshal request: %v", err),
+			})
+			c.Abort()
+			return
+		}
+		glog.Info(reqData)
 
-	// status, err := resource.ResourceClient.Status()
-	// if err != nil {
-	// 	glog.Error("Failed HealthClient.Status", err)
-	// 	c.JSON(http.StatusUnauthorized, gin.H{
-	// 		"error": "Invalid AuthRequest",
-	// 	})
-	// 	c.Abort()
-	// }
-	// glog.Info(status)
+		rep, err := resource.resourceApiClient.CreateCompute(&reqData)
+		if err != nil {
+			glog.Error("Failed CreateCompute: %v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"err": fmt.Sprintf("Failed CreateCompute: %v", err),
+			})
+			c.Abort()
+			return
+		}
+		c.JSON(200, gin.H{
+			"compute": rep.Compute,
+			"err":     err,
+		})
+		return
+
+	}
 
 	c.JSON(200, gin.H{
 		"message": "Health",

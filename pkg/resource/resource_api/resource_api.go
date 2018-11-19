@@ -50,6 +50,7 @@ func (srv *ResourceApiServer) GetCluster(ctx context.Context, req *resource_api_
 	var rep *resource_api_grpc_pb.GetClusterReply
 	var err error
 	rep, err = srv.resourceModelApi.GetCluster(req)
+	glog.Info(rep)
 	glog.Infof("Completed GetCluster: %v", err)
 	return rep, err
 }
@@ -83,5 +84,101 @@ func (srv *ResourceApiServer) UpdateNode(ctx context.Context, req *resource_api_
 	var err error
 	rep, err = srv.resourceModelApi.UpdateNode(req)
 	glog.Infof("Completed UpdateNode: %v", err)
+	return rep, err
+}
+
+func (srv *ResourceApiServer) CreateCompute(ctx context.Context, req *resource_api_grpc_pb.CreateComputeRequest) (*resource_api_grpc_pb.CreateComputeReply, error) {
+	var rep *resource_api_grpc_pb.CreateComputeReply
+	var err error
+	rep, err = srv.resourceModelApi.CreateCompute(req)
+	glog.Infof("Completed CreateCompute: %v", err)
+	return rep, err
+}
+
+func (srv *ResourceApiServer) CreateImage(ctx context.Context, req *resource_api_grpc_pb.CreateImageRequest) (*resource_api_grpc_pb.CreateImageReply, error) {
+	var rep *resource_api_grpc_pb.CreateImageReply
+	var err error
+	rep, err = srv.resourceModelApi.CreateImage(req)
+	glog.Infof("Completed CreateImage: %v", err)
+	return rep, err
+}
+
+func (srv *ResourceApiServer) CreateVolume(ctx context.Context, req *resource_api_grpc_pb.CreateVolumeRequest) (*resource_api_grpc_pb.CreateVolumeReply, error) {
+	var rep *resource_api_grpc_pb.CreateVolumeReply
+	var err error
+	rep, err = srv.resourceModelApi.CreateVolume(req)
+	glog.Infof("Completed CreateVolume: %v", err)
+	return rep, err
+}
+
+func (srv *ResourceApiServer) CreateLoadbalancer(ctx context.Context, req *resource_api_grpc_pb.CreateLoadbalancerRequest) (*resource_api_grpc_pb.CreateLoadbalancerReply, error) {
+	var rep *resource_api_grpc_pb.CreateLoadbalancerReply
+	var err error
+	rep, err = srv.resourceModelApi.CreateLoadbalancer(req)
+	glog.Infof("Completed CreateLoadbalancer: %v", err)
+	return rep, err
+}
+
+func (srv *ResourceApiServer) UpdateCompute(ctx context.Context, req *resource_api_grpc_pb.UpdateComputeRequest) (*resource_api_grpc_pb.UpdateComputeReply, error) {
+	var rep *resource_api_grpc_pb.UpdateComputeReply
+	var err error
+	rep, err = srv.resourceModelApi.UpdateCompute(req)
+	glog.Infof("Completed UpdateCompute: %v", err)
+	return rep, err
+}
+
+func (srv *ResourceApiServer) UpdateImage(ctx context.Context, req *resource_api_grpc_pb.UpdateImageRequest) (*resource_api_grpc_pb.UpdateImageReply, error) {
+	var rep *resource_api_grpc_pb.UpdateImageReply
+	var err error
+	rep, err = srv.resourceModelApi.UpdateImage(req)
+	glog.Infof("Completed UpdateImage: %v", err)
+	return rep, err
+}
+
+func (srv *ResourceApiServer) UpdateVolume(ctx context.Context, req *resource_api_grpc_pb.UpdateVolumeRequest) (*resource_api_grpc_pb.UpdateVolumeReply, error) {
+	var rep *resource_api_grpc_pb.UpdateVolumeReply
+	var err error
+	rep, err = srv.resourceModelApi.UpdateVolume(req)
+	glog.Infof("Completed UpdateVolume: %v", err)
+	return rep, err
+}
+
+func (srv *ResourceApiServer) UpdateLoadbalancer(ctx context.Context, req *resource_api_grpc_pb.UpdateLoadbalancerRequest) (*resource_api_grpc_pb.UpdateLoadbalancerReply, error) {
+	var rep *resource_api_grpc_pb.UpdateLoadbalancerReply
+	var err error
+	rep, err = srv.resourceModelApi.UpdateLoadbalancer(req)
+	glog.Infof("Completed UpdateLoadbalancer: %v", err)
+	return rep, err
+}
+
+func (srv *ResourceApiServer) DeleteCompute(ctx context.Context, req *resource_api_grpc_pb.DeleteComputeRequest) (*resource_api_grpc_pb.DeleteComputeReply, error) {
+	var rep *resource_api_grpc_pb.DeleteComputeReply
+	var err error
+	rep, err = srv.resourceModelApi.DeleteCompute(req)
+	glog.Infof("Completed DeleteCompute: %v", err)
+	return rep, err
+}
+
+func (srv *ResourceApiServer) DeleteImage(ctx context.Context, req *resource_api_grpc_pb.DeleteImageRequest) (*resource_api_grpc_pb.DeleteImageReply, error) {
+	var rep *resource_api_grpc_pb.DeleteImageReply
+	var err error
+	rep, err = srv.resourceModelApi.DeleteImage(req)
+	glog.Infof("Completed DeleteImage: %v", err)
+	return rep, err
+}
+
+func (srv *ResourceApiServer) DeleteVolume(ctx context.Context, req *resource_api_grpc_pb.DeleteVolumeRequest) (*resource_api_grpc_pb.DeleteVolumeReply, error) {
+	var rep *resource_api_grpc_pb.DeleteVolumeReply
+	var err error
+	rep, err = srv.resourceModelApi.DeleteVolume(req)
+	glog.Infof("Completed DeleteVolume: %v", err)
+	return rep, err
+}
+
+func (srv *ResourceApiServer) DeleteLoadbalancer(ctx context.Context, req *resource_api_grpc_pb.DeleteLoadbalancerRequest) (*resource_api_grpc_pb.DeleteLoadbalancerReply, error) {
+	var rep *resource_api_grpc_pb.DeleteLoadbalancerReply
+	var err error
+	rep, err = srv.resourceModelApi.DeleteLoadbalancer(req)
+	glog.Infof("Completed DeleteLoadbalancer: %v", err)
 	return rep, err
 }

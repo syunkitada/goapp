@@ -72,6 +72,10 @@ func (modelApi *AuthproxyModelApi) Bootstrap() error {
 	actionMap := map[string][]string{}
 	actionMap["Resource"] = []string{
 		"GetState", "GetCluster", "GetNode",
+		"GetCompute", "GetVolume", "GetImage", "GetLoadbalancer",
+		"CreateCompute", "CreateVolume", "CreateImage", "CreateLoadbalancer",
+		"UpdateCompute", "UpdateVolume", "UpdateImage", "UpdateLoadbalancer",
+		"DeleteCompute", "DeleteVolume", "DeleteImage", "DeleteLoadbalancer",
 	}
 
 	for _, userTenantService := range userTenantServices {

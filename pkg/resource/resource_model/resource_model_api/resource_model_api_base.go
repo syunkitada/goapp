@@ -170,6 +170,104 @@ func (modelApi *ResourceModelApi) UpdateNode(req *resource_api_grpc_pb.UpdateNod
 	return rep, err
 }
 
+func (modelApi *ResourceModelApi) CreateCompute(req *resource_api_grpc_pb.CreateComputeRequest) (*resource_api_grpc_pb.CreateComputeReply, error) {
+	var rep *resource_api_grpc_pb.CreateComputeReply
+	var err error
+
+	db, err := gorm.Open("mysql", modelApi.conf.Resource.Database.Connection)
+	defer db.Close()
+	if err != nil {
+		return rep, err
+	}
+	db.LogMode(modelApi.conf.Default.EnableDatabaseLog)
+
+	var compute resource_model.Compute
+	if err = db.Where("name = ? and kind = ?", req.Compute.Name, req.Compute.Kind).First(&compute).Error; err != nil {
+		if !gorm.IsRecordNotFoundError(err) {
+			return rep, err
+		}
+
+		compute = resource_model.Compute{
+			Name: req.Compute.Name,
+			Kind: req.Compute.Kind,
+			Spec: req.Compute.Spec,
+		}
+		if err = db.Create(&compute).Error; err != nil {
+			return rep, err
+		}
+	} else {
+		return nil, fmt.Errorf("Already Exists: %v: %v", req.Compute.Name, req.Compute.Kind)
+	}
+
+	glog.Info("Completed CreateCompute")
+	return rep, err
+}
+
+func (modelApi *ResourceModelApi) CreateImage(req *resource_api_grpc_pb.CreateImageRequest) (*resource_api_grpc_pb.CreateImageReply, error) {
+	return nil, nil
+}
+
+func (modelApi *ResourceModelApi) CreateVolume(req *resource_api_grpc_pb.CreateVolumeRequest) (*resource_api_grpc_pb.CreateVolumeReply, error) {
+	return nil, nil
+}
+
+func (modelApi *ResourceModelApi) CreateLoadbalancer(req *resource_api_grpc_pb.CreateLoadbalancerRequest) (*resource_api_grpc_pb.CreateLoadbalancerReply, error) {
+	return nil, nil
+}
+
+func (modelApi *ResourceModelApi) UpdateCompute(req *resource_api_grpc_pb.UpdateComputeRequest) (*resource_api_grpc_pb.UpdateComputeReply, error) {
+	var rep *resource_api_grpc_pb.UpdateComputeReply
+	var err error
+
+	db, err := gorm.Open("mysql", modelApi.conf.Resource.Database.Connection)
+	defer db.Close()
+	if err != nil {
+		return rep, err
+	}
+	db.LogMode(modelApi.conf.Default.EnableDatabaseLog)
+
+	var compute resource_model.Compute
+	if err = db.Where("name = ? and kind = ?", req.Compute.Name, req.Compute.Kind).First(&compute).Error; err != nil {
+		return rep, err
+	} else {
+		compute.Spec = req.Compute.Spec
+		if err = db.Save(&compute).Error; err != nil {
+			return rep, err
+		}
+	}
+
+	glog.Info("Completed UpdateCompute")
+	return rep, err
+}
+
+func (modelApi *ResourceModelApi) UpdateImage(req *resource_api_grpc_pb.UpdateImageRequest) (*resource_api_grpc_pb.UpdateImageReply, error) {
+	return nil, nil
+}
+
+func (modelApi *ResourceModelApi) UpdateVolume(req *resource_api_grpc_pb.UpdateVolumeRequest) (*resource_api_grpc_pb.UpdateVolumeReply, error) {
+	return nil, nil
+}
+
+func (modelApi *ResourceModelApi) UpdateLoadbalancer(req *resource_api_grpc_pb.UpdateLoadbalancerRequest) (*resource_api_grpc_pb.UpdateLoadbalancerReply, error) {
+	return nil, nil
+}
+
+func (modelApi *ResourceModelApi) DeleteCompute(req *resource_api_grpc_pb.DeleteComputeRequest) (*resource_api_grpc_pb.DeleteComputeReply, error) {
+	return nil, nil
+}
+
+func (modelApi *ResourceModelApi) DeleteImage(req *resource_api_grpc_pb.DeleteImageRequest) (*resource_api_grpc_pb.DeleteImageReply, error) {
+	return nil, nil
+}
+
+func (modelApi *ResourceModelApi) DeleteVolume(req *resource_api_grpc_pb.DeleteVolumeRequest) (*resource_api_grpc_pb.DeleteVolumeReply, error) {
+	return nil, nil
+}
+
+func (modelApi *ResourceModelApi) DeleteLoadbalancer(req *resource_api_grpc_pb.DeleteLoadbalancerRequest) (*resource_api_grpc_pb.DeleteLoadbalancerReply, error) {
+	return nil, nil
+}
+
 func (modelApi *ResourceModelApi) SyncRole(kind string) ([]resource_model.Node, error) {
 	var nodes []resource_model.Node
 	var err error

@@ -34,7 +34,7 @@ func (m *StatusRequest) Reset()         { *m = StatusRequest{} }
 func (m *StatusRequest) String() string { return proto.CompactTextString(m) }
 func (*StatusRequest) ProtoMessage()    {}
 func (*StatusRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_resource_api_grpc_pb_96a25296872f6d63, []int{0}
+	return fileDescriptor_resource_api_grpc_pb_5f75cc7b1192a923, []int{0}
 }
 func (m *StatusRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_StatusRequest.Unmarshal(m, b)
@@ -65,7 +65,7 @@ func (m *StatusReply) Reset()         { *m = StatusReply{} }
 func (m *StatusReply) String() string { return proto.CompactTextString(m) }
 func (*StatusReply) ProtoMessage()    {}
 func (*StatusReply) Descriptor() ([]byte, []int) {
-	return fileDescriptor_resource_api_grpc_pb_96a25296872f6d63, []int{1}
+	return fileDescriptor_resource_api_grpc_pb_5f75cc7b1192a923, []int{1}
 }
 func (m *StatusReply) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_StatusReply.Unmarshal(m, b)
@@ -104,7 +104,7 @@ func (m *GetNodeRequest) Reset()         { *m = GetNodeRequest{} }
 func (m *GetNodeRequest) String() string { return proto.CompactTextString(m) }
 func (*GetNodeRequest) ProtoMessage()    {}
 func (*GetNodeRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_resource_api_grpc_pb_96a25296872f6d63, []int{2}
+	return fileDescriptor_resource_api_grpc_pb_5f75cc7b1192a923, []int{2}
 }
 func (m *GetNodeRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetNodeRequest.Unmarshal(m, b)
@@ -149,7 +149,7 @@ func (m *GetNodeReply) Reset()         { *m = GetNodeReply{} }
 func (m *GetNodeReply) String() string { return proto.CompactTextString(m) }
 func (*GetNodeReply) ProtoMessage()    {}
 func (*GetNodeReply) Descriptor() ([]byte, []int) {
-	return fileDescriptor_resource_api_grpc_pb_96a25296872f6d63, []int{3}
+	return fileDescriptor_resource_api_grpc_pb_5f75cc7b1192a923, []int{3}
 }
 func (m *GetNodeReply) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetNodeReply.Unmarshal(m, b)
@@ -187,7 +187,7 @@ func (m *GetClusterRequest) Reset()         { *m = GetClusterRequest{} }
 func (m *GetClusterRequest) String() string { return proto.CompactTextString(m) }
 func (*GetClusterRequest) ProtoMessage()    {}
 func (*GetClusterRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_resource_api_grpc_pb_96a25296872f6d63, []int{4}
+	return fileDescriptor_resource_api_grpc_pb_5f75cc7b1192a923, []int{4}
 }
 func (m *GetClusterRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetClusterRequest.Unmarshal(m, b)
@@ -225,7 +225,7 @@ func (m *GetClusterReply) Reset()         { *m = GetClusterReply{} }
 func (m *GetClusterReply) String() string { return proto.CompactTextString(m) }
 func (*GetClusterReply) ProtoMessage()    {}
 func (*GetClusterReply) Descriptor() ([]byte, []int) {
-	return fileDescriptor_resource_api_grpc_pb_96a25296872f6d63, []int{5}
+	return fileDescriptor_resource_api_grpc_pb_5f75cc7b1192a923, []int{5}
 }
 func (m *GetClusterReply) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetClusterReply.Unmarshal(m, b)
@@ -254,6 +254,7 @@ func (m *GetClusterReply) GetClusters() []*Cluster {
 
 type GetComputeRequest struct {
 	Target               string   `protobuf:"bytes,1,opt,name=target" json:"target,omitempty"`
+	Cluster              string   `protobuf:"bytes,2,opt,name=cluster" json:"cluster,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -263,7 +264,7 @@ func (m *GetComputeRequest) Reset()         { *m = GetComputeRequest{} }
 func (m *GetComputeRequest) String() string { return proto.CompactTextString(m) }
 func (*GetComputeRequest) ProtoMessage()    {}
 func (*GetComputeRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_resource_api_grpc_pb_96a25296872f6d63, []int{6}
+	return fileDescriptor_resource_api_grpc_pb_5f75cc7b1192a923, []int{6}
 }
 func (m *GetComputeRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetComputeRequest.Unmarshal(m, b)
@@ -290,6 +291,13 @@ func (m *GetComputeRequest) GetTarget() string {
 	return ""
 }
 
+func (m *GetComputeRequest) GetCluster() string {
+	if m != nil {
+		return m.Cluster
+	}
+	return ""
+}
+
 type GetComputeReply struct {
 	Computes             []*Compute `protobuf:"bytes,1,rep,name=computes" json:"computes,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}   `json:"-"`
@@ -301,7 +309,7 @@ func (m *GetComputeReply) Reset()         { *m = GetComputeReply{} }
 func (m *GetComputeReply) String() string { return proto.CompactTextString(m) }
 func (*GetComputeReply) ProtoMessage()    {}
 func (*GetComputeReply) Descriptor() ([]byte, []int) {
-	return fileDescriptor_resource_api_grpc_pb_96a25296872f6d63, []int{7}
+	return fileDescriptor_resource_api_grpc_pb_5f75cc7b1192a923, []int{7}
 }
 func (m *GetComputeReply) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetComputeReply.Unmarshal(m, b)
@@ -330,6 +338,7 @@ func (m *GetComputeReply) GetComputes() []*Compute {
 
 type GetImageRequest struct {
 	Target               string   `protobuf:"bytes,1,opt,name=target" json:"target,omitempty"`
+	Cluster              string   `protobuf:"bytes,2,opt,name=cluster" json:"cluster,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -339,7 +348,7 @@ func (m *GetImageRequest) Reset()         { *m = GetImageRequest{} }
 func (m *GetImageRequest) String() string { return proto.CompactTextString(m) }
 func (*GetImageRequest) ProtoMessage()    {}
 func (*GetImageRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_resource_api_grpc_pb_96a25296872f6d63, []int{8}
+	return fileDescriptor_resource_api_grpc_pb_5f75cc7b1192a923, []int{8}
 }
 func (m *GetImageRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetImageRequest.Unmarshal(m, b)
@@ -366,6 +375,13 @@ func (m *GetImageRequest) GetTarget() string {
 	return ""
 }
 
+func (m *GetImageRequest) GetCluster() string {
+	if m != nil {
+		return m.Cluster
+	}
+	return ""
+}
+
 type GetImageReply struct {
 	Images               []*Image `protobuf:"bytes,1,rep,name=images" json:"images,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
@@ -377,7 +393,7 @@ func (m *GetImageReply) Reset()         { *m = GetImageReply{} }
 func (m *GetImageReply) String() string { return proto.CompactTextString(m) }
 func (*GetImageReply) ProtoMessage()    {}
 func (*GetImageReply) Descriptor() ([]byte, []int) {
-	return fileDescriptor_resource_api_grpc_pb_96a25296872f6d63, []int{9}
+	return fileDescriptor_resource_api_grpc_pb_5f75cc7b1192a923, []int{9}
 }
 func (m *GetImageReply) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetImageReply.Unmarshal(m, b)
@@ -406,6 +422,7 @@ func (m *GetImageReply) GetImages() []*Image {
 
 type GetVolumeRequest struct {
 	Target               string   `protobuf:"bytes,1,opt,name=target" json:"target,omitempty"`
+	Cluster              string   `protobuf:"bytes,2,opt,name=cluster" json:"cluster,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -415,7 +432,7 @@ func (m *GetVolumeRequest) Reset()         { *m = GetVolumeRequest{} }
 func (m *GetVolumeRequest) String() string { return proto.CompactTextString(m) }
 func (*GetVolumeRequest) ProtoMessage()    {}
 func (*GetVolumeRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_resource_api_grpc_pb_96a25296872f6d63, []int{10}
+	return fileDescriptor_resource_api_grpc_pb_5f75cc7b1192a923, []int{10}
 }
 func (m *GetVolumeRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetVolumeRequest.Unmarshal(m, b)
@@ -442,6 +459,13 @@ func (m *GetVolumeRequest) GetTarget() string {
 	return ""
 }
 
+func (m *GetVolumeRequest) GetCluster() string {
+	if m != nil {
+		return m.Cluster
+	}
+	return ""
+}
+
 type GetVolumeReply struct {
 	Volumes              []*Volume `protobuf:"bytes,1,rep,name=volumes" json:"volumes,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}  `json:"-"`
@@ -453,7 +477,7 @@ func (m *GetVolumeReply) Reset()         { *m = GetVolumeReply{} }
 func (m *GetVolumeReply) String() string { return proto.CompactTextString(m) }
 func (*GetVolumeReply) ProtoMessage()    {}
 func (*GetVolumeReply) Descriptor() ([]byte, []int) {
-	return fileDescriptor_resource_api_grpc_pb_96a25296872f6d63, []int{11}
+	return fileDescriptor_resource_api_grpc_pb_5f75cc7b1192a923, []int{11}
 }
 func (m *GetVolumeReply) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetVolumeReply.Unmarshal(m, b)
@@ -497,7 +521,7 @@ func (m *UpdateNodeRequest) Reset()         { *m = UpdateNodeRequest{} }
 func (m *UpdateNodeRequest) String() string { return proto.CompactTextString(m) }
 func (*UpdateNodeRequest) ProtoMessage()    {}
 func (*UpdateNodeRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_resource_api_grpc_pb_96a25296872f6d63, []int{12}
+	return fileDescriptor_resource_api_grpc_pb_5f75cc7b1192a923, []int{12}
 }
 func (m *UpdateNodeRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_UpdateNodeRequest.Unmarshal(m, b)
@@ -576,7 +600,7 @@ func (m *UpdateNodeReply) Reset()         { *m = UpdateNodeReply{} }
 func (m *UpdateNodeReply) String() string { return proto.CompactTextString(m) }
 func (*UpdateNodeReply) ProtoMessage()    {}
 func (*UpdateNodeReply) Descriptor() ([]byte, []int) {
-	return fileDescriptor_resource_api_grpc_pb_96a25296872f6d63, []int{13}
+	return fileDescriptor_resource_api_grpc_pb_5f75cc7b1192a923, []int{13}
 }
 func (m *UpdateNodeReply) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_UpdateNodeReply.Unmarshal(m, b)
@@ -596,16 +620,928 @@ func (m *UpdateNodeReply) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_UpdateNodeReply proto.InternalMessageInfo
 
+type CreateComputeRequest struct {
+	Compute              *Compute `protobuf:"bytes,1,opt,name=compute" json:"compute,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *CreateComputeRequest) Reset()         { *m = CreateComputeRequest{} }
+func (m *CreateComputeRequest) String() string { return proto.CompactTextString(m) }
+func (*CreateComputeRequest) ProtoMessage()    {}
+func (*CreateComputeRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_resource_api_grpc_pb_5f75cc7b1192a923, []int{14}
+}
+func (m *CreateComputeRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_CreateComputeRequest.Unmarshal(m, b)
+}
+func (m *CreateComputeRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_CreateComputeRequest.Marshal(b, m, deterministic)
+}
+func (dst *CreateComputeRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreateComputeRequest.Merge(dst, src)
+}
+func (m *CreateComputeRequest) XXX_Size() int {
+	return xxx_messageInfo_CreateComputeRequest.Size(m)
+}
+func (m *CreateComputeRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_CreateComputeRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_CreateComputeRequest proto.InternalMessageInfo
+
+func (m *CreateComputeRequest) GetCompute() *Compute {
+	if m != nil {
+		return m.Compute
+	}
+	return nil
+}
+
+type CreateComputeReply struct {
+	Compute              *Compute `protobuf:"bytes,1,opt,name=compute" json:"compute,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *CreateComputeReply) Reset()         { *m = CreateComputeReply{} }
+func (m *CreateComputeReply) String() string { return proto.CompactTextString(m) }
+func (*CreateComputeReply) ProtoMessage()    {}
+func (*CreateComputeReply) Descriptor() ([]byte, []int) {
+	return fileDescriptor_resource_api_grpc_pb_5f75cc7b1192a923, []int{15}
+}
+func (m *CreateComputeReply) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_CreateComputeReply.Unmarshal(m, b)
+}
+func (m *CreateComputeReply) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_CreateComputeReply.Marshal(b, m, deterministic)
+}
+func (dst *CreateComputeReply) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreateComputeReply.Merge(dst, src)
+}
+func (m *CreateComputeReply) XXX_Size() int {
+	return xxx_messageInfo_CreateComputeReply.Size(m)
+}
+func (m *CreateComputeReply) XXX_DiscardUnknown() {
+	xxx_messageInfo_CreateComputeReply.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_CreateComputeReply proto.InternalMessageInfo
+
+func (m *CreateComputeReply) GetCompute() *Compute {
+	if m != nil {
+		return m.Compute
+	}
+	return nil
+}
+
+type CreateImageRequest struct {
+	Image                *Image   `protobuf:"bytes,1,opt,name=image" json:"image,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *CreateImageRequest) Reset()         { *m = CreateImageRequest{} }
+func (m *CreateImageRequest) String() string { return proto.CompactTextString(m) }
+func (*CreateImageRequest) ProtoMessage()    {}
+func (*CreateImageRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_resource_api_grpc_pb_5f75cc7b1192a923, []int{16}
+}
+func (m *CreateImageRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_CreateImageRequest.Unmarshal(m, b)
+}
+func (m *CreateImageRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_CreateImageRequest.Marshal(b, m, deterministic)
+}
+func (dst *CreateImageRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreateImageRequest.Merge(dst, src)
+}
+func (m *CreateImageRequest) XXX_Size() int {
+	return xxx_messageInfo_CreateImageRequest.Size(m)
+}
+func (m *CreateImageRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_CreateImageRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_CreateImageRequest proto.InternalMessageInfo
+
+func (m *CreateImageRequest) GetImage() *Image {
+	if m != nil {
+		return m.Image
+	}
+	return nil
+}
+
+type CreateImageReply struct {
+	Image                *Image   `protobuf:"bytes,1,opt,name=image" json:"image,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *CreateImageReply) Reset()         { *m = CreateImageReply{} }
+func (m *CreateImageReply) String() string { return proto.CompactTextString(m) }
+func (*CreateImageReply) ProtoMessage()    {}
+func (*CreateImageReply) Descriptor() ([]byte, []int) {
+	return fileDescriptor_resource_api_grpc_pb_5f75cc7b1192a923, []int{17}
+}
+func (m *CreateImageReply) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_CreateImageReply.Unmarshal(m, b)
+}
+func (m *CreateImageReply) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_CreateImageReply.Marshal(b, m, deterministic)
+}
+func (dst *CreateImageReply) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreateImageReply.Merge(dst, src)
+}
+func (m *CreateImageReply) XXX_Size() int {
+	return xxx_messageInfo_CreateImageReply.Size(m)
+}
+func (m *CreateImageReply) XXX_DiscardUnknown() {
+	xxx_messageInfo_CreateImageReply.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_CreateImageReply proto.InternalMessageInfo
+
+func (m *CreateImageReply) GetImage() *Image {
+	if m != nil {
+		return m.Image
+	}
+	return nil
+}
+
+type CreateVolumeRequest struct {
+	Volume               *Volume  `protobuf:"bytes,1,opt,name=volume" json:"volume,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *CreateVolumeRequest) Reset()         { *m = CreateVolumeRequest{} }
+func (m *CreateVolumeRequest) String() string { return proto.CompactTextString(m) }
+func (*CreateVolumeRequest) ProtoMessage()    {}
+func (*CreateVolumeRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_resource_api_grpc_pb_5f75cc7b1192a923, []int{18}
+}
+func (m *CreateVolumeRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_CreateVolumeRequest.Unmarshal(m, b)
+}
+func (m *CreateVolumeRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_CreateVolumeRequest.Marshal(b, m, deterministic)
+}
+func (dst *CreateVolumeRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreateVolumeRequest.Merge(dst, src)
+}
+func (m *CreateVolumeRequest) XXX_Size() int {
+	return xxx_messageInfo_CreateVolumeRequest.Size(m)
+}
+func (m *CreateVolumeRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_CreateVolumeRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_CreateVolumeRequest proto.InternalMessageInfo
+
+func (m *CreateVolumeRequest) GetVolume() *Volume {
+	if m != nil {
+		return m.Volume
+	}
+	return nil
+}
+
+type CreateVolumeReply struct {
+	Volume               *Volume  `protobuf:"bytes,1,opt,name=volume" json:"volume,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *CreateVolumeReply) Reset()         { *m = CreateVolumeReply{} }
+func (m *CreateVolumeReply) String() string { return proto.CompactTextString(m) }
+func (*CreateVolumeReply) ProtoMessage()    {}
+func (*CreateVolumeReply) Descriptor() ([]byte, []int) {
+	return fileDescriptor_resource_api_grpc_pb_5f75cc7b1192a923, []int{19}
+}
+func (m *CreateVolumeReply) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_CreateVolumeReply.Unmarshal(m, b)
+}
+func (m *CreateVolumeReply) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_CreateVolumeReply.Marshal(b, m, deterministic)
+}
+func (dst *CreateVolumeReply) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreateVolumeReply.Merge(dst, src)
+}
+func (m *CreateVolumeReply) XXX_Size() int {
+	return xxx_messageInfo_CreateVolumeReply.Size(m)
+}
+func (m *CreateVolumeReply) XXX_DiscardUnknown() {
+	xxx_messageInfo_CreateVolumeReply.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_CreateVolumeReply proto.InternalMessageInfo
+
+func (m *CreateVolumeReply) GetVolume() *Volume {
+	if m != nil {
+		return m.Volume
+	}
+	return nil
+}
+
+type CreateLoadbalancerRequest struct {
+	Loadbalancer         *Loadbalancer `protobuf:"bytes,1,opt,name=loadbalancer" json:"loadbalancer,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
+	XXX_unrecognized     []byte        `json:"-"`
+	XXX_sizecache        int32         `json:"-"`
+}
+
+func (m *CreateLoadbalancerRequest) Reset()         { *m = CreateLoadbalancerRequest{} }
+func (m *CreateLoadbalancerRequest) String() string { return proto.CompactTextString(m) }
+func (*CreateLoadbalancerRequest) ProtoMessage()    {}
+func (*CreateLoadbalancerRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_resource_api_grpc_pb_5f75cc7b1192a923, []int{20}
+}
+func (m *CreateLoadbalancerRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_CreateLoadbalancerRequest.Unmarshal(m, b)
+}
+func (m *CreateLoadbalancerRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_CreateLoadbalancerRequest.Marshal(b, m, deterministic)
+}
+func (dst *CreateLoadbalancerRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreateLoadbalancerRequest.Merge(dst, src)
+}
+func (m *CreateLoadbalancerRequest) XXX_Size() int {
+	return xxx_messageInfo_CreateLoadbalancerRequest.Size(m)
+}
+func (m *CreateLoadbalancerRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_CreateLoadbalancerRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_CreateLoadbalancerRequest proto.InternalMessageInfo
+
+func (m *CreateLoadbalancerRequest) GetLoadbalancer() *Loadbalancer {
+	if m != nil {
+		return m.Loadbalancer
+	}
+	return nil
+}
+
+type CreateLoadbalancerReply struct {
+	Loadbalancer         *Loadbalancer `protobuf:"bytes,1,opt,name=loadbalancer" json:"loadbalancer,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
+	XXX_unrecognized     []byte        `json:"-"`
+	XXX_sizecache        int32         `json:"-"`
+}
+
+func (m *CreateLoadbalancerReply) Reset()         { *m = CreateLoadbalancerReply{} }
+func (m *CreateLoadbalancerReply) String() string { return proto.CompactTextString(m) }
+func (*CreateLoadbalancerReply) ProtoMessage()    {}
+func (*CreateLoadbalancerReply) Descriptor() ([]byte, []int) {
+	return fileDescriptor_resource_api_grpc_pb_5f75cc7b1192a923, []int{21}
+}
+func (m *CreateLoadbalancerReply) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_CreateLoadbalancerReply.Unmarshal(m, b)
+}
+func (m *CreateLoadbalancerReply) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_CreateLoadbalancerReply.Marshal(b, m, deterministic)
+}
+func (dst *CreateLoadbalancerReply) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreateLoadbalancerReply.Merge(dst, src)
+}
+func (m *CreateLoadbalancerReply) XXX_Size() int {
+	return xxx_messageInfo_CreateLoadbalancerReply.Size(m)
+}
+func (m *CreateLoadbalancerReply) XXX_DiscardUnknown() {
+	xxx_messageInfo_CreateLoadbalancerReply.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_CreateLoadbalancerReply proto.InternalMessageInfo
+
+func (m *CreateLoadbalancerReply) GetLoadbalancer() *Loadbalancer {
+	if m != nil {
+		return m.Loadbalancer
+	}
+	return nil
+}
+
+type UpdateComputeRequest struct {
+	Compute              *Compute `protobuf:"bytes,1,opt,name=compute" json:"compute,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *UpdateComputeRequest) Reset()         { *m = UpdateComputeRequest{} }
+func (m *UpdateComputeRequest) String() string { return proto.CompactTextString(m) }
+func (*UpdateComputeRequest) ProtoMessage()    {}
+func (*UpdateComputeRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_resource_api_grpc_pb_5f75cc7b1192a923, []int{22}
+}
+func (m *UpdateComputeRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UpdateComputeRequest.Unmarshal(m, b)
+}
+func (m *UpdateComputeRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UpdateComputeRequest.Marshal(b, m, deterministic)
+}
+func (dst *UpdateComputeRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpdateComputeRequest.Merge(dst, src)
+}
+func (m *UpdateComputeRequest) XXX_Size() int {
+	return xxx_messageInfo_UpdateComputeRequest.Size(m)
+}
+func (m *UpdateComputeRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpdateComputeRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UpdateComputeRequest proto.InternalMessageInfo
+
+func (m *UpdateComputeRequest) GetCompute() *Compute {
+	if m != nil {
+		return m.Compute
+	}
+	return nil
+}
+
+type UpdateComputeReply struct {
+	Compute              *Compute `protobuf:"bytes,1,opt,name=compute" json:"compute,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *UpdateComputeReply) Reset()         { *m = UpdateComputeReply{} }
+func (m *UpdateComputeReply) String() string { return proto.CompactTextString(m) }
+func (*UpdateComputeReply) ProtoMessage()    {}
+func (*UpdateComputeReply) Descriptor() ([]byte, []int) {
+	return fileDescriptor_resource_api_grpc_pb_5f75cc7b1192a923, []int{23}
+}
+func (m *UpdateComputeReply) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UpdateComputeReply.Unmarshal(m, b)
+}
+func (m *UpdateComputeReply) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UpdateComputeReply.Marshal(b, m, deterministic)
+}
+func (dst *UpdateComputeReply) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpdateComputeReply.Merge(dst, src)
+}
+func (m *UpdateComputeReply) XXX_Size() int {
+	return xxx_messageInfo_UpdateComputeReply.Size(m)
+}
+func (m *UpdateComputeReply) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpdateComputeReply.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UpdateComputeReply proto.InternalMessageInfo
+
+func (m *UpdateComputeReply) GetCompute() *Compute {
+	if m != nil {
+		return m.Compute
+	}
+	return nil
+}
+
+type UpdateImageRequest struct {
+	Image                *Image   `protobuf:"bytes,1,opt,name=image" json:"image,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *UpdateImageRequest) Reset()         { *m = UpdateImageRequest{} }
+func (m *UpdateImageRequest) String() string { return proto.CompactTextString(m) }
+func (*UpdateImageRequest) ProtoMessage()    {}
+func (*UpdateImageRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_resource_api_grpc_pb_5f75cc7b1192a923, []int{24}
+}
+func (m *UpdateImageRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UpdateImageRequest.Unmarshal(m, b)
+}
+func (m *UpdateImageRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UpdateImageRequest.Marshal(b, m, deterministic)
+}
+func (dst *UpdateImageRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpdateImageRequest.Merge(dst, src)
+}
+func (m *UpdateImageRequest) XXX_Size() int {
+	return xxx_messageInfo_UpdateImageRequest.Size(m)
+}
+func (m *UpdateImageRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpdateImageRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UpdateImageRequest proto.InternalMessageInfo
+
+func (m *UpdateImageRequest) GetImage() *Image {
+	if m != nil {
+		return m.Image
+	}
+	return nil
+}
+
+type UpdateImageReply struct {
+	Image                *Image   `protobuf:"bytes,1,opt,name=image" json:"image,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *UpdateImageReply) Reset()         { *m = UpdateImageReply{} }
+func (m *UpdateImageReply) String() string { return proto.CompactTextString(m) }
+func (*UpdateImageReply) ProtoMessage()    {}
+func (*UpdateImageReply) Descriptor() ([]byte, []int) {
+	return fileDescriptor_resource_api_grpc_pb_5f75cc7b1192a923, []int{25}
+}
+func (m *UpdateImageReply) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UpdateImageReply.Unmarshal(m, b)
+}
+func (m *UpdateImageReply) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UpdateImageReply.Marshal(b, m, deterministic)
+}
+func (dst *UpdateImageReply) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpdateImageReply.Merge(dst, src)
+}
+func (m *UpdateImageReply) XXX_Size() int {
+	return xxx_messageInfo_UpdateImageReply.Size(m)
+}
+func (m *UpdateImageReply) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpdateImageReply.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UpdateImageReply proto.InternalMessageInfo
+
+func (m *UpdateImageReply) GetImage() *Image {
+	if m != nil {
+		return m.Image
+	}
+	return nil
+}
+
+type UpdateVolumeRequest struct {
+	Volume               *Volume  `protobuf:"bytes,1,opt,name=volume" json:"volume,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *UpdateVolumeRequest) Reset()         { *m = UpdateVolumeRequest{} }
+func (m *UpdateVolumeRequest) String() string { return proto.CompactTextString(m) }
+func (*UpdateVolumeRequest) ProtoMessage()    {}
+func (*UpdateVolumeRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_resource_api_grpc_pb_5f75cc7b1192a923, []int{26}
+}
+func (m *UpdateVolumeRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UpdateVolumeRequest.Unmarshal(m, b)
+}
+func (m *UpdateVolumeRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UpdateVolumeRequest.Marshal(b, m, deterministic)
+}
+func (dst *UpdateVolumeRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpdateVolumeRequest.Merge(dst, src)
+}
+func (m *UpdateVolumeRequest) XXX_Size() int {
+	return xxx_messageInfo_UpdateVolumeRequest.Size(m)
+}
+func (m *UpdateVolumeRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpdateVolumeRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UpdateVolumeRequest proto.InternalMessageInfo
+
+func (m *UpdateVolumeRequest) GetVolume() *Volume {
+	if m != nil {
+		return m.Volume
+	}
+	return nil
+}
+
+type UpdateVolumeReply struct {
+	Volume               *Volume  `protobuf:"bytes,1,opt,name=volume" json:"volume,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *UpdateVolumeReply) Reset()         { *m = UpdateVolumeReply{} }
+func (m *UpdateVolumeReply) String() string { return proto.CompactTextString(m) }
+func (*UpdateVolumeReply) ProtoMessage()    {}
+func (*UpdateVolumeReply) Descriptor() ([]byte, []int) {
+	return fileDescriptor_resource_api_grpc_pb_5f75cc7b1192a923, []int{27}
+}
+func (m *UpdateVolumeReply) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UpdateVolumeReply.Unmarshal(m, b)
+}
+func (m *UpdateVolumeReply) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UpdateVolumeReply.Marshal(b, m, deterministic)
+}
+func (dst *UpdateVolumeReply) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpdateVolumeReply.Merge(dst, src)
+}
+func (m *UpdateVolumeReply) XXX_Size() int {
+	return xxx_messageInfo_UpdateVolumeReply.Size(m)
+}
+func (m *UpdateVolumeReply) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpdateVolumeReply.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UpdateVolumeReply proto.InternalMessageInfo
+
+func (m *UpdateVolumeReply) GetVolume() *Volume {
+	if m != nil {
+		return m.Volume
+	}
+	return nil
+}
+
+type UpdateLoadbalancerRequest struct {
+	Loadbalancer         *Loadbalancer `protobuf:"bytes,1,opt,name=loadbalancer" json:"loadbalancer,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
+	XXX_unrecognized     []byte        `json:"-"`
+	XXX_sizecache        int32         `json:"-"`
+}
+
+func (m *UpdateLoadbalancerRequest) Reset()         { *m = UpdateLoadbalancerRequest{} }
+func (m *UpdateLoadbalancerRequest) String() string { return proto.CompactTextString(m) }
+func (*UpdateLoadbalancerRequest) ProtoMessage()    {}
+func (*UpdateLoadbalancerRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_resource_api_grpc_pb_5f75cc7b1192a923, []int{28}
+}
+func (m *UpdateLoadbalancerRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UpdateLoadbalancerRequest.Unmarshal(m, b)
+}
+func (m *UpdateLoadbalancerRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UpdateLoadbalancerRequest.Marshal(b, m, deterministic)
+}
+func (dst *UpdateLoadbalancerRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpdateLoadbalancerRequest.Merge(dst, src)
+}
+func (m *UpdateLoadbalancerRequest) XXX_Size() int {
+	return xxx_messageInfo_UpdateLoadbalancerRequest.Size(m)
+}
+func (m *UpdateLoadbalancerRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpdateLoadbalancerRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UpdateLoadbalancerRequest proto.InternalMessageInfo
+
+func (m *UpdateLoadbalancerRequest) GetLoadbalancer() *Loadbalancer {
+	if m != nil {
+		return m.Loadbalancer
+	}
+	return nil
+}
+
+type UpdateLoadbalancerReply struct {
+	Loadbalancer         *Loadbalancer `protobuf:"bytes,1,opt,name=loadbalancer" json:"loadbalancer,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
+	XXX_unrecognized     []byte        `json:"-"`
+	XXX_sizecache        int32         `json:"-"`
+}
+
+func (m *UpdateLoadbalancerReply) Reset()         { *m = UpdateLoadbalancerReply{} }
+func (m *UpdateLoadbalancerReply) String() string { return proto.CompactTextString(m) }
+func (*UpdateLoadbalancerReply) ProtoMessage()    {}
+func (*UpdateLoadbalancerReply) Descriptor() ([]byte, []int) {
+	return fileDescriptor_resource_api_grpc_pb_5f75cc7b1192a923, []int{29}
+}
+func (m *UpdateLoadbalancerReply) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UpdateLoadbalancerReply.Unmarshal(m, b)
+}
+func (m *UpdateLoadbalancerReply) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UpdateLoadbalancerReply.Marshal(b, m, deterministic)
+}
+func (dst *UpdateLoadbalancerReply) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpdateLoadbalancerReply.Merge(dst, src)
+}
+func (m *UpdateLoadbalancerReply) XXX_Size() int {
+	return xxx_messageInfo_UpdateLoadbalancerReply.Size(m)
+}
+func (m *UpdateLoadbalancerReply) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpdateLoadbalancerReply.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UpdateLoadbalancerReply proto.InternalMessageInfo
+
+func (m *UpdateLoadbalancerReply) GetLoadbalancer() *Loadbalancer {
+	if m != nil {
+		return m.Loadbalancer
+	}
+	return nil
+}
+
+type DeleteComputeRequest struct {
+	Compute              *Compute `protobuf:"bytes,1,opt,name=compute" json:"compute,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *DeleteComputeRequest) Reset()         { *m = DeleteComputeRequest{} }
+func (m *DeleteComputeRequest) String() string { return proto.CompactTextString(m) }
+func (*DeleteComputeRequest) ProtoMessage()    {}
+func (*DeleteComputeRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_resource_api_grpc_pb_5f75cc7b1192a923, []int{30}
+}
+func (m *DeleteComputeRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_DeleteComputeRequest.Unmarshal(m, b)
+}
+func (m *DeleteComputeRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_DeleteComputeRequest.Marshal(b, m, deterministic)
+}
+func (dst *DeleteComputeRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DeleteComputeRequest.Merge(dst, src)
+}
+func (m *DeleteComputeRequest) XXX_Size() int {
+	return xxx_messageInfo_DeleteComputeRequest.Size(m)
+}
+func (m *DeleteComputeRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_DeleteComputeRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_DeleteComputeRequest proto.InternalMessageInfo
+
+func (m *DeleteComputeRequest) GetCompute() *Compute {
+	if m != nil {
+		return m.Compute
+	}
+	return nil
+}
+
+type DeleteComputeReply struct {
+	Compute              *Compute `protobuf:"bytes,1,opt,name=compute" json:"compute,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *DeleteComputeReply) Reset()         { *m = DeleteComputeReply{} }
+func (m *DeleteComputeReply) String() string { return proto.CompactTextString(m) }
+func (*DeleteComputeReply) ProtoMessage()    {}
+func (*DeleteComputeReply) Descriptor() ([]byte, []int) {
+	return fileDescriptor_resource_api_grpc_pb_5f75cc7b1192a923, []int{31}
+}
+func (m *DeleteComputeReply) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_DeleteComputeReply.Unmarshal(m, b)
+}
+func (m *DeleteComputeReply) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_DeleteComputeReply.Marshal(b, m, deterministic)
+}
+func (dst *DeleteComputeReply) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DeleteComputeReply.Merge(dst, src)
+}
+func (m *DeleteComputeReply) XXX_Size() int {
+	return xxx_messageInfo_DeleteComputeReply.Size(m)
+}
+func (m *DeleteComputeReply) XXX_DiscardUnknown() {
+	xxx_messageInfo_DeleteComputeReply.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_DeleteComputeReply proto.InternalMessageInfo
+
+func (m *DeleteComputeReply) GetCompute() *Compute {
+	if m != nil {
+		return m.Compute
+	}
+	return nil
+}
+
+type DeleteImageRequest struct {
+	Image                *Image   `protobuf:"bytes,1,opt,name=image" json:"image,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *DeleteImageRequest) Reset()         { *m = DeleteImageRequest{} }
+func (m *DeleteImageRequest) String() string { return proto.CompactTextString(m) }
+func (*DeleteImageRequest) ProtoMessage()    {}
+func (*DeleteImageRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_resource_api_grpc_pb_5f75cc7b1192a923, []int{32}
+}
+func (m *DeleteImageRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_DeleteImageRequest.Unmarshal(m, b)
+}
+func (m *DeleteImageRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_DeleteImageRequest.Marshal(b, m, deterministic)
+}
+func (dst *DeleteImageRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DeleteImageRequest.Merge(dst, src)
+}
+func (m *DeleteImageRequest) XXX_Size() int {
+	return xxx_messageInfo_DeleteImageRequest.Size(m)
+}
+func (m *DeleteImageRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_DeleteImageRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_DeleteImageRequest proto.InternalMessageInfo
+
+func (m *DeleteImageRequest) GetImage() *Image {
+	if m != nil {
+		return m.Image
+	}
+	return nil
+}
+
+type DeleteImageReply struct {
+	Image                *Image   `protobuf:"bytes,1,opt,name=image" json:"image,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *DeleteImageReply) Reset()         { *m = DeleteImageReply{} }
+func (m *DeleteImageReply) String() string { return proto.CompactTextString(m) }
+func (*DeleteImageReply) ProtoMessage()    {}
+func (*DeleteImageReply) Descriptor() ([]byte, []int) {
+	return fileDescriptor_resource_api_grpc_pb_5f75cc7b1192a923, []int{33}
+}
+func (m *DeleteImageReply) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_DeleteImageReply.Unmarshal(m, b)
+}
+func (m *DeleteImageReply) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_DeleteImageReply.Marshal(b, m, deterministic)
+}
+func (dst *DeleteImageReply) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DeleteImageReply.Merge(dst, src)
+}
+func (m *DeleteImageReply) XXX_Size() int {
+	return xxx_messageInfo_DeleteImageReply.Size(m)
+}
+func (m *DeleteImageReply) XXX_DiscardUnknown() {
+	xxx_messageInfo_DeleteImageReply.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_DeleteImageReply proto.InternalMessageInfo
+
+func (m *DeleteImageReply) GetImage() *Image {
+	if m != nil {
+		return m.Image
+	}
+	return nil
+}
+
+type DeleteVolumeRequest struct {
+	Volume               *Volume  `protobuf:"bytes,1,opt,name=volume" json:"volume,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *DeleteVolumeRequest) Reset()         { *m = DeleteVolumeRequest{} }
+func (m *DeleteVolumeRequest) String() string { return proto.CompactTextString(m) }
+func (*DeleteVolumeRequest) ProtoMessage()    {}
+func (*DeleteVolumeRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_resource_api_grpc_pb_5f75cc7b1192a923, []int{34}
+}
+func (m *DeleteVolumeRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_DeleteVolumeRequest.Unmarshal(m, b)
+}
+func (m *DeleteVolumeRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_DeleteVolumeRequest.Marshal(b, m, deterministic)
+}
+func (dst *DeleteVolumeRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DeleteVolumeRequest.Merge(dst, src)
+}
+func (m *DeleteVolumeRequest) XXX_Size() int {
+	return xxx_messageInfo_DeleteVolumeRequest.Size(m)
+}
+func (m *DeleteVolumeRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_DeleteVolumeRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_DeleteVolumeRequest proto.InternalMessageInfo
+
+func (m *DeleteVolumeRequest) GetVolume() *Volume {
+	if m != nil {
+		return m.Volume
+	}
+	return nil
+}
+
+type DeleteVolumeReply struct {
+	Volume               *Volume  `protobuf:"bytes,1,opt,name=volume" json:"volume,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *DeleteVolumeReply) Reset()         { *m = DeleteVolumeReply{} }
+func (m *DeleteVolumeReply) String() string { return proto.CompactTextString(m) }
+func (*DeleteVolumeReply) ProtoMessage()    {}
+func (*DeleteVolumeReply) Descriptor() ([]byte, []int) {
+	return fileDescriptor_resource_api_grpc_pb_5f75cc7b1192a923, []int{35}
+}
+func (m *DeleteVolumeReply) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_DeleteVolumeReply.Unmarshal(m, b)
+}
+func (m *DeleteVolumeReply) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_DeleteVolumeReply.Marshal(b, m, deterministic)
+}
+func (dst *DeleteVolumeReply) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DeleteVolumeReply.Merge(dst, src)
+}
+func (m *DeleteVolumeReply) XXX_Size() int {
+	return xxx_messageInfo_DeleteVolumeReply.Size(m)
+}
+func (m *DeleteVolumeReply) XXX_DiscardUnknown() {
+	xxx_messageInfo_DeleteVolumeReply.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_DeleteVolumeReply proto.InternalMessageInfo
+
+func (m *DeleteVolumeReply) GetVolume() *Volume {
+	if m != nil {
+		return m.Volume
+	}
+	return nil
+}
+
+type DeleteLoadbalancerRequest struct {
+	Loadbalancer         *Loadbalancer `protobuf:"bytes,1,opt,name=loadbalancer" json:"loadbalancer,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
+	XXX_unrecognized     []byte        `json:"-"`
+	XXX_sizecache        int32         `json:"-"`
+}
+
+func (m *DeleteLoadbalancerRequest) Reset()         { *m = DeleteLoadbalancerRequest{} }
+func (m *DeleteLoadbalancerRequest) String() string { return proto.CompactTextString(m) }
+func (*DeleteLoadbalancerRequest) ProtoMessage()    {}
+func (*DeleteLoadbalancerRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_resource_api_grpc_pb_5f75cc7b1192a923, []int{36}
+}
+func (m *DeleteLoadbalancerRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_DeleteLoadbalancerRequest.Unmarshal(m, b)
+}
+func (m *DeleteLoadbalancerRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_DeleteLoadbalancerRequest.Marshal(b, m, deterministic)
+}
+func (dst *DeleteLoadbalancerRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DeleteLoadbalancerRequest.Merge(dst, src)
+}
+func (m *DeleteLoadbalancerRequest) XXX_Size() int {
+	return xxx_messageInfo_DeleteLoadbalancerRequest.Size(m)
+}
+func (m *DeleteLoadbalancerRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_DeleteLoadbalancerRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_DeleteLoadbalancerRequest proto.InternalMessageInfo
+
+func (m *DeleteLoadbalancerRequest) GetLoadbalancer() *Loadbalancer {
+	if m != nil {
+		return m.Loadbalancer
+	}
+	return nil
+}
+
+type DeleteLoadbalancerReply struct {
+	Loadbalancer         *Loadbalancer `protobuf:"bytes,1,opt,name=loadbalancer" json:"loadbalancer,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
+	XXX_unrecognized     []byte        `json:"-"`
+	XXX_sizecache        int32         `json:"-"`
+}
+
+func (m *DeleteLoadbalancerReply) Reset()         { *m = DeleteLoadbalancerReply{} }
+func (m *DeleteLoadbalancerReply) String() string { return proto.CompactTextString(m) }
+func (*DeleteLoadbalancerReply) ProtoMessage()    {}
+func (*DeleteLoadbalancerReply) Descriptor() ([]byte, []int) {
+	return fileDescriptor_resource_api_grpc_pb_5f75cc7b1192a923, []int{37}
+}
+func (m *DeleteLoadbalancerReply) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_DeleteLoadbalancerReply.Unmarshal(m, b)
+}
+func (m *DeleteLoadbalancerReply) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_DeleteLoadbalancerReply.Marshal(b, m, deterministic)
+}
+func (dst *DeleteLoadbalancerReply) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DeleteLoadbalancerReply.Merge(dst, src)
+}
+func (m *DeleteLoadbalancerReply) XXX_Size() int {
+	return xxx_messageInfo_DeleteLoadbalancerReply.Size(m)
+}
+func (m *DeleteLoadbalancerReply) XXX_DiscardUnknown() {
+	xxx_messageInfo_DeleteLoadbalancerReply.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_DeleteLoadbalancerReply proto.InternalMessageInfo
+
+func (m *DeleteLoadbalancerReply) GetLoadbalancer() *Loadbalancer {
+	if m != nil {
+		return m.Loadbalancer
+	}
+	return nil
+}
+
 type Node struct {
-	Name                 string               `protobuf:"bytes,1,opt,name=name" json:"name,omitempty"`
-	Kind                 string               `protobuf:"bytes,2,opt,name=kind" json:"kind,omitempty"`
-	Role                 string               `protobuf:"bytes,3,opt,name=role" json:"role,omitempty"`
-	Status               string               `protobuf:"bytes,4,opt,name=status" json:"status,omitempty"`
-	StatusReason         string               `protobuf:"bytes,5,opt,name=status_reason,json=statusReason" json:"status_reason,omitempty"`
-	State                string               `protobuf:"bytes,6,opt,name=state" json:"state,omitempty"`
-	StateReason          string               `protobuf:"bytes,7,opt,name=state_reason,json=stateReason" json:"state_reason,omitempty"`
-	UpdatedAt            *timestamp.Timestamp `protobuf:"bytes,8,opt,name=updated_at,json=updatedAt" json:"updated_at,omitempty"`
-	CreatedAt            *timestamp.Timestamp `protobuf:"bytes,9,opt,name=created_at,json=createdAt" json:"created_at,omitempty"`
+	UpdatedAt            *timestamp.Timestamp `protobuf:"bytes,1,opt,name=updated_at,json=updatedAt" json:"updated_at,omitempty"`
+	CreatedAt            *timestamp.Timestamp `protobuf:"bytes,2,opt,name=created_at,json=createdAt" json:"created_at,omitempty"`
+	Name                 string               `protobuf:"bytes,3,opt,name=name" json:"name,omitempty"`
+	Kind                 string               `protobuf:"bytes,4,opt,name=kind" json:"kind,omitempty"`
+	Role                 string               `protobuf:"bytes,5,opt,name=role" json:"role,omitempty"`
+	Status               string               `protobuf:"bytes,6,opt,name=status" json:"status,omitempty"`
+	StatusReason         string               `protobuf:"bytes,7,opt,name=status_reason,json=statusReason" json:"status_reason,omitempty"`
+	State                string               `protobuf:"bytes,8,opt,name=state" json:"state,omitempty"`
+	StateReason          string               `protobuf:"bytes,9,opt,name=state_reason,json=stateReason" json:"state_reason,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}             `json:"-"`
 	XXX_unrecognized     []byte               `json:"-"`
 	XXX_sizecache        int32                `json:"-"`
@@ -615,7 +1551,7 @@ func (m *Node) Reset()         { *m = Node{} }
 func (m *Node) String() string { return proto.CompactTextString(m) }
 func (*Node) ProtoMessage()    {}
 func (*Node) Descriptor() ([]byte, []int) {
-	return fileDescriptor_resource_api_grpc_pb_96a25296872f6d63, []int{14}
+	return fileDescriptor_resource_api_grpc_pb_5f75cc7b1192a923, []int{38}
 }
 func (m *Node) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Node.Unmarshal(m, b)
@@ -634,6 +1570,20 @@ func (m *Node) XXX_DiscardUnknown() {
 }
 
 var xxx_messageInfo_Node proto.InternalMessageInfo
+
+func (m *Node) GetUpdatedAt() *timestamp.Timestamp {
+	if m != nil {
+		return m.UpdatedAt
+	}
+	return nil
+}
+
+func (m *Node) GetCreatedAt() *timestamp.Timestamp {
+	if m != nil {
+		return m.CreatedAt
+	}
+	return nil
+}
 
 func (m *Node) GetName() string {
 	if m != nil {
@@ -684,24 +1634,10 @@ func (m *Node) GetStateReason() string {
 	return ""
 }
 
-func (m *Node) GetUpdatedAt() *timestamp.Timestamp {
-	if m != nil {
-		return m.UpdatedAt
-	}
-	return nil
-}
-
-func (m *Node) GetCreatedAt() *timestamp.Timestamp {
-	if m != nil {
-		return m.CreatedAt
-	}
-	return nil
-}
-
 type Cluster struct {
-	Name                 string               `protobuf:"bytes,1,opt,name=name" json:"name,omitempty"`
-	UpdatedAt            *timestamp.Timestamp `protobuf:"bytes,2,opt,name=updated_at,json=updatedAt" json:"updated_at,omitempty"`
-	CreatedAt            *timestamp.Timestamp `protobuf:"bytes,3,opt,name=created_at,json=createdAt" json:"created_at,omitempty"`
+	UpdatedAt            *timestamp.Timestamp `protobuf:"bytes,1,opt,name=updated_at,json=updatedAt" json:"updated_at,omitempty"`
+	CreatedAt            *timestamp.Timestamp `protobuf:"bytes,2,opt,name=created_at,json=createdAt" json:"created_at,omitempty"`
+	Name                 string               `protobuf:"bytes,3,opt,name=name" json:"name,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}             `json:"-"`
 	XXX_unrecognized     []byte               `json:"-"`
 	XXX_sizecache        int32                `json:"-"`
@@ -711,7 +1647,7 @@ func (m *Cluster) Reset()         { *m = Cluster{} }
 func (m *Cluster) String() string { return proto.CompactTextString(m) }
 func (*Cluster) ProtoMessage()    {}
 func (*Cluster) Descriptor() ([]byte, []int) {
-	return fileDescriptor_resource_api_grpc_pb_96a25296872f6d63, []int{15}
+	return fileDescriptor_resource_api_grpc_pb_5f75cc7b1192a923, []int{39}
 }
 func (m *Cluster) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Cluster.Unmarshal(m, b)
@@ -731,13 +1667,6 @@ func (m *Cluster) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_Cluster proto.InternalMessageInfo
 
-func (m *Cluster) GetName() string {
-	if m != nil {
-		return m.Name
-	}
-	return ""
-}
-
 func (m *Cluster) GetUpdatedAt() *timestamp.Timestamp {
 	if m != nil {
 		return m.UpdatedAt
@@ -752,10 +1681,20 @@ func (m *Cluster) GetCreatedAt() *timestamp.Timestamp {
 	return nil
 }
 
+func (m *Cluster) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
 type Compute struct {
-	Name                 string               `protobuf:"bytes,1,opt,name=name" json:"name,omitempty"`
-	UpdatedAt            *timestamp.Timestamp `protobuf:"bytes,2,opt,name=updated_at,json=updatedAt" json:"updated_at,omitempty"`
-	CreatedAt            *timestamp.Timestamp `protobuf:"bytes,3,opt,name=created_at,json=createdAt" json:"created_at,omitempty"`
+	UpdatedAt            *timestamp.Timestamp `protobuf:"bytes,1,opt,name=updated_at,json=updatedAt" json:"updated_at,omitempty"`
+	CreatedAt            *timestamp.Timestamp `protobuf:"bytes,2,opt,name=created_at,json=createdAt" json:"created_at,omitempty"`
+	Cluster              string               `protobuf:"bytes,3,opt,name=cluster" json:"cluster,omitempty"`
+	Kind                 string               `protobuf:"bytes,4,opt,name=kind" json:"kind,omitempty"`
+	Name                 string               `protobuf:"bytes,5,opt,name=name" json:"name,omitempty"`
+	Spec                 string               `protobuf:"bytes,6,opt,name=spec" json:"spec,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}             `json:"-"`
 	XXX_unrecognized     []byte               `json:"-"`
 	XXX_sizecache        int32                `json:"-"`
@@ -765,7 +1704,7 @@ func (m *Compute) Reset()         { *m = Compute{} }
 func (m *Compute) String() string { return proto.CompactTextString(m) }
 func (*Compute) ProtoMessage()    {}
 func (*Compute) Descriptor() ([]byte, []int) {
-	return fileDescriptor_resource_api_grpc_pb_96a25296872f6d63, []int{16}
+	return fileDescriptor_resource_api_grpc_pb_5f75cc7b1192a923, []int{40}
 }
 func (m *Compute) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Compute.Unmarshal(m, b)
@@ -785,13 +1724,6 @@ func (m *Compute) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_Compute proto.InternalMessageInfo
 
-func (m *Compute) GetName() string {
-	if m != nil {
-		return m.Name
-	}
-	return ""
-}
-
 func (m *Compute) GetUpdatedAt() *timestamp.Timestamp {
 	if m != nil {
 		return m.UpdatedAt
@@ -806,10 +1738,41 @@ func (m *Compute) GetCreatedAt() *timestamp.Timestamp {
 	return nil
 }
 
+func (m *Compute) GetCluster() string {
+	if m != nil {
+		return m.Cluster
+	}
+	return ""
+}
+
+func (m *Compute) GetKind() string {
+	if m != nil {
+		return m.Kind
+	}
+	return ""
+}
+
+func (m *Compute) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+func (m *Compute) GetSpec() string {
+	if m != nil {
+		return m.Spec
+	}
+	return ""
+}
+
 type Image struct {
-	Name                 string               `protobuf:"bytes,1,opt,name=name" json:"name,omitempty"`
-	UpdatedAt            *timestamp.Timestamp `protobuf:"bytes,2,opt,name=updated_at,json=updatedAt" json:"updated_at,omitempty"`
-	CreatedAt            *timestamp.Timestamp `protobuf:"bytes,3,opt,name=created_at,json=createdAt" json:"created_at,omitempty"`
+	UpdatedAt            *timestamp.Timestamp `protobuf:"bytes,1,opt,name=updated_at,json=updatedAt" json:"updated_at,omitempty"`
+	CreatedAt            *timestamp.Timestamp `protobuf:"bytes,2,opt,name=created_at,json=createdAt" json:"created_at,omitempty"`
+	Cluster              string               `protobuf:"bytes,3,opt,name=cluster" json:"cluster,omitempty"`
+	Kind                 string               `protobuf:"bytes,4,opt,name=kind" json:"kind,omitempty"`
+	Name                 string               `protobuf:"bytes,5,opt,name=name" json:"name,omitempty"`
+	Spec                 string               `protobuf:"bytes,6,opt,name=spec" json:"spec,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}             `json:"-"`
 	XXX_unrecognized     []byte               `json:"-"`
 	XXX_sizecache        int32                `json:"-"`
@@ -819,7 +1782,7 @@ func (m *Image) Reset()         { *m = Image{} }
 func (m *Image) String() string { return proto.CompactTextString(m) }
 func (*Image) ProtoMessage()    {}
 func (*Image) Descriptor() ([]byte, []int) {
-	return fileDescriptor_resource_api_grpc_pb_96a25296872f6d63, []int{17}
+	return fileDescriptor_resource_api_grpc_pb_5f75cc7b1192a923, []int{41}
 }
 func (m *Image) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Image.Unmarshal(m, b)
@@ -839,13 +1802,6 @@ func (m *Image) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_Image proto.InternalMessageInfo
 
-func (m *Image) GetName() string {
-	if m != nil {
-		return m.Name
-	}
-	return ""
-}
-
 func (m *Image) GetUpdatedAt() *timestamp.Timestamp {
 	if m != nil {
 		return m.UpdatedAt
@@ -860,10 +1816,41 @@ func (m *Image) GetCreatedAt() *timestamp.Timestamp {
 	return nil
 }
 
+func (m *Image) GetCluster() string {
+	if m != nil {
+		return m.Cluster
+	}
+	return ""
+}
+
+func (m *Image) GetKind() string {
+	if m != nil {
+		return m.Kind
+	}
+	return ""
+}
+
+func (m *Image) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+func (m *Image) GetSpec() string {
+	if m != nil {
+		return m.Spec
+	}
+	return ""
+}
+
 type Volume struct {
-	Name                 string               `protobuf:"bytes,1,opt,name=name" json:"name,omitempty"`
-	UpdatedAt            *timestamp.Timestamp `protobuf:"bytes,2,opt,name=updated_at,json=updatedAt" json:"updated_at,omitempty"`
-	CreatedAt            *timestamp.Timestamp `protobuf:"bytes,3,opt,name=created_at,json=createdAt" json:"created_at,omitempty"`
+	UpdatedAt            *timestamp.Timestamp `protobuf:"bytes,1,opt,name=updated_at,json=updatedAt" json:"updated_at,omitempty"`
+	CreatedAt            *timestamp.Timestamp `protobuf:"bytes,2,opt,name=created_at,json=createdAt" json:"created_at,omitempty"`
+	Cluster              string               `protobuf:"bytes,3,opt,name=cluster" json:"cluster,omitempty"`
+	Kind                 string               `protobuf:"bytes,4,opt,name=kind" json:"kind,omitempty"`
+	Name                 string               `protobuf:"bytes,5,opt,name=name" json:"name,omitempty"`
+	Spec                 string               `protobuf:"bytes,6,opt,name=spec" json:"spec,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}             `json:"-"`
 	XXX_unrecognized     []byte               `json:"-"`
 	XXX_sizecache        int32                `json:"-"`
@@ -873,7 +1860,7 @@ func (m *Volume) Reset()         { *m = Volume{} }
 func (m *Volume) String() string { return proto.CompactTextString(m) }
 func (*Volume) ProtoMessage()    {}
 func (*Volume) Descriptor() ([]byte, []int) {
-	return fileDescriptor_resource_api_grpc_pb_96a25296872f6d63, []int{18}
+	return fileDescriptor_resource_api_grpc_pb_5f75cc7b1192a923, []int{42}
 }
 func (m *Volume) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Volume.Unmarshal(m, b)
@@ -893,13 +1880,6 @@ func (m *Volume) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_Volume proto.InternalMessageInfo
 
-func (m *Volume) GetName() string {
-	if m != nil {
-		return m.Name
-	}
-	return ""
-}
-
 func (m *Volume) GetUpdatedAt() *timestamp.Timestamp {
 	if m != nil {
 		return m.UpdatedAt
@@ -914,10 +1894,41 @@ func (m *Volume) GetCreatedAt() *timestamp.Timestamp {
 	return nil
 }
 
+func (m *Volume) GetCluster() string {
+	if m != nil {
+		return m.Cluster
+	}
+	return ""
+}
+
+func (m *Volume) GetKind() string {
+	if m != nil {
+		return m.Kind
+	}
+	return ""
+}
+
+func (m *Volume) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+func (m *Volume) GetSpec() string {
+	if m != nil {
+		return m.Spec
+	}
+	return ""
+}
+
 type Loadbalancer struct {
-	Name                 string               `protobuf:"bytes,1,opt,name=name" json:"name,omitempty"`
-	UpdatedAt            *timestamp.Timestamp `protobuf:"bytes,2,opt,name=updated_at,json=updatedAt" json:"updated_at,omitempty"`
-	CreatedAt            *timestamp.Timestamp `protobuf:"bytes,3,opt,name=created_at,json=createdAt" json:"created_at,omitempty"`
+	UpdatedAt            *timestamp.Timestamp `protobuf:"bytes,1,opt,name=updated_at,json=updatedAt" json:"updated_at,omitempty"`
+	CreatedAt            *timestamp.Timestamp `protobuf:"bytes,2,opt,name=created_at,json=createdAt" json:"created_at,omitempty"`
+	Cluster              string               `protobuf:"bytes,3,opt,name=cluster" json:"cluster,omitempty"`
+	Kind                 string               `protobuf:"bytes,4,opt,name=kind" json:"kind,omitempty"`
+	Name                 string               `protobuf:"bytes,5,opt,name=name" json:"name,omitempty"`
+	Spec                 string               `protobuf:"bytes,6,opt,name=spec" json:"spec,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}             `json:"-"`
 	XXX_unrecognized     []byte               `json:"-"`
 	XXX_sizecache        int32                `json:"-"`
@@ -927,7 +1938,7 @@ func (m *Loadbalancer) Reset()         { *m = Loadbalancer{} }
 func (m *Loadbalancer) String() string { return proto.CompactTextString(m) }
 func (*Loadbalancer) ProtoMessage()    {}
 func (*Loadbalancer) Descriptor() ([]byte, []int) {
-	return fileDescriptor_resource_api_grpc_pb_96a25296872f6d63, []int{19}
+	return fileDescriptor_resource_api_grpc_pb_5f75cc7b1192a923, []int{43}
 }
 func (m *Loadbalancer) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Loadbalancer.Unmarshal(m, b)
@@ -947,13 +1958,6 @@ func (m *Loadbalancer) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_Loadbalancer proto.InternalMessageInfo
 
-func (m *Loadbalancer) GetName() string {
-	if m != nil {
-		return m.Name
-	}
-	return ""
-}
-
 func (m *Loadbalancer) GetUpdatedAt() *timestamp.Timestamp {
 	if m != nil {
 		return m.UpdatedAt
@@ -966,6 +1970,34 @@ func (m *Loadbalancer) GetCreatedAt() *timestamp.Timestamp {
 		return m.CreatedAt
 	}
 	return nil
+}
+
+func (m *Loadbalancer) GetCluster() string {
+	if m != nil {
+		return m.Cluster
+	}
+	return ""
+}
+
+func (m *Loadbalancer) GetKind() string {
+	if m != nil {
+		return m.Kind
+	}
+	return ""
+}
+
+func (m *Loadbalancer) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+func (m *Loadbalancer) GetSpec() string {
+	if m != nil {
+		return m.Spec
+	}
+	return ""
 }
 
 func init() {
@@ -983,6 +2015,30 @@ func init() {
 	proto.RegisterType((*GetVolumeReply)(nil), "resource_api_grpc_pb.GetVolumeReply")
 	proto.RegisterType((*UpdateNodeRequest)(nil), "resource_api_grpc_pb.UpdateNodeRequest")
 	proto.RegisterType((*UpdateNodeReply)(nil), "resource_api_grpc_pb.UpdateNodeReply")
+	proto.RegisterType((*CreateComputeRequest)(nil), "resource_api_grpc_pb.CreateComputeRequest")
+	proto.RegisterType((*CreateComputeReply)(nil), "resource_api_grpc_pb.CreateComputeReply")
+	proto.RegisterType((*CreateImageRequest)(nil), "resource_api_grpc_pb.CreateImageRequest")
+	proto.RegisterType((*CreateImageReply)(nil), "resource_api_grpc_pb.CreateImageReply")
+	proto.RegisterType((*CreateVolumeRequest)(nil), "resource_api_grpc_pb.CreateVolumeRequest")
+	proto.RegisterType((*CreateVolumeReply)(nil), "resource_api_grpc_pb.CreateVolumeReply")
+	proto.RegisterType((*CreateLoadbalancerRequest)(nil), "resource_api_grpc_pb.CreateLoadbalancerRequest")
+	proto.RegisterType((*CreateLoadbalancerReply)(nil), "resource_api_grpc_pb.CreateLoadbalancerReply")
+	proto.RegisterType((*UpdateComputeRequest)(nil), "resource_api_grpc_pb.UpdateComputeRequest")
+	proto.RegisterType((*UpdateComputeReply)(nil), "resource_api_grpc_pb.UpdateComputeReply")
+	proto.RegisterType((*UpdateImageRequest)(nil), "resource_api_grpc_pb.UpdateImageRequest")
+	proto.RegisterType((*UpdateImageReply)(nil), "resource_api_grpc_pb.UpdateImageReply")
+	proto.RegisterType((*UpdateVolumeRequest)(nil), "resource_api_grpc_pb.UpdateVolumeRequest")
+	proto.RegisterType((*UpdateVolumeReply)(nil), "resource_api_grpc_pb.UpdateVolumeReply")
+	proto.RegisterType((*UpdateLoadbalancerRequest)(nil), "resource_api_grpc_pb.UpdateLoadbalancerRequest")
+	proto.RegisterType((*UpdateLoadbalancerReply)(nil), "resource_api_grpc_pb.UpdateLoadbalancerReply")
+	proto.RegisterType((*DeleteComputeRequest)(nil), "resource_api_grpc_pb.DeleteComputeRequest")
+	proto.RegisterType((*DeleteComputeReply)(nil), "resource_api_grpc_pb.DeleteComputeReply")
+	proto.RegisterType((*DeleteImageRequest)(nil), "resource_api_grpc_pb.DeleteImageRequest")
+	proto.RegisterType((*DeleteImageReply)(nil), "resource_api_grpc_pb.DeleteImageReply")
+	proto.RegisterType((*DeleteVolumeRequest)(nil), "resource_api_grpc_pb.DeleteVolumeRequest")
+	proto.RegisterType((*DeleteVolumeReply)(nil), "resource_api_grpc_pb.DeleteVolumeReply")
+	proto.RegisterType((*DeleteLoadbalancerRequest)(nil), "resource_api_grpc_pb.DeleteLoadbalancerRequest")
+	proto.RegisterType((*DeleteLoadbalancerReply)(nil), "resource_api_grpc_pb.DeleteLoadbalancerReply")
 	proto.RegisterType((*Node)(nil), "resource_api_grpc_pb.Node")
 	proto.RegisterType((*Cluster)(nil), "resource_api_grpc_pb.Cluster")
 	proto.RegisterType((*Compute)(nil), "resource_api_grpc_pb.Compute")
@@ -1009,7 +2065,19 @@ type ResourceApiClient interface {
 	GetCompute(ctx context.Context, in *GetComputeRequest, opts ...grpc.CallOption) (*GetComputeReply, error)
 	GetImage(ctx context.Context, in *GetImageRequest, opts ...grpc.CallOption) (*GetImageReply, error)
 	GetVolume(ctx context.Context, in *GetVolumeRequest, opts ...grpc.CallOption) (*GetVolumeReply, error)
+	CreateCompute(ctx context.Context, in *CreateComputeRequest, opts ...grpc.CallOption) (*CreateComputeReply, error)
+	CreateVolume(ctx context.Context, in *CreateVolumeRequest, opts ...grpc.CallOption) (*CreateVolumeReply, error)
+	CreateImage(ctx context.Context, in *CreateImageRequest, opts ...grpc.CallOption) (*CreateImageReply, error)
+	CreateLoadbalancer(ctx context.Context, in *CreateLoadbalancerRequest, opts ...grpc.CallOption) (*CreateLoadbalancerReply, error)
 	UpdateNode(ctx context.Context, in *UpdateNodeRequest, opts ...grpc.CallOption) (*UpdateNodeReply, error)
+	UpdateCompute(ctx context.Context, in *UpdateComputeRequest, opts ...grpc.CallOption) (*UpdateComputeReply, error)
+	UpdateVolume(ctx context.Context, in *UpdateVolumeRequest, opts ...grpc.CallOption) (*UpdateVolumeReply, error)
+	UpdateImage(ctx context.Context, in *UpdateImageRequest, opts ...grpc.CallOption) (*UpdateImageReply, error)
+	UpdateLoadbalancer(ctx context.Context, in *UpdateLoadbalancerRequest, opts ...grpc.CallOption) (*UpdateLoadbalancerReply, error)
+	DeleteCompute(ctx context.Context, in *DeleteComputeRequest, opts ...grpc.CallOption) (*DeleteComputeReply, error)
+	DeleteVolume(ctx context.Context, in *DeleteVolumeRequest, opts ...grpc.CallOption) (*DeleteVolumeReply, error)
+	DeleteImage(ctx context.Context, in *DeleteImageRequest, opts ...grpc.CallOption) (*DeleteImageReply, error)
+	DeleteLoadbalancer(ctx context.Context, in *DeleteLoadbalancerRequest, opts ...grpc.CallOption) (*DeleteLoadbalancerReply, error)
 }
 
 type resourceApiClient struct {
@@ -1074,9 +2142,117 @@ func (c *resourceApiClient) GetVolume(ctx context.Context, in *GetVolumeRequest,
 	return out, nil
 }
 
+func (c *resourceApiClient) CreateCompute(ctx context.Context, in *CreateComputeRequest, opts ...grpc.CallOption) (*CreateComputeReply, error) {
+	out := new(CreateComputeReply)
+	err := c.cc.Invoke(ctx, "/resource_api_grpc_pb.ResourceApi/CreateCompute", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *resourceApiClient) CreateVolume(ctx context.Context, in *CreateVolumeRequest, opts ...grpc.CallOption) (*CreateVolumeReply, error) {
+	out := new(CreateVolumeReply)
+	err := c.cc.Invoke(ctx, "/resource_api_grpc_pb.ResourceApi/CreateVolume", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *resourceApiClient) CreateImage(ctx context.Context, in *CreateImageRequest, opts ...grpc.CallOption) (*CreateImageReply, error) {
+	out := new(CreateImageReply)
+	err := c.cc.Invoke(ctx, "/resource_api_grpc_pb.ResourceApi/CreateImage", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *resourceApiClient) CreateLoadbalancer(ctx context.Context, in *CreateLoadbalancerRequest, opts ...grpc.CallOption) (*CreateLoadbalancerReply, error) {
+	out := new(CreateLoadbalancerReply)
+	err := c.cc.Invoke(ctx, "/resource_api_grpc_pb.ResourceApi/CreateLoadbalancer", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *resourceApiClient) UpdateNode(ctx context.Context, in *UpdateNodeRequest, opts ...grpc.CallOption) (*UpdateNodeReply, error) {
 	out := new(UpdateNodeReply)
 	err := c.cc.Invoke(ctx, "/resource_api_grpc_pb.ResourceApi/UpdateNode", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *resourceApiClient) UpdateCompute(ctx context.Context, in *UpdateComputeRequest, opts ...grpc.CallOption) (*UpdateComputeReply, error) {
+	out := new(UpdateComputeReply)
+	err := c.cc.Invoke(ctx, "/resource_api_grpc_pb.ResourceApi/UpdateCompute", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *resourceApiClient) UpdateVolume(ctx context.Context, in *UpdateVolumeRequest, opts ...grpc.CallOption) (*UpdateVolumeReply, error) {
+	out := new(UpdateVolumeReply)
+	err := c.cc.Invoke(ctx, "/resource_api_grpc_pb.ResourceApi/UpdateVolume", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *resourceApiClient) UpdateImage(ctx context.Context, in *UpdateImageRequest, opts ...grpc.CallOption) (*UpdateImageReply, error) {
+	out := new(UpdateImageReply)
+	err := c.cc.Invoke(ctx, "/resource_api_grpc_pb.ResourceApi/UpdateImage", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *resourceApiClient) UpdateLoadbalancer(ctx context.Context, in *UpdateLoadbalancerRequest, opts ...grpc.CallOption) (*UpdateLoadbalancerReply, error) {
+	out := new(UpdateLoadbalancerReply)
+	err := c.cc.Invoke(ctx, "/resource_api_grpc_pb.ResourceApi/UpdateLoadbalancer", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *resourceApiClient) DeleteCompute(ctx context.Context, in *DeleteComputeRequest, opts ...grpc.CallOption) (*DeleteComputeReply, error) {
+	out := new(DeleteComputeReply)
+	err := c.cc.Invoke(ctx, "/resource_api_grpc_pb.ResourceApi/DeleteCompute", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *resourceApiClient) DeleteVolume(ctx context.Context, in *DeleteVolumeRequest, opts ...grpc.CallOption) (*DeleteVolumeReply, error) {
+	out := new(DeleteVolumeReply)
+	err := c.cc.Invoke(ctx, "/resource_api_grpc_pb.ResourceApi/DeleteVolume", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *resourceApiClient) DeleteImage(ctx context.Context, in *DeleteImageRequest, opts ...grpc.CallOption) (*DeleteImageReply, error) {
+	out := new(DeleteImageReply)
+	err := c.cc.Invoke(ctx, "/resource_api_grpc_pb.ResourceApi/DeleteImage", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *resourceApiClient) DeleteLoadbalancer(ctx context.Context, in *DeleteLoadbalancerRequest, opts ...grpc.CallOption) (*DeleteLoadbalancerReply, error) {
+	out := new(DeleteLoadbalancerReply)
+	err := c.cc.Invoke(ctx, "/resource_api_grpc_pb.ResourceApi/DeleteLoadbalancer", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1091,7 +2267,19 @@ type ResourceApiServer interface {
 	GetCompute(context.Context, *GetComputeRequest) (*GetComputeReply, error)
 	GetImage(context.Context, *GetImageRequest) (*GetImageReply, error)
 	GetVolume(context.Context, *GetVolumeRequest) (*GetVolumeReply, error)
+	CreateCompute(context.Context, *CreateComputeRequest) (*CreateComputeReply, error)
+	CreateVolume(context.Context, *CreateVolumeRequest) (*CreateVolumeReply, error)
+	CreateImage(context.Context, *CreateImageRequest) (*CreateImageReply, error)
+	CreateLoadbalancer(context.Context, *CreateLoadbalancerRequest) (*CreateLoadbalancerReply, error)
 	UpdateNode(context.Context, *UpdateNodeRequest) (*UpdateNodeReply, error)
+	UpdateCompute(context.Context, *UpdateComputeRequest) (*UpdateComputeReply, error)
+	UpdateVolume(context.Context, *UpdateVolumeRequest) (*UpdateVolumeReply, error)
+	UpdateImage(context.Context, *UpdateImageRequest) (*UpdateImageReply, error)
+	UpdateLoadbalancer(context.Context, *UpdateLoadbalancerRequest) (*UpdateLoadbalancerReply, error)
+	DeleteCompute(context.Context, *DeleteComputeRequest) (*DeleteComputeReply, error)
+	DeleteVolume(context.Context, *DeleteVolumeRequest) (*DeleteVolumeReply, error)
+	DeleteImage(context.Context, *DeleteImageRequest) (*DeleteImageReply, error)
+	DeleteLoadbalancer(context.Context, *DeleteLoadbalancerRequest) (*DeleteLoadbalancerReply, error)
 }
 
 func RegisterResourceApiServer(s *grpc.Server, srv ResourceApiServer) {
@@ -1206,6 +2394,78 @@ func _ResourceApi_GetVolume_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ResourceApi_CreateCompute_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateComputeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ResourceApiServer).CreateCompute(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/resource_api_grpc_pb.ResourceApi/CreateCompute",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ResourceApiServer).CreateCompute(ctx, req.(*CreateComputeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ResourceApi_CreateVolume_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateVolumeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ResourceApiServer).CreateVolume(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/resource_api_grpc_pb.ResourceApi/CreateVolume",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ResourceApiServer).CreateVolume(ctx, req.(*CreateVolumeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ResourceApi_CreateImage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateImageRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ResourceApiServer).CreateImage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/resource_api_grpc_pb.ResourceApi/CreateImage",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ResourceApiServer).CreateImage(ctx, req.(*CreateImageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ResourceApi_CreateLoadbalancer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateLoadbalancerRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ResourceApiServer).CreateLoadbalancer(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/resource_api_grpc_pb.ResourceApi/CreateLoadbalancer",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ResourceApiServer).CreateLoadbalancer(ctx, req.(*CreateLoadbalancerRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _ResourceApi_UpdateNode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UpdateNodeRequest)
 	if err := dec(in); err != nil {
@@ -1220,6 +2480,150 @@ func _ResourceApi_UpdateNode_Handler(srv interface{}, ctx context.Context, dec f
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ResourceApiServer).UpdateNode(ctx, req.(*UpdateNodeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ResourceApi_UpdateCompute_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateComputeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ResourceApiServer).UpdateCompute(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/resource_api_grpc_pb.ResourceApi/UpdateCompute",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ResourceApiServer).UpdateCompute(ctx, req.(*UpdateComputeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ResourceApi_UpdateVolume_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateVolumeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ResourceApiServer).UpdateVolume(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/resource_api_grpc_pb.ResourceApi/UpdateVolume",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ResourceApiServer).UpdateVolume(ctx, req.(*UpdateVolumeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ResourceApi_UpdateImage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateImageRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ResourceApiServer).UpdateImage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/resource_api_grpc_pb.ResourceApi/UpdateImage",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ResourceApiServer).UpdateImage(ctx, req.(*UpdateImageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ResourceApi_UpdateLoadbalancer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateLoadbalancerRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ResourceApiServer).UpdateLoadbalancer(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/resource_api_grpc_pb.ResourceApi/UpdateLoadbalancer",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ResourceApiServer).UpdateLoadbalancer(ctx, req.(*UpdateLoadbalancerRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ResourceApi_DeleteCompute_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteComputeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ResourceApiServer).DeleteCompute(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/resource_api_grpc_pb.ResourceApi/DeleteCompute",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ResourceApiServer).DeleteCompute(ctx, req.(*DeleteComputeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ResourceApi_DeleteVolume_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteVolumeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ResourceApiServer).DeleteVolume(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/resource_api_grpc_pb.ResourceApi/DeleteVolume",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ResourceApiServer).DeleteVolume(ctx, req.(*DeleteVolumeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ResourceApi_DeleteImage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteImageRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ResourceApiServer).DeleteImage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/resource_api_grpc_pb.ResourceApi/DeleteImage",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ResourceApiServer).DeleteImage(ctx, req.(*DeleteImageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ResourceApi_DeleteLoadbalancer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteLoadbalancerRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ResourceApiServer).DeleteLoadbalancer(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/resource_api_grpc_pb.ResourceApi/DeleteLoadbalancer",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ResourceApiServer).DeleteLoadbalancer(ctx, req.(*DeleteLoadbalancerRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1253,8 +2657,56 @@ var _ResourceApi_serviceDesc = grpc.ServiceDesc{
 			Handler:    _ResourceApi_GetVolume_Handler,
 		},
 		{
+			MethodName: "CreateCompute",
+			Handler:    _ResourceApi_CreateCompute_Handler,
+		},
+		{
+			MethodName: "CreateVolume",
+			Handler:    _ResourceApi_CreateVolume_Handler,
+		},
+		{
+			MethodName: "CreateImage",
+			Handler:    _ResourceApi_CreateImage_Handler,
+		},
+		{
+			MethodName: "CreateLoadbalancer",
+			Handler:    _ResourceApi_CreateLoadbalancer_Handler,
+		},
+		{
 			MethodName: "UpdateNode",
 			Handler:    _ResourceApi_UpdateNode_Handler,
+		},
+		{
+			MethodName: "UpdateCompute",
+			Handler:    _ResourceApi_UpdateCompute_Handler,
+		},
+		{
+			MethodName: "UpdateVolume",
+			Handler:    _ResourceApi_UpdateVolume_Handler,
+		},
+		{
+			MethodName: "UpdateImage",
+			Handler:    _ResourceApi_UpdateImage_Handler,
+		},
+		{
+			MethodName: "UpdateLoadbalancer",
+			Handler:    _ResourceApi_UpdateLoadbalancer_Handler,
+		},
+		{
+			MethodName: "DeleteCompute",
+			Handler:    _ResourceApi_DeleteCompute_Handler,
+		},
+		{
+			MethodName: "DeleteVolume",
+			Handler:    _ResourceApi_DeleteVolume_Handler,
+		},
+		{
+			MethodName: "DeleteImage",
+			Handler:    _ResourceApi_DeleteImage_Handler,
+		},
+		{
+			MethodName: "DeleteLoadbalancer",
+			Handler:    _ResourceApi_DeleteLoadbalancer_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -1262,53 +2714,80 @@ var _ResourceApi_serviceDesc = grpc.ServiceDesc{
 }
 
 func init() {
-	proto.RegisterFile("resource_api_grpc_pb.proto", fileDescriptor_resource_api_grpc_pb_96a25296872f6d63)
+	proto.RegisterFile("resource_api_grpc_pb.proto", fileDescriptor_resource_api_grpc_pb_5f75cc7b1192a923)
 }
 
-var fileDescriptor_resource_api_grpc_pb_96a25296872f6d63 = []byte{
-	// 696 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xd4, 0x55, 0xdf, 0x6a, 0x13, 0x4f,
-	0x14, 0xee, 0x36, 0x4d, 0xd2, 0x9c, 0xb4, 0xbf, 0xb4, 0x43, 0xf9, 0xb1, 0x6c, 0x95, 0xb6, 0xd3,
-	0xaa, 0x55, 0x61, 0x5b, 0x5a, 0x10, 0x7a, 0x67, 0xab, 0x10, 0x85, 0x22, 0x25, 0xb5, 0x22, 0x08,
-	0x86, 0x4d, 0xf6, 0xb8, 0x2c, 0xee, 0x66, 0xd6, 0xdd, 0x59, 0xb1, 0x4f, 0x21, 0xea, 0x8d, 0x4f,
-	0xe1, 0x5b, 0xf8, 0x5e, 0x32, 0xff, 0xd2, 0xac, 0x6e, 0xba, 0xea, 0x55, 0xbc, 0x9b, 0x33, 0xf3,
-	0x7d, 0xe7, 0x3b, 0x33, 0x9c, 0x33, 0x1f, 0x38, 0x29, 0x66, 0x2c, 0x4f, 0x87, 0xd8, 0xf7, 0x92,
-	0xb0, 0x1f, 0xa4, 0xc9, 0xb0, 0x9f, 0x0c, 0xdc, 0x24, 0x65, 0x9c, 0x91, 0xb5, 0xb2, 0x33, 0x67,
-	0x23, 0x60, 0x2c, 0x88, 0x70, 0x4f, 0x62, 0x06, 0xf9, 0x9b, 0x3d, 0x1e, 0xc6, 0x98, 0x71, 0x2f,
-	0x4e, 0x14, 0x8d, 0x76, 0x60, 0xf9, 0x9c, 0x7b, 0x3c, 0xcf, 0x7a, 0xf8, 0x2e, 0xc7, 0x8c, 0xd3,
-	0x0d, 0x68, 0x9b, 0x8d, 0x24, 0xba, 0x24, 0x2b, 0x50, 0x8b, 0xb3, 0xc0, 0xb6, 0x36, 0xad, 0xdd,
-	0x56, 0x4f, 0x2c, 0xe9, 0x09, 0xfc, 0xd7, 0x45, 0xfe, 0x8c, 0xf9, 0xa8, 0x29, 0xe4, 0x7f, 0x68,
-	0x70, 0x2f, 0x0d, 0x90, 0x6b, 0x98, 0x8e, 0x88, 0x0d, 0xcd, 0x61, 0x94, 0x67, 0x1c, 0x53, 0x7b,
-	0x5e, 0x1e, 0x98, 0x90, 0x3e, 0x84, 0xa5, 0x71, 0x0e, 0xa1, 0xb2, 0x0f, 0xf5, 0x11, 0xf3, 0x31,
-	0xb3, 0xad, 0xcd, 0xda, 0x6e, 0xfb, 0xc0, 0x71, 0x4b, 0x2f, 0x2a, 0xf1, 0x0a, 0x48, 0xef, 0xc3,
-	0x6a, 0x17, 0xf9, 0x23, 0x95, 0xaf, 0xa2, 0x10, 0x7a, 0x0a, 0x9d, 0x49, 0xb0, 0x50, 0x3c, 0x82,
-	0x45, 0x5d, 0x8c, 0x11, 0xbd, 0x59, 0x2e, 0x6a, 0x58, 0x63, 0xb8, 0x91, 0x66, 0x71, 0x92, 0x73,
-	0xfc, 0x4d, 0x69, 0x03, 0x36, 0xd2, 0x2a, 0xae, 0x92, 0xd6, 0xac, 0x31, 0x9c, 0xde, 0x95, 0xd9,
-	0x9e, 0xc6, 0x5e, 0x50, 0x29, 0xfc, 0x18, 0x96, 0xaf, 0xa0, 0x42, 0xf6, 0x10, 0x1a, 0xa1, 0x88,
-	0x8c, 0xe8, 0x7a, 0xb9, 0xa8, 0x62, 0x68, 0x28, 0xbd, 0x07, 0x2b, 0x5d, 0xe4, 0x2f, 0x58, 0x94,
-	0xc7, 0x95, 0x8a, 0x4f, 0x64, 0x63, 0x18, 0xac, 0x90, 0x7c, 0x00, 0xcd, 0xf7, 0x32, 0x34, 0x9a,
-	0x37, 0xca, 0x35, 0x35, 0xc7, 0x80, 0xe9, 0x77, 0x0b, 0x56, 0x2f, 0x12, 0xdf, 0xe3, 0x38, 0xd9,
-	0x66, 0x04, 0x16, 0x46, 0x5e, 0x8c, 0x5a, 0x55, 0xae, 0xc5, 0xde, 0xdb, 0x70, 0xe4, 0xeb, 0xfe,
-	0x92, 0x6b, 0xb1, 0x97, 0xb2, 0x08, 0xed, 0x9a, 0xda, 0x13, 0x6b, 0x51, 0x73, 0x26, 0xbb, 0xda,
-	0x5e, 0x50, 0x35, 0xab, 0x88, 0x6c, 0xc3, 0xb2, 0x5a, 0xf5, 0x53, 0xf4, 0x32, 0x36, 0xb2, 0xeb,
-	0xf2, 0x78, 0x29, 0xd3, 0x23, 0x20, 0xf6, 0xc8, 0x1a, 0xd4, 0x45, 0x8c, 0x76, 0x43, 0x1e, 0xaa,
-	0x80, 0x6c, 0x81, 0x44, 0xa1, 0x61, 0x36, 0xe5, 0x61, 0x5b, 0xee, 0x29, 0x22, 0x5d, 0x85, 0xce,
-	0xe4, 0x35, 0x92, 0xe8, 0x92, 0x7e, 0x9b, 0x87, 0x05, 0x11, 0xfd, 0x7b, 0xb7, 0x21, 0x47, 0x00,
-	0xb9, 0xbc, 0x8d, 0xdf, 0xf7, 0xb8, 0xbd, 0xb8, 0x69, 0xc9, 0x49, 0x55, 0x1f, 0x8c, 0x6b, 0x3e,
-	0x18, 0xf7, 0xb9, 0xf9, 0x60, 0x7a, 0x2d, 0x8d, 0x3e, 0xe6, 0x82, 0x3a, 0x4c, 0xd1, 0x50, 0x5b,
-	0xd5, 0x54, 0x8d, 0x3e, 0xe6, 0xf4, 0x8b, 0x05, 0x4d, 0x3d, 0x83, 0xa5, 0x6f, 0x56, 0xac, 0x6a,
-	0xfe, 0xef, 0xab, 0xaa, 0xfd, 0x71, 0x55, 0x6a, 0x2a, 0x67, 0xa8, 0xaa, 0x4f, 0x16, 0xd4, 0xe5,
-	0xfc, 0xce, 0x50, 0x4d, 0x9f, 0x2d, 0x68, 0xa8, 0xf9, 0x9e, 0xa1, 0xa2, 0xbe, 0x5a, 0xb0, 0x74,
-	0xca, 0x3c, 0x7f, 0xe0, 0x45, 0xde, 0x68, 0x38, 0x4b, 0x9d, 0x75, 0xf0, 0xb1, 0x0e, 0xed, 0x9e,
-	0xfe, 0x24, 0x8f, 0x93, 0x90, 0xf4, 0xa0, 0x71, 0xae, 0xa7, 0xbb, 0xfc, 0xf3, 0x2c, 0xd8, 0xb7,
-	0xb3, 0x75, 0x3d, 0x48, 0x7c, 0x41, 0x73, 0xe4, 0x02, 0x9a, 0xda, 0x7e, 0xc9, 0x4e, 0x39, 0xbe,
-	0xe8, 0xf0, 0x0e, 0xad, 0x40, 0xa9, 0xb4, 0xaf, 0x01, 0xae, 0x6c, 0x96, 0xdc, 0x99, 0xca, 0x29,
-	0xba, 0xb6, 0x73, 0xab, 0x1a, 0x58, 0xc8, 0xaf, 0xc7, 0xee, 0x9a, 0xfc, 0x05, 0x6b, 0xbe, 0x2e,
-	0xff, 0x84, 0x2d, 0xd3, 0x39, 0xf2, 0x12, 0x16, 0x8d, 0x65, 0x92, 0xe9, 0xa4, 0x49, 0xf7, 0x75,
-	0xb6, 0xab, 0x60, 0x2a, 0xf3, 0x2b, 0x68, 0x8d, 0xad, 0x91, 0xdc, 0x9e, 0xca, 0x29, 0xf8, 0xac,
-	0xb3, 0x53, 0x89, 0x1b, 0x3f, 0xcb, 0x95, 0xcb, 0x4c, 0x7b, 0x96, 0x5f, 0xec, 0x74, 0xda, 0xb3,
-	0xfc, 0x6c, 0x58, 0x73, 0x27, 0xfb, 0xb0, 0x1e, 0x32, 0x57, 0x9c, 0xbb, 0xf8, 0xc1, 0x8b, 0x93,
-	0x08, 0x33, 0x37, 0x65, 0x39, 0xc7, 0x20, 0x0f, 0x7d, 0x3c, 0xe9, 0xf4, 0xc4, 0xba, 0x2b, 0xd6,
-	0x67, 0xa2, 0xb3, 0xcf, 0xac, 0x41, 0x43, 0xb6, 0xf8, 0xe1, 0x8f, 0x00, 0x00, 0x00, 0xff, 0xff,
-	0x1f, 0xb5, 0x27, 0x82, 0xb0, 0x0a, 0x00, 0x00,
+var fileDescriptor_resource_api_grpc_pb_5f75cc7b1192a923 = []byte{
+	// 1134 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xdc, 0x58, 0xdd, 0x8e, 0x1b, 0x35,
+	0x14, 0xde, 0xd9, 0x6c, 0x92, 0xdd, 0x93, 0x2c, 0xd9, 0x35, 0x2b, 0x08, 0x53, 0x50, 0x5b, 0xb7,
+	0x74, 0x17, 0x10, 0xd9, 0xd2, 0x22, 0x50, 0xef, 0xd8, 0x9f, 0x12, 0x2a, 0x0a, 0xad, 0x52, 0x8a,
+	0x90, 0x90, 0x88, 0x26, 0x89, 0x89, 0x22, 0x26, 0x99, 0x61, 0xc6, 0x53, 0xd1, 0x87, 0xe0, 0x8a,
+	0xf7, 0xe0, 0x2d, 0x78, 0x02, 0xe0, 0x86, 0xa7, 0x41, 0xf6, 0xf1, 0x24, 0xe3, 0xc4, 0x9e, 0x44,
+	0xc9, 0x54, 0xa0, 0xbd, 0xb3, 0x3d, 0xdf, 0xf9, 0x7c, 0xbc, 0xe7, 0x8b, 0xf7, 0x7c, 0x06, 0x37,
+	0x62, 0x71, 0x90, 0x44, 0x7d, 0xd6, 0xf5, 0xc2, 0x51, 0x77, 0x18, 0x85, 0xfd, 0x6e, 0xd8, 0x6b,
+	0x85, 0x51, 0xc0, 0x03, 0x72, 0x64, 0xfa, 0xe6, 0x5e, 0x1f, 0x06, 0xc1, 0xd0, 0x67, 0xa7, 0x12,
+	0xd3, 0x4b, 0x7e, 0x3c, 0xe5, 0xa3, 0x31, 0x8b, 0xb9, 0x37, 0x0e, 0x31, 0x8c, 0x36, 0x60, 0xff,
+	0x19, 0xf7, 0x78, 0x12, 0x77, 0xd8, 0xcf, 0x09, 0x8b, 0x39, 0xbd, 0x0e, 0xb5, 0x74, 0x21, 0xf4,
+	0x5f, 0x92, 0x03, 0x28, 0x8d, 0xe3, 0x61, 0xd3, 0xb9, 0xe1, 0x9c, 0xec, 0x75, 0xc4, 0x90, 0x9e,
+	0xc3, 0x6b, 0x6d, 0xc6, 0xbf, 0x0e, 0x06, 0x4c, 0x85, 0x90, 0x37, 0xa0, 0xc2, 0xbd, 0x68, 0xc8,
+	0xb8, 0x82, 0xa9, 0x19, 0x69, 0x42, 0xb5, 0xef, 0x27, 0x31, 0x67, 0x51, 0x73, 0x5b, 0x7e, 0x48,
+	0xa7, 0xf4, 0x33, 0xa8, 0x4f, 0x39, 0xc4, 0x2e, 0x77, 0xa1, 0x3c, 0x09, 0x06, 0x2c, 0x6e, 0x3a,
+	0x37, 0x4a, 0x27, 0xb5, 0x7b, 0x6e, 0xcb, 0x78, 0x50, 0x89, 0x47, 0x20, 0xfd, 0x00, 0x0e, 0xdb,
+	0x8c, 0x5f, 0x20, 0xdf, 0x92, 0x44, 0xe8, 0x63, 0x68, 0x64, 0xc1, 0x62, 0xc7, 0x07, 0xb0, 0xab,
+	0x92, 0x49, 0x37, 0x7d, 0xc7, 0xbc, 0x69, 0x1a, 0x35, 0x85, 0xd3, 0x87, 0xb8, 0x75, 0x30, 0x0e,
+	0x13, 0xbe, 0xc1, 0xdf, 0x40, 0x25, 0x95, 0xd2, 0xa4, 0x49, 0xe1, 0x7c, 0x59, 0x52, 0x2a, 0x6a,
+	0x0a, 0xa7, 0x17, 0x92, 0xed, 0xd1, 0xd8, 0x1b, 0x6e, 0x90, 0xd2, 0x25, 0xec, 0xcf, 0x48, 0x44,
+	0x42, 0xf7, 0xa1, 0x32, 0x12, 0xb3, 0x34, 0x9d, 0x6b, 0xe6, 0x74, 0x30, 0x42, 0x41, 0xe9, 0x25,
+	0x1c, 0xb4, 0x19, 0xff, 0x36, 0xf0, 0x93, 0xf1, 0x06, 0xb9, 0x7c, 0x21, 0x65, 0x96, 0xb2, 0x88,
+	0x64, 0x3e, 0x81, 0xea, 0x0b, 0x39, 0x4d, 0xb3, 0x79, 0xdb, 0x9c, 0x8d, 0x8a, 0x49, 0xc1, 0xf4,
+	0x0f, 0x07, 0x0e, 0x9f, 0x87, 0x03, 0x8f, 0xb3, 0xac, 0x68, 0x09, 0xec, 0x4c, 0xbc, 0x31, 0x53,
+	0xf9, 0xc8, 0xb1, 0x58, 0xfb, 0x69, 0x34, 0x19, 0xa8, 0x54, 0xe4, 0x58, 0xac, 0x45, 0x81, 0xcf,
+	0x9a, 0x25, 0x5c, 0x13, 0x63, 0x71, 0x9a, 0x58, 0xfe, 0x46, 0x9a, 0x3b, 0x78, 0x1a, 0x9c, 0x91,
+	0x5b, 0xb0, 0x8f, 0xa3, 0x6e, 0xc4, 0xbc, 0x38, 0x98, 0x34, 0xcb, 0xf2, 0x73, 0x3d, 0x56, 0x3f,
+	0x28, 0xb1, 0x46, 0x8e, 0xa0, 0x2c, 0xe6, 0xac, 0x59, 0x91, 0x1f, 0x71, 0x42, 0x6e, 0x82, 0x44,
+	0xb1, 0x34, 0xb2, 0x2a, 0x3f, 0xd6, 0xe4, 0x1a, 0x06, 0xd2, 0x43, 0x68, 0x64, 0x8f, 0x11, 0xfa,
+	0x2f, 0xe9, 0x13, 0x38, 0xba, 0x88, 0x98, 0xc7, 0xd9, 0x9c, 0x1a, 0x3f, 0x85, 0xaa, 0x52, 0x86,
+	0x3c, 0xdf, 0x52, 0x1d, 0xa5, 0x68, 0xfa, 0x15, 0x90, 0x39, 0x42, 0xf1, 0x97, 0x5f, 0x9b, 0xae,
+	0x9d, 0xd2, 0x69, 0xc2, 0xfc, 0x08, 0xca, 0x52, 0x2a, 0x8a, 0x2c, 0x57, 0x54, 0x88, 0xa4, 0x0f,
+	0xe1, 0x40, 0x23, 0x12, 0x59, 0xad, 0x41, 0xf3, 0x25, 0xbc, 0x8e, 0x34, 0xba, 0x3a, 0x3f, 0x86,
+	0x0a, 0x8a, 0x45, 0x51, 0xe5, 0x0b, 0x4b, 0x61, 0xe9, 0x23, 0x38, 0xd4, 0xc9, 0x44, 0x52, 0xeb,
+	0x51, 0xf5, 0xe1, 0x2d, 0xa4, 0x7a, 0x1c, 0x78, 0x83, 0x9e, 0xe7, 0x7b, 0x93, 0xfe, 0xec, 0x56,
+	0xfb, 0x1c, 0xea, 0x7e, 0x66, 0x59, 0x11, 0x53, 0x33, 0xb1, 0x46, 0xa0, 0xc5, 0x51, 0x0f, 0xde,
+	0x34, 0x6d, 0x22, 0xb2, 0x2e, 0x6a, 0x8b, 0x27, 0x70, 0x84, 0x12, 0x2d, 0x50, 0x8f, 0x73, 0x84,
+	0x9b, 0xea, 0x11, 0xe9, 0x0a, 0xd0, 0xa3, 0x46, 0xb4, 0xbe, 0x1e, 0x91, 0xa6, 0x20, 0x3d, 0xea,
+	0x64, 0x1b, 0xe9, 0x11, 0xa9, 0x5e, 0xb1, 0x1e, 0x4d, 0x9b, 0x14, 0xac, 0xc7, 0x4b, 0xe6, 0xb3,
+	0x42, 0xf5, 0x38, 0x47, 0xb8, 0xa9, 0x1e, 0x91, 0xae, 0x00, 0x3d, 0x6a, 0x44, 0xeb, 0xeb, 0x11,
+	0x69, 0x0a, 0xd2, 0xa3, 0x4e, 0xb6, 0x91, 0x1e, 0x91, 0xea, 0x15, 0xeb, 0xd1, 0xb4, 0x49, 0x91,
+	0x7a, 0xfc, 0x7d, 0x1b, 0x76, 0xc4, 0x7f, 0x6f, 0xf2, 0x00, 0x20, 0x91, 0xda, 0x1f, 0x74, 0x3d,
+	0xae, 0xe8, 0xdc, 0x16, 0x36, 0xeb, 0xad, 0xb4, 0x59, 0x6f, 0x7d, 0x93, 0x36, 0xeb, 0x9d, 0x3d,
+	0x85, 0x3e, 0xe3, 0x22, 0xb4, 0x2f, 0xaf, 0x71, 0x19, 0xba, 0xbd, 0x3c, 0x54, 0xa1, 0xcf, 0x66,
+	0x3d, 0x4f, 0xc9, 0xd0, 0xf3, 0xec, 0x18, 0x7a, 0x9e, 0xb2, 0xb1, 0xe7, 0xa9, 0xe4, 0xf7, 0x3c,
+	0xd5, 0xbc, 0x9e, 0x67, 0x37, 0xaf, 0xe7, 0xd9, 0x5b, 0xec, 0x79, 0x7e, 0x73, 0xa0, 0xaa, 0x3a,
+	0xf0, 0xff, 0xcf, 0xdf, 0x8c, 0xfe, 0x2d, 0xb2, 0xc2, 0x9f, 0xf0, 0x7f, 0x94, 0x55, 0xa6, 0x6f,
+	0x2e, 0x69, 0x7d, 0xb3, 0xad, 0x9e, 0xf2, 0x0c, 0x65, 0xbd, 0xee, 0x71, 0xc8, 0xfa, 0xaa, 0x9a,
+	0x72, 0x4c, 0xff, 0x74, 0xa0, 0x2c, 0xef, 0x83, 0x2b, 0x75, 0xaa, 0xbf, 0x1c, 0xa8, 0xe0, 0x7d,
+	0x72, 0xa5, 0x8e, 0xf5, 0x8f, 0x03, 0xf5, 0xec, 0x55, 0x73, 0x95, 0x0e, 0x77, 0xef, 0xd7, 0x06,
+	0xd4, 0x3a, 0xea, 0x72, 0x3d, 0x0b, 0x47, 0xa4, 0x03, 0x95, 0x67, 0xea, 0xbe, 0x31, 0x5f, 0xba,
+	0xda, 0x23, 0x86, 0x7b, 0x33, 0x1f, 0x24, 0xac, 0xd3, 0x16, 0x79, 0x0e, 0x55, 0xf5, 0x08, 0x41,
+	0x6e, 0x9b, 0xf1, 0xfa, 0x3b, 0x87, 0x4b, 0x97, 0xa0, 0x90, 0xf6, 0x07, 0x80, 0xd9, 0x63, 0x03,
+	0x39, 0xb6, 0xc6, 0xe8, 0x6f, 0x17, 0xee, 0xbb, 0xcb, 0x81, 0x1a, 0xbf, 0xba, 0x7e, 0x72, 0xf8,
+	0xb5, 0x96, 0x27, 0x8f, 0x3f, 0xd3, 0xca, 0xd0, 0x2d, 0xf2, 0x1d, 0xec, 0xa6, 0x8f, 0x00, 0xc4,
+	0x1e, 0x94, 0x6d, 0x58, 0xdc, 0x5b, 0xcb, 0x60, 0xc8, 0xfc, 0x3d, 0xec, 0x4d, 0x2d, 0x3d, 0xb9,
+	0x63, 0x8d, 0xd1, 0x7a, 0x0f, 0xf7, 0xf6, 0x52, 0x1c, 0x92, 0x0f, 0x61, 0x5f, 0x73, 0xae, 0xe4,
+	0x7d, 0x4b, 0x0f, 0x66, 0xf0, 0xcb, 0xee, 0xc9, 0x4a, 0x58, 0xdc, 0x68, 0x00, 0xf5, 0xac, 0xed,
+	0x23, 0xef, 0xe5, 0xc5, 0xea, 0x67, 0x39, 0x5e, 0x05, 0x8a, 0xbb, 0x78, 0x50, 0xcb, 0x18, 0x5e,
+	0x92, 0x9b, 0xa0, 0x56, 0x8b, 0x3b, 0x2b, 0x20, 0x71, 0x8b, 0x17, 0xa9, 0x39, 0xd7, 0x6e, 0x91,
+	0xd3, 0xbc, 0x78, 0x43, 0xfb, 0xe5, 0x7e, 0xb8, 0x7a, 0xc0, 0x54, 0xc0, 0xb3, 0x77, 0x0c, 0x9b,
+	0x80, 0x17, 0x1e, 0x6c, 0x6c, 0x02, 0x9e, 0x7f, 0x12, 0x91, 0x4a, 0xd0, 0x3c, 0xa3, 0x4d, 0x09,
+	0x26, 0xa7, 0x6a, 0x53, 0xc2, 0xa2, 0x09, 0x45, 0x25, 0x64, 0x0d, 0x97, 0x4d, 0x09, 0x06, 0x87,
+	0xe7, 0x1e, 0xaf, 0x02, 0x9d, 0x2a, 0x21, 0x63, 0x35, 0x49, 0x6e, 0x82, 0xab, 0x28, 0x61, 0xde,
+	0xb7, 0xa2, 0x12, 0x16, 0x9d, 0x98, 0x4d, 0x09, 0x56, 0x63, 0x68, 0x53, 0x82, 0xc5, 0xe4, 0x61,
+	0xa5, 0x34, 0x37, 0x65, 0xab, 0x94, 0xc9, 0xc3, 0xd9, 0x2a, 0xb5, 0x68, 0xcf, 0xb0, 0x52, 0x59,
+	0x2b, 0x62, 0xab, 0x94, 0xc1, 0xfb, 0xd8, 0x2a, 0xb5, 0xe0, 0x6c, 0xb0, 0x52, 0x19, 0x13, 0x46,
+	0x72, 0x13, 0x5c, 0xa5, 0x52, 0xf3, 0x8e, 0x0e, 0x2b, 0xb5, 0xe8, 0x51, 0x6c, 0x95, 0xb2, 0x5a,
+	0x26, 0x5b, 0xa5, 0x2c, 0xf6, 0x87, 0x6e, 0x9d, 0xdf, 0x85, 0x6b, 0xa3, 0xa0, 0x25, 0x70, 0x2d,
+	0xf6, 0x8b, 0x37, 0x0e, 0x7d, 0x16, 0xb7, 0xa2, 0x20, 0xe1, 0x6c, 0x98, 0x8c, 0x06, 0xec, 0xbc,
+	0xd1, 0x11, 0xe3, 0xb6, 0x18, 0x3f, 0x15, 0xdd, 0xc2, 0x53, 0xa7, 0x57, 0x91, 0x6d, 0xc3, 0xfd,
+	0x7f, 0x03, 0x00, 0x00, 0xff, 0xff, 0x20, 0x89, 0x86, 0xb1, 0xb4, 0x18, 0x00, 0x00,
 }
