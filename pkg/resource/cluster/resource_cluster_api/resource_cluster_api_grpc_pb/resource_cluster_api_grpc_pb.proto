@@ -37,6 +37,9 @@ message UpdateNodeRequest {
     string status_reason = 5;
     string state = 6;
     string state_reason = 7;
+    string compute_driver = 8;
+    string container_driver = 9;
+    string loadbalancer_driver = 10;
 }
 
 message UpdateNodeReply {}

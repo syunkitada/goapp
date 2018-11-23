@@ -3,6 +3,7 @@ package resource_cluster_model
 const (
 	KindResourceClusterController = "ResourceClusterController"
 	KindResourceClusterApi        = "ResourceClusterApi"
+	KindResourceClusterAgent      = "ResourceClusterAgent"
 )
 
 const (

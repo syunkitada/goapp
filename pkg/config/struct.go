@@ -61,15 +61,6 @@ type DashboardConfig struct {
 	BuildDir   string
 }
 
-type ResourceConfig struct {
-	AppDownTime   int
-	ApiApp        AppConfig
-	ControllerApp AppConfig
-	Database      DatabaseConfig
-	Cluster       ClusterConfig
-	ClusterMap    map[string]ResourceClusterConfig
-}
-
 type HttpServerConfig struct {
 	Listen          string
 	AllowedHosts    []string
@@ -81,17 +72,6 @@ type HttpServerConfig struct {
 
 type DatabaseConfig struct {
 	Connection string
-}
-
-type ClusterConfig struct {
-	Name string
-}
-
-type ResourceClusterConfig struct {
-	ApiApp        AppConfig
-	ControllerApp AppConfig
-	AgentApp      AppConfig
-	Database      DatabaseConfig
 }
 
 func newConfig(defaultConfig *DefaultConfig) *Config {

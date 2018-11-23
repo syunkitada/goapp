@@ -6,13 +6,16 @@ import (
 
 type Node struct {
 	gorm.Model
-	Name         string `gorm:"not null;size:255;"`
-	Kind         string `gorm:"not null;size:25;"`
-	Role         string `gorm:"not null;size:25;"`
-	Status       string `gorm:"not null;size:25;"`
-	StatusReason string `gorm:"not null;size:50;"`
-	State        string `gorm:"not null;size:25;"`
-	StateReason  string `gorm:"not null;size:50;"`
+	Name               string `gorm:"not null;size:255;"`
+	Kind               string `gorm:"not null;size:25;"`
+	Role               string `gorm:"not null;size:25;"`
+	Status             string `gorm:"not null;size:25;"`
+	StatusReason       string `gorm:"not null;size:50;"`
+	State              string `gorm:"not null;size:25;"`
+	StateReason        string `gorm:"not null;size:50;"`
+	ComputeDriver      string `gorm:"not null;size:25;"`
+	ContainerDriver    string `gorm:"not null;size:25;"`
+	LoadbalancerDriver string `gorm:"not null;size:25;"`
 }
 
 type Region struct {

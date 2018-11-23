@@ -21,9 +21,9 @@ type ResourceClusterApiServer struct {
 }
 
 func NewResourceClusterApiServer(conf *config.Config) *ResourceClusterApiServer {
-	cluster, ok := conf.Resource.ClusterMap[conf.Resource.Cluster.Name]
+	cluster, ok := conf.Resource.ClusterMap[conf.Resource.Node.ClusterName]
 	if !ok {
-		glog.Fatal(fmt.Errorf("Cluster(%v) is not found in ClusterMap", conf.Resource.Cluster.Name))
+		glog.Fatal(fmt.Errorf("Cluster(%v) is not found in ClusterMap", conf.Resource.Node.ClusterName))
 	}
 
 	server := ResourceClusterApiServer{

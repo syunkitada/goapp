@@ -24,7 +24,7 @@ func NewResourceModelApi(conf *config.Config, clusterApiMap map[string]resource_
 	if clusterApiMap == nil {
 		for clusterName, _ := range conf.Resource.ClusterMap {
 			newConf := *conf
-			newConf.Resource.Cluster.Name = clusterName
+			newConf.Resource.Node.ClusterName = clusterName
 			clusterClientMap[clusterName] = resource_cluster_api_client.NewResourceClusterApiClient(conf, nil)
 		}
 	} else {
@@ -34,7 +34,7 @@ func NewResourceModelApi(conf *config.Config, clusterApiMap map[string]resource_
 				glog.Fatalf("NotFound cluster: %v", clusterName)
 			}
 			newConf := *conf
-			newConf.Resource.Cluster.Name = clusterName
+			newConf.Resource.Node.ClusterName = clusterName
 			clusterClientMap[clusterName] = resource_cluster_api_client.NewResourceClusterApiClient(conf, &api)
 		}
 	}
