@@ -2,7 +2,7 @@
 
 COMMAND="${@:-start}"
 
-declare -a SERVICES=("authproxy" "resource-api" "resource-controller" "resource-cluster-api" "resource-cluster-controller")
+declare -a SERVICES=("authproxy" "resource-api" "resource-controller" "resource-cluster-api" "resource-cluster-controller" "resource-cluster-agent")
 declare -a SERVICES2=("resource-api2" "resource-controller2")
 declare -a SERVICES3=("resource-api3" "resource-controller3")
 

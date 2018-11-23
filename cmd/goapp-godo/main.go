@@ -51,6 +51,10 @@ func tasks(p *do.Project) {
 	p.Task("goapp-resource-cluster-controller", nil, func(c *do.Context) {
 		c.Start("main.go cluster-controller", do.M{"$in": "cmd/goapp-resource"})
 	}).Src("pkg/**/*.go")
+
+	p.Task("goapp-resource-cluster-agent", nil, func(c *do.Context) {
+		c.Start("main.go cluster-agent", do.M{"$in": "cmd/goapp-resource"})
+	}).Src("pkg/**/*.go")
 }
 
 func main() {

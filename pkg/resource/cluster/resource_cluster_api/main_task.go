@@ -20,7 +20,7 @@ func (srv *ResourceClusterApiServer) UpdateNodeTask() error {
 		Kind:         resource_cluster_model.KindResourceClusterApi,
 		Role:         resource_cluster_model.RoleMember,
 		Status:       resource_cluster_model.StatusEnabled,
-		StatusReason: "Always Enabled",
+		StatusReason: "Default",
 		State:        resource_cluster_model.StateUp,
 		StateReason:  "UpdateNode",
 	}

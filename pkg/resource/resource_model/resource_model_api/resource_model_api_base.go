@@ -130,7 +130,7 @@ func (modelApi *ResourceModelApi) GetVolume(req *resource_api_grpc_pb.GetVolumeR
 }
 
 func (modelApi *ResourceModelApi) UpdateNode(req *resource_api_grpc_pb.UpdateNodeRequest) (*resource_api_grpc_pb.UpdateNodeReply, error) {
-	var rep *resource_api_grpc_pb.UpdateNodeReply
+	rep := &resource_api_grpc_pb.UpdateNodeReply{}
 	var err error
 
 	db, err := gorm.Open("mysql", modelApi.conf.Resource.Database.Connection)

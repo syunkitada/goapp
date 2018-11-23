@@ -34,7 +34,7 @@ func (modelApi *ResourceClusterModelApi) GetNode(req *resource_cluster_api_grpc_
 }
 
 func (modelApi *ResourceClusterModelApi) UpdateNode(req *resource_cluster_api_grpc_pb.UpdateNodeRequest) (*resource_cluster_api_grpc_pb.UpdateNodeReply, error) {
-	var rep *resource_cluster_api_grpc_pb.UpdateNodeReply
+	rep := &resource_cluster_api_grpc_pb.UpdateNodeReply{}
 	var err error
 
 	db, err := gorm.Open("mysql", modelApi.cluster.Database.Connection)
@@ -49,6 +49,7 @@ func (modelApi *ResourceClusterModelApi) UpdateNode(req *resource_cluster_api_gr
 		if !gorm.IsRecordNotFoundError(err) {
 			return rep, err
 		}
+		glog.Infof("debug: %v, %v", req.Name, req.Kind)
 
 		node = resource_cluster_model.Node{
 			Name:         req.Name,
@@ -60,11 +61,15 @@ func (modelApi *ResourceClusterModelApi) UpdateNode(req *resource_cluster_api_gr
 			StateReason:  req.StateReason,
 		}
 		if err = db.Create(&node).Error; err != nil {
+			glog.Error(err)
 			return rep, err
 		}
 	} else {
 		node.State = req.State
 		node.StateReason = req.StateReason
+		node.ComputeDriver = req.ComputeDriver
+		node.ContainerDriver = req.ContainerDriver
+		node.LoadbalancerDriver = req.LoadbalancerDriver
 		if err = db.Save(&node).Error; err != nil {
 			return rep, err
 		}

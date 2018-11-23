@@ -34,7 +34,7 @@ func (srv *ResourceClusterControllerServer) UpdateNode() error {
 		Kind:         resource_cluster_model.KindResourceClusterController,
 		Role:         resource_cluster_model.RoleMember,
 		Status:       resource_cluster_model.StatusEnabled,
-		StatusReason: "Always Enabled",
+		StatusReason: "Default",
 		State:        resource_cluster_model.StateUp,
 		StateReason:  "UpdateNode",
 	}

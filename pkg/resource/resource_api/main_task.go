@@ -20,7 +20,7 @@ func (srv *ResourceApiServer) UpdateNodeTask() error {
 		Kind:         resource_model.KindResourceApi,
 		Role:         resource_model.RoleMember,
 		Status:       resource_model.StatusEnabled,
-		StatusReason: "Always Enabled",
+		StatusReason: "Default",
 		State:        resource_model.StateUp,
 		StateReason:  "UpdateNode",
 	}

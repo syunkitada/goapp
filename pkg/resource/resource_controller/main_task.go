@@ -34,7 +34,7 @@ func (srv *ResourceControllerServer) UpdateNode() error {
 		Kind:         resource_model.KindResourceController,
 		Role:         resource_model.RoleMember,
 		Status:       resource_model.StatusEnabled,
-		StatusReason: "Always Enabled",
+		StatusReason: "Default",
 		State:        resource_model.StateUp,
 		StateReason:  "UpdateNode",
 	}

@@ -60,6 +60,7 @@ func (srv *ResourceClusterApiServer) GetNode(ctx context.Context, req *resource_
 func (srv *ResourceClusterApiServer) UpdateNode(ctx context.Context, req *resource_cluster_api_grpc_pb.UpdateNodeRequest) (*resource_cluster_api_grpc_pb.UpdateNodeReply, error) {
 	var rep *resource_cluster_api_grpc_pb.UpdateNodeReply
 	var err error
+	glog.Infof("UpdateNode: %v, %v", req.Name, req.Kind)
 	rep, err = srv.resourceClusterModelApi.UpdateNode(req)
 	return rep, err
 }

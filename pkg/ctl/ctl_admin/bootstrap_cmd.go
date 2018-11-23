@@ -70,7 +70,7 @@ func (ctl *Ctl) Bootstrap(isRecreate bool) error {
 
 	for clusterName, _ := range ctl.Conf.Resource.ClusterMap {
 		clusterConf := *ctl.Conf
-		clusterConf.Resource.Cluster.Name = clusterName
+		clusterConf.Resource.Node.ClusterName = clusterName
 		resourceClusterModelApi := resource_cluster_model_api.NewResourceClusterModelApi(&clusterConf)
 		resourceClusterModelApi.Bootstrap()
 	}

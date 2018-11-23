@@ -29,7 +29,7 @@ func NewResourceClusterAgentServer(conf *config.Config) *ResourceClusterAgentSer
 	}
 
 	server := ResourceClusterAgentServer{
-		BaseApp: base.NewBaseApp(conf, &cluster.ControllerApp),
+		BaseApp: base.NewBaseApp(conf, &cluster.AgentApp),
 		conf:    conf,
 		resourceClusterModelApi:  resource_cluster_model_api.NewResourceClusterModelApi(conf),
 		resourceClusterApiClient: resource_cluster_api_client.NewResourceClusterApiClient(conf, nil),
