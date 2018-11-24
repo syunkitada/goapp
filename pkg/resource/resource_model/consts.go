@@ -18,3 +18,20 @@ const (
 	RoleLeader = "Leader"
 	RoleMember = "Member"
 )
+
+const (
+	SpecCompute      = "Compute"
+	SpecContainer    = "Container"
+	SpecImage        = "Image"
+	SpecVolume       = "Volume"
+	SpecLoadbalancer = "Loadbalancer"
+)
+
+const (
+	SpecComputeLibvirt  = "Libvirt"
+	SpecContainerDocker = "Docker"
+	SpecImageUrl        = "Url"
+	SpecVolumeNfs       = "Nfs"
+	SpecVolumeIscsi     = "Iscsi"
+	SpecLoadbalancerVpp = "Vpp"
+)

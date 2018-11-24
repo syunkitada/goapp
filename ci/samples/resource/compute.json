@@ -1,0 +1,12 @@
+{
+  "Kind": "Compute",
+  "Name": "hoge",
+  "Cluster": "cluster1",
+  "Spec": {
+    "Kind": "Libvirt",
+    "Vcpus": 1,
+    "MemorySize": 1024,
+    "DiskSize": 2,
+    "Image": "CentOS7:latest"
+  }
+}

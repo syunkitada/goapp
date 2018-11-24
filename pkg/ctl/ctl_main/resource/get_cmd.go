@@ -129,11 +129,10 @@ func GetCompute() {
 	}
 
 	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"Cluster", "Kind", "Name", "Updated At", "Created At"})
+	table.SetHeader([]string{"Cluster", "Name", "Updated At", "Created At"})
 	for _, compute := range resp.Computes {
 		table.Append([]string{
 			compute.Cluster,
-			compute.Kind,
 			compute.Name,
 			fmt.Sprint(time.Unix(compute.UpdatedAt.Seconds, 0)),
 			fmt.Sprint(time.Unix(compute.CreatedAt.Seconds, 0)),

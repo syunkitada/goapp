@@ -233,14 +233,9 @@ func (resource *Resource) CtlGetCompute(token string, cluster string, target str
 	return &resp, nil
 }
 
-func (resource *Resource) CtlCreateCompute(token string, cluster string) (*ResponseCreateCompute, error) {
+func (resource *Resource) CtlCreateCompute(token string, spec string) (*ResponseCreateCompute, error) {
 	reqData := resource_api_grpc_pb.CreateComputeRequest{
-		Compute: &resource_api_grpc_pb.Compute{
-			Cluster: cluster,
-			Kind:    "kvm",
-			Name:    "hoge",
-			Spec:    "",
-		},
+		Spec: spec,
 	}
 	reqDataJson, err := json.Marshal(reqData)
 	if err != nil {

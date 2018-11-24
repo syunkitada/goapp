@@ -11,23 +11,35 @@ package resource_api_grpc_pb;
 
 service ResourceApi {
   rpc Status(StatusRequest) returns (StatusReply) {}
-  rpc GetNode(GetNodeRequest) returns (GetNodeReply) {}
+
   rpc GetCluster(GetClusterRequest) returns (GetClusterReply) {}
-  rpc GetCompute(GetComputeRequest) returns (GetComputeReply) {}
-  rpc GetImage(GetImageRequest) returns (GetImageReply) {}
-  rpc GetVolume(GetVolumeRequest) returns (GetVolumeReply) {}
-  rpc CreateCompute(CreateComputeRequest) returns (CreateComputeReply) {}
-  rpc CreateVolume(CreateVolumeRequest) returns (CreateVolumeReply) {}
-  rpc CreateImage(CreateImageRequest) returns (CreateImageReply) {}
-  rpc CreateLoadbalancer(CreateLoadbalancerRequest) returns (CreateLoadbalancerReply) {}
+
+  rpc GetNode(GetNodeRequest) returns (GetNodeReply) {}
   rpc UpdateNode(UpdateNodeRequest) returns (UpdateNodeReply) {}
+
+  rpc GetCompute(GetComputeRequest) returns (GetComputeReply) {}
+  rpc CreateCompute(CreateComputeRequest) returns (CreateComputeReply) {}
   rpc UpdateCompute(UpdateComputeRequest) returns (UpdateComputeReply) {}
-  rpc UpdateVolume(UpdateVolumeRequest) returns (UpdateVolumeReply) {}
-  rpc UpdateImage(UpdateImageRequest) returns (UpdateImageReply) {}
-  rpc UpdateLoadbalancer(UpdateLoadbalancerRequest) returns (UpdateLoadbalancerReply) {}
   rpc DeleteCompute(DeleteComputeRequest) returns (DeleteComputeReply) {}
-  rpc DeleteVolume(DeleteVolumeRequest) returns (DeleteVolumeReply) {}
+
+  rpc GetContainer(GetContainerRequest) returns (GetContainerReply) {}
+  rpc CreateContainer(CreateContainerRequest) returns (CreateContainerReply) {}
+  rpc UpdateContainer(UpdateContainerRequest) returns (UpdateContainerReply) {}
+  rpc DeleteContainer(DeleteContainerRequest) returns (DeleteContainerReply) {}
+
+  rpc GetImage(GetImageRequest) returns (GetImageReply) {}
+  rpc CreateImage(CreateImageRequest) returns (CreateImageReply) {}
+  rpc UpdateImage(UpdateImageRequest) returns (UpdateImageReply) {}
   rpc DeleteImage(DeleteImageRequest) returns (DeleteImageReply) {}
+
+  rpc GetVolume(GetVolumeRequest) returns (GetVolumeReply) {}
+  rpc CreateVolume(CreateVolumeRequest) returns (CreateVolumeReply) {}
+  rpc UpdateVolume(UpdateVolumeRequest) returns (UpdateVolumeReply) {}
+  rpc DeleteVolume(DeleteVolumeRequest) returns (DeleteVolumeReply) {}
+
+  rpc GetLoadbalancer(GetLoadbalancerRequest) returns (GetLoadbalancerReply) {}
+  rpc CreateLoadbalancer(CreateLoadbalancerRequest) returns (CreateLoadbalancerReply) {}
+  rpc UpdateLoadbalancer(UpdateLoadbalancerRequest) returns (UpdateLoadbalancerReply) {}
   rpc DeleteLoadbalancer(DeleteLoadbalancerRequest) returns (DeleteLoadbalancerReply) {}
 }
 
@@ -37,15 +49,10 @@ message StatusReply {
     string msg = 1;
 }
 
-message GetNodeRequest {
-    string target = 1;
-    string cluster = 2;
-}
 
-message GetNodeReply {
-    repeated Node nodes = 1;
-}
-
+//
+// Cluster
+//
 message GetClusterRequest {
     string target = 1;
 }
@@ -54,31 +61,23 @@ message GetClusterReply {
     repeated Cluster clusters = 1;
 }
 
-message GetComputeRequest {
+message Cluster {
+    google.protobuf.Timestamp updated_at = 1;
+    google.protobuf.Timestamp created_at = 2;
+    string name = 3;
+}
+
+
+//
+// Node
+//
+message GetNodeRequest {
     string target = 1;
     string cluster = 2;
 }
 
-message GetComputeReply {
-    repeated Compute computes = 1;
-}
-
-message GetImageRequest {
-    string target = 1;
-    string cluster = 2;
-}
-
-message GetImageReply {
-    repeated Image images = 1;
-}
-
-message GetVolumeRequest {
-    string target = 1;
-    string cluster = 2;
-}
-
-message GetVolumeReply {
-    repeated Volume volumes = 1;
+message GetNodeReply {
+    repeated Node nodes = 1;
 }
 
 message UpdateNodeRequest {
@@ -93,102 +92,6 @@ message UpdateNodeRequest {
 
 message UpdateNodeReply {}
 
-message CreateComputeRequest {
-    Compute compute = 1;
-}
-
-message CreateComputeReply {
-    Compute compute = 1;
-}
-
-message CreateImageRequest {
-    Image image = 1;
-}
-
-message CreateImageReply {
-    Image image = 1;
-}
-
-message CreateVolumeRequest {
-    Volume volume = 1;
-}
-
-message CreateVolumeReply {
-    Volume volume = 1;
-}
-
-message CreateLoadbalancerRequest {
-    Loadbalancer loadbalancer = 1;
-}
-
-message CreateLoadbalancerReply {
-    Loadbalancer loadbalancer = 1;
-}
-
-message UpdateComputeRequest {
-    Compute compute = 1;
-}
-
-message UpdateComputeReply {
-    Compute compute = 1;
-}
-
-message UpdateImageRequest {
-    Image image = 1;
-}
-
-message UpdateImageReply {
-    Image image = 1;
-}
-
-message UpdateVolumeRequest {
-    Volume volume = 1;
-}
-
-message UpdateVolumeReply {
-    Volume volume = 1;
-}
-
-message UpdateLoadbalancerRequest {
-    Loadbalancer loadbalancer = 1;
-}
-
-message UpdateLoadbalancerReply {
-    Loadbalancer loadbalancer = 1;
-}
-
-message DeleteComputeRequest {
-    Compute compute = 1;
-}
-
-message DeleteComputeReply {
-    Compute compute = 1;
-}
-
-message DeleteImageRequest {
-    Image image = 1;
-}
-
-message DeleteImageReply {
-    Image image = 1;
-}
-
-message DeleteVolumeRequest {
-    Volume volume = 1;
-}
-
-message DeleteVolumeReply {
-    Volume volume = 1;
-}
-
-message DeleteLoadbalancerRequest {
-    Loadbalancer loadbalancer = 1;
-}
-
-message DeleteLoadbalancerReply {
-    Loadbalancer loadbalancer = 1;
-}
-
 message Node {
     google.protobuf.Timestamp updated_at = 1;
     google.protobuf.Timestamp created_at = 2;
@@ -201,10 +104,41 @@ message Node {
     string state_reason = 9;
 }
 
-message Cluster {
-    google.protobuf.Timestamp updated_at = 1;
-    google.protobuf.Timestamp created_at = 2;
-    string name = 3;
+
+//
+// Compute
+//
+message GetComputeRequest {
+    string target = 1;
+    string cluster = 2;
+}
+
+message GetComputeReply {
+    repeated Compute computes = 1;
+}
+
+message CreateComputeRequest {
+    string spec = 1;
+}
+
+message CreateComputeReply {
+    Compute compute = 1;
+}
+
+message UpdateComputeRequest {
+    string spec = 1;
+}
+
+message UpdateComputeReply {
+    Compute compute = 1;
+}
+
+message DeleteComputeRequest {
+    Compute compute = 1;
+}
+
+message DeleteComputeReply {
+    Compute compute = 1;
 }
 
 message Compute {
@@ -216,6 +150,89 @@ message Compute {
     string spec = 6;
 }
 
+
+//
+// Container
+//
+message GetContainerRequest {
+    string target = 1;
+    string cluster = 2;
+}
+
+message GetContainerReply {
+    repeated Container containers = 1;
+}
+
+message CreateContainerRequest {
+    string spec = 1;
+}
+
+message CreateContainerReply {
+    Container container = 1;
+}
+
+message UpdateContainerRequest {
+    string spec = 1;
+}
+
+message UpdateContainerReply {
+    Container container = 1;
+}
+
+message DeleteContainerRequest {
+    Container container = 1;
+}
+
+message DeleteContainerReply {
+    Container container = 1;
+}
+
+message Container {
+    google.protobuf.Timestamp updated_at = 1;
+    google.protobuf.Timestamp created_at = 2;
+    string cluster = 3;
+    string kind = 4;
+    string name = 5;
+    string spec = 6;
+}
+
+
+//
+// Image
+//
+message GetImageRequest {
+    string target = 1;
+    string cluster = 2;
+}
+
+message GetImageReply {
+    repeated Image images = 1;
+}
+
+message CreateImageRequest {
+    string spec = 1;
+}
+
+message CreateImageReply {
+    Image image = 1;
+}
+
+message UpdateImageRequest {
+    string spec = 1;
+}
+
+message UpdateImageReply {
+    Image image = 1;
+}
+
+message DeleteImageRequest {
+    Image image = 1;
+}
+
+message DeleteImageReply {
+    Image image = 1;
+}
+
 message Image {
     google.protobuf.Timestamp updated_at = 1;
     google.protobuf.Timestamp created_at = 2;
@@ -225,6 +242,42 @@ message Image {
     string spec = 6;
 }
 
+//
+// Volume
+//
+message GetVolumeRequest {
+    string target = 1;
+    string cluster = 2;
+}
+
+message GetVolumeReply {
+    repeated Volume volumes = 1;
+}
+
+message CreateVolumeRequest {
+    string spec = 1;
+}
+
+message CreateVolumeReply {
+    Volume volume = 1;
+}
+
+message UpdateVolumeRequest {
+    string spec = 1;
+}
+
+message UpdateVolumeReply {
+    Volume volume = 1;
+}
+
+message DeleteVolumeRequest {
+    Volume volume = 1;
+}
+
+message DeleteVolumeReply {
+    Volume volume = 1;
+}
+
 message Volume {
     google.protobuf.Timestamp updated_at = 1;
     google.protobuf.Timestamp created_at = 2;
@@ -232,6 +285,44 @@ message Volume {
     string kind = 4;
     string name = 5;
     string spec = 6;
+}
+
+
+//
+// Loadbalancer
+//
+message GetLoadbalancerRequest {
+    string target = 1;
+    string cluster = 2;
+}
+
+message GetLoadbalancerReply {
+    repeated Loadbalancer loadbalancers = 1;
+}
+
+message CreateLoadbalancerRequest {
+    string spec = 1;
+}
+
+message CreateLoadbalancerReply {
+    Loadbalancer loadbalancer = 1;
+}
+
+
+message UpdateLoadbalancerRequest {
+    string spec = 1;
+}
+
+message UpdateLoadbalancerReply {
+    Loadbalancer loadbalancer = 1;
+}
+
+message DeleteLoadbalancerRequest {
+    Loadbalancer loadbalancer = 1;
+}
+
+message DeleteLoadbalancerReply {
+    Loadbalancer loadbalancer = 1;
 }
 
 message Loadbalancer {
