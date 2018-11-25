@@ -10,8 +10,13 @@ const (
 	StatusEnabling  = "Enabling"
 	StatusDisabled  = "Disabled"
 	StatusDisabling = "Disabling"
-	StateUp         = "Up"
-	StateDown       = "Down"
+	StatusCreating  = "Creating"
+	StatusUpdating  = "Updating"
+)
+
+const (
+	StateUp   = "Up"
+	StateDown = "Down"
 )
 
 const (

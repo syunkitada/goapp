@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	// "time"
+	"time"
 
 	"github.com/golang/glog"
 	"github.com/olekukonko/tablewriter"
@@ -66,12 +66,14 @@ func CreateResource() error {
 		}
 
 		table := tablewriter.NewWriter(os.Stdout)
-		table.SetHeader([]string{"Cluster", "Name", "Updated At", "Created At"})
+		table.SetHeader([]string{"Cluster", "Name", "Status", "Status Reason", "Updated At", "Created At"})
 		table.Append([]string{
 			resp.Compute.Cluster,
 			resp.Compute.Name,
-			fmt.Sprint(resp.Compute.UpdatedAt),
-			fmt.Sprint(resp.Compute.CreatedAt),
+			resp.Compute.Status,
+			resp.Compute.StatusReason,
+			fmt.Sprint(time.Unix(resp.Compute.UpdatedAt.Seconds, 0)),
+			fmt.Sprint(time.Unix(resp.Compute.CreatedAt.Seconds, 0)),
 		})
 		table.Render()
 

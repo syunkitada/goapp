@@ -2,8 +2,11 @@ package resource_controller
 
 import (
 	"fmt"
+	// "sync"
+	// "time"
 
 	"github.com/golang/glog"
+	// "golang.org/x/net/context"
 
 	"github.com/syunkitada/goapp/pkg/resource/resource_api/resource_api_grpc_pb"
 	"github.com/syunkitada/goapp/pkg/resource/resource_model"
@@ -24,6 +27,13 @@ func (srv *ResourceControllerServer) MainTask() error {
 	if err := srv.resourceModelApi.CheckNodes(); err != nil {
 		return err
 	}
+
+	// TODO
+	// implement with goroutine
+	// check compute
+	// check container
+	// check image
+	// check loadbalancer
 
 	return nil
 }

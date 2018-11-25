@@ -13,8 +13,8 @@ import (
 )
 
 func (resource *Resource) Action(c *gin.Context) {
-	username, usernameOk := c.Get("Username")
-	userAuthority, userAuthorityOk := c.Get("UserAuthority")
+	tmpUsername, usernameOk := c.Get("Username")
+	tmpUserAuthority, userAuthorityOk := c.Get("UserAuthority")
 	tmpAction, actionOk := c.Get("Action")
 	if !usernameOk || !userAuthorityOk || !actionOk {
 		c.JSON(500, gin.H{
@@ -23,11 +23,9 @@ func (resource *Resource) Action(c *gin.Context) {
 		return
 	}
 
+	username := tmpUsername.(string)
 	action := tmpAction.(authproxy_model.ActionRequest)
-
-	glog.Info(username)
-	glog.Info(userAuthority)
-	glog.Info(action)
+	userAuthority := tmpUserAuthority.(*authproxy_model.UserAuthority)
 
 	switch action.Name {
 	case "GetCluster":
@@ -128,7 +126,10 @@ func (resource *Resource) Action(c *gin.Context) {
 			c.Abort()
 			return
 		}
-		glog.Info(reqData)
+		reqData.UserName = username
+		reqData.RoleName = userAuthority.ActionProjectService.RoleName
+		reqData.ProjectName = userAuthority.ActionProjectService.ProjectName
+		reqData.ProjectRoleName = userAuthority.ActionProjectService.ProjectRoleName
 
 		rep, err := resource.resourceApiClient.CreateCompute(&reqData)
 		if err != nil {

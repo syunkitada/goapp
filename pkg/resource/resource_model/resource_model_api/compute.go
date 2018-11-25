@@ -50,6 +50,8 @@ func (modelApi *ResourceModelApi) CreateCompute(req *resource_api_grpc_pb.Create
 	}
 	glog.Info(spec.Name)
 
+	// TODO Validate projectRole
+	// TODO Validate cluster
 	// TODO Validate spec
 
 	var compute resource_model.Compute
@@ -59,10 +61,12 @@ func (modelApi *ResourceModelApi) CreateCompute(req *resource_api_grpc_pb.Create
 		}
 
 		compute = resource_model.Compute{
-			Cluster: spec.Cluster,
-			Kind:    spec.Kind,
-			Name:    spec.Name,
-			Spec:    req.Spec,
+			Cluster:      spec.Cluster,
+			Kind:         spec.Kind,
+			Name:         spec.Name,
+			Spec:         req.Spec,
+			Status:       resource_model.StatusCreating,
+			StatusReason: fmt.Sprintf("CreateCompute: user=%v, project=%v", req.UserName, req.ProjectName),
 		}
 		if err = db.Create(&compute).Error; err != nil {
 			return rep, err
@@ -104,9 +108,14 @@ func (modelApi *ResourceModelApi) convertComputes(computes []resource_model.Comp
 		}
 
 		pbComputes[i] = &resource_api_grpc_pb.Compute{
-			Name:      compute.Name,
-			UpdatedAt: updatedAt,
-			CreatedAt: createdAt,
+			Cluster:      compute.Cluster,
+			Name:         compute.Name,
+			Kind:         compute.Kind,
+			Labels:       compute.Labels,
+			Status:       compute.Status,
+			StatusReason: compute.StatusReason,
+			UpdatedAt:    updatedAt,
+			CreatedAt:    createdAt,
 		}
 	}
 
@@ -121,9 +130,14 @@ func (modelApi *ResourceModelApi) convertCompute(compute *resource_model.Compute
 	}
 
 	computePb := &resource_api_grpc_pb.Compute{
-		Name:      compute.Name,
-		UpdatedAt: updatedAt,
-		CreatedAt: createdAt,
+		Cluster:      compute.Cluster,
+		Name:         compute.Name,
+		Kind:         compute.Kind,
+		Labels:       compute.Labels,
+		Status:       compute.Status,
+		StatusReason: compute.StatusReason,
+		UpdatedAt:    updatedAt,
+		CreatedAt:    createdAt,
 	}
 
 	return computePb, nil
