@@ -11,8 +11,14 @@ package resource_cluster_api_grpc_pb;
 
 service ResourceClusterApi {
   rpc Status(StatusRequest) returns (StatusReply) {}
+
   rpc GetNode(GetNodeRequest) returns (GetNodeReply) {}
   rpc UpdateNode(UpdateNodeRequest) returns (UpdateNodeReply) {}
+
+  rpc GetCompute(GetComputeRequest) returns (GetComputeReply) {}
+  rpc CreateCompute(CreateComputeRequest) returns (CreateComputeReply) {}
+  rpc UpdateCompute(UpdateComputeRequest) returns (UpdateComputeReply) {}
+  rpc DeleteCompute(DeleteComputeRequest) returns (DeleteComputeReply) {}
 }
 
 message StatusRequest {}
@@ -54,4 +60,54 @@ message Node {
     string state_reason = 7;
     google.protobuf.Timestamp updated_at = 8;
     google.protobuf.Timestamp created_at = 9;
+}
+
+
+//
+// Compute
+//
+message GetComputeRequest {
+    string target = 1;
+}
+
+message GetComputeReply {
+    repeated Compute computes = 1;
+}
+
+message CreateComputeRequest {
+    string spec = 1;
+    string status_reason = 2;
+}
+
+message CreateComputeReply {
+    Compute compute = 1;
+}
+
+message UpdateComputeRequest {
+    string spec = 1;
+    string status_reason = 2;
+}
+
+message UpdateComputeReply {
+    Compute compute = 1;
+}
+
+message DeleteComputeRequest {
+    string target = 1;
+}
+
+message DeleteComputeReply {
+    Compute compute = 1;
+}
+
+message Compute {
+    google.protobuf.Timestamp updated_at = 1;
+    google.protobuf.Timestamp created_at = 2;
+    string kind = 3;
+    string name = 4;
+    string full_name = 5;
+    string labels = 6;
+    string status = 7;
+    string status_reason = 8;
+    string spec = 9;
 }

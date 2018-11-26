@@ -3,15 +3,20 @@ package config
 type ResourceConfig struct {
 	AppDownTime   int
 	ApiApp        AppConfig
-	ControllerApp AppConfig
+	ControllerApp ControllerAppConfig
 	Database      DatabaseConfig
 	Node          ResourceNodeConfig
 	ClusterMap    map[string]ResourceClusterConfig
 }
 
+type ControllerAppConfig struct {
+	AppConfig
+	SyncResourceTimeout int
+}
+
 type ResourceClusterConfig struct {
 	ApiApp        AppConfig
-	ControllerApp AppConfig
+	ControllerApp ControllerAppConfig
 	AgentApp      AppConfig
 	Database      DatabaseConfig
 }

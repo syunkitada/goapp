@@ -172,10 +172,11 @@ message Compute {
     string cluster = 3;
     string kind = 4;
     string name = 5;
-    string labels = 6;
-    string status = 7;
-    string status_reason = 8;
-    string spec = 9;
+    string full_name = 6;
+    string labels = 7;
+    string status = 8;
+    string status_reason = 9;
+    string spec = 10;
 }
 
 
@@ -238,10 +239,11 @@ message Container {
     string cluster = 3;
     string kind = 4;
     string name = 5;
-    string labels = 6;
-    string status = 7;
-    string status_reason = 8;
-    string spec = 9;
+    string full_name = 6;
+    string labels = 7;
+    string status = 8;
+    string status_reason = 9;
+    string spec = 10;
 }
 
 
@@ -304,10 +306,11 @@ message Image {
     string cluster = 3;
     string kind = 4;
     string name = 5;
-    string labels = 6;
-    string status = 7;
-    string status_reason = 8;
-    string spec = 9;
+    string full_name = 6;
+    string labels = 7;
+    string status = 8;
+    string status_reason = 9;
+    string spec = 10;
 }
 
 
@@ -370,10 +373,11 @@ message Volume {
     string cluster = 3;
     string kind = 4;
     string name = 5;
-    string labels = 6;
-    string status = 7;
-    string status_reason = 8;
-    string spec = 9;
+    string full_name = 6;
+    string labels = 7;
+    string status = 8;
+    string status_reason = 9;
+    string spec = 10;
 }
 
 
@@ -436,8 +440,9 @@ message Loadbalancer {
     string cluster = 3;
     string kind = 4;
     string name = 5;
-    string labels = 6;
-    string status = 7;
-    string status_reason = 8;
-    string spec = 9;
+    string full_name = 6;
+    string labels = 7;
+    string status = 8;
+    string status_reason = 9;
+    string spec = 10;
 }

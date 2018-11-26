@@ -23,7 +23,8 @@ type Cluster struct {
 type Compute struct {
 	gorm.Model
 	Cluster      string `gorm:"not null;size:25;"`
-	Name         string `gorm:"not null;size:255;"`
+	Name         string `gorm:"not null;size:200;"`
+	FullName     string `gorm:"not null;size:255;unique_index;"` // used by fqdn
 	Kind         string `gorm:"not null;size:25;"`
 	Labels       string `gorm:"not null;size:255;"`
 	Status       string `gorm:"not null;size:25;"`

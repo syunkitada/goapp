@@ -23,41 +23,12 @@ type Region struct {
 	Name string `gorm:"not null;"`
 }
 
-type ComputeResource struct {
+type Compute struct {
 	gorm.Model
-	Name         string `gorm:"not null;size:255;"`
-	Labels       string `gorm:"not null;size:255;"`
+	Name         string `gorm:"not null;size:200;unique_index"`
+	FullName     string `gorm:"not null;size:255;unique_index"`
 	Kind         string `gorm:"not null;size:25;"`
-	Status       string `gorm:"not null;size:25;"`
-	StatusReason string `gorm:"not null;size:50;"`
-	Spec         string `gorm:"not null;size:5000;"`
-}
-
-type VolumeResource struct {
-	gorm.Model
-	Name         string `gorm:"not null;size:255;"`
 	Labels       string `gorm:"not null;size:255;"`
-	Kind         string `gorm:"not null;size:25;"`
-	Status       string `gorm:"not null;size:25;"`
-	StatusReason string `gorm:"not null;size:50;"`
-	Spec         string `gorm:"not null;size:5000;"`
-}
-
-type ImageResource struct {
-	gorm.Model
-	Name         string `gorm:"not null;size:255;"`
-	Labels       string `gorm:"not null;size:255;"`
-	Kind         string `gorm:"not null;size:25;"`
-	Status       string `gorm:"not null;size:25;"`
-	StatusReason string `gorm:"not null;size:50;"`
-	Spec         string `gorm:"not null;size:5000;"`
-}
-
-type LoadbalancerResource struct {
-	gorm.Model
-	Name         string `gorm:"not null;size:255;"`
-	Labels       string `gorm:"not null;size:255;"`
-	Kind         string `gorm:"not null;size:25;"`
 	Status       string `gorm:"not null;size:25;"`
 	StatusReason string `gorm:"not null;size:50;"`
 	Spec         string `gorm:"not null;size:5000;"`

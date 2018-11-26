@@ -100,3 +100,90 @@ func (cli *ResourceClusterApiClient) UpdateNode(req *resource_cluster_api_grpc_p
 
 	return rep, err
 }
+
+//
+// Compute
+//
+func (cli *ResourceClusterApiClient) GetCompute(req *resource_cluster_api_grpc_pb.GetComputeRequest) (*resource_cluster_api_grpc_pb.GetComputeReply, error) {
+	var rep *resource_cluster_api_grpc_pb.GetComputeReply
+	var err error
+	conn, err := cli.NewClientConnection()
+	defer conn.Close()
+	if err != nil {
+		return rep, err
+	}
+
+	ctx, cancel := cli.GetContext()
+	defer cancel()
+	if cli.conf.Default.EnableTest {
+		rep, err = cli.localServer.GetCompute(ctx, req)
+	} else {
+		grpcClient := resource_cluster_api_grpc_pb.NewResourceClusterApiClient(conn)
+		rep, err = grpcClient.GetCompute(ctx, req)
+	}
+
+	return rep, err
+}
+
+func (cli *ResourceClusterApiClient) CreateCompute(req *resource_cluster_api_grpc_pb.CreateComputeRequest) (*resource_cluster_api_grpc_pb.CreateComputeReply, error) {
+	var rep *resource_cluster_api_grpc_pb.CreateComputeReply
+	var err error
+	conn, err := cli.NewClientConnection()
+	defer conn.Close()
+	if err != nil {
+		return rep, err
+	}
+
+	ctx, cancel := cli.GetContext()
+	defer cancel()
+	if cli.conf.Default.EnableTest {
+		rep, err = cli.localServer.CreateCompute(ctx, req)
+	} else {
+		grpcClient := resource_cluster_api_grpc_pb.NewResourceClusterApiClient(conn)
+		rep, err = grpcClient.CreateCompute(ctx, req)
+	}
+
+	return rep, err
+}
+
+func (cli *ResourceClusterApiClient) UpdateCompute(req *resource_cluster_api_grpc_pb.UpdateComputeRequest) (*resource_cluster_api_grpc_pb.UpdateComputeReply, error) {
+	var rep *resource_cluster_api_grpc_pb.UpdateComputeReply
+	var err error
+	conn, err := cli.NewClientConnection()
+	defer conn.Close()
+	if err != nil {
+		return rep, err
+	}
+
+	ctx, cancel := cli.GetContext()
+	defer cancel()
+	if cli.conf.Default.EnableTest {
+		rep, err = cli.localServer.UpdateCompute(ctx, req)
+	} else {
+		grpcClient := resource_cluster_api_grpc_pb.NewResourceClusterApiClient(conn)
+		rep, err = grpcClient.UpdateCompute(ctx, req)
+	}
+
+	return rep, err
+}
+
+func (cli *ResourceClusterApiClient) DeleteCompute(req *resource_cluster_api_grpc_pb.DeleteComputeRequest) (*resource_cluster_api_grpc_pb.DeleteComputeReply, error) {
+	var rep *resource_cluster_api_grpc_pb.DeleteComputeReply
+	var err error
+	conn, err := cli.NewClientConnection()
+	defer conn.Close()
+	if err != nil {
+		return rep, err
+	}
+
+	ctx, cancel := cli.GetContext()
+	defer cancel()
+	if cli.conf.Default.EnableTest {
+		rep, err = cli.localServer.DeleteCompute(ctx, req)
+	} else {
+		grpcClient := resource_cluster_api_grpc_pb.NewResourceClusterApiClient(conn)
+		rep, err = grpcClient.DeleteCompute(ctx, req)
+	}
+
+	return rep, err
+}

@@ -2,6 +2,7 @@ package resource_cluster_controller
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/golang/glog"
 	"google.golang.org/grpc"
@@ -19,6 +20,7 @@ type ResourceClusterControllerServer struct {
 	cluster                  *config.ResourceClusterConfig
 	resourceClusterModelApi  *resource_cluster_model_api.ResourceClusterModelApi
 	resourceClusterApiClient *resource_cluster_api_client.ResourceClusterApiClient
+	syncResourceTimeout      time.Duration
 	role                     string
 }
 
@@ -29,10 +31,11 @@ func NewResourceClusterControllerServer(conf *config.Config) *ResourceClusterCon
 	}
 
 	server := ResourceClusterControllerServer{
-		BaseApp: base.NewBaseApp(conf, &cluster.ControllerApp),
+		BaseApp: base.NewBaseApp(conf, &cluster.ControllerApp.AppConfig),
 		conf:    conf,
 		resourceClusterModelApi:  resource_cluster_model_api.NewResourceClusterModelApi(conf),
 		resourceClusterApiClient: resource_cluster_api_client.NewResourceClusterApiClient(conf, nil),
+		syncResourceTimeout:      time.Duration(conf.Resource.ControllerApp.SyncResourceTimeout) * time.Second,
 	}
 
 	server.RegisterDriver(&server)

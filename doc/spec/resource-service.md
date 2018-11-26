@@ -162,8 +162,21 @@
 * UpdateNode
 
 
-## ApiとRegionApi
-* ルートデータベース
+## RootとDatacenterとClusterとNetworkAvailabilityZoneとNodeAvailabilityZone
+* Root
+    * 最上位レイヤー
+    * ここにAPIがありユーザのリクエストはすべてここに集約される
+    * Controllerにより、各リクエストが非同期に処理される
+* Datacenter
+    * 複数のClusterが所属している
+    * データとしてのあるのみ、Datacenterごとのサービス(APIなど)はない
+* Cluster
+    * ClusterごとにAPIがあり、Cluster内リクエストはすべてこのAPIをとおして処理される
+    * Controllerにより、各リクエストが非同期に処理される
+* NetworkAvailabilityZone
+    * Clusterのネットワーク冗長を考慮し、L3管理レイヤ(コアルータ、アグリゲートルータなど)ごとに分割する
+* NodeAvailabilityZone
+    * Clusterのラック冗長、電源冗長を考慮し、ノードの管理レイヤごとに分割する
 
 
 ## 処理フローの概要

@@ -47,27 +47,6 @@ func (cli *ResourceApiClient) Status() (*resource_api_grpc_pb.StatusReply, error
 	return rep, err
 }
 
-func (cli *ResourceApiClient) GetNode(req *resource_api_grpc_pb.GetNodeRequest) (*resource_api_grpc_pb.GetNodeReply, error) {
-	var rep *resource_api_grpc_pb.GetNodeReply
-	var err error
-	conn, err := cli.NewClientConnection()
-	defer conn.Close()
-	if err != nil {
-		return rep, err
-	}
-
-	ctx, cancel := cli.GetContext()
-	defer cancel()
-	if cli.conf.Default.EnableTest {
-		rep, err = cli.localServer.GetNode(ctx, req)
-	} else {
-		grpcClient := resource_api_grpc_pb.NewResourceApiClient(conn)
-		rep, err = grpcClient.GetNode(ctx, req)
-	}
-
-	return rep, err
-}
-
 func (cli *ResourceApiClient) GetCluster(req *resource_api_grpc_pb.GetClusterRequest) (*resource_api_grpc_pb.GetClusterReply, error) {
 	glog.V(2).Info("Called GetCluster")
 	var rep *resource_api_grpc_pb.GetClusterReply
@@ -90,8 +69,8 @@ func (cli *ResourceApiClient) GetCluster(req *resource_api_grpc_pb.GetClusterReq
 	return rep, err
 }
 
-func (cli *ResourceApiClient) GetCompute(req *resource_api_grpc_pb.GetComputeRequest) (*resource_api_grpc_pb.GetComputeReply, error) {
-	var rep *resource_api_grpc_pb.GetComputeReply
+func (cli *ResourceApiClient) GetNode(req *resource_api_grpc_pb.GetNodeRequest) (*resource_api_grpc_pb.GetNodeReply, error) {
+	var rep *resource_api_grpc_pb.GetNodeReply
 	var err error
 	conn, err := cli.NewClientConnection()
 	defer conn.Close()
@@ -102,52 +81,10 @@ func (cli *ResourceApiClient) GetCompute(req *resource_api_grpc_pb.GetComputeReq
 	ctx, cancel := cli.GetContext()
 	defer cancel()
 	if cli.conf.Default.EnableTest {
-		rep, err = cli.localServer.GetCompute(ctx, req)
+		rep, err = cli.localServer.GetNode(ctx, req)
 	} else {
 		grpcClient := resource_api_grpc_pb.NewResourceApiClient(conn)
-		rep, err = grpcClient.GetCompute(ctx, req)
-	}
-
-	return rep, err
-}
-
-func (cli *ResourceApiClient) GetImage(req *resource_api_grpc_pb.GetImageRequest) (*resource_api_grpc_pb.GetImageReply, error) {
-	var rep *resource_api_grpc_pb.GetImageReply
-	var err error
-	conn, err := cli.NewClientConnection()
-	defer conn.Close()
-	if err != nil {
-		return rep, err
-	}
-
-	ctx, cancel := cli.GetContext()
-	defer cancel()
-	if cli.conf.Default.EnableTest {
-		rep, err = cli.localServer.GetImage(ctx, req)
-	} else {
-		grpcClient := resource_api_grpc_pb.NewResourceApiClient(conn)
-		rep, err = grpcClient.GetImage(ctx, req)
-	}
-
-	return rep, err
-}
-
-func (cli *ResourceApiClient) GetVolume(req *resource_api_grpc_pb.GetVolumeRequest) (*resource_api_grpc_pb.GetVolumeReply, error) {
-	var rep *resource_api_grpc_pb.GetVolumeReply
-	var err error
-	conn, err := cli.NewClientConnection()
-	defer conn.Close()
-	if err != nil {
-		return rep, err
-	}
-
-	ctx, cancel := cli.GetContext()
-	defer cancel()
-	if cli.conf.Default.EnableTest {
-		rep, err = cli.localServer.GetVolume(ctx, req)
-	} else {
-		grpcClient := resource_api_grpc_pb.NewResourceApiClient(conn)
-		rep, err = grpcClient.GetVolume(ctx, req)
+		rep, err = grpcClient.GetNode(ctx, req)
 	}
 
 	return rep, err
@@ -171,6 +108,30 @@ func (cli *ResourceApiClient) UpdateNode(req *resource_api_grpc_pb.UpdateNodeReq
 	} else {
 		grpcClient := resource_api_grpc_pb.NewResourceApiClient(conn)
 		rep, err = grpcClient.UpdateNode(ctx, req)
+	}
+
+	return rep, err
+}
+
+//
+// Compute
+//
+func (cli *ResourceApiClient) GetCompute(req *resource_api_grpc_pb.GetComputeRequest) (*resource_api_grpc_pb.GetComputeReply, error) {
+	var rep *resource_api_grpc_pb.GetComputeReply
+	var err error
+	conn, err := cli.NewClientConnection()
+	defer conn.Close()
+	if err != nil {
+		return rep, err
+	}
+
+	ctx, cancel := cli.GetContext()
+	defer cancel()
+	if cli.conf.Default.EnableTest {
+		rep, err = cli.localServer.GetCompute(ctx, req)
+	} else {
+		grpcClient := resource_api_grpc_pb.NewResourceApiClient(conn)
+		rep, err = grpcClient.GetCompute(ctx, req)
 	}
 
 	return rep, err
@@ -213,6 +174,69 @@ func (cli *ResourceApiClient) UpdateCompute(req *resource_api_grpc_pb.UpdateComp
 	} else {
 		grpcClient := resource_api_grpc_pb.NewResourceApiClient(conn)
 		rep, err = grpcClient.UpdateCompute(ctx, req)
+	}
+
+	return rep, err
+}
+
+func (cli *ResourceApiClient) DeleteCompute(req *resource_api_grpc_pb.DeleteComputeRequest) (*resource_api_grpc_pb.DeleteComputeReply, error) {
+	var rep *resource_api_grpc_pb.DeleteComputeReply
+	var err error
+	conn, err := cli.NewClientConnection()
+	defer conn.Close()
+	if err != nil {
+		return rep, err
+	}
+
+	ctx, cancel := cli.GetContext()
+	defer cancel()
+	if cli.conf.Default.EnableTest {
+		rep, err = cli.localServer.DeleteCompute(ctx, req)
+	} else {
+		grpcClient := resource_api_grpc_pb.NewResourceApiClient(conn)
+		rep, err = grpcClient.DeleteCompute(ctx, req)
+	}
+
+	return rep, err
+}
+
+func (cli *ResourceApiClient) GetImage(req *resource_api_grpc_pb.GetImageRequest) (*resource_api_grpc_pb.GetImageReply, error) {
+	var rep *resource_api_grpc_pb.GetImageReply
+	var err error
+	conn, err := cli.NewClientConnection()
+	defer conn.Close()
+	if err != nil {
+		return rep, err
+	}
+
+	ctx, cancel := cli.GetContext()
+	defer cancel()
+	if cli.conf.Default.EnableTest {
+		rep, err = cli.localServer.GetImage(ctx, req)
+	} else {
+		grpcClient := resource_api_grpc_pb.NewResourceApiClient(conn)
+		rep, err = grpcClient.GetImage(ctx, req)
+	}
+
+	return rep, err
+}
+
+func (cli *ResourceApiClient) GetVolume(req *resource_api_grpc_pb.GetVolumeRequest) (*resource_api_grpc_pb.GetVolumeReply, error) {
+	var rep *resource_api_grpc_pb.GetVolumeReply
+	var err error
+	conn, err := cli.NewClientConnection()
+	defer conn.Close()
+	if err != nil {
+		return rep, err
+	}
+
+	ctx, cancel := cli.GetContext()
+	defer cancel()
+	if cli.conf.Default.EnableTest {
+		rep, err = cli.localServer.GetVolume(ctx, req)
+	} else {
+		grpcClient := resource_api_grpc_pb.NewResourceApiClient(conn)
+		rep, err = grpcClient.GetVolume(ctx, req)
 	}
 
 	return rep, err

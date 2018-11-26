@@ -18,6 +18,7 @@ Name = "api"
 ClientTimeout = 5
 ShutdownTimeout = 10
 LoopInterval = 10
+SyncResourceTimeout = 30
 CertFile = "server.pem"
 KeyFile = "server.key"
 CaFile = "ca.pem"

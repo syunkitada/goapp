@@ -9,6 +9,7 @@ import (
 	"github.com/golang/protobuf/ptypes"
 	"github.com/jinzhu/gorm"
 
+	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_api/resource_cluster_api_grpc_pb"
 	"github.com/syunkitada/goapp/pkg/resource/resource_api/resource_api_grpc_pb"
 	"github.com/syunkitada/goapp/pkg/resource/resource_model"
 )
@@ -22,13 +23,13 @@ func (modelApi *ResourceModelApi) GetCompute(req *resource_api_grpc_pb.GetComput
 	}
 	db.LogMode(modelApi.conf.Default.EnableDatabaseLog)
 
-	var nodes []resource_model.Compute
-	if err = db.Where("name like ?", req.Target).Find(&nodes).Error; err != nil {
+	var computes []resource_model.Compute
+	if err = db.Where("name like ?", req.Target).Find(&computes).Error; err != nil {
 		return nil, err
 	}
 
 	return &resource_api_grpc_pb.GetComputeReply{
-		Computes: modelApi.convertComputes(nodes),
+		Computes: modelApi.convertComputes(computes),
 	}, nil
 }
 
@@ -53,6 +54,7 @@ func (modelApi *ResourceModelApi) CreateCompute(req *resource_api_grpc_pb.Create
 	// TODO Validate projectRole
 	// TODO Validate cluster
 	// TODO Validate spec
+	// TODO Validate image
 
 	var compute resource_model.Compute
 	if err = db.Where("name = ? and cluster = ?", spec.Name, spec.Cluster).First(&compute).Error; err != nil {
@@ -141,4 +143,66 @@ func (modelApi *ResourceModelApi) convertCompute(compute *resource_model.Compute
 	}
 
 	return computePb, nil
+}
+
+func (modelApi *ResourceModelApi) SyncCompute() error {
+	glog.Info("Starting SyncCompute")
+
+	var err error
+	db, err := gorm.Open("mysql", modelApi.conf.Resource.Database.Connection)
+	defer db.Close()
+	if err != nil {
+		return err
+	}
+	db.LogMode(modelApi.conf.Default.EnableDatabaseLog)
+
+	var computes []resource_model.Compute
+	if err = db.Find(&computes).Error; err != nil {
+		return err
+	}
+
+	glog.Info(computes)
+
+	computeMap := map[string]resource_cluster_api_grpc_pb.Compute{}
+	req := resource_cluster_api_grpc_pb.GetComputeRequest{Target: "%"}
+	for clusterName, clusterClient := range modelApi.clusterClientMap {
+		result, err := clusterClient.GetCompute(&req)
+		if err != nil {
+			glog.Errorf("Failed GetCompute from %v: %v", clusterName, err)
+		}
+		for _, compute := range result.Computes {
+			computeMap[compute.FullName] = *compute
+		}
+	}
+
+	glog.Info(computeMap)
+
+	for _, compute := range computes {
+		switch compute.Status {
+		case resource_model.StatusCreating:
+			glog.Infof("Found %v resource: %v", compute.Status, compute.Name)
+			modelApi.InitializeCompute(db, &compute, computeMap)
+		case resource_model.StatusCreatingInitialized:
+			glog.Infof("Found %v resource: %v", compute.Status, compute.Name)
+		case resource_model.StatusCreatingScheduled:
+			glog.Infof("Found %v resource: %v", compute.Status, compute.Name)
+		case resource_model.StatusUpdating:
+			glog.Infof("Found %v resource: %v", compute.Status, compute.Name)
+		case resource_model.StatusUpdatingScheduled:
+			glog.Infof("Found %v resource: %v", compute.Status, compute.Name)
+		case resource_model.StatusDeleting:
+			glog.Infof("Found %v resource: %v", compute.Status, compute.Name)
+		case resource_model.StatusDeletingScheduled:
+			glog.Infof("Found %v resource: %v", compute.Status, compute.Name)
+		}
+	}
+
+	glog.Info("Complete SyncCompute")
+	return nil
+}
+
+func (modelApi *ResourceModelApi) InitializeCompute(db *gorm.DB, compute *resource_model.Compute, computeMap map[string]resource_cluster_api_grpc_pb.Compute) error {
+	// TODO
+	// Assgin IP address
+	return nil
 }

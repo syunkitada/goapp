@@ -43,10 +43,7 @@ func (modelApi *ResourceClusterModelApi) Bootstrap() error {
 
 	db.AutoMigrate(&resource_cluster_model.Node{})
 	db.AutoMigrate(&resource_cluster_model.Region{})
-	db.AutoMigrate(&resource_cluster_model.ComputeResource{})
-	db.AutoMigrate(&resource_cluster_model.VolumeResource{})
-	db.AutoMigrate(&resource_cluster_model.ImageResource{})
-	db.AutoMigrate(&resource_cluster_model.LoadbalancerResource{})
+	db.AutoMigrate(&resource_cluster_model.Compute{})
 
 	return nil
 }

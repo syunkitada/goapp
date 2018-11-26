@@ -2,11 +2,11 @@ package resource_controller
 
 import (
 	"fmt"
-	// "sync"
+	"sync"
 	// "time"
 
 	"github.com/golang/glog"
-	// "golang.org/x/net/context"
+	"golang.org/x/net/context"
 
 	"github.com/syunkitada/goapp/pkg/resource/resource_api/resource_api_grpc_pb"
 	"github.com/syunkitada/goapp/pkg/resource/resource_model"
@@ -27,6 +27,11 @@ func (srv *ResourceControllerServer) MainTask() error {
 	if err := srv.resourceModelApi.CheckNodes(); err != nil {
 		return err
 	}
+
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+	go srv.SyncCompute(&wg)
+	wg.Wait()
 
 	// TODO
 	// implement with goroutine
@@ -90,4 +95,30 @@ func (srv *ResourceControllerServer) SyncRole() error {
 
 	glog.Infof("Completed SyncRole: role=%v", srv.role)
 	return nil
+}
+
+func (srv *ResourceControllerServer) SyncCompute(wg *sync.WaitGroup) {
+	defer func() { wg.Done() }()
+	var err error
+
+	errChan := make(chan error)
+
+	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(ctx, srv.syncResourceTimeout)
+	defer cancel()
+
+	go func() {
+		errChan <- srv.resourceModelApi.SyncCompute()
+	}()
+
+	select {
+	case err = <-errChan:
+		if err != nil {
+			glog.Errorf("Failed SyncCompute: %v", err)
+		} else {
+			glog.Info("Complete SyncCompute")
+		}
+	case <-ctx.Done():
+		glog.Errorf("Failed SyncCompute: %v", ctx.Err())
+	}
 }

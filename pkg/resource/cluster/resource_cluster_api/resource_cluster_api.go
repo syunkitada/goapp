@@ -64,3 +64,38 @@ func (srv *ResourceClusterApiServer) UpdateNode(ctx context.Context, req *resour
 	rep, err = srv.resourceClusterModelApi.UpdateNode(req)
 	return rep, err
 }
+
+//
+// Compute
+//
+func (srv *ResourceClusterApiServer) GetCompute(ctx context.Context, req *resource_cluster_api_grpc_pb.GetComputeRequest) (*resource_cluster_api_grpc_pb.GetComputeReply, error) {
+	var rep *resource_cluster_api_grpc_pb.GetComputeReply
+	var err error
+	rep, err = srv.resourceClusterModelApi.GetCompute(req)
+	glog.Infof("Completed GetCompute: %v", err)
+	return rep, err
+}
+
+func (srv *ResourceClusterApiServer) CreateCompute(ctx context.Context, req *resource_cluster_api_grpc_pb.CreateComputeRequest) (*resource_cluster_api_grpc_pb.CreateComputeReply, error) {
+	var rep *resource_cluster_api_grpc_pb.CreateComputeReply
+	var err error
+	rep, err = srv.resourceClusterModelApi.CreateCompute(req)
+	glog.Infof("Completed CreateCompute: %v", err)
+	return rep, err
+}
+
+func (srv *ResourceClusterApiServer) UpdateCompute(ctx context.Context, req *resource_cluster_api_grpc_pb.UpdateComputeRequest) (*resource_cluster_api_grpc_pb.UpdateComputeReply, error) {
+	var rep *resource_cluster_api_grpc_pb.UpdateComputeReply
+	var err error
+	rep, err = srv.resourceClusterModelApi.UpdateCompute(req)
+	glog.Infof("Completed UpdateCompute: %v", err)
+	return rep, err
+}
+
+func (srv *ResourceClusterApiServer) DeleteCompute(ctx context.Context, req *resource_cluster_api_grpc_pb.DeleteComputeRequest) (*resource_cluster_api_grpc_pb.DeleteComputeReply, error) {
+	var rep *resource_cluster_api_grpc_pb.DeleteComputeReply
+	var err error
+	rep, err = srv.resourceClusterModelApi.DeleteCompute(req)
+	glog.Infof("Completed DeleteCompute: %v", err)
+	return rep, err
+}

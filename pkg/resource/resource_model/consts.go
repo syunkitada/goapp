@@ -10,8 +10,15 @@ const (
 	StatusEnabling  = "Enabling"
 	StatusDisabled  = "Disabled"
 	StatusDisabling = "Disabling"
-	StatusCreating  = "Creating"
-	StatusUpdating  = "Updating"
+
+	StatusActive              = "Active"
+	StatusCreating            = "Creating"
+	StatusCreatingInitialized = "Creating:Initialized"
+	StatusCreatingScheduled   = "Creating:Scheduled"
+	StatusUpdating            = "Updating"
+	StatusUpdatingScheduled   = "Updating:Scheduled"
+	StatusDeleting            = "Deleting"
+	StatusDeletingScheduled   = "Deleting:Scheduled"
 )
 
 const (
