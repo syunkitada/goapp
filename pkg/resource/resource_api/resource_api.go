@@ -1,6 +1,9 @@
 package resource_api
 
 import (
+	"fmt"
+	"time"
+
 	"github.com/golang/glog"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
@@ -70,14 +73,19 @@ func (srv *ResourceApiServer) GetCompute(ctx context.Context, req *resource_api_
 	var rep *resource_api_grpc_pb.GetComputeReply
 	var err error
 	rep, err = srv.resourceModelApi.GetCompute(req)
+
 	glog.Infof("Completed GetCompute: %v", err)
 	return rep, err
 }
 
 func (srv *ResourceApiServer) CreateCompute(ctx context.Context, req *resource_api_grpc_pb.CreateComputeRequest) (*resource_api_grpc_pb.CreateComputeReply, error) {
+	startTime := time.Now()
 	var rep *resource_api_grpc_pb.CreateComputeReply
 	var err error
 	rep, err = srv.resourceModelApi.CreateCompute(req)
+	if err != nil {
+		return rep, fmt.Errorf("@@ApiCreateCompute: time=%v, error=%v", time.Now().Sub(startTime), err)
+	}
 	glog.Infof("Completed CreateCompute: %v", err)
 	return rep, err
 }

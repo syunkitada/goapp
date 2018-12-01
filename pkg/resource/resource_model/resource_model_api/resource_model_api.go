@@ -49,6 +49,7 @@ func NewResourceModelApi(conf *config.Config, clusterApiMap map[string]resource_
 }
 
 func (modelApi *ResourceModelApi) Bootstrap() error {
+	glog.V(2).Info("ResourceModelApi: Complete AutoMigrate")
 	db, dbErr := gorm.Open("mysql", modelApi.conf.Resource.Database.Connection)
 	defer db.Close()
 	if dbErr != nil {
@@ -57,13 +58,17 @@ func (modelApi *ResourceModelApi) Bootstrap() error {
 	db.LogMode(modelApi.conf.Default.EnableDatabaseLog)
 
 	db.AutoMigrate(&resource_model.Node{})
+	db.AutoMigrate(&resource_model.Datacenter{})
 	db.AutoMigrate(&resource_model.Cluster{})
+	db.AutoMigrate(&resource_model.Rack{})
+	db.AutoMigrate(&resource_model.PhysicalResource{})
 	db.AutoMigrate(&resource_model.Compute{})
 	db.AutoMigrate(&resource_model.Volume{})
 	db.AutoMigrate(&resource_model.Image{})
 	db.AutoMigrate(&resource_model.Loadbalancer{})
 	db.AutoMigrate(&resource_model.NetworkV4{})
 	db.AutoMigrate(&resource_model.NetworkV4Port{})
+	glog.V(2).Info("ResourceModelApi: Complete AutoMigrate")
 
 	if err := modelApi.bootstrapClusters(); err != nil {
 		return err
@@ -81,7 +86,6 @@ func (modelApi *ResourceModelApi) bootstrapClusters() error {
 	db.LogMode(modelApi.conf.Default.EnableDatabaseLog)
 
 	for clusterName, clusterConf := range modelApi.conf.Resource.ClusterMap {
-		glog.Info(clusterConf)
 		var cluster resource_model.Cluster
 		if err = db.Where("name = ?", clusterName).First(&cluster).Error; err != nil {
 			if !gorm.IsRecordNotFoundError(err) {
@@ -94,13 +98,33 @@ func (modelApi *ResourceModelApi) bootstrapClusters() error {
 			if err = db.Create(&cluster).Error; err != nil {
 				return err
 			}
+			glog.V(2).Infof("Resource Cluster: Created: cluster=%v", clusterName)
 		} else {
-			continue
-			// node.State = req.State
-			// node.StateReason = req.StateReason
-			// if err = db.Save(&node).Error; err != nil {
-			// 	return err
-			// }
+			glog.V(2).Infof("Resource Cluster: Already Exists: cluster=%v", clusterName)
+		}
+
+		for networkName, networkConf := range clusterConf.NetworkMap {
+			var networkV4 resource_model.NetworkV4
+			if err = db.Where("cluster_id = ? and name = ?", cluster.ID, networkName).First(&networkV4).Error; err != nil {
+				if !gorm.IsRecordNotFoundError(err) {
+					return err
+				}
+
+				networkV4 = resource_model.NetworkV4{
+					Name:      networkName,
+					ClusterID: cluster.ID,
+					Subnet:    networkConf.Subnet,
+					StartIp:   networkConf.StartIp,
+					EndIp:     networkConf.EndIp,
+					Gateway:   networkConf.Gateway,
+				}
+				if err = db.Create(&networkV4).Error; err != nil {
+					return err
+				}
+				glog.V(2).Infof("Resource Cluster Network: Created: cluster=%v, network=%v", clusterName, networkName)
+			} else {
+				glog.V(2).Infof("Resource Cluster Network: Already Exists: cluster=%v, network=%v", clusterName, networkName)
+			}
 		}
 	}
 

@@ -15,14 +15,45 @@ type Node struct {
 	StateReason  string `gorm:"not null;size:50;"`
 }
 
+type Datacenter struct {
+	gorm.Model
+	Name string `gorm:"not null;size:50";"`
+}
+
 type Cluster struct {
 	gorm.Model
-	Name string `gorm:"not null;"`
+	Datacenter string `gorm:"not null;size:50;"`
+	Name       string `gorm:"not null;"`
+}
+
+type Rack struct {
+	gorm.Model
+	Cluster      string `gorm:"not null;size:50;"`
+	Name         string `gorm:"not null;size:200;"`
+	Kind         string `gorm:"not null;size:25;"`
+	Labels       string `gorm:"not null;size:255;"`
+	Status       string `gorm:"not null;size:25;"`
+	StatusReason string `gorm:"not null;size:50;"`
+	Spec         string `gorm:"not null;size:5000;"`
+}
+
+type PhysicalResource struct {
+	gorm.Model
+	Rack         string `gorm:"not null;size:50;"`
+	Cluster      string `gorm:"not null;size:50;"`
+	Name         string `gorm:"not null;size:200;"`
+	FullName     string `gorm:"not null;size:255;unique_index;"` // used by fqdn
+	Kind         string `gorm:"not null;size:25;"`               // Server, L2Switch, L3Switch
+	Labels       string `gorm:"not null;size:255;"`
+	Status       string `gorm:"not null;size:25;"`
+	StatusReason string `gorm:"not null;size:50;"`
+	Spec         string `gorm:"not null;size:5000;"`
+	LinkSpec     string `gorm:"not null;size:2500;"`
 }
 
 type Compute struct {
 	gorm.Model
-	Cluster      string `gorm:"not null;size:25;"`
+	Cluster      string `gorm:"not null;size:50;"`
 	Name         string `gorm:"not null;size:200;"`
 	FullName     string `gorm:"not null;size:255;unique_index;"` // used by fqdn
 	Kind         string `gorm:"not null;size:25;"`
@@ -34,7 +65,7 @@ type Compute struct {
 
 type Container struct {
 	gorm.Model
-	Cluster      string `gorm:"not null;size:25;"`
+	Cluster      string `gorm:"not null;size:50;"`
 	Name         string `gorm:"not null;size:255;"`
 	Kind         string `gorm:"not null;size:25;"`
 	Labels       string `gorm:"not null;size:255;"`
@@ -45,7 +76,7 @@ type Container struct {
 
 type Volume struct {
 	gorm.Model
-	Cluster      string `gorm:"not null;size:25;"`
+	Cluster      string `gorm:"not null;size:50;"`
 	Name         string `gorm:"not null;size:255;"`
 	Kind         string `gorm:"not null;size:25;"`
 	Labels       string `gorm:"not null;size:255;"`
@@ -56,7 +87,7 @@ type Volume struct {
 
 type Image struct {
 	gorm.Model
-	Cluster      string `gorm:"not null;size:25;"`
+	Cluster      string `gorm:"not null;size:50;"`
 	Name         string `gorm:"not null;size:255;"`
 	Kind         string `gorm:"not null;size:25;"`
 	Labels       string `gorm:"not null;size:255;"`
@@ -78,8 +109,13 @@ type Loadbalancer struct {
 
 type NetworkV4 struct {
 	gorm.Model
-	Name                     string `gorm:"not null;"`
-	NetworkAvailabilityZones string `gorm:"not null;"`
+	Name      string  `gorm:"not null;"`
+	Cluster   Cluster `gorm:"foreignkey:ClusterID;association_foreignkey:Refer;"`
+	ClusterID uint    `gorm:"not null;"`
+	Subnet    string  `gorm:"not null;"`
+	StartIp   string  `gorm:"not null;"`
+	EndIp     string  `gorm:"not null;"`
+	Gateway   string  `gorm:"not null;"`
 }
 
 type NetworkV4Port struct {

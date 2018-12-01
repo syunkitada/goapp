@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/golang/glog"
@@ -27,7 +28,10 @@ var createCmd = &cobra.Command{
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := CreateResource(); err != nil {
-			fmt.Println(err)
+			fmt.Println("Failed CreateResource")
+			for i, line := range strings.Split(err.Error(), "@@") {
+				fmt.Printf("%v%v\n", strings.Repeat("  ", i), line)
+			}
 		}
 	},
 }
@@ -62,7 +66,7 @@ func CreateResource() error {
 	case resource_model.SpecCompute:
 		resp, err := authproxy.Resource.CtlCreateCompute(token.Token, string(bytes))
 		if err != nil {
-			return fmt.Errorf("Failed authproxy create compute: %v", err)
+			return err
 		}
 
 		table := tablewriter.NewWriter(os.Stdout)

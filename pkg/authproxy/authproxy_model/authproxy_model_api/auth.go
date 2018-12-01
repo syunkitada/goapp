@@ -6,7 +6,6 @@ import (
 	"fmt"
 
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/golang/glog"
 	"github.com/jinzhu/gorm"
 	"golang.org/x/crypto/scrypt"
 
@@ -325,7 +324,6 @@ func (modelApi *AuthproxyModelApi) GetUserAuthority(username string, actionReque
 		case "user":
 			serviceMap[user.ServiceName] = user.ServiceID
 		case "project":
-			glog.Info(user)
 			if projectService, ok := projectServiceMap[user.ProjectName]; ok {
 				projectService.ServiceMap[user.ServiceName] = user.ServiceID
 			} else {

@@ -75,7 +75,7 @@ func (modelApi *ResourceModelApi) CreateCompute(req *resource_api_grpc_pb.Create
 		}
 	} else {
 		return rep, fmt.Errorf("Already Exists: cluster=%v, name=%v",
-			spec.Cluster, spec.Kind, spec.Name)
+			spec.Cluster, spec.Name)
 	}
 
 	computePb, err := modelApi.convertCompute(&compute)

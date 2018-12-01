@@ -4,15 +4,18 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang/glog"
+	"google.golang.org/grpc/status"
 
 	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_model"
 	"github.com/syunkitada/goapp/pkg/resource/resource_api/resource_api_grpc_pb"
 )
 
 func (resource *Resource) Action(c *gin.Context) {
+	start := time.Now()
 	tmpUsername, usernameOk := c.Get("Username")
 	tmpUserAuthority, userAuthorityOk := c.Get("UserAuthority")
 	tmpAction, actionOk := c.Get("Action")
@@ -119,9 +122,9 @@ func (resource *Resource) Action(c *gin.Context) {
 	case "CreateCompute":
 		var reqData resource_api_grpc_pb.CreateComputeRequest
 		if err := json.Unmarshal([]byte(action.Data), &reqData); err != nil {
-			glog.Error("Failed unmarshal request: %v", err)
+			glog.Errorf("Failed unmarshal request: %v", err)
 			c.JSON(http.StatusInternalServerError, gin.H{
-				"err": fmt.Sprintf("Failed  unmarshal request: %v", err),
+				"err": fmt.Sprintf("@@CreateCompute: Failed  unmarshal request: %v", err),
 			})
 			c.Abort()
 			return
@@ -133,9 +136,11 @@ func (resource *Resource) Action(c *gin.Context) {
 
 		rep, err := resource.resourceApiClient.CreateCompute(&reqData)
 		if err != nil {
-			glog.Error("Failed CreateCompute: %v", err)
+			st := status.Convert(err)
+			msg := fmt.Sprintf("@@ProxyApiCreateCompute: time=%v%v", time.Now().Sub(start), st.Message())
+			glog.Warningf(msg)
 			c.JSON(http.StatusInternalServerError, gin.H{
-				"err": fmt.Sprintf("Failed CreateCompute: %v", err),
+				"err": msg,
 			})
 			c.Abort()
 			return

@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"time"
 
 	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_model"
 	"github.com/syunkitada/goapp/pkg/resource/resource_api/resource_api_grpc_pb"
@@ -234,6 +235,7 @@ func (resource *Resource) CtlGetCompute(token string, cluster string, target str
 }
 
 func (resource *Resource) CtlCreateCompute(token string, spec string) (*ResponseCreateCompute, error) {
+	start := time.Now()
 	reqData := resource_api_grpc_pb.CreateComputeRequest{
 		Spec: spec,
 	}
@@ -254,12 +256,12 @@ func (resource *Resource) CtlCreateCompute(token string, spec string) (*Response
 
 	reqJson, err := json.Marshal(req)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("@@CtlCreateCompute: time=%v: %v", time.Now().Sub(start), err)
 	}
 
 	httpReq, err := http.NewRequest("POST", resource.conf.Ctl.ApiUrl+"/resource", bytes.NewBuffer(reqJson))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("@@CtlCreateCompute: time=%v: %v", time.Now().Sub(start), err)
 	}
 
 	var resp ResponseCreateCompute
@@ -292,11 +294,11 @@ func (resource *Resource) CtlCreateCompute(token string, spec string) (*Response
 	}
 
 	if err := json.Unmarshal(body, &resp); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("@@CtlCreateCompute: time=%v: %v", time.Now().Sub(start), err)
 	}
 
 	if statusCode != 200 {
-		return &resp, fmt.Errorf("Invalid StatusCode: %v", statusCode)
+		return &resp, fmt.Errorf("@@CtlCreateCompute: time=%v, statusCode=%v %v", time.Now().Sub(start), statusCode, resp.Err)
 	}
 
 	return &resp, nil

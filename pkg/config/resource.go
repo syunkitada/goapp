@@ -19,6 +19,14 @@ type ResourceClusterConfig struct {
 	ControllerApp ControllerAppConfig
 	AgentApp      AppConfig
 	Database      DatabaseConfig
+	NetworkMap    map[string]NetworkConfig
+}
+
+type NetworkConfig struct {
+	Subnet  string
+	StartIp string
+	EndIp   string
+	Gateway string
 }
 
 type ResourceNodeConfig struct {

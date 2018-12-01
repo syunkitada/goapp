@@ -86,16 +86,12 @@ func (authproxy *Authproxy) AuthRequired() gin.HandlerFunc {
 			glog.Info(tokenAuthRequest.Token)
 		}
 
-		glog.Info("DEBUG token auth")
-		glog.Info(tokenAuthRequest)
-
 		claims, err := authproxy.Token.ParseToken(tokenAuthRequest)
 		if err != nil {
 			glog.Warning("Invalid AuthRequest: Failed ParseToken")
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"error": "Invalid AuthRequest",
 			})
-			glog.Info("hoge")
 			c.Abort()
 			return
 		}

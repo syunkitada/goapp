@@ -14,7 +14,7 @@ func (auth *Auth) IssueToken(c *gin.Context) {
 	var authRequest authproxy_model.AuthRequest
 
 	if err := c.ShouldBindWith(&authRequest, binding.JSON); err != nil {
-		glog.Warningf("Invalid AuthRequest: Failed ShouldBindJSON: %v", err)
+		glog.Errorf("Failed IssueToken for user=%v: Failed ShouldBindJSON: %v", authRequest.Username, err)
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"error": "Invalid AuthRequest",
 		})
@@ -22,11 +22,9 @@ func (auth *Auth) IssueToken(c *gin.Context) {
 		return
 	}
 
-	glog.Info("DEBUG")
-
 	token, err := auth.token.AuthAndIssueToken(&authRequest)
 	if err != nil {
-		glog.Error("Failed AuthAndIssueToken", err)
+		glog.Errorf("Failed IssueToken for user=%v: Failed AuthAndIssueToken: %v", authRequest.Username, err)
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"error": "Failed IssueToken",
 		})
@@ -34,7 +32,7 @@ func (auth *Auth) IssueToken(c *gin.Context) {
 		return
 	}
 
-	glog.Info("Success Login: ", authRequest)
+	glog.Infof("Success IssueToken for user=%v", authRequest.Username)
 	c.JSON(http.StatusOK, gin.H{
 		"Token": token,
 	})
