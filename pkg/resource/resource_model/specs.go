@@ -11,6 +11,19 @@ type Spec struct {
 	Kind string
 }
 
+type NetworkV4Spec struct {
+	ResourceSpec
+	Spec NetworkV4SpecData
+}
+
+type NetworkV4SpecData struct {
+	Spec
+	Subnet  string
+	StartIp string
+	EndIp   string
+	Gateway string
+}
+
 type ComputeSpec struct {
 	ResourceSpec
 	Spec ComputeSpecData

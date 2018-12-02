@@ -21,7 +21,7 @@ func (resource *Resource) Action(c *gin.Context) {
 	tmpAction, actionOk := c.Get("Action")
 	if !usernameOk || !userAuthorityOk || !actionOk {
 		c.JSON(500, gin.H{
-			"error": "Invalid request",
+			"err": "Invalid request",
 		})
 		return
 	}
@@ -54,7 +54,7 @@ func (resource *Resource) Action(c *gin.Context) {
 		if err := json.Unmarshal([]byte(action.Data), &reqData); err != nil {
 			glog.Errorf("Invalid Request: %v", err)
 			c.JSON(http.StatusBadRequest, gin.H{
-				"error": "Invalid Request",
+				"err": "Invalid Request",
 			})
 			c.Abort()
 			return
@@ -103,22 +103,6 @@ func (resource *Resource) Action(c *gin.Context) {
 		})
 		return
 
-	case "GetState":
-		status, err := resource.resourceApiClient.Status()
-		if err != nil {
-			glog.Error("Failed HealthClient.Status", err)
-			c.JSON(http.StatusUnauthorized, gin.H{
-				"error": "Invalid AuthRequest",
-			})
-			c.Abort()
-			return
-		}
-		c.JSON(200, gin.H{
-			"message": status,
-		})
-
-		return
-
 	case "CreateCompute":
 		var reqData resource_api_grpc_pb.CreateComputeRequest
 		if err := json.Unmarshal([]byte(action.Data), &reqData); err != nil {
@@ -151,6 +135,73 @@ func (resource *Resource) Action(c *gin.Context) {
 		})
 		return
 
+	case "GetNetworkV4":
+		err := resource.GetNetworkV4(c, username, userAuthority, &action)
+		msg := fmt.Sprintf("@@ProxyApiGetNetworkV4: time=%v %v", time.Now().Sub(start), err)
+		if err != nil {
+			glog.Warning(msg)
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"err": msg,
+			})
+		} else {
+			glog.Info(msg)
+		}
+		return
+
+	case "CreateNetworkV4":
+		err := resource.CreateNetworkV4(c, username, userAuthority, &action)
+		msg := fmt.Sprintf("@@ProxyApiCreateNetworkV4: time=%v %v", time.Now().Sub(start), err)
+		if err != nil {
+			glog.Warning(msg)
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"err": msg,
+			})
+		} else {
+			glog.Info(msg)
+		}
+		return
+
+	case "UpdateNetworkV4":
+		err := resource.UpdateNetworkV4(c, username, userAuthority, &action)
+		msg := fmt.Sprintf("@@ProxyApiUpdateNetworkV4: time=%v %v", time.Now().Sub(start), err)
+		if err != nil {
+			glog.Warning(msg)
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"err": msg,
+			})
+		} else {
+			glog.Info(msg)
+		}
+		return
+
+	case "DeleteNetworkV4":
+		err := resource.DeleteNetworkV4(c, username, userAuthority, &action)
+		msg := fmt.Sprintf("@@ProxyApiDeleteNetworkV4: time=%v %v", time.Now().Sub(start), err)
+		if err != nil {
+			glog.Warning(msg)
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"err": msg,
+			})
+		} else {
+			glog.Info(msg)
+		}
+		return
+
+	case "GetState":
+		status, err := resource.resourceApiClient.Status()
+		if err != nil {
+			glog.Error("Failed HealthClient.Status", err)
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"err": "Invalid AuthRequest",
+			})
+			c.Abort()
+			return
+		}
+		c.JSON(200, gin.H{
+			"message": status,
+		})
+
+		return
 	}
 
 	c.JSON(200, gin.H{

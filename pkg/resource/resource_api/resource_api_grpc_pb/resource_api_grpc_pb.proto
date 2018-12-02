@@ -17,6 +17,11 @@ service ResourceApi {
   rpc GetNode(GetNodeRequest) returns (GetNodeReply) {}
   rpc UpdateNode(UpdateNodeRequest) returns (UpdateNodeReply) {}
 
+  rpc GetNetworkV4(GetNetworkV4Request) returns (GetNetworkV4Reply) {}
+  rpc CreateNetworkV4(CreateNetworkV4Request) returns (CreateNetworkV4Reply) {}
+  rpc UpdateNetworkV4(UpdateNetworkV4Request) returns (UpdateNetworkV4Reply) {}
+  rpc DeleteNetworkV4(DeleteNetworkV4Request) returns (DeleteNetworkV4Reply) {}
+
   rpc GetCompute(GetComputeRequest) returns (GetComputeReply) {}
   rpc CreateCompute(CreateComputeRequest) returns (CreateComputeReply) {}
   rpc UpdateCompute(UpdateComputeRequest) returns (UpdateComputeReply) {}
@@ -110,6 +115,73 @@ message Node {
     string status_reason = 7;
     string state = 8;
     string state_reason = 9;
+}
+
+
+//
+// NetworkV4
+//
+message GetNetworkV4Request {
+    string user_name = 1;
+    string role_name = 2;
+    string project_name = 3;
+    string project_role_name = 4;
+    string target = 5;
+    string cluster = 6;
+}
+
+message GetNetworkV4Reply {
+    repeated NetworkV4 networks = 1;
+}
+
+message CreateNetworkV4Request {
+    string user_name = 1;
+    string role_name = 2;
+    string project_name = 3;
+    string project_role_name = 4;
+    string spec = 5;
+}
+
+message CreateNetworkV4Reply {
+    NetworkV4 network = 1;
+}
+
+message UpdateNetworkV4Request {
+    string user_name = 1;
+    string role_name = 2;
+    string project_name = 3;
+    string project_role_name = 4;
+    string spec = 5;
+}
+
+message UpdateNetworkV4Reply {
+    NetworkV4 network = 1;
+}
+
+message DeleteNetworkV4Request {
+    string user_name = 1;
+    string role_name = 2;
+    string project_name = 3;
+    string project_role_name = 4;
+    string target = 5;
+    string cluster = 6;
+}
+
+message DeleteNetworkV4Reply {
+    NetworkV4 network = 1;
+}
+
+message NetworkV4 {
+    google.protobuf.Timestamp updated_at = 1;
+    google.protobuf.Timestamp created_at = 2;
+    string cluster = 3;
+    string kind = 4;
+    string name = 5;
+    string full_name = 6;
+    string labels = 7;
+    string status = 8;
+    string status_reason = 9;
+    string spec = 10;
 }
 
 

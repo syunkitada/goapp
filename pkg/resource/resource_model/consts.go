@@ -32,6 +32,7 @@ const (
 )
 
 const (
+	SpecNetworkV4    = "NetworkV4"
 	SpecCompute      = "Compute"
 	SpecContainer    = "Container"
 	SpecImage        = "Image"

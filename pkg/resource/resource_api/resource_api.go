@@ -67,6 +67,46 @@ func (srv *ResourceApiServer) UpdateNode(ctx context.Context, req *resource_api_
 }
 
 //
+// NetworkV4
+//
+func (srv *ResourceApiServer) GetNetworkV4(ctx context.Context, req *resource_api_grpc_pb.GetNetworkV4Request) (*resource_api_grpc_pb.GetNetworkV4Reply, error) {
+	var rep *resource_api_grpc_pb.GetNetworkV4Reply
+	var err error
+	rep, err = srv.resourceModelApi.GetNetworkV4(req)
+
+	glog.Infof("Completed GetNetworkV4: %v", err)
+	return rep, err
+}
+
+func (srv *ResourceApiServer) CreateNetworkV4(ctx context.Context, req *resource_api_grpc_pb.CreateNetworkV4Request) (*resource_api_grpc_pb.CreateNetworkV4Reply, error) {
+	startTime := time.Now()
+	var rep *resource_api_grpc_pb.CreateNetworkV4Reply
+	var err error
+	rep, err = srv.resourceModelApi.CreateNetworkV4(req)
+	if err != nil {
+		return rep, fmt.Errorf("@@ApiCreateNetworkV4: time=%v, error=%v", time.Now().Sub(startTime), err)
+	}
+	glog.Infof("Completed CreateNetworkV4: %v", err)
+	return rep, err
+}
+
+func (srv *ResourceApiServer) UpdateNetworkV4(ctx context.Context, req *resource_api_grpc_pb.UpdateNetworkV4Request) (*resource_api_grpc_pb.UpdateNetworkV4Reply, error) {
+	var rep *resource_api_grpc_pb.UpdateNetworkV4Reply
+	var err error
+	rep, err = srv.resourceModelApi.UpdateNetworkV4(req)
+	glog.Infof("Completed UpdateNetworkV4: %v", err)
+	return rep, err
+}
+
+func (srv *ResourceApiServer) DeleteNetworkV4(ctx context.Context, req *resource_api_grpc_pb.DeleteNetworkV4Request) (*resource_api_grpc_pb.DeleteNetworkV4Reply, error) {
+	var rep *resource_api_grpc_pb.DeleteNetworkV4Reply
+	var err error
+	rep, err = srv.resourceModelApi.DeleteNetworkV4(req)
+	glog.Infof("Completed DeleteNetworkV4: %v", err)
+	return rep, err
+}
+
+//
 // Compute
 //
 func (srv *ResourceApiServer) GetCompute(ctx context.Context, req *resource_api_grpc_pb.GetComputeRequest) (*resource_api_grpc_pb.GetComputeReply, error) {

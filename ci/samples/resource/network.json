@@ -1,0 +1,12 @@
+{
+  "Kind": "NetworkV4",
+  "Name": "LocalNet1",
+  "Cluster1": "cluster1",
+  "Spec": {
+    "Kind": "Local",
+    "Subnet": "192.168.100.0/24",
+    "StartIp": "192.168.100.2",
+    "EndIp": "192.168.100.3",
+    "Gateway": "192.168.100.1"
+  }
+}

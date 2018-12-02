@@ -29,7 +29,7 @@ func (authproxy *Authproxy) ValidateHeaders() gin.HandlerFunc {
 			}
 			if !isGoodHost {
 				c.JSON(http.StatusForbidden, gin.H{
-					"error": fmt.Sprintf("Bad host name: %s", c.Request.Host),
+					"err": fmt.Sprintf("Bad host name: %s", c.Request.Host),
 				})
 				c.Abort()
 				return
@@ -38,7 +38,7 @@ func (authproxy *Authproxy) ValidateHeaders() gin.HandlerFunc {
 		// If there was an error, do not continue request
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": fmt.Sprintf("Failed to check allowed hosts"),
+				"err": fmt.Sprintf("Failed to check allowed hosts"),
 			})
 			c.Abort()
 			return
@@ -74,7 +74,7 @@ func (authproxy *Authproxy) AuthRequired() gin.HandlerFunc {
 		if err := c.ShouldBindWith(&tokenAuthRequest, binding.JSON); err != nil {
 			glog.Warningf("Invalid TokenAuthRequest: Failed ShouldBindJSON: %v", err)
 			c.JSON(http.StatusUnauthorized, gin.H{
-				"error": "Invalid AuthRequest",
+				"err": "Invalid AuthRequest",
 			})
 			c.Abort()
 			return
@@ -90,7 +90,7 @@ func (authproxy *Authproxy) AuthRequired() gin.HandlerFunc {
 		if err != nil {
 			glog.Warning("Invalid AuthRequest: Failed ParseToken")
 			c.JSON(http.StatusUnauthorized, gin.H{
-				"error": "Invalid AuthRequest",
+				"err": "Invalid AuthRequest",
 			})
 			c.Abort()
 			return
@@ -101,7 +101,7 @@ func (authproxy *Authproxy) AuthRequired() gin.HandlerFunc {
 		if getUserAuthorityErr != nil {
 			glog.Error(getUserAuthorityErr)
 			c.JSON(http.StatusUnauthorized, gin.H{
-				"error": "Invalid AuthRequest",
+				"err": "Invalid AuthRequest",
 			})
 			c.Abort()
 			return

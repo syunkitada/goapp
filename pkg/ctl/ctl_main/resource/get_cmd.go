@@ -22,7 +22,7 @@ func init() {
 
 	GetCmd.AddCommand(getComputeCmd)
 	GetCmd.AddCommand(getClusterCmd)
-	GetCmd.AddCommand(getNetworkCmd)
+	GetCmd.AddCommand(getNetworkV4Cmd)
 	GetCmd.AddCommand(getNodeCmd)
 	RootCmd.AddCommand(GetCmd)
 }
@@ -51,16 +51,6 @@ var getNodeCmd = &cobra.Command{
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
 		GetNode()
-	},
-}
-
-var getNetworkCmd = &cobra.Command{
-	Use:   "network",
-	Short: "Show networks",
-	Long: `Show networks
-	`,
-	Run: func(cmd *cobra.Command, args []string) {
-		GetNetwork()
 	},
 }
 
@@ -127,35 +117,6 @@ func GetNode() {
 }
 
 func GetCompute() {
-	authproxy := core.NewAuthproxy(&config.Conf)
-	token, err := authproxy.Auth.CtlIssueToken()
-	if err != nil {
-		glog.Fatal(err)
-	}
-
-	resp, err := authproxy.Resource.CtlGetCompute(token.Token, getCmdClusterFlag, "%")
-	if err != nil {
-		glog.Info(resp)
-		glog.Fatal(err)
-	}
-
-	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"Cluster", "Name", "Status", "Status Reason", "Updated At", "Created At"})
-	for _, compute := range resp.Computes {
-		table.Append([]string{
-			compute.Cluster,
-			compute.Name,
-			compute.Status,
-			compute.StatusReason,
-			fmt.Sprint(time.Unix(compute.UpdatedAt.Seconds, 0)),
-			fmt.Sprint(time.Unix(compute.CreatedAt.Seconds, 0)),
-		})
-	}
-	table.Render()
-}
-
-func GetNetwork() {
-	// TODO
 	authproxy := core.NewAuthproxy(&config.Conf)
 	token, err := authproxy.Auth.CtlIssueToken()
 	if err != nil {

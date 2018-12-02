@@ -114,6 +114,93 @@ func (cli *ResourceApiClient) UpdateNode(req *resource_api_grpc_pb.UpdateNodeReq
 }
 
 //
+// NetworkV4
+//
+func (cli *ResourceApiClient) GetNetworkV4(req *resource_api_grpc_pb.GetNetworkV4Request) (*resource_api_grpc_pb.GetNetworkV4Reply, error) {
+	var rep *resource_api_grpc_pb.GetNetworkV4Reply
+	var err error
+	conn, err := cli.NewClientConnection()
+	defer conn.Close()
+	if err != nil {
+		return rep, err
+	}
+
+	ctx, cancel := cli.GetContext()
+	defer cancel()
+	if cli.conf.Default.EnableTest {
+		rep, err = cli.localServer.GetNetworkV4(ctx, req)
+	} else {
+		grpcClient := resource_api_grpc_pb.NewResourceApiClient(conn)
+		rep, err = grpcClient.GetNetworkV4(ctx, req)
+	}
+
+	return rep, err
+}
+
+func (cli *ResourceApiClient) CreateNetworkV4(req *resource_api_grpc_pb.CreateNetworkV4Request) (*resource_api_grpc_pb.CreateNetworkV4Reply, error) {
+	var rep *resource_api_grpc_pb.CreateNetworkV4Reply
+	var err error
+	conn, err := cli.NewClientConnection()
+	defer conn.Close()
+	if err != nil {
+		return rep, err
+	}
+
+	ctx, cancel := cli.GetContext()
+	defer cancel()
+	if cli.conf.Default.EnableTest {
+		rep, err = cli.localServer.CreateNetworkV4(ctx, req)
+	} else {
+		grpcClient := resource_api_grpc_pb.NewResourceApiClient(conn)
+		rep, err = grpcClient.CreateNetworkV4(ctx, req)
+	}
+
+	return rep, err
+}
+
+func (cli *ResourceApiClient) UpdateNetworkV4(req *resource_api_grpc_pb.UpdateNetworkV4Request) (*resource_api_grpc_pb.UpdateNetworkV4Reply, error) {
+	var rep *resource_api_grpc_pb.UpdateNetworkV4Reply
+	var err error
+	conn, err := cli.NewClientConnection()
+	defer conn.Close()
+	if err != nil {
+		return rep, err
+	}
+
+	ctx, cancel := cli.GetContext()
+	defer cancel()
+	if cli.conf.Default.EnableTest {
+		rep, err = cli.localServer.UpdateNetworkV4(ctx, req)
+	} else {
+		grpcClient := resource_api_grpc_pb.NewResourceApiClient(conn)
+		rep, err = grpcClient.UpdateNetworkV4(ctx, req)
+	}
+
+	return rep, err
+}
+
+func (cli *ResourceApiClient) DeleteNetworkV4(req *resource_api_grpc_pb.DeleteNetworkV4Request) (*resource_api_grpc_pb.DeleteNetworkV4Reply, error) {
+	var rep *resource_api_grpc_pb.DeleteNetworkV4Reply
+	var err error
+	conn, err := cli.NewClientConnection()
+	defer conn.Close()
+	if err != nil {
+		return rep, err
+	}
+
+	ctx, cancel := cli.GetContext()
+	defer cancel()
+	if cli.conf.Default.EnableTest {
+		rep, err = cli.localServer.DeleteNetworkV4(ctx, req)
+	} else {
+		grpcClient := resource_api_grpc_pb.NewResourceApiClient(conn)
+		rep, err = grpcClient.DeleteNetworkV4(ctx, req)
+	}
+
+	return rep, err
+}
+
+//
 // Compute
 //
 func (cli *ResourceApiClient) GetCompute(req *resource_api_grpc_pb.GetComputeRequest) (*resource_api_grpc_pb.GetComputeReply, error) {

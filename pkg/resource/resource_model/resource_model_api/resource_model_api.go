@@ -98,33 +98,9 @@ func (modelApi *ResourceModelApi) bootstrapClusters() error {
 			if err = db.Create(&cluster).Error; err != nil {
 				return err
 			}
-			glog.V(2).Infof("Resource Cluster: Created: cluster=%v", clusterName)
+			glog.V(2).Infof("Resource Cluster: Created: cluster=%v, conf=%v", clusterName, clusterConf)
 		} else {
-			glog.V(2).Infof("Resource Cluster: Already Exists: cluster=%v", clusterName)
-		}
-
-		for networkName, networkConf := range clusterConf.NetworkMap {
-			var networkV4 resource_model.NetworkV4
-			if err = db.Where("cluster_id = ? and name = ?", cluster.ID, networkName).First(&networkV4).Error; err != nil {
-				if !gorm.IsRecordNotFoundError(err) {
-					return err
-				}
-
-				networkV4 = resource_model.NetworkV4{
-					Name:      networkName,
-					ClusterID: cluster.ID,
-					Subnet:    networkConf.Subnet,
-					StartIp:   networkConf.StartIp,
-					EndIp:     networkConf.EndIp,
-					Gateway:   networkConf.Gateway,
-				}
-				if err = db.Create(&networkV4).Error; err != nil {
-					return err
-				}
-				glog.V(2).Infof("Resource Cluster Network: Created: cluster=%v, network=%v", clusterName, networkName)
-			} else {
-				glog.V(2).Infof("Resource Cluster Network: Already Exists: cluster=%v, network=%v", clusterName, networkName)
-			}
+			glog.V(2).Infof("Resource Cluster: Already Exists: cluster=%v", clusterName, clusterConf)
 		}
 	}
 
