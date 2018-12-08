@@ -26,12 +26,13 @@ var getNetworkV4Cmd = &cobra.Command{
 }
 
 var deleteNetworkV4Cmd = &cobra.Command{
-	Use:   "networkv4",
+	Use:   "networkv4 [network-name]",
 	Short: "Show networks",
 	Long: `Show networks
 	`,
+	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		if err := DeleteNetworkV4(); err != nil {
+		if err := DeleteNetworkV4(args[0]); err != nil {
 			glog.Fatal(err)
 		}
 	},
@@ -68,6 +69,9 @@ func GetNetworkV4() error {
 func CreateNetworkV4(token string, spec string) error {
 	authproxy := core.NewAuthproxy(&config.Conf)
 	resp, err := authproxy.Resource.CtlCreateNetworkV4(token, spec)
+	if resp != nil && config.Conf.Default.EnableDebug {
+		PrintStackTrace(resp.StackTrace)
+	}
 	if err != nil {
 		return err
 	}
@@ -108,14 +112,14 @@ func UpdateNetworkV4(token string, spec string) error {
 	return nil
 }
 
-func DeleteNetworkV4() error {
+func DeleteNetworkV4(networkName string) error {
 	authproxy := core.NewAuthproxy(&config.Conf)
 	token, err := authproxy.Auth.CtlIssueToken()
 	if err != nil {
 		return err
 	}
 
-	resp, err := authproxy.Resource.CtlDeleteNetworkV4(token.Token, deleteCmdClusterFlag, "%")
+	resp, err := authproxy.Resource.CtlDeleteNetworkV4(token.Token, deleteCmdClusterFlag, networkName)
 	if err != nil {
 		return err
 	}

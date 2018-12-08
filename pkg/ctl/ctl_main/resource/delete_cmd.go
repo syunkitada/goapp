@@ -9,7 +9,8 @@ var (
 )
 
 func init() {
-	DeleteCmd.PersistentFlags().StringVarP(&deleteCmdClusterFlag, "cluster", "c", "", "Filtering by cluster")
+	deleteNetworkV4Cmd.Flags().StringVarP(&deleteCmdClusterFlag, "cluster", "c", "", "Filtering by cluster")
+	deleteNetworkV4Cmd.MarkFlagRequired("cluster")
 
 	DeleteCmd.AddCommand(deleteNetworkV4Cmd)
 	RootCmd.AddCommand(DeleteCmd)

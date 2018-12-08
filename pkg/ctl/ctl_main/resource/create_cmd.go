@@ -64,7 +64,7 @@ func CreateResource() error {
 
 	switch resourceSpec.Kind {
 	case resource_model.SpecNetworkV4:
-		CreateNetworkV4(token.Token, string(bytes))
+		return CreateNetworkV4(token.Token, string(bytes))
 	case resource_model.SpecCompute:
 		resp, err := authproxy.Resource.CtlCreateCompute(token.Token, string(bytes))
 		if err != nil {

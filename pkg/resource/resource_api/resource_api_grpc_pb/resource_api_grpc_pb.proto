@@ -131,7 +131,9 @@ message GetNetworkV4Request {
 }
 
 message GetNetworkV4Reply {
-    repeated NetworkV4 networks = 1;
+    string err = 1;
+    repeated string stack_trace = 2;
+    repeated NetworkV4 networks = 3;
 }
 
 message CreateNetworkV4Request {
@@ -143,7 +145,9 @@ message CreateNetworkV4Request {
 }
 
 message CreateNetworkV4Reply {
-    NetworkV4 network = 1;
+    string err = 1;
+    repeated string stack_trace = 2;
+    NetworkV4 network = 3;
 }
 
 message UpdateNetworkV4Request {
@@ -155,7 +159,9 @@ message UpdateNetworkV4Request {
 }
 
 message UpdateNetworkV4Reply {
-    NetworkV4 network = 1;
+    string err = 1;
+    repeated string stack_trace = 2;
+    NetworkV4 network = 3;
 }
 
 message DeleteNetworkV4Request {
@@ -168,7 +174,9 @@ message DeleteNetworkV4Request {
 }
 
 message DeleteNetworkV4Reply {
-    NetworkV4 network = 1;
+    string err = 1;
+    repeated string stack_trace = 2;
+    NetworkV4 network = 3;
 }
 
 message NetworkV4 {

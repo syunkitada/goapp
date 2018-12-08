@@ -3,7 +3,7 @@ package resource_model
 type ResourceSpec struct {
 	Kind    string
 	Name    string
-	Cluster string
+	Cluster string `validate:"required"`
 	Spec    Spec
 }
 

@@ -11,30 +11,36 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/golang/glog"
 	"google.golang.org/grpc/status"
 
 	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_model"
+	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/resource/resource_api/resource_api_grpc_pb"
 )
 
 type ResponseGetNetworkV4 struct {
-	Networks []resource_api_grpc_pb.NetworkV4
-	Err      string
+	Networks   []resource_api_grpc_pb.NetworkV4
+	StackTrace []string
+	Err        string
 }
 
 type ResponseCreateNetworkV4 struct {
-	Network resource_api_grpc_pb.NetworkV4
-	Err     string
+	Network    resource_api_grpc_pb.NetworkV4
+	StackTrace []string
+	Err        string
 }
 
 type ResponseUpdateNetworkV4 struct {
-	Network resource_api_grpc_pb.NetworkV4
-	Err     string
+	Network    resource_api_grpc_pb.NetworkV4
+	StackTrace []string
+	Err        string
 }
 
 type ResponseDeleteNetworkV4 struct {
-	Network resource_api_grpc_pb.NetworkV4
-	Err     string
+	Network    resource_api_grpc_pb.NetworkV4
+	StackTrace []string
+	Err        string
 }
 
 func (resource *Resource) GetNetworkV4(c *gin.Context, username string, userAuthority *authproxy_model.UserAuthority, action *authproxy_model.ActionRequest) error {
@@ -56,27 +62,52 @@ func (resource *Resource) GetNetworkV4(c *gin.Context, username string, userAuth
 	return nil
 }
 
-func (resource *Resource) CreateNetworkV4(c *gin.Context, username string, userAuthority *authproxy_model.UserAuthority, action *authproxy_model.ActionRequest) error {
+func (resource *Resource) CreateNetworkV4(c *gin.Context, rc *ResourceContext) {
+	traceFormat := "ProxyApi.Resource.CreateNetworkV4: time=%v"
+
 	var reqData resource_api_grpc_pb.CreateNetworkV4Request
-	if err := json.Unmarshal([]byte(action.Data), &reqData); err != nil {
-		return err
+	if err := json.Unmarshal([]byte(rc.action.Data), &reqData); err != nil {
+		t := fmt.Sprintf(traceFormat, time.Now().Sub(rc.startTime))
+		logger.Error(t, err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"stackTrace": []string{t},
+			"err":        err,
+		})
+		return
 	}
-	reqData.UserName = username
-	reqData.RoleName = userAuthority.ActionProjectService.RoleName
-	reqData.ProjectName = userAuthority.ActionProjectService.ProjectName
-	reqData.ProjectRoleName = userAuthority.ActionProjectService.ProjectRoleName
+	reqData.UserName = rc.userName
+	reqData.RoleName = rc.userAuthority.ActionProjectService.RoleName
+	reqData.ProjectName = rc.userAuthority.ActionProjectService.ProjectName
+	reqData.ProjectRoleName = rc.userAuthority.ActionProjectService.ProjectRoleName
 
 	rep, err := resource.resourceApiClient.CreateNetworkV4(&reqData)
+	t := fmt.Sprintf(traceFormat, time.Now().Sub(rc.startTime))
 	if err != nil {
+		logger.Error(t, err)
 		st := status.Convert(err)
-		return fmt.Errorf(st.Message())
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"stackTrace": []string{t},
+			"err":        st.Message(),
+		})
+		return
 	}
 
+	if rep.Err != "" {
+		glog.Info("hoge")
+		logger.Trace("cluster1", "auth-proxy", "none", rep.Err, "error")
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"stackTrace": append(rep.StackTrace, t),
+			"err":        rep.Err,
+		})
+		return
+	}
+
+	glog.Info(t)
 	c.JSON(200, gin.H{
-		"network": rep.Network,
-		"err":     err,
+		"stackTrace": append(rep.StackTrace, t),
+		"network":    rep.Network,
 	})
-	return nil
+	return
 }
 
 func (resource *Resource) UpdateNetworkV4(c *gin.Context, username string, userAuthority *authproxy_model.UserAuthority, action *authproxy_model.ActionRequest) error {
@@ -258,8 +289,11 @@ func (resource *Resource) CtlCreateNetworkV4(token string, spec string) (*Respon
 		return nil, fmt.Errorf("@@CtlCreateNetworkV4: time=%v: %v", time.Now().Sub(start), err)
 	}
 
+	traceLog := fmt.Sprintf("CtlCreateNetworkV4: time=%v", time.Now().Sub(start))
+	resp.StackTrace = append(resp.StackTrace, traceLog)
+
 	if statusCode != 200 {
-		return &resp, fmt.Errorf("@@CtlCreateNetworkV4: time=%v, statusCode=%v %v", time.Now().Sub(start), statusCode, resp.Err)
+		return &resp, fmt.Errorf("statusCode=%v, %v", statusCode, resp.Err)
 	}
 
 	return &resp, nil

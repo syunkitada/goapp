@@ -83,11 +83,14 @@ func (srv *ResourceApiServer) CreateNetworkV4(ctx context.Context, req *resource
 	var rep *resource_api_grpc_pb.CreateNetworkV4Reply
 	var err error
 	rep, err = srv.resourceModelApi.CreateNetworkV4(req)
+	rep.StackTrace = append(rep.StackTrace, fmt.Sprintf("ResouceApiServer.CreateNetworkV4: time=%v, err=%v", time.Now().Sub(startTime), err))
 	if err != nil {
-		return rep, fmt.Errorf("@@ApiCreateNetworkV4: time=%v, error=%v", time.Now().Sub(startTime), err)
+		rep.Err = err.Error()
+		glog.Error(rep.StackTrace, err)
+	} else {
+		glog.Info(rep.StackTrace)
 	}
-	glog.Infof("Completed CreateNetworkV4: %v", err)
-	return rep, err
+	return rep, nil
 }
 
 func (srv *ResourceApiServer) UpdateNetworkV4(ctx context.Context, req *resource_api_grpc_pb.UpdateNetworkV4Request) (*resource_api_grpc_pb.UpdateNetworkV4Reply, error) {

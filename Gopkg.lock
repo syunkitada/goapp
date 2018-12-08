@@ -43,6 +43,21 @@
   version = "v1.2"
 
 [[projects]]
+  name = "github.com/go-playground/locales"
+  packages = [
+    ".",
+    "currency"
+  ]
+  revision = "f63010822830b6fe52288ee52d5a1151088ce039"
+  version = "v0.12.1"
+
+[[projects]]
+  name = "github.com/go-playground/universal-translator"
+  packages = ["."]
+  revision = "b32fa301c9fe55953584134cb6853a13c87ec0a1"
+  version = "v0.16.0"
+
+[[projects]]
   name = "github.com/go-sql-driver/mysql"
   packages = ["."]
   revision = "d523deb1b23d913de5bdada721a6071e71283618"
@@ -95,6 +110,12 @@
   packages = ["."]
   revision = "1624edc4454b8682399def8740d46db5e4362ba4"
   version = "1.1.5"
+
+[[projects]]
+  name = "github.com/konsorten/go-windows-terminal-sequences"
+  packages = ["."]
+  revision = "5c8c8bd35d3832f5d134ae1e1e375b69a4d25242"
+  version = "v1.0.1"
 
 [[projects]]
   name = "github.com/mattn/go-colorable"
@@ -167,6 +188,12 @@
   packages = ["difflib"]
   revision = "792786c7400a136282c1664665ae0a8db921c6c2"
   version = "v1.0.0"
+
+[[projects]]
+  name = "github.com/sirupsen/logrus"
+  packages = ["."]
+  revision = "bcd833dfe83d3cebad139e4a29ed79cb2318bf95"
+  version = "v1.2.0"
 
 [[projects]]
   name = "github.com/spf13/cobra"
@@ -304,6 +331,12 @@
   version = "v8.18.2"
 
 [[projects]]
+  name = "gopkg.in/go-playground/validator.v9"
+  packages = ["."]
+  revision = "1fa3c8d6336562f0a3f95c73593ee2b57ff4da11"
+  version = "v9.23.0"
+
+[[projects]]
   name = "gopkg.in/godo.v2"
   packages = [
     ".",
@@ -324,6 +357,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "db6d1e53e82557a6e9e5c789350ae8e96115632a9ea5bb924cbdae87a73d351c"
+  inputs-digest = "099e5e4474d8afa9f918832a100cb68af206555b2b8868776978c38743a74dc7"
   solver-name = "gps-cdcl"
   solver-version = 1

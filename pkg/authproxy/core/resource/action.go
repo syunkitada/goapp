@@ -14,6 +14,13 @@ import (
 	"github.com/syunkitada/goapp/pkg/resource/resource_api/resource_api_grpc_pb"
 )
 
+type ResourceContext struct {
+	userName      string
+	userAuthority *authproxy_model.UserAuthority
+	startTime     time.Time
+	action        *authproxy_model.ActionRequest
+}
+
 func (resource *Resource) Action(c *gin.Context) {
 	start := time.Now()
 	tmpUsername, usernameOk := c.Get("Username")
@@ -29,6 +36,12 @@ func (resource *Resource) Action(c *gin.Context) {
 	username := tmpUsername.(string)
 	action := tmpAction.(authproxy_model.ActionRequest)
 	userAuthority := tmpUserAuthority.(*authproxy_model.UserAuthority)
+	rc := &ResourceContext{
+		userName:      tmpUsername.(string),
+		action:        &action,
+		userAuthority: tmpUserAuthority.(*authproxy_model.UserAuthority),
+		startTime:     time.Now(),
+	}
 
 	switch action.Name {
 	case "GetCluster":
@@ -149,16 +162,7 @@ func (resource *Resource) Action(c *gin.Context) {
 		return
 
 	case "CreateNetworkV4":
-		err := resource.CreateNetworkV4(c, username, userAuthority, &action)
-		msg := fmt.Sprintf("@@ProxyApiCreateNetworkV4: time=%v %v", time.Now().Sub(start), err)
-		if err != nil {
-			glog.Warning(msg)
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"err": msg,
-			})
-		} else {
-			glog.Info(msg)
-		}
+		resource.CreateNetworkV4(c, rc)
 		return
 
 	case "UpdateNetworkV4":

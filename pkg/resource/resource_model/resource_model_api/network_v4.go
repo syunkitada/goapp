@@ -48,7 +48,9 @@ func (modelApi *ResourceModelApi) CreateNetworkV4(req *resource_api_grpc_pb.Crea
 	if err = json.Unmarshal([]byte(req.Spec), &spec); err != nil {
 		return rep, err
 	}
-	glog.Info(spec.Name)
+	if err = modelApi.validate.Struct(spec); err != nil {
+		return rep, err
+	}
 
 	// TODO Validate projectRole
 	// TODO Validate cluster
@@ -138,6 +140,10 @@ func (modelApi *ResourceModelApi) DeleteNetworkV4(req *resource_api_grpc_pb.Dele
 		return nil, err
 	}
 	db.LogMode(modelApi.conf.Default.EnableDatabaseLog)
+
+	glog.Info("DEBUGlalalalala")
+	glog.Info(req.Target)
+	glog.Info(req.Cluster)
 
 	var network resource_model.NetworkV4
 	if err = db.Where("name = ?", req.Target).Delete(&network).Error; err != nil {

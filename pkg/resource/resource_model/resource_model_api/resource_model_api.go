@@ -6,6 +6,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/golang/glog"
 	"github.com/jinzhu/gorm"
+	"gopkg.in/go-playground/validator.v9"
 
 	"github.com/syunkitada/goapp/pkg/config"
 	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_api"
@@ -17,6 +18,7 @@ type ResourceModelApi struct {
 	conf             *config.Config
 	downTimeDuration time.Duration
 	clusterClientMap map[string]*resource_cluster_api_client.ResourceClusterApiClient
+	validate         *validator.Validate
 }
 
 func NewResourceModelApi(conf *config.Config, clusterApiMap map[string]resource_cluster_api.ResourceClusterApiServer) *ResourceModelApi {
@@ -43,6 +45,7 @@ func NewResourceModelApi(conf *config.Config, clusterApiMap map[string]resource_
 		conf:             conf,
 		downTimeDuration: -1 * time.Duration(conf.Resource.AppDownTime) * time.Second,
 		clusterClientMap: clusterClientMap,
+		validate:         validator.New(),
 	}
 
 	return &modelApi

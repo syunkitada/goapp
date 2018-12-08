@@ -1,6 +1,8 @@
 package resource
 
 import (
+	"fmt"
+
 	"github.com/spf13/cobra"
 )
 
@@ -9,4 +11,12 @@ var RootCmd = &cobra.Command{
 	Short: "resource service",
 	Long: `resource service
 	`,
+}
+
+func PrintStackTrace(stackTrace []string) {
+	fmt.Println("<StackTrace>")
+	lenStackTrace := len(stackTrace)
+	for i := lenStackTrace - 1; i >= 0; i = i - 1 {
+		fmt.Printf("> %v\n", stackTrace[i])
+	}
 }
