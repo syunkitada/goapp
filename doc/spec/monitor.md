@@ -28,15 +28,26 @@
 
 ## dataproxy
 * log, tracelog, metricsをproxyする
+    * logやtracelogを解析して、metricsに変換してproxyする場合もある
 * プロトコルはlineprotocolを参考にする
     * https://docs.influxdata.com/influxdb/v1.7/write_protocols/line_protocol_tutorial/
-    * log,index=cluster1,source=api log="create resource" 1465839830100400200
-    * tracelog,index=cluster1,source=api,traceid=uuid1 msg="CreateNetworkV4(name=hoge,cluster=aaa)" 1465839830100400200
-    * tracelog,index=cluster1,source=api,traceid=uuid1 msg="CreateNetworkV4(name=hoge,cluster=aaa): (err=nil)" 1465839830100400300
+    * metrics
+        * hoge,index=cluste1,host=host1 mem=123 1465839830100400200
+    * log
+        * log,index=cluster1,source=api,host=host1 msg="create resource" 1465839830100400200
+    * tracelog
+        * traceidにより、ログを検索できるようにする
+        * tracelog,index=cluster1,source=api,host=host1,traceid=uuid1 msg="CreateNetworkV4(name=hoge,cluster=aaa)" 1465839830100400200
+        * tracelog,index=cluster1,source=api,host=host1,traceid=uuid1 msg="CreateNetworkV4(name=hoge,cluster=aaa): (err=nil)" 1465839830100400300
 * proxyはデータをバッファに保存し、alertを設定してhookする
+    * 閾値やキーワードベースですぐにhookできるalertはここでhookする
 * indexにより、proxy先を変えて、シャーディングする
-* データを検索するときもindex指定により、そのシャーディング先のDBから取得する
-* traceidにより、ログを検索できるようにする
+    * 冗長化のためシャーディング先は2台から3台のDBがあると好ましい
+    * シャーディング先に設定されたDBすべてに書き込む
+        * 書き込めないのノードがいてもスルーする
+    * データを検索するときは、index指定により、そのシャーディング先のDBすべてから検索し、データをマージして結果を返す
+        * どこかのノードがデータを持っていればデータの冗長性が保たれる
+    * シャーディング先で冗長化が担保できてるなら、書き込みも読み込みも1つから行う
 
 
 ## alert-manager

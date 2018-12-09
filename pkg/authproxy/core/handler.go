@@ -8,7 +8,7 @@ import (
 
 func (authproxy *Authproxy) NewHandler() http.Handler {
 	handler := gin.New()
-	handler.Use(gin.Logger())
+	handler.Use(authproxy.Logger())
 	handler.Use(gin.Recovery())
 	if !authproxy.conf.Default.EnableTest {
 		handler.Use(authproxy.ValidateHeaders())

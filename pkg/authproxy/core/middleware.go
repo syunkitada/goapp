@@ -3,14 +3,57 @@ package core
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/golang/glog"
 
 	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_model"
+	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
+
+func (authproxy *Authproxy) Logger() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		start := time.Now()
+		client := c.ClientIP()
+		method := c.Request.Method
+		path := c.Request.URL.Path
+
+		traceId := logger.NewTraceId()
+
+		c.Set("TraceId", traceId)
+		logger.TraceInfo(authproxy.name, traceId, map[string]string{
+			"msg":    "Start",
+			"client": client,
+			"method": method,
+			"path":   path,
+		})
+
+		c.Next()
+		end := time.Now()
+		latency := end.Sub(start)
+
+		statusCode := c.Writer.Status()
+
+		logger.TraceInfo(authproxy.name, traceId, map[string]string{
+			"msg":       "End",
+			"client":    client,
+			"method":    method,
+			"path":      path,
+			"stausCode": strconv.Itoa(statusCode),
+		})
+		logger.Bench(authproxy.name, latency, map[string]string{
+			"stausCode": strconv.Itoa(statusCode),
+			"client":    client,
+			"method":    method,
+			"path":      path,
+			"traceId":   traceId,
+		})
+	}
+}
 
 // SecureHeaders adds secure headers to the API
 // func (a *API) SecureHeaders(next http.Handler) http.Handler {

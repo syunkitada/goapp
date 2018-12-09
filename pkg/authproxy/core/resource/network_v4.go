@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/golang/glog"
 	"google.golang.org/grpc/status"
 
 	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_model"
@@ -68,7 +67,7 @@ func (resource *Resource) CreateNetworkV4(c *gin.Context, rc *ResourceContext) {
 	var reqData resource_api_grpc_pb.CreateNetworkV4Request
 	if err := json.Unmarshal([]byte(rc.action.Data), &reqData); err != nil {
 		t := fmt.Sprintf(traceFormat, time.Now().Sub(rc.startTime))
-		logger.Error(t, err)
+		logger.Error(resource.name, map[string]string{"msg": err.Error()})
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"stackTrace": []string{t},
 			"err":        err,
@@ -83,7 +82,7 @@ func (resource *Resource) CreateNetworkV4(c *gin.Context, rc *ResourceContext) {
 	rep, err := resource.resourceApiClient.CreateNetworkV4(&reqData)
 	t := fmt.Sprintf(traceFormat, time.Now().Sub(rc.startTime))
 	if err != nil {
-		logger.Error(t, err)
+		logger.Error(resource.name, map[string]string{"msg": err.Error()})
 		st := status.Convert(err)
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"stackTrace": []string{t},
@@ -93,8 +92,7 @@ func (resource *Resource) CreateNetworkV4(c *gin.Context, rc *ResourceContext) {
 	}
 
 	if rep.Err != "" {
-		glog.Info("hoge")
-		logger.Trace("cluster1", "auth-proxy", "none", rep.Err, "error")
+		logger.TraceError(resource.name, rc.traceId, map[string]string{"err": rep.Err})
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"stackTrace": append(rep.StackTrace, t),
 			"err":        rep.Err,
@@ -102,7 +100,6 @@ func (resource *Resource) CreateNetworkV4(c *gin.Context, rc *ResourceContext) {
 		return
 	}
 
-	glog.Info(t)
 	c.JSON(200, gin.H{
 		"stackTrace": append(rep.StackTrace, t),
 		"network":    rep.Network,

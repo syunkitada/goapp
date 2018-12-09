@@ -15,6 +15,7 @@ import (
 )
 
 type ResourceContext struct {
+	traceId       string
 	userName      string
 	userAuthority *authproxy_model.UserAuthority
 	startTime     time.Time
@@ -23,10 +24,11 @@ type ResourceContext struct {
 
 func (resource *Resource) Action(c *gin.Context) {
 	start := time.Now()
+	tmpTraceId, traceIdOk := c.Get("TraceId")
 	tmpUsername, usernameOk := c.Get("Username")
 	tmpUserAuthority, userAuthorityOk := c.Get("UserAuthority")
 	tmpAction, actionOk := c.Get("Action")
-	if !usernameOk || !userAuthorityOk || !actionOk {
+	if !traceIdOk || !usernameOk || !userAuthorityOk || !actionOk {
 		c.JSON(500, gin.H{
 			"err": "Invalid request",
 		})
@@ -37,6 +39,7 @@ func (resource *Resource) Action(c *gin.Context) {
 	action := tmpAction.(authproxy_model.ActionRequest)
 	userAuthority := tmpUserAuthority.(*authproxy_model.UserAuthority)
 	rc := &ResourceContext{
+		traceId:       tmpTraceId.(string),
 		userName:      tmpUsername.(string),
 		action:        &action,
 		userAuthority: tmpUserAuthority.(*authproxy_model.UserAuthority),

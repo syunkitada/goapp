@@ -6,6 +6,7 @@ import (
 )
 
 type Auth struct {
+	name              string
 	conf              *config.Config
 	authproxyModelApi *authproxy_model_api.AuthproxyModelApi
 	token             *Token
@@ -13,6 +14,7 @@ type Auth struct {
 
 func NewAuth(conf *config.Config, authproxyModelApi *authproxy_model_api.AuthproxyModelApi, token *Token) *Auth {
 	auth := Auth{
+		name:              "authproxy:auth",
 		conf:              conf,
 		authproxyModelApi: authproxyModelApi,
 		token:             token,

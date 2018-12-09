@@ -6,6 +6,7 @@ import (
 
 	"github.com/syunkitada/goapp/pkg/authproxy/core"
 	"github.com/syunkitada/goapp/pkg/config"
+	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
 
 var rootCmd = &cobra.Command{
@@ -29,4 +30,5 @@ func Main() {
 func init() {
 	cobra.OnInitialize(config.InitConfig)
 	config.InitFlags(rootCmd)
+	logger.Init()
 }

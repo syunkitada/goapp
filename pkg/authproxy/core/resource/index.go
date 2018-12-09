@@ -6,12 +6,14 @@ import (
 )
 
 type Resource struct {
+	name              string
 	conf              *config.Config
 	resourceApiClient *resource_api_client.ResourceApiClient
 }
 
 func NewResource(conf *config.Config) *Resource {
 	resource := Resource{
+		name:              "authproxy:resource",
 		conf:              conf,
 		resourceApiClient: resource_api_client.NewResourceApiClient(conf),
 	}
