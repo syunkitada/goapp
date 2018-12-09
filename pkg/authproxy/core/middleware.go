@@ -44,13 +44,7 @@ func (authproxy *Authproxy) Logger() gin.HandlerFunc {
 			"method":    method,
 			"path":      path,
 			"stausCode": strconv.Itoa(statusCode),
-		})
-		logger.Bench(authproxy.name, latency, map[string]string{
-			"stausCode": strconv.Itoa(statusCode),
-			"client":    client,
-			"method":    method,
-			"path":      path,
-			"traceId":   traceId,
+			"latency":   strconv.FormatInt(latency.Nanoseconds()/1000000, 10),
 		})
 	}
 }

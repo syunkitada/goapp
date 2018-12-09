@@ -4,16 +4,13 @@ import (
 	"encoding/json"
 	"log"
 	"os"
-	"strconv"
-	"time"
 
 	"github.com/rs/xid"
 )
 
 var (
-	Logger      *log.Logger
-	Tracer      *log.Logger
-	BenchMarker *log.Logger
+	Logger *log.Logger
+	Tracer *log.Logger
 )
 
 const (
@@ -28,7 +25,6 @@ const (
 func Init() {
 	Logger = log.New(os.Stdout, "", log.Ldate|log.Ltime)
 	Tracer = log.New(os.Stdout, "", log.Ldate|log.Ltime)
-	BenchMarker = log.New(os.Stdout, "", log.Ldate|log.Ltime)
 }
 
 func Info(source string, metadata map[string]string) {
@@ -60,15 +56,6 @@ func Warning(source string, metadata map[string]string) {
 		return
 	}
 	Logger.Print(warningLog + " " + source + " " + string(msg))
-}
-
-func Bench(source string, latency time.Duration, metadata map[string]string) {
-	msg, err := json.Marshal(metadata)
-	if err != nil {
-		failedJsonMarshal(source, err.Error())
-		return
-	}
-	BenchMarker.Print(benchLog + " " + source + " " + strconv.FormatInt(latency.Nanoseconds()/1000000, 10) + " " + string(msg))
 }
 
 func NewTraceId() string {
