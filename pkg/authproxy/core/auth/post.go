@@ -41,7 +41,7 @@ func (auth *Auth) IssueToken(c *gin.Context) {
 		return
 	}
 
-	logger.TraceInfo(auth.name, traceId, map[string]string{
+	logger.TraceInfo(traceId, auth.host, auth.name, map[string]string{
 		"user": authRequest.Username,
 		"msg":  "Success IssueToken",
 	})

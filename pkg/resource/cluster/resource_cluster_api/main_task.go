@@ -16,7 +16,7 @@ func (srv *ResourceClusterApiServer) MainTask() error {
 
 func (srv *ResourceClusterApiServer) UpdateNodeTask() error {
 	req := &resource_cluster_api_grpc_pb.UpdateNodeRequest{
-		Name:         srv.conf.Default.Name,
+		Name:         srv.conf.Default.Host,
 		Kind:         resource_cluster_model.KindResourceClusterApi,
 		Role:         resource_cluster_model.RoleMember,
 		Status:       resource_cluster_model.StatusEnabled,

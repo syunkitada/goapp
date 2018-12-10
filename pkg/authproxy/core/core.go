@@ -17,6 +17,7 @@ import (
 )
 
 type Authproxy struct {
+	host              string
 	name              string
 	conf              *config.Config
 	Listen            string
@@ -36,6 +37,7 @@ func NewAuthproxy(conf *config.Config) *Authproxy {
 	token := auth.NewToken(conf, authproxyModelApi)
 
 	authproxy := &Authproxy{
+		host:              conf.Default.Host,
 		name:              "authproxy",
 		conf:              conf,
 		Listen:            conf.Authproxy.HttpServer.Listen,

@@ -62,20 +62,20 @@ func NewTraceId() string {
 	return xid.New().String()
 }
 
-func TraceInfo(source string, traceid string, metadata map[string]string) {
+func TraceInfo(traceid string, host string, source string, metadata map[string]string) {
 	msg, err := json.Marshal(metadata)
 	if err != nil {
 		failedJsonMarshal(source, err.Error())
 		return
 	}
-	Tracer.Print(traceLog + " " + infoLog + " " + traceid + " " + source + " " + string(msg))
+	Tracer.Print(traceLog + " " + infoLog + " " + traceid + " " + host + " " + source + " " + string(msg))
 }
 
-func TraceError(source string, traceid string, metadata map[string]string) {
+func TraceError(traceid string, host string, source string, metadata map[string]string) {
 	msg, err := json.Marshal(metadata)
 	if err != nil {
 		failedJsonMarshal(source, err.Error())
 		return
 	}
-	Tracer.Print(traceLog + " " + errorLog + " " + traceid + " " + source + " " + string(msg))
+	Tracer.Print(traceLog + " " + errorLog + " " + traceid + " " + host + " " + source + " " + string(msg))
 }

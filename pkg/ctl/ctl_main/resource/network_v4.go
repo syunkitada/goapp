@@ -69,9 +69,6 @@ func GetNetworkV4() error {
 func CreateNetworkV4(token string, spec string) error {
 	authproxy := core.NewAuthproxy(&config.Conf)
 	resp, err := authproxy.Resource.CtlCreateNetworkV4(token, spec)
-	if resp != nil && config.Conf.Default.EnableDebug {
-		PrintStackTrace(resp.StackTrace)
-	}
 	if err != nil {
 		return err
 	}

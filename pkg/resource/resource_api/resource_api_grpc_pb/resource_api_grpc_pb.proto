@@ -59,15 +59,17 @@ message StatusReply {
 // Cluster
 //
 message GetClusterRequest {
-    string user_name = 1;
-    string role_name = 2;
-    string project_name = 3;
-    string project_role_name = 4;
-    string target = 5;
+    string trace_id = 1;
+    string user_name = 2;
+    string role_name = 3;
+    string project_name = 4;
+    string project_role_name = 5;
+    string target = 6;
 }
 
 message GetClusterReply {
-    repeated Cluster clusters = 1;
+    string err = 1;
+    repeated Cluster clusters = 2;
 }
 
 message Cluster {
@@ -81,29 +83,34 @@ message Cluster {
 // Node
 //
 message GetNodeRequest {
-    string user_name = 1;
-    string role_name = 2;
-    string project_name = 3;
-    string project_role_name = 4;
-    string target = 5;
-    string cluster = 6;
+    string trace_id = 1;
+    string user_name = 2;
+    string role_name = 3;
+    string project_name = 4;
+    string project_role_name = 5;
+    string target = 6;
+    string cluster = 7;
 }
 
 message GetNodeReply {
-    repeated Node nodes = 1;
+    string err = 1;
+    repeated Node nodes = 2;
 }
 
 message UpdateNodeRequest {
-    string name = 1;
-    string kind = 2;
-    string role = 3;
-    string status = 4;
-    string status_reason = 5;
-    string state = 6;
-    string state_reason = 7;
+    string trace_id = 1;
+    string name = 2;
+    string kind = 3;
+    string role = 4;
+    string status = 5;
+    string status_reason = 6;
+    string state = 7;
+    string state_reason = 8;
 }
 
-message UpdateNodeReply {}
+message UpdateNodeReply {
+    string err = 1;
+}
 
 message Node {
     google.protobuf.Timestamp updated_at = 1;
@@ -122,60 +129,64 @@ message Node {
 // NetworkV4
 //
 message GetNetworkV4Request {
-    string user_name = 1;
-    string role_name = 2;
-    string project_name = 3;
-    string project_role_name = 4;
-    string target = 5;
-    string cluster = 6;
+    string trace_id = 1;
+    string user_name = 2;
+    string role_name = 3;
+    string project_name = 4;
+    string project_role_name = 5;
+    string target = 6;
+    string cluster = 7;
 }
 
 message GetNetworkV4Reply {
-    string err = 1;
-    repeated string stack_trace = 2;
+    int64 status_code = 1;
+    string err = 2;
     repeated NetworkV4 networks = 3;
 }
 
 message CreateNetworkV4Request {
-    string user_name = 1;
-    string role_name = 2;
-    string project_name = 3;
-    string project_role_name = 4;
-    string spec = 5;
+    string trace_id = 1;
+    string user_name = 2;
+    string role_name = 3;
+    string project_name = 4;
+    string project_role_name = 5;
+    string spec = 6;
 }
 
 message CreateNetworkV4Reply {
-    string err = 1;
-    repeated string stack_trace = 2;
+    int64 status_code = 1;
+    string err = 2;
     NetworkV4 network = 3;
 }
 
 message UpdateNetworkV4Request {
-    string user_name = 1;
-    string role_name = 2;
-    string project_name = 3;
-    string project_role_name = 4;
-    string spec = 5;
+    string trace_id = 1;
+    string user_name = 2;
+    string role_name = 3;
+    string project_name = 4;
+    string project_role_name = 5;
+    string spec = 6;
 }
 
 message UpdateNetworkV4Reply {
-    string err = 1;
-    repeated string stack_trace = 2;
+    int64 status_code = 1;
+    string err = 2;
     NetworkV4 network = 3;
 }
 
 message DeleteNetworkV4Request {
-    string user_name = 1;
-    string role_name = 2;
-    string project_name = 3;
-    string project_role_name = 4;
-    string target = 5;
-    string cluster = 6;
+    string trace_id = 1;
+    string user_name = 2;
+    string role_name = 3;
+    string project_name = 4;
+    string project_role_name = 5;
+    string target = 6;
+    string cluster = 7;
 }
 
 message DeleteNetworkV4Reply {
-    string err = 1;
-    repeated string stack_trace = 2;
+    int64 status_code = 1;
+    string err = 2;
     NetworkV4 network = 3;
 }
 

@@ -9,6 +9,7 @@ import (
 	"github.com/golang/protobuf/ptypes"
 	"github.com/jinzhu/gorm"
 
+	"github.com/syunkitada/goapp/pkg/lib/codes"
 	"github.com/syunkitada/goapp/pkg/resource/resource_api/resource_api_grpc_pb"
 	"github.com/syunkitada/goapp/pkg/resource/resource_model"
 )
@@ -32,24 +33,29 @@ func (modelApi *ResourceModelApi) GetNetworkV4(req *resource_api_grpc_pb.GetNetw
 	}, nil
 }
 
-func (modelApi *ResourceModelApi) CreateNetworkV4(req *resource_api_grpc_pb.CreateNetworkV4Request) (*resource_api_grpc_pb.CreateNetworkV4Reply, error) {
+func (modelApi *ResourceModelApi) CreateNetworkV4(req *resource_api_grpc_pb.CreateNetworkV4Request) *resource_api_grpc_pb.CreateNetworkV4Reply {
 	rep := &resource_api_grpc_pb.CreateNetworkV4Reply{}
 	var err error
 
 	db, err := gorm.Open("mysql", modelApi.conf.Resource.Database.Connection)
 	defer db.Close()
 	if err != nil {
-		return rep, err
+		rep.Err = err.Error()
+		return rep
 	}
 	db.LogMode(modelApi.conf.Default.EnableDatabaseLog)
 	glog.Info(req.Spec)
 
 	var spec resource_model.NetworkV4Spec
 	if err = json.Unmarshal([]byte(req.Spec), &spec); err != nil {
-		return rep, err
+		rep.Err = err.Error()
+		rep.StatusCode = codes.ClientBadRequest
+		return rep
 	}
 	if err = modelApi.validate.Struct(spec); err != nil {
-		return rep, err
+		rep.Err = err.Error()
+		rep.StatusCode = codes.ClientInvalidRequest
+		return rep
 	}
 
 	// TODO Validate projectRole
@@ -60,7 +66,8 @@ func (modelApi *ResourceModelApi) CreateNetworkV4(req *resource_api_grpc_pb.Crea
 	var network resource_model.NetworkV4
 	if err = db.Where("name = ? and cluster = ?", spec.Name, spec.Cluster).First(&network).Error; err != nil {
 		if !gorm.IsRecordNotFoundError(err) {
-			return rep, err
+			rep.Err = err.Error()
+			return rep
 		}
 
 		network = resource_model.NetworkV4{
@@ -76,41 +83,47 @@ func (modelApi *ResourceModelApi) CreateNetworkV4(req *resource_api_grpc_pb.Crea
 			Gateway:      spec.Spec.Gateway,
 		}
 		if err = db.Create(&network).Error; err != nil {
-			return rep, err
+			rep.Err = err.Error()
+			return rep
 		}
 	} else {
-		return rep, fmt.Errorf("Already Exists: cluster=%v, name=%v",
+		rep.Err = fmt.Sprintf("Already Exists: cluster=%v, name=%v",
 			spec.Cluster, spec.Name)
+		return rep
 	}
 
 	networkPb, err := modelApi.convertNetworkV4(&network)
 	if err != nil {
-		return rep, err
+		rep.Err = err.Error()
+		return rep
 	}
 	rep.Network = networkPb
 	glog.Info("Completed CreateNetworkV4")
-	return rep, err
+	return rep
 }
 
-func (modelApi *ResourceModelApi) UpdateNetworkV4(req *resource_api_grpc_pb.UpdateNetworkV4Request) (*resource_api_grpc_pb.UpdateNetworkV4Reply, error) {
+func (modelApi *ResourceModelApi) UpdateNetworkV4(req *resource_api_grpc_pb.UpdateNetworkV4Request) *resource_api_grpc_pb.UpdateNetworkV4Reply {
 	rep := &resource_api_grpc_pb.UpdateNetworkV4Reply{}
 	var err error
 
 	db, err := gorm.Open("mysql", modelApi.conf.Resource.Database.Connection)
 	defer db.Close()
 	if err != nil {
-		return rep, err
+		rep.Err = err.Error()
+		return rep
 	}
 	db.LogMode(modelApi.conf.Default.EnableDatabaseLog)
 
 	var spec resource_model.NetworkV4Spec
 	if err = json.Unmarshal([]byte(req.Spec), &spec); err != nil {
-		return rep, err
+		rep.Err = err.Error()
+		return rep
 	}
 
 	var network resource_model.NetworkV4
 	if err = db.Where("name = ? and cluster = ?", spec.Name, spec.Cluster).First(&network).Error; err != nil {
-		return rep, err
+		rep.Err = err.Error()
+		return rep
 	}
 
 	network.Spec = req.Spec
@@ -124,11 +137,12 @@ func (modelApi *ResourceModelApi) UpdateNetworkV4(req *resource_api_grpc_pb.Upda
 
 	networkPb, err := modelApi.convertNetworkV4(&network)
 	if err != nil {
-		return rep, err
+		rep.Err = err.Error()
+		return rep
 	}
 	rep.Network = networkPb
 	glog.Info("Completed UpdateNetworkV4")
-	return rep, err
+	return rep
 }
 
 func (modelApi *ResourceModelApi) DeleteNetworkV4(req *resource_api_grpc_pb.DeleteNetworkV4Request) (*resource_api_grpc_pb.DeleteNetworkV4Reply, error) {

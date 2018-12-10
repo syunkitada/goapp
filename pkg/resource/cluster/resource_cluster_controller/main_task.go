@@ -30,7 +30,7 @@ func (srv *ResourceClusterControllerServer) MainTask() error {
 
 func (srv *ResourceClusterControllerServer) UpdateNode() error {
 	req := resource_cluster_api_grpc_pb.UpdateNodeRequest{
-		Name:         srv.conf.Default.Name,
+		Name:         srv.conf.Default.Host,
 		Kind:         resource_cluster_model.KindResourceClusterController,
 		Role:         resource_cluster_model.RoleMember,
 		Status:       resource_cluster_model.StatusEnabled,
@@ -59,7 +59,7 @@ func (srv *ResourceClusterControllerServer) SyncRole() error {
 		if node.Kind != resource_cluster_model.KindResourceClusterController {
 			continue
 		}
-		if node.Name == srv.conf.Default.Name && node.Status == resource_cluster_model.StatusEnabled && node.State == resource_cluster_model.StateUp {
+		if node.Name == srv.conf.Default.Host && node.Status == resource_cluster_model.StatusEnabled && node.State == resource_cluster_model.StateUp {
 			existsSelfNode = true
 			srv.role = node.Role
 		}

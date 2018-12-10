@@ -6,6 +6,7 @@ import (
 )
 
 type Resource struct {
+	host              string
 	name              string
 	conf              *config.Config
 	resourceApiClient *resource_api_client.ResourceApiClient
@@ -13,6 +14,7 @@ type Resource struct {
 
 func NewResource(conf *config.Config) *Resource {
 	resource := Resource{
+		host:              conf.Default.Host,
 		name:              "authproxy:resource",
 		conf:              conf,
 		resourceApiClient: resource_api_client.NewResourceApiClient(conf),

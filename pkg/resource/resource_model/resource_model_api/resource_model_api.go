@@ -15,6 +15,8 @@ import (
 )
 
 type ResourceModelApi struct {
+	host             string
+	name             string
 	conf             *config.Config
 	downTimeDuration time.Duration
 	clusterClientMap map[string]*resource_cluster_api_client.ResourceClusterApiClient
@@ -42,6 +44,8 @@ func NewResourceModelApi(conf *config.Config, clusterApiMap map[string]resource_
 	}
 
 	modelApi := ResourceModelApi{
+		host:             conf.Default.Host,
+		name:             "resource.model_api",
 		conf:             conf,
 		downTimeDuration: -1 * time.Duration(conf.Resource.AppDownTime) * time.Second,
 		clusterClientMap: clusterClientMap,

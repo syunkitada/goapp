@@ -26,6 +26,7 @@ func NewResourceClusterApiServer(conf *config.Config) *ResourceClusterApiServer 
 		glog.Fatal(fmt.Errorf("Cluster(%v) is not found in ClusterMap", conf.Resource.Node.ClusterName))
 	}
 
+	cluster.ApiApp.Name = "resource.cluster.api"
 	server := ResourceClusterApiServer{
 		BaseApp:                 base.NewBaseApp(conf, &cluster.ApiApp),
 		conf:                    conf,

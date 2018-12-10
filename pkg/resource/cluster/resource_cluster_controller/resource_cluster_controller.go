@@ -29,6 +29,7 @@ func NewResourceClusterControllerServer(conf *config.Config) *ResourceClusterCon
 	if !ok {
 		glog.Fatal(fmt.Errorf("Cluster(%v) is not found in ClusterMap", conf.Resource.Node.ClusterName))
 	}
+	cluster.ControllerApp.AppConfig.Name = "resource.cluster.controller"
 
 	server := ResourceClusterControllerServer{
 		BaseApp: base.NewBaseApp(conf, &cluster.ControllerApp.AppConfig),

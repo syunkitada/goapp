@@ -22,6 +22,7 @@ type ResourceControllerServer struct {
 }
 
 func NewResourceControllerServer(conf *config.Config) *ResourceControllerServer {
+	conf.Resource.ControllerApp.AppConfig.Name = "resource.controller"
 	server := ResourceControllerServer{
 		BaseApp:             base.NewBaseApp(conf, &conf.Resource.ControllerApp.AppConfig),
 		conf:                conf,

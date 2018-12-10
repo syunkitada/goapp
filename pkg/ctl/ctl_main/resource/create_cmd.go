@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/golang/glog"
@@ -28,10 +27,8 @@ var createCmd = &cobra.Command{
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := CreateResource(); err != nil {
-			fmt.Println("Failed CreateResource")
-			for i, line := range strings.Split(err.Error(), "@@") {
-				fmt.Printf("%v%v\n", strings.Repeat("  ", i), line)
-			}
+			fmt.Println("Failed by following error")
+			fmt.Println(err.Error())
 		}
 	},
 }

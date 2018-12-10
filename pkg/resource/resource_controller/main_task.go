@@ -45,7 +45,7 @@ func (srv *ResourceControllerServer) MainTask() error {
 
 func (srv *ResourceControllerServer) UpdateNode() error {
 	req := resource_api_grpc_pb.UpdateNodeRequest{
-		Name:         srv.conf.Default.Name,
+		Name:         srv.conf.Default.Host,
 		Kind:         resource_model.KindResourceController,
 		Role:         resource_model.RoleMember,
 		Status:       resource_model.StatusEnabled,
@@ -74,7 +74,7 @@ func (srv *ResourceControllerServer) SyncRole() error {
 		if node.Kind != resource_model.KindResourceController {
 			continue
 		}
-		if node.Name == srv.conf.Default.Name && node.Status == resource_model.StatusEnabled && node.State == resource_model.StateUp {
+		if node.Name == srv.conf.Default.Host && node.Status == resource_model.StatusEnabled && node.State == resource_model.StateUp {
 			existsSelfNode = true
 			srv.role = node.Role
 		}

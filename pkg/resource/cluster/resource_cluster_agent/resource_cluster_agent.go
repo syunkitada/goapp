@@ -28,6 +28,7 @@ func NewResourceClusterAgentServer(conf *config.Config) *ResourceClusterAgentSer
 		glog.Fatal(fmt.Errorf("Cluster(%v) is not found in ClusterMap", conf.Resource.Node.ClusterName))
 	}
 
+	cluster.AgentApp.Name = "resource.cluster.agent"
 	server := ResourceClusterAgentServer{
 		BaseApp: base.NewBaseApp(conf, &cluster.AgentApp),
 		conf:    conf,

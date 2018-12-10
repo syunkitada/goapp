@@ -2,14 +2,17 @@ package resource_api
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/golang/glog"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/peer"
 
 	"github.com/syunkitada/goapp/pkg/base"
 	"github.com/syunkitada/goapp/pkg/config"
+	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/resource/resource_api/resource_api_grpc_pb"
 	"github.com/syunkitada/goapp/pkg/resource/resource_model/resource_model_api"
 )
@@ -21,6 +24,7 @@ type ResourceApiServer struct {
 }
 
 func NewResourceApiServer(conf *config.Config) *ResourceApiServer {
+	conf.Resource.ApiApp.Name = "resource.api"
 	server := ResourceApiServer{
 		BaseApp:          base.NewBaseApp(conf, &conf.Resource.ApiApp),
 		conf:             conf,
@@ -79,26 +83,57 @@ func (srv *ResourceApiServer) GetNetworkV4(ctx context.Context, req *resource_ap
 }
 
 func (srv *ResourceApiServer) CreateNetworkV4(ctx context.Context, req *resource_api_grpc_pb.CreateNetworkV4Request) (*resource_api_grpc_pb.CreateNetworkV4Reply, error) {
-	startTime := time.Now()
 	var rep *resource_api_grpc_pb.CreateNetworkV4Reply
-	var err error
-	rep, err = srv.resourceModelApi.CreateNetworkV4(req)
-	rep.StackTrace = append(rep.StackTrace, fmt.Sprintf("ResouceApiServer.CreateNetworkV4: time=%v, err=%v", time.Now().Sub(startTime), err))
-	if err != nil {
-		rep.Err = err.Error()
-		glog.Error(rep.StackTrace, err)
-	} else {
-		glog.Info(rep.StackTrace)
+	var client string
+
+	startTime := time.Now()
+	if pr, ok := peer.FromContext(ctx); ok {
+		client = pr.Addr.String()
 	}
+	logger.TraceInfo(req.TraceId, srv.Host, srv.Name, map[string]string{
+		"Msg":    "Start",
+		"Client": client,
+		"Method": "CreateNetworkV4",
+	})
+
+	rep = srv.resourceModelApi.CreateNetworkV4(req)
+	logger.TraceInfo(req.TraceId, srv.Host, srv.Name, map[string]string{
+		"Msg":        "End",
+		"Client":     client,
+		"Method":     "CreateNetworkV4",
+		"Latency":    strconv.FormatInt(time.Now().Sub(startTime).Nanoseconds()/1000000, 10),
+		"Err":        rep.Err,
+		"StatusCode": strconv.FormatInt(rep.StatusCode, 10),
+	})
+
 	return rep, nil
 }
 
 func (srv *ResourceApiServer) UpdateNetworkV4(ctx context.Context, req *resource_api_grpc_pb.UpdateNetworkV4Request) (*resource_api_grpc_pb.UpdateNetworkV4Reply, error) {
 	var rep *resource_api_grpc_pb.UpdateNetworkV4Reply
-	var err error
-	rep, err = srv.resourceModelApi.UpdateNetworkV4(req)
-	glog.Infof("Completed UpdateNetworkV4: %v", err)
-	return rep, err
+	var client string
+
+	startTime := time.Now()
+	if pr, ok := peer.FromContext(ctx); ok {
+		client = pr.Addr.String()
+	}
+	logger.TraceInfo(req.TraceId, srv.Host, srv.Name, map[string]string{
+		"Msg":    "Start",
+		"Client": client,
+		"Method": "UpdateNetworkV4",
+	})
+
+	rep = srv.resourceModelApi.UpdateNetworkV4(req)
+	logger.TraceInfo(req.TraceId, srv.Host, srv.Name, map[string]string{
+		"Msg":        "End",
+		"Client":     client,
+		"Method":     "UpdateNetworkV4",
+		"Latency":    strconv.FormatInt(time.Now().Sub(startTime).Nanoseconds()/1000000, 10),
+		"Err":        rep.Err,
+		"StatusCode": strconv.FormatInt(rep.StatusCode, 10),
+	})
+
+	return rep, nil
 }
 
 func (srv *ResourceApiServer) DeleteNetworkV4(ctx context.Context, req *resource_api_grpc_pb.DeleteNetworkV4Request) (*resource_api_grpc_pb.DeleteNetworkV4Reply, error) {

@@ -86,7 +86,7 @@ func InitConfig() {
 	}
 
 	defaultConfig := DefaultConfig{
-		Name:              hostname,
+		Host:              hostname,
 		ConfigDir:         configDir,
 		ConfigFile:        filepath.Join(configDir, configFile),
 		EnableDebug:       enableDebug,

@@ -15,7 +15,7 @@ type Config struct {
 }
 
 type DefaultConfig struct {
-	Name              string
+	Host              string
 	ConfigDir         string
 	ConfigFile        string
 	EnableTest        bool

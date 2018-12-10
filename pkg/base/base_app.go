@@ -21,6 +21,8 @@ type BaseAppDriver interface {
 }
 
 type BaseApp struct {
+	Host               string
+	Name               string
 	conf               *config.Config
 	appConf            *config.AppConfig
 	driver             BaseAppDriver
@@ -33,6 +35,8 @@ type BaseApp struct {
 
 func NewBaseApp(conf *config.Config, appConf *config.AppConfig) BaseApp {
 	return BaseApp{
+		Host:               conf.Default.Host,
+		Name:               appConf.Name,
 		conf:               conf,
 		appConf:            appConf,
 		loopInterval:       time.Duration(appConf.LoopInterval) * time.Second,

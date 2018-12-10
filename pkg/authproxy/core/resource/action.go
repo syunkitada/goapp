@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -11,6 +12,7 @@ import (
 	"google.golang.org/grpc/status"
 
 	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_model"
+	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/resource/resource_api/resource_api_grpc_pb"
 )
 
@@ -45,7 +47,18 @@ func (resource *Resource) Action(c *gin.Context) {
 		userAuthority: tmpUserAuthority.(*authproxy_model.UserAuthority),
 		startTime:     time.Now(),
 	}
+	logger.TraceInfo(rc.traceId, resource.host, resource.name, map[string]string{
+		"Msg":             "Start",
+		"TraceId":         rc.traceId,
+		"Action":          action.Name,
+		"User":            rc.userName,
+		"Project":         rc.userAuthority.ActionProjectService.ProjectName,
+		"RoleName":        rc.userAuthority.ActionProjectService.RoleName,
+		"ProjectRoleName": rc.userAuthority.ActionProjectService.ProjectRoleName,
+	})
 
+	statusCode := 404
+	errMsg := ""
 	switch action.Name {
 	case "GetCluster":
 		rep, err := resource.resourceApiClient.GetCluster(&resource_api_grpc_pb.GetClusterRequest{
@@ -143,56 +156,21 @@ func (resource *Resource) Action(c *gin.Context) {
 				"err": msg,
 			})
 			c.Abort()
-			return
+		} else {
+			c.JSON(200, gin.H{
+				"compute": rep.Compute,
+				"err":     err,
+			})
 		}
-		c.JSON(200, gin.H{
-			"compute": rep.Compute,
-			"err":     err,
-		})
-		return
 
 	case "GetNetworkV4":
-		err := resource.GetNetworkV4(c, username, userAuthority, &action)
-		msg := fmt.Sprintf("@@ProxyApiGetNetworkV4: time=%v %v", time.Now().Sub(start), err)
-		if err != nil {
-			glog.Warning(msg)
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"err": msg,
-			})
-		} else {
-			glog.Info(msg)
-		}
-		return
-
+		statusCode, errMsg = resource.GetNetworkV4(c, rc)
 	case "CreateNetworkV4":
-		resource.CreateNetworkV4(c, rc)
-		return
-
+		statusCode, errMsg = resource.CreateNetworkV4(c, rc)
 	case "UpdateNetworkV4":
-		err := resource.UpdateNetworkV4(c, username, userAuthority, &action)
-		msg := fmt.Sprintf("@@ProxyApiUpdateNetworkV4: time=%v %v", time.Now().Sub(start), err)
-		if err != nil {
-			glog.Warning(msg)
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"err": msg,
-			})
-		} else {
-			glog.Info(msg)
-		}
-		return
-
+		statusCode, errMsg = resource.UpdateNetworkV4(c, rc)
 	case "DeleteNetworkV4":
-		err := resource.DeleteNetworkV4(c, username, userAuthority, &action)
-		msg := fmt.Sprintf("@@ProxyApiDeleteNetworkV4: time=%v %v", time.Now().Sub(start), err)
-		if err != nil {
-			glog.Warning(msg)
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"err": msg,
-			})
-		} else {
-			glog.Info(msg)
-		}
-		return
+		statusCode, errMsg = resource.DeleteNetworkV4(c, rc)
 
 	case "GetState":
 		status, err := resource.resourceApiClient.Status()
@@ -202,16 +180,43 @@ func (resource *Resource) Action(c *gin.Context) {
 				"err": "Invalid AuthRequest",
 			})
 			c.Abort()
-			return
+		} else {
+			c.JSON(200, gin.H{
+				"message": status,
+			})
 		}
-		c.JSON(200, gin.H{
-			"message": status,
-		})
 
-		return
+	default:
+		c.JSON(404, gin.H{
+			"message": "NotFound",
+		})
 	}
 
-	c.JSON(200, gin.H{
-		"message": "Health",
-	})
+	if statusCode == 0 {
+		logger.TraceInfo(rc.traceId, resource.host, resource.name, map[string]string{
+			"Msg":             "End",
+			"TraceId":         rc.traceId,
+			"Action":          action.Name,
+			"User":            rc.userName,
+			"Project":         rc.userAuthority.ActionProjectService.ProjectName,
+			"RoleName":        rc.userAuthority.ActionProjectService.RoleName,
+			"ProjectRoleName": rc.userAuthority.ActionProjectService.ProjectRoleName,
+			"Latency":         strconv.FormatInt(time.Now().Sub(start).Nanoseconds()/1000000, 10),
+			"RpcStatusCode":   strconv.Itoa(statusCode),
+			"RpcErr":          errMsg,
+		})
+	} else {
+		logger.TraceError(rc.traceId, resource.host, resource.name, map[string]string{
+			"Msg":             "End",
+			"TraceId":         rc.traceId,
+			"Action":          action.Name,
+			"User":            rc.userName,
+			"Project":         rc.userAuthority.ActionProjectService.ProjectName,
+			"RoleName":        rc.userAuthority.ActionProjectService.RoleName,
+			"ProjectRoleName": rc.userAuthority.ActionProjectService.ProjectRoleName,
+			"Latency":         strconv.FormatInt(time.Now().Sub(start).Nanoseconds()/1000000, 10),
+			"RpcStatusCode":   strconv.Itoa(statusCode),
+			"RpcErr":          errMsg,
+		})
+	}
 }
