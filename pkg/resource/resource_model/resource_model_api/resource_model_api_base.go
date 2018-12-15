@@ -72,6 +72,19 @@ func (modelApi *ResourceModelApi) GetCluster(req *resource_api_grpc_pb.GetCluste
 	}, nil
 }
 
+func (modelApi *ResourceModelApi) ValidateClusterName(db *gorm.DB, name string) (bool, error) {
+	var err error
+	var clusters []resource_model.Cluster
+	if err = db.Where("name = ?", name).Find(&clusters).Error; err != nil {
+		return false, err
+	}
+
+	if len(clusters) == 1 {
+		return true, nil
+	}
+	return false, nil
+}
+
 func (modelApi *ResourceModelApi) UpdateNode(req *resource_api_grpc_pb.UpdateNodeRequest) (*resource_api_grpc_pb.UpdateNodeReply, error) {
 	rep := &resource_api_grpc_pb.UpdateNodeReply{}
 	var err error

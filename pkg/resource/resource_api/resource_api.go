@@ -75,11 +75,29 @@ func (srv *ResourceApiServer) UpdateNode(ctx context.Context, req *resource_api_
 //
 func (srv *ResourceApiServer) GetNetworkV4(ctx context.Context, req *resource_api_grpc_pb.GetNetworkV4Request) (*resource_api_grpc_pb.GetNetworkV4Reply, error) {
 	var rep *resource_api_grpc_pb.GetNetworkV4Reply
-	var err error
-	rep, err = srv.resourceModelApi.GetNetworkV4(req)
+	var client string
 
-	glog.Infof("Completed GetNetworkV4: %v", err)
-	return rep, err
+	startTime := time.Now()
+	if pr, ok := peer.FromContext(ctx); ok {
+		client = pr.Addr.String()
+	}
+	logger.TraceInfo(req.TraceId, srv.Host, srv.Name, map[string]string{
+		"Msg":    "Start",
+		"Client": client,
+		"Method": "GetNetworkV4",
+	})
+
+	rep = srv.resourceModelApi.GetNetworkV4(req)
+	logger.TraceInfo(req.TraceId, srv.Host, srv.Name, map[string]string{
+		"Msg":        "End",
+		"Client":     client,
+		"Method":     "GetNetworkV4",
+		"Latency":    strconv.FormatInt(time.Now().Sub(startTime).Nanoseconds()/1000000, 10),
+		"Err":        rep.Err,
+		"StatusCode": strconv.FormatInt(rep.StatusCode, 10),
+	})
+
+	return rep, nil
 }
 
 func (srv *ResourceApiServer) CreateNetworkV4(ctx context.Context, req *resource_api_grpc_pb.CreateNetworkV4Request) (*resource_api_grpc_pb.CreateNetworkV4Reply, error) {
@@ -138,10 +156,29 @@ func (srv *ResourceApiServer) UpdateNetworkV4(ctx context.Context, req *resource
 
 func (srv *ResourceApiServer) DeleteNetworkV4(ctx context.Context, req *resource_api_grpc_pb.DeleteNetworkV4Request) (*resource_api_grpc_pb.DeleteNetworkV4Reply, error) {
 	var rep *resource_api_grpc_pb.DeleteNetworkV4Reply
-	var err error
-	rep, err = srv.resourceModelApi.DeleteNetworkV4(req)
-	glog.Infof("Completed DeleteNetworkV4: %v", err)
-	return rep, err
+	var client string
+
+	startTime := time.Now()
+	if pr, ok := peer.FromContext(ctx); ok {
+		client = pr.Addr.String()
+	}
+	logger.TraceInfo(req.TraceId, srv.Host, srv.Name, map[string]string{
+		"Msg":    "Start",
+		"Client": client,
+		"Method": "DeleteNetworkV4",
+	})
+
+	rep = srv.resourceModelApi.DeleteNetworkV4(req)
+	logger.TraceInfo(req.TraceId, srv.Host, srv.Name, map[string]string{
+		"Msg":        "End",
+		"Client":     client,
+		"Method":     "DeleteNetworkV4",
+		"Latency":    strconv.FormatInt(time.Now().Sub(startTime).Nanoseconds()/1000000, 10),
+		"Err":        rep.Err,
+		"StatusCode": strconv.FormatInt(rep.StatusCode, 10),
+	})
+
+	return rep, nil
 }
 
 //

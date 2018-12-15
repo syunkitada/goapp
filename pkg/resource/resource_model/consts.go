@@ -41,10 +41,11 @@ const (
 )
 
 const (
-	SpecComputeLibvirt  = "Libvirt"
-	SpecContainerDocker = "Docker"
-	SpecImageUrl        = "Url"
-	SpecVolumeNfs       = "Nfs"
-	SpecVolumeIscsi     = "Iscsi"
-	SpecLoadbalancerVpp = "Vpp"
+	SpecKindNetworkV4Local  = "Local"
+	SpecKindComputeLibvirt  = "Libvirt"
+	SpecKindContainerDocker = "Docker"
+	SpecKindImageUrl        = "Url"
+	SpecKindVolumeNfs       = "Nfs"
+	SpecKindVolumeIscsi     = "Iscsi"
+	SpecKindLoadbalancerVpp = "Vpp"
 )

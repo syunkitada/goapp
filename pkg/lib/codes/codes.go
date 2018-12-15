@@ -6,9 +6,12 @@ const (
 
 	// 4xx Client Errors
 	ClientBadRequest     int64 = 400
+	ClientInvalidRequest int64 = 401
 	ClientNotFound       int64 = 404
-	ClientInvalidRequest int64 = 406
-	ClientConflict       int64 = 409
+
+	// 42x Client Request Data Errors
+	ClientConflict      int64 = 420
+	ClientAlreadyExists int64 = 422
 
 	// 50x Server Internal Errors
 	ServerInternalError int64 = 500

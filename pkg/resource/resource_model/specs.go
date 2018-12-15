@@ -1,84 +1,74 @@
 package resource_model
 
 type ResourceSpec struct {
-	Kind    string
-	Name    string
+	Kind    string `validate:"required"`
+	Name    string `validate:"required"`
 	Cluster string `validate:"required"`
-	Spec    Spec
-}
-
-type Spec struct {
-	Kind string
 }
 
 type NetworkV4Spec struct {
 	ResourceSpec
-	Spec NetworkV4SpecData
+	Spec NetworkV4SpecData `validate:"required"`
 }
 
 type NetworkV4SpecData struct {
-	Spec
-	Subnet  string
-	StartIp string
-	EndIp   string
-	Gateway string
+	Kind    string `validate:"required"`
+	Subnet  string `validate:"required"`
+	StartIp string `validate:"required"`
+	EndIp   string `validate:"required"`
+	Gateway string `validate:"required"`
 }
 
 type ComputeSpec struct {
 	ResourceSpec
-	Spec ComputeSpecData
+	Spec ComputeSpecData `validate:"required"`
 }
 
 type ComputeSpecData struct {
-	Spec
-	Kind       string
-	Vcpus      int
-	MemorySize int
-	DiskSize   int
-	Image      string
+	Kind       string `validate:"required"`
+	Vcpus      int    `validate:"required"`
+	MemorySize int    `validate:"required"`
+	DiskSize   int    `validate:"required"`
+	Image      string `validate:"required"`
 }
 
 type ContainerSpec struct {
 	ResourceSpec
-	Spec ContainerSpecData
+	Spec ContainerSpecData `validate:"required"`
 }
 
 type ContainerSpecData struct {
-	Spec
-	Kind       string
-	Vcpus      int
-	MemorySize int
-	DiskSize   int
-	Image      string
+	Kind       string `validate:"required"`
+	Vcpus      int    `validate:"required"`
+	MemorySize int    `validate:"required"`
+	DiskSize   int    `validate:"required"`
+	Image      string `validate:"required"`
 }
 
 type ImageSpec struct {
 	ResourceSpec
-	Spec ImageSpecData
+	Spec ImageSpecData `validate:"required"`
 }
 
 type ImageSpecData struct {
-	Spec
-	Kind string
-	Url  string
+	Kind string `validate:"required"`
+	Url  string `validate:"required"`
 }
 
 type VolumeSpec struct {
 	ResourceSpec
-	Spec VolumeSpecData
+	Spec VolumeSpecData `validate:"required"`
 }
 
 type VolumeSpecData struct {
-	Spec
-	Kind string
+	Kind string `validate:"required"`
 }
 
 type LoadbalancerSpec struct {
 	ResourceSpec
-	Spec LoadbalancerSpecData
+	Spec LoadbalancerSpecData `validate:"required"`
 }
 
 type LoadbalancerSpecData struct {
-	Spec
-	Kind string
+	Kind string `validate:"required"`
 }
