@@ -15,6 +15,8 @@ var (
 	Conf              Config
 	configDir         string
 	configFile        string
+	logDir            string
+	tmpDir            string
 	enableDebug       bool
 	enableDevelop     bool
 	enableDatabaseLog bool
@@ -59,10 +61,10 @@ func InitConfig() {
 		"log_backtrace_at": glogLogBacktraceAt,
 	})
 
+	pwd := os.Getenv("PWD")
 	if configDir == "" {
 		configDir = os.Getenv("CONFIG_DIR")
 		if configDir == "" {
-			pwd := os.Getenv("PWD")
 			configDir = filepath.Join(pwd, "ci", "etc")
 		}
 	}
@@ -71,6 +73,22 @@ func InitConfig() {
 		configFile = os.Getenv("CONFIG_FILE")
 		if configFile == "" {
 			configFile = "config.toml"
+		}
+	}
+
+	if tmpDir == "" {
+		tmpDir = os.Getenv("TMP_DIR")
+		if tmpDir == "" {
+			tmpDir = filepath.Join(pwd, "tmp")
+			os.Mkdir(tmpDir, 0755)
+		}
+	}
+
+	if logDir == "" {
+		logDir = os.Getenv("LOG_DIR")
+		if logDir == "" {
+			logDir = filepath.Join(tmpDir, "logs")
+			os.Mkdir(logDir, 0755)
 		}
 	}
 
@@ -89,6 +107,8 @@ func InitConfig() {
 		Host:              hostname,
 		ConfigDir:         configDir,
 		ConfigFile:        filepath.Join(configDir, configFile),
+		TmpDir:            tmpDir,
+		LogDir:            logDir,
 		EnableDebug:       enableDebug,
 		EnableDevelop:     enableDevelop,
 		EnableDatabaseLog: enableDatabaseLog,

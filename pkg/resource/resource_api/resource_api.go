@@ -2,13 +2,11 @@ package resource_api
 
 import (
 	"fmt"
-	"strconv"
 	"time"
 
 	"github.com/golang/glog"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/peer"
 
 	"github.com/syunkitada/goapp/pkg/base"
 	"github.com/syunkitada/goapp/pkg/config"
@@ -74,110 +72,30 @@ func (srv *ResourceApiServer) UpdateNode(ctx context.Context, req *resource_api_
 // NetworkV4
 //
 func (srv *ResourceApiServer) GetNetworkV4(ctx context.Context, req *resource_api_grpc_pb.GetNetworkV4Request) (*resource_api_grpc_pb.GetNetworkV4Reply, error) {
-	var rep *resource_api_grpc_pb.GetNetworkV4Reply
-	var client string
-
-	startTime := time.Now()
-	if pr, ok := peer.FromContext(ctx); ok {
-		client = pr.Addr.String()
-	}
-	logger.TraceInfo(req.TraceId, srv.Host, srv.Name, map[string]string{
-		"Msg":    "Start",
-		"Client": client,
-		"Method": "GetNetworkV4",
-	})
-
-	rep = srv.resourceModelApi.GetNetworkV4(req)
-	logger.TraceInfo(req.TraceId, srv.Host, srv.Name, map[string]string{
-		"Msg":        "End",
-		"Client":     client,
-		"Method":     "GetNetworkV4",
-		"Latency":    strconv.FormatInt(time.Now().Sub(startTime).Nanoseconds()/1000000, 10),
-		"Err":        rep.Err,
-		"StatusCode": strconv.FormatInt(rep.StatusCode, 10),
-	})
-
+	startTime, clientIp := logger.StartGrpcTrace(req.TraceId, srv.Host, srv.Name, ctx)
+	rep := srv.resourceModelApi.GetNetworkV4(req)
+	logger.EndGrpcTrace(req.TraceId, srv.Host, srv.Name, startTime, clientIp, rep.StatusCode, rep.Err)
 	return rep, nil
 }
 
 func (srv *ResourceApiServer) CreateNetworkV4(ctx context.Context, req *resource_api_grpc_pb.CreateNetworkV4Request) (*resource_api_grpc_pb.CreateNetworkV4Reply, error) {
-	var rep *resource_api_grpc_pb.CreateNetworkV4Reply
-	var client string
-
-	startTime := time.Now()
-	if pr, ok := peer.FromContext(ctx); ok {
-		client = pr.Addr.String()
-	}
-	logger.TraceInfo(req.TraceId, srv.Host, srv.Name, map[string]string{
-		"Msg":    "Start",
-		"Client": client,
-		"Method": "CreateNetworkV4",
-	})
-
-	rep = srv.resourceModelApi.CreateNetworkV4(req)
-	logger.TraceInfo(req.TraceId, srv.Host, srv.Name, map[string]string{
-		"Msg":        "End",
-		"Client":     client,
-		"Method":     "CreateNetworkV4",
-		"Latency":    strconv.FormatInt(time.Now().Sub(startTime).Nanoseconds()/1000000, 10),
-		"Err":        rep.Err,
-		"StatusCode": strconv.FormatInt(rep.StatusCode, 10),
-	})
-
+	startTime, clientIp := logger.StartGrpcTrace(req.TraceId, srv.Host, srv.Name, ctx)
+	rep := srv.resourceModelApi.CreateNetworkV4(req)
+	logger.EndGrpcTrace(req.TraceId, srv.Host, srv.Name, startTime, clientIp, rep.StatusCode, rep.Err)
 	return rep, nil
 }
 
 func (srv *ResourceApiServer) UpdateNetworkV4(ctx context.Context, req *resource_api_grpc_pb.UpdateNetworkV4Request) (*resource_api_grpc_pb.UpdateNetworkV4Reply, error) {
-	var rep *resource_api_grpc_pb.UpdateNetworkV4Reply
-	var client string
-
-	startTime := time.Now()
-	if pr, ok := peer.FromContext(ctx); ok {
-		client = pr.Addr.String()
-	}
-	logger.TraceInfo(req.TraceId, srv.Host, srv.Name, map[string]string{
-		"Msg":    "Start",
-		"Client": client,
-		"Method": "UpdateNetworkV4",
-	})
-
-	rep = srv.resourceModelApi.UpdateNetworkV4(req)
-	logger.TraceInfo(req.TraceId, srv.Host, srv.Name, map[string]string{
-		"Msg":        "End",
-		"Client":     client,
-		"Method":     "UpdateNetworkV4",
-		"Latency":    strconv.FormatInt(time.Now().Sub(startTime).Nanoseconds()/1000000, 10),
-		"Err":        rep.Err,
-		"StatusCode": strconv.FormatInt(rep.StatusCode, 10),
-	})
-
+	startTime, clientIp := logger.StartGrpcTrace(req.TraceId, srv.Host, srv.Name, ctx)
+	rep := srv.resourceModelApi.UpdateNetworkV4(req)
+	logger.EndGrpcTrace(req.TraceId, srv.Host, srv.Name, startTime, clientIp, rep.StatusCode, rep.Err)
 	return rep, nil
 }
 
 func (srv *ResourceApiServer) DeleteNetworkV4(ctx context.Context, req *resource_api_grpc_pb.DeleteNetworkV4Request) (*resource_api_grpc_pb.DeleteNetworkV4Reply, error) {
-	var rep *resource_api_grpc_pb.DeleteNetworkV4Reply
-	var client string
-
-	startTime := time.Now()
-	if pr, ok := peer.FromContext(ctx); ok {
-		client = pr.Addr.String()
-	}
-	logger.TraceInfo(req.TraceId, srv.Host, srv.Name, map[string]string{
-		"Msg":    "Start",
-		"Client": client,
-		"Method": "DeleteNetworkV4",
-	})
-
-	rep = srv.resourceModelApi.DeleteNetworkV4(req)
-	logger.TraceInfo(req.TraceId, srv.Host, srv.Name, map[string]string{
-		"Msg":        "End",
-		"Client":     client,
-		"Method":     "DeleteNetworkV4",
-		"Latency":    strconv.FormatInt(time.Now().Sub(startTime).Nanoseconds()/1000000, 10),
-		"Err":        rep.Err,
-		"StatusCode": strconv.FormatInt(rep.StatusCode, 10),
-	})
-
+	startTime, clientIp := logger.StartGrpcTrace(req.TraceId, srv.Host, srv.Name, ctx)
+	rep := srv.resourceModelApi.DeleteNetworkV4(req)
+	logger.EndGrpcTrace(req.TraceId, srv.Host, srv.Name, startTime, clientIp, rep.StatusCode, rep.Err)
 	return rep, nil
 }
 

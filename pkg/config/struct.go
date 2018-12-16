@@ -18,6 +18,8 @@ type DefaultConfig struct {
 	Host              string
 	ConfigDir         string
 	ConfigFile        string
+	TmpDir            string
+	LogDir            string
 	EnableTest        bool
 	EnableDevelop     bool
 	EnableDebug       bool

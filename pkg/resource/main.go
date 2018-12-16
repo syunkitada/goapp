@@ -22,9 +22,8 @@ func Main() {
 }
 
 func init() {
-	cobra.OnInitialize(config.InitConfig)
+	cobra.OnInitialize(config.InitConfig, logger.Init)
 	config.InitFlags(rootCmd)
-	logger.Init()
 
 	rootCmd.AddCommand(resource_api.RootCmd)
 	rootCmd.AddCommand(resource_controller.RootCmd)

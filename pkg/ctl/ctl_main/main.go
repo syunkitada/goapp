@@ -6,6 +6,7 @@ import (
 
 	"github.com/syunkitada/goapp/pkg/config"
 	"github.com/syunkitada/goapp/pkg/ctl/ctl_main/resource"
+	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
 
 var rootCmd = &cobra.Command{}
@@ -17,7 +18,7 @@ func Main() {
 }
 
 func init() {
-	cobra.OnInitialize(config.InitConfig)
+	cobra.OnInitialize(config.InitConfig, logger.Init)
 	config.InitFlags(rootCmd)
 
 	rootCmd.AddCommand(resource.RootCmd)
