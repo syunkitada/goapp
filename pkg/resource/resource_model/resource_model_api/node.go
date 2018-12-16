@@ -53,38 +53,6 @@ func (modelApi *ResourceModelApi) GetNode(req *resource_api_grpc_pb.GetNodeReque
 	}, nil
 }
 
-func (modelApi *ResourceModelApi) GetCluster(req *resource_api_grpc_pb.GetClusterRequest) (*resource_api_grpc_pb.GetClusterReply, error) {
-	var err error
-	db, err := gorm.Open("mysql", modelApi.conf.Resource.Database.Connection)
-	defer db.Close()
-	if err != nil {
-		return nil, err
-	}
-	db.LogMode(modelApi.conf.Default.EnableDatabaseLog)
-
-	var nodes []resource_model.Cluster
-	if err = db.Where("name like ?", req.Target).Find(&nodes).Error; err != nil {
-		return nil, err
-	}
-
-	return &resource_api_grpc_pb.GetClusterReply{
-		Clusters: modelApi.convertClusters(nodes),
-	}, nil
-}
-
-func (modelApi *ResourceModelApi) ValidateClusterName(db *gorm.DB, name string) (bool, error) {
-	var err error
-	var clusters []resource_model.Cluster
-	if err = db.Where("name = ?", name).Find(&clusters).Error; err != nil {
-		return false, err
-	}
-
-	if len(clusters) == 1 {
-		return true, nil
-	}
-	return false, nil
-}
-
 func (modelApi *ResourceModelApi) UpdateNode(req *resource_api_grpc_pb.UpdateNodeRequest) (*resource_api_grpc_pb.UpdateNodeReply, error) {
 	rep := &resource_api_grpc_pb.UpdateNodeReply{}
 	var err error
@@ -234,26 +202,6 @@ func (modelApi *ResourceModelApi) convertClusterNodes(nodes []*resource_cluster_
 	}
 
 	return pbNodes
-}
-
-func (modelApi *ResourceModelApi) convertClusters(clusters []resource_model.Cluster) []*resource_api_grpc_pb.Cluster {
-	pbClusters := make([]*resource_api_grpc_pb.Cluster, len(clusters))
-	for i, cluster := range clusters {
-		updatedAt, err := ptypes.TimestampProto(cluster.Model.UpdatedAt)
-		createdAt, err := ptypes.TimestampProto(cluster.Model.CreatedAt)
-		if err != nil {
-			glog.Warningf("Invalid timestamp: %v", err)
-			continue
-		}
-
-		pbClusters[i] = &resource_api_grpc_pb.Cluster{
-			Name:      cluster.Name,
-			UpdatedAt: updatedAt,
-			CreatedAt: createdAt,
-		}
-	}
-
-	return pbClusters
 }
 
 func (modelApi *ResourceModelApi) CheckNodes() error {

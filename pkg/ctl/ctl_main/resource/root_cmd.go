@@ -6,6 +6,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var (
+	appName string = "ctl-resource"
+)
+
 var RootCmd = &cobra.Command{
 	Use:   "resource",
 	Short: "resource service",

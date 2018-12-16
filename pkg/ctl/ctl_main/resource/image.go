@@ -14,32 +14,32 @@ import (
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
 
-var getNetworkV4Cmd = &cobra.Command{
-	Use:   "networkv4",
-	Short: "Show networks",
-	Long: `Show networks
+var getImageCmd = &cobra.Command{
+	Use:   "image",
+	Short: "Show images",
+	Long: `Show images
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
-		if err := GetNetworkV4(); err != nil {
+		if err := GetImage(); err != nil {
 			glog.Fatal(err)
 		}
 	},
 }
 
-var deleteNetworkV4Cmd = &cobra.Command{
-	Use:   "networkv4 [network-name]",
-	Short: "Show networks",
-	Long: `Show networks
+var deleteImageCmd = &cobra.Command{
+	Use:   "image [image-name]",
+	Short: "Show images",
+	Long: `Show images
 	`,
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		if err := DeleteNetworkV4(args[0]); err != nil {
+		if err := DeleteImage(args[0]); err != nil {
 			glog.Fatal(err)
 		}
 	},
 }
 
-func GetNetworkV4() error {
+func GetImage() error {
 	traceId := logger.NewTraceId()
 	startTime := logger.StartCtlTrace(traceId, appName)
 
@@ -50,25 +50,25 @@ func GetNetworkV4() error {
 		return err
 	}
 
-	resp, err := authproxy.Resource.CtlGetNetworkV4(token.Token, getCmdClusterFlag, "%")
+	resp, err := authproxy.Resource.CtlGetImage(token.Token, getCmdClusterFlag, "%")
 	if err != nil {
 		logger.EndCtlTrace(traceId, appName, startTime, err)
 		return err
 	}
 	if config.Conf.Default.EnableDebug {
-		fmt.Printf("GetNetworkV4.TraceID: %v\n", resp.TraceId)
+		fmt.Printf("GetImage.TraceID: %v\n", resp.TraceId)
 	}
 
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetHeader([]string{"Cluster", "Name", "Status", "Status Reason", "Updated At", "Created At"})
-	for _, network := range resp.Networks {
+	for _, image := range resp.Images {
 		table.Append([]string{
-			network.Cluster,
-			network.Name,
-			network.Status,
-			network.StatusReason,
-			fmt.Sprint(time.Unix(network.UpdatedAt.Seconds, 0)),
-			fmt.Sprint(time.Unix(network.CreatedAt.Seconds, 0)),
+			image.Cluster,
+			image.Name,
+			image.Status,
+			image.StatusReason,
+			fmt.Sprint(time.Unix(image.UpdatedAt.Seconds, 0)),
+			fmt.Sprint(time.Unix(image.CreatedAt.Seconds, 0)),
 		})
 	}
 	table.Render()
@@ -77,9 +77,9 @@ func GetNetworkV4() error {
 	return nil
 }
 
-func CreateNetworkV4(token string, spec string) error {
+func CreateImage(token string, spec string) error {
 	authproxy := core.NewAuthproxy(&config.Conf)
-	resp, err := authproxy.Resource.CtlCreateNetworkV4(token, spec)
+	resp, err := authproxy.Resource.CtlCreateImage(token, spec)
 	if err != nil {
 		return err
 	}
@@ -90,21 +90,21 @@ func CreateNetworkV4(token string, spec string) error {
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetHeader([]string{"Cluster", "Name", "Status", "Status Reason", "Updated At", "Created At"})
 	table.Append([]string{
-		resp.Network.Cluster,
-		resp.Network.Name,
-		resp.Network.Status,
-		resp.Network.StatusReason,
-		fmt.Sprint(time.Unix(resp.Network.UpdatedAt.Seconds, 0)),
-		fmt.Sprint(time.Unix(resp.Network.CreatedAt.Seconds, 0)),
+		resp.Image.Cluster,
+		resp.Image.Name,
+		resp.Image.Status,
+		resp.Image.StatusReason,
+		fmt.Sprint(time.Unix(resp.Image.UpdatedAt.Seconds, 0)),
+		fmt.Sprint(time.Unix(resp.Image.CreatedAt.Seconds, 0)),
 	})
 	table.Render()
 
 	return nil
 }
 
-func UpdateNetworkV4(token string, spec string) error {
+func UpdateImage(token string, spec string) error {
 	authproxy := core.NewAuthproxy(&config.Conf)
-	resp, err := authproxy.Resource.CtlUpdateNetworkV4(token, spec)
+	resp, err := authproxy.Resource.CtlUpdateImage(token, spec)
 	if err != nil {
 		return err
 	}
@@ -115,19 +115,19 @@ func UpdateNetworkV4(token string, spec string) error {
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetHeader([]string{"Cluster", "Name", "Status", "Status Reason", "Updated At", "Created At"})
 	table.Append([]string{
-		resp.Network.Cluster,
-		resp.Network.Name,
-		resp.Network.Status,
-		resp.Network.StatusReason,
-		fmt.Sprint(time.Unix(resp.Network.UpdatedAt.Seconds, 0)),
-		fmt.Sprint(time.Unix(resp.Network.CreatedAt.Seconds, 0)),
+		resp.Image.Cluster,
+		resp.Image.Name,
+		resp.Image.Status,
+		resp.Image.StatusReason,
+		fmt.Sprint(time.Unix(resp.Image.UpdatedAt.Seconds, 0)),
+		fmt.Sprint(time.Unix(resp.Image.CreatedAt.Seconds, 0)),
 	})
 	table.Render()
 
 	return nil
 }
 
-func DeleteNetworkV4(networkName string) error {
+func DeleteImage(imageName string) error {
 	traceId := logger.NewTraceId()
 	startTime := logger.StartCtlTrace(traceId, appName)
 
@@ -138,7 +138,7 @@ func DeleteNetworkV4(networkName string) error {
 		return err
 	}
 
-	resp, err := authproxy.Resource.CtlDeleteNetworkV4(token.Token, deleteCmdClusterFlag, networkName)
+	resp, err := authproxy.Resource.CtlDeleteImage(token.Token, deleteCmdClusterFlag, imageName)
 	if err != nil {
 		logger.EndCtlTrace(traceId, appName, startTime, err)
 		return err

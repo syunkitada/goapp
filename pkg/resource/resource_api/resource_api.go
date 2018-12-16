@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/golang/glog"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 
@@ -43,20 +42,23 @@ func (srv *ResourceApiServer) Status(ctx context.Context, statusRequest *resourc
 	return &resource_api_grpc_pb.StatusReply{Msg: "Status"}, nil
 }
 
+//
+// Cluster
+//
 func (srv *ResourceApiServer) GetCluster(ctx context.Context, req *resource_api_grpc_pb.GetClusterRequest) (*resource_api_grpc_pb.GetClusterReply, error) {
-	var rep *resource_api_grpc_pb.GetClusterReply
-	var err error
-	rep, err = srv.resourceModelApi.GetCluster(req)
-	glog.Info(rep)
-	glog.Infof("Completed GetCluster: %v", err)
-	return rep, err
+	startTime, clientIp := logger.StartGrpcTrace(req.TraceId, srv.Host, srv.Name, ctx)
+	rep := srv.resourceModelApi.GetCluster(req)
+	logger.EndGrpcTrace(req.TraceId, srv.Host, srv.Name, startTime, clientIp, rep.StatusCode, rep.Err)
+	return rep, nil
 }
 
+//
+// Node
+//
 func (srv *ResourceApiServer) GetNode(ctx context.Context, req *resource_api_grpc_pb.GetNodeRequest) (*resource_api_grpc_pb.GetNodeReply, error) {
 	var rep *resource_api_grpc_pb.GetNodeReply
 	var err error
 	rep, err = srv.resourceModelApi.GetNode(req)
-	glog.Infof("Completed GetNode: %v", err)
 	return rep, err
 }
 
@@ -64,7 +66,6 @@ func (srv *ResourceApiServer) UpdateNode(ctx context.Context, req *resource_api_
 	var rep *resource_api_grpc_pb.UpdateNodeReply
 	var err error
 	rep, err = srv.resourceModelApi.UpdateNode(req)
-	glog.Infof("Completed UpdateNode: %v", err)
 	return rep, err
 }
 
@@ -107,7 +108,6 @@ func (srv *ResourceApiServer) GetCompute(ctx context.Context, req *resource_api_
 	var err error
 	rep, err = srv.resourceModelApi.GetCompute(req)
 
-	glog.Infof("Completed GetCompute: %v", err)
 	return rep, err
 }
 
@@ -119,7 +119,6 @@ func (srv *ResourceApiServer) CreateCompute(ctx context.Context, req *resource_a
 	if err != nil {
 		return rep, fmt.Errorf("@@ApiCreateCompute: time=%v, error=%v", time.Now().Sub(startTime), err)
 	}
-	glog.Infof("Completed CreateCompute: %v", err)
 	return rep, err
 }
 
@@ -127,7 +126,6 @@ func (srv *ResourceApiServer) UpdateCompute(ctx context.Context, req *resource_a
 	var rep *resource_api_grpc_pb.UpdateComputeReply
 	var err error
 	rep, err = srv.resourceModelApi.UpdateCompute(req)
-	glog.Infof("Completed UpdateCompute: %v", err)
 	return rep, err
 }
 
@@ -135,7 +133,6 @@ func (srv *ResourceApiServer) DeleteCompute(ctx context.Context, req *resource_a
 	var rep *resource_api_grpc_pb.DeleteComputeReply
 	var err error
 	rep, err = srv.resourceModelApi.DeleteCompute(req)
-	glog.Infof("Completed DeleteCompute: %v", err)
 	return rep, err
 }
 
@@ -146,7 +143,6 @@ func (srv *ResourceApiServer) GetContainer(ctx context.Context, req *resource_ap
 	var rep *resource_api_grpc_pb.GetContainerReply
 	var err error
 	rep, err = srv.resourceModelApi.GetContainer(req)
-	glog.Infof("Completed GetContainer: %v", err)
 	return rep, err
 }
 
@@ -154,7 +150,6 @@ func (srv *ResourceApiServer) CreateContainer(ctx context.Context, req *resource
 	var rep *resource_api_grpc_pb.CreateContainerReply
 	var err error
 	rep, err = srv.resourceModelApi.CreateContainer(req)
-	glog.Infof("Completed CreateContainer: %v", err)
 	return rep, err
 }
 
@@ -162,7 +157,6 @@ func (srv *ResourceApiServer) UpdateContainer(ctx context.Context, req *resource
 	var rep *resource_api_grpc_pb.UpdateContainerReply
 	var err error
 	rep, err = srv.resourceModelApi.UpdateContainer(req)
-	glog.Infof("Completed UpdateContainer: %v", err)
 	return rep, err
 }
 
@@ -170,7 +164,6 @@ func (srv *ResourceApiServer) DeleteContainer(ctx context.Context, req *resource
 	var rep *resource_api_grpc_pb.DeleteContainerReply
 	var err error
 	rep, err = srv.resourceModelApi.DeleteContainer(req)
-	glog.Infof("Completed DeleteContainer: %v", err)
 	return rep, err
 }
 
@@ -178,35 +171,31 @@ func (srv *ResourceApiServer) DeleteContainer(ctx context.Context, req *resource
 // Image
 //
 func (srv *ResourceApiServer) GetImage(ctx context.Context, req *resource_api_grpc_pb.GetImageRequest) (*resource_api_grpc_pb.GetImageReply, error) {
-	var rep *resource_api_grpc_pb.GetImageReply
-	var err error
-	rep, err = srv.resourceModelApi.GetImage(req)
-	glog.Infof("Completed GetImage: %v", err)
-	return rep, err
+	startTime, clientIp := logger.StartGrpcTrace(req.TraceId, srv.Host, srv.Name, ctx)
+	rep := srv.resourceModelApi.GetImage(req)
+	logger.EndGrpcTrace(req.TraceId, srv.Host, srv.Name, startTime, clientIp, rep.StatusCode, rep.Err)
+	return rep, nil
 }
 
 func (srv *ResourceApiServer) CreateImage(ctx context.Context, req *resource_api_grpc_pb.CreateImageRequest) (*resource_api_grpc_pb.CreateImageReply, error) {
-	var rep *resource_api_grpc_pb.CreateImageReply
-	var err error
-	rep, err = srv.resourceModelApi.CreateImage(req)
-	glog.Infof("Completed CreateImage: %v", err)
-	return rep, err
+	startTime, clientIp := logger.StartGrpcTrace(req.TraceId, srv.Host, srv.Name, ctx)
+	rep := srv.resourceModelApi.CreateImage(req)
+	logger.EndGrpcTrace(req.TraceId, srv.Host, srv.Name, startTime, clientIp, rep.StatusCode, rep.Err)
+	return rep, nil
 }
 
 func (srv *ResourceApiServer) UpdateImage(ctx context.Context, req *resource_api_grpc_pb.UpdateImageRequest) (*resource_api_grpc_pb.UpdateImageReply, error) {
-	var rep *resource_api_grpc_pb.UpdateImageReply
-	var err error
-	rep, err = srv.resourceModelApi.UpdateImage(req)
-	glog.Infof("Completed UpdateImage: %v", err)
-	return rep, err
+	startTime, clientIp := logger.StartGrpcTrace(req.TraceId, srv.Host, srv.Name, ctx)
+	rep := srv.resourceModelApi.UpdateImage(req)
+	logger.EndGrpcTrace(req.TraceId, srv.Host, srv.Name, startTime, clientIp, rep.StatusCode, rep.Err)
+	return rep, nil
 }
 
 func (srv *ResourceApiServer) DeleteImage(ctx context.Context, req *resource_api_grpc_pb.DeleteImageRequest) (*resource_api_grpc_pb.DeleteImageReply, error) {
-	var rep *resource_api_grpc_pb.DeleteImageReply
-	var err error
-	rep, err = srv.resourceModelApi.DeleteImage(req)
-	glog.Infof("Completed DeleteImage: %v", err)
-	return rep, err
+	startTime, clientIp := logger.StartGrpcTrace(req.TraceId, srv.Host, srv.Name, ctx)
+	rep := srv.resourceModelApi.DeleteImage(req)
+	logger.EndGrpcTrace(req.TraceId, srv.Host, srv.Name, startTime, clientIp, rep.StatusCode, rep.Err)
+	return rep, nil
 }
 
 //
@@ -216,7 +205,6 @@ func (srv *ResourceApiServer) GetVolume(ctx context.Context, req *resource_api_g
 	var rep *resource_api_grpc_pb.GetVolumeReply
 	var err error
 	rep, err = srv.resourceModelApi.GetVolume(req)
-	glog.Infof("Completed GetVolume: %v", err)
 	return rep, err
 }
 
@@ -224,7 +212,6 @@ func (srv *ResourceApiServer) CreateVolume(ctx context.Context, req *resource_ap
 	var rep *resource_api_grpc_pb.CreateVolumeReply
 	var err error
 	rep, err = srv.resourceModelApi.CreateVolume(req)
-	glog.Infof("Completed CreateVolume: %v", err)
 	return rep, err
 }
 
@@ -232,7 +219,6 @@ func (srv *ResourceApiServer) UpdateVolume(ctx context.Context, req *resource_ap
 	var rep *resource_api_grpc_pb.UpdateVolumeReply
 	var err error
 	rep, err = srv.resourceModelApi.UpdateVolume(req)
-	glog.Infof("Completed UpdateVolume: %v", err)
 	return rep, err
 }
 
@@ -240,7 +226,6 @@ func (srv *ResourceApiServer) DeleteVolume(ctx context.Context, req *resource_ap
 	var rep *resource_api_grpc_pb.DeleteVolumeReply
 	var err error
 	rep, err = srv.resourceModelApi.DeleteVolume(req)
-	glog.Infof("Completed DeleteVolume: %v", err)
 	return rep, err
 }
 
@@ -251,7 +236,6 @@ func (srv *ResourceApiServer) GetLoadbalancer(ctx context.Context, req *resource
 	var rep *resource_api_grpc_pb.GetLoadbalancerReply
 	var err error
 	rep, err = srv.resourceModelApi.GetLoadbalancer(req)
-	glog.Infof("Completed GetLoadbalancer: %v", err)
 	return rep, err
 }
 
@@ -259,7 +243,6 @@ func (srv *ResourceApiServer) CreateLoadbalancer(ctx context.Context, req *resou
 	var rep *resource_api_grpc_pb.CreateLoadbalancerReply
 	var err error
 	rep, err = srv.resourceModelApi.CreateLoadbalancer(req)
-	glog.Infof("Completed CreateLoadbalancer: %v", err)
 	return rep, err
 }
 
@@ -267,7 +250,6 @@ func (srv *ResourceApiServer) UpdateLoadbalancer(ctx context.Context, req *resou
 	var rep *resource_api_grpc_pb.UpdateLoadbalancerReply
 	var err error
 	rep, err = srv.resourceModelApi.UpdateLoadbalancer(req)
-	glog.Infof("Completed UpdateLoadbalancer: %v", err)
 	return rep, err
 }
 
@@ -275,6 +257,5 @@ func (srv *ResourceApiServer) DeleteLoadbalancer(ctx context.Context, req *resou
 	var rep *resource_api_grpc_pb.DeleteLoadbalancerReply
 	var err error
 	rep, err = srv.resourceModelApi.DeleteLoadbalancer(req)
-	glog.Infof("Completed DeleteLoadbalancer: %v", err)
 	return rep, err
 }

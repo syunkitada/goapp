@@ -10,6 +10,7 @@ import (
 
 	"github.com/syunkitada/goapp/pkg/authproxy/core"
 	"github.com/syunkitada/goapp/pkg/config"
+	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/resource/resource_model"
 )
 
@@ -40,6 +41,8 @@ func init() {
 }
 
 func UpdateResource() error {
+	traceId := logger.NewTraceId()
+	startTime := logger.StartCtlTrace(traceId, appName)
 	var err error
 
 	authproxy := core.NewAuthproxy(&config.Conf)
@@ -60,8 +63,11 @@ func UpdateResource() error {
 
 	switch resourceSpec.Kind {
 	case resource_model.SpecNetworkV4:
-		return UpdateNetworkV4(token.Token, string(bytes))
+		err = UpdateNetworkV4(token.Token, string(bytes))
+		logger.EndCtlTrace(traceId, appName, startTime, err)
+		return err
 	}
 
+	logger.EndCtlTrace(traceId, appName, startTime, err)
 	return nil
 }

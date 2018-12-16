@@ -13,6 +13,7 @@ import (
 
 	"github.com/syunkitada/goapp/pkg/authproxy/core"
 	"github.com/syunkitada/goapp/pkg/config"
+	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/resource/resource_model"
 )
 
@@ -41,27 +42,34 @@ func init() {
 }
 
 func CreateResource() error {
+	traceId := logger.NewTraceId()
+	startTime := logger.StartCtlTrace(traceId, appName)
 	var err error
 
 	authproxy := core.NewAuthproxy(&config.Conf)
 	token, err := authproxy.Auth.CtlIssueToken()
 	if err != nil {
+		logger.EndCtlTrace(traceId, appName, startTime, err)
 		return fmt.Errorf("Failed issue token: %v", err)
 	}
 
 	bytes, err := ioutil.ReadFile(createCmdFileFlag)
 	if err != nil {
+		logger.EndCtlTrace(traceId, appName, startTime, err)
 		return fmt.Errorf("Failed read file: %v", err)
 	}
 
 	var resourceSpec resource_model.ResourceSpec
 	if err = json.Unmarshal(bytes, &resourceSpec); err != nil {
+		logger.EndCtlTrace(traceId, appName, startTime, err)
 		return fmt.Errorf("Failed unmarshal file: %v", err)
 	}
 
 	switch resourceSpec.Kind {
 	case resource_model.SpecNetworkV4:
-		return CreateNetworkV4(token.Token, string(bytes))
+		err = CreateNetworkV4(token.Token, string(bytes))
+		logger.EndCtlTrace(traceId, appName, startTime, err)
+		return err
 	case resource_model.SpecCompute:
 		resp, err := authproxy.Resource.CtlCreateCompute(token.Token, string(bytes))
 		if err != nil {
@@ -90,5 +98,6 @@ func CreateResource() error {
 		glog.Info("Loadbalancer")
 	}
 
+	logger.EndCtlTrace(traceId, appName, startTime, err)
 	return nil
 }

@@ -19,6 +19,7 @@ import (
 )
 
 var (
+	conf   *config.Config
 	name   string
 	Logger *log.Logger
 	Tracer *log.Logger
@@ -35,6 +36,7 @@ const (
 )
 
 func Init() {
+	conf = &config.Conf
 	name = os.Getenv("LOG_FILE")
 	if name == "" {
 		for _, arg := range os.Args {
@@ -51,7 +53,6 @@ func Init() {
 		name = name[1:]
 	}
 
-	conf := &config.Conf
 	if conf.Default.LogDir == "stdout" {
 		Logger = log.New(os.Stdout, "", log.Ldate|log.Ltime)
 		Tracer = log.New(os.Stdout, "", log.Ldate|log.Ltime)
@@ -69,39 +70,42 @@ func Init() {
 
 func FatalStdoutf(format string, args ...interface{}) {
 	stdoutLogger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
-	stdoutLogger.Printf(fatalLog+" "+format, args)
+	stdoutLogger.Printf(fatalLog+" "+format, args...)
 	os.Exit(1)
-}
-
-func Info(source string, metadata map[string]string) {
-	msg, err := json.Marshal(metadata)
-	if err != nil {
-		failedJsonMarshal(source, err.Error())
-		return
-	}
-	Logger.Print(infoLog + " " + source + " " + string(msg))
 }
 
 func failedJsonMarshal(source string, msg string) {
 	Logger.Print(errorLog + " " + source + " {\"msg\"=\"Failed json.Marshal\"")
 }
 
-func Error(source string, metadata map[string]string) {
-	msg, err := json.Marshal(metadata)
-	if err != nil {
-		failedJsonMarshal(source, err.Error())
-		return
-	}
-	Logger.Print(errorLog + " " + source + " " + string(msg))
+func Info(host string, source string, args ...interface{}) {
+	metadata := map[string]string{"Msg": fmt.Sprint(args...)}
+	TraceInfo("nil", host, source, metadata)
 }
 
-func Warning(source string, metadata map[string]string) {
-	msg, err := json.Marshal(metadata)
-	if err != nil {
-		failedJsonMarshal(source, err.Error())
-		return
-	}
-	Logger.Print(warningLog + " " + source + " " + string(msg))
+func Infof(host string, source string, format string, args ...interface{}) {
+	metadata := map[string]string{"Msg": fmt.Sprintf(format, args...)}
+	TraceInfo("nil", host, source, metadata)
+}
+
+func Error(host string, source string, args ...interface{}) {
+	metadata := map[string]string{"Err": fmt.Sprint(args...)}
+	TraceError("nil", host, source, metadata)
+}
+
+func Errorf(host string, source string, format string, args ...interface{}) {
+	metadata := map[string]string{"Err": fmt.Sprintf(format, args...)}
+	TraceError("nil", host, source, metadata)
+}
+
+func Fatal(host string, source string, args ...interface{}) {
+	metadata := map[string]string{"Err": fmt.Sprint(args...)}
+	TraceFatal("nil", host, source, metadata)
+}
+
+func Fatalf(host string, source string, format string, args ...interface{}) {
+	metadata := map[string]string{"Err": fmt.Sprintf(format, args...)}
+	TraceFatal("nil", host, source, metadata)
 }
 
 func NewTraceId() string {
@@ -124,6 +128,15 @@ func TraceError(traceid string, host string, source string, metadata map[string]
 		return
 	}
 	Tracer.Print(traceLog + " " + errorLog + " " + traceid + " " + host + " " + source + " " + string(msg))
+}
+
+func TraceFatal(traceid string, host string, source string, metadata map[string]string) {
+	msg, err := json.Marshal(metadata)
+	if err != nil {
+		failedJsonMarshal(source, err.Error())
+		return
+	}
+	Tracer.Print(traceLog + " " + fatalLog + " " + traceid + " " + host + " " + source + " " + string(msg))
 }
 
 func getFunc(depth int) string {
@@ -175,5 +188,28 @@ func EndGrpcTrace(traceId string, host string, name string, startTime time.Time,
 		"Latency":    strconv.FormatInt(time.Now().Sub(startTime).Nanoseconds()/1000000, 10),
 		"StatusCode": strconv.FormatInt(statusCode, 10),
 		"Err":        err,
+	})
+}
+
+func StartCtlTrace(traceId string, name string) time.Time {
+	startTime := time.Now()
+	TraceInfo(traceId, conf.Default.Host, name, map[string]string{
+		"Msg":      "Start",
+		"Username": conf.Ctl.Username,
+		"Project":  conf.Ctl.Project,
+		"Func":     getFunc(0),
+	})
+
+	return startTime
+}
+
+func EndCtlTrace(traceId string, name string, startTime time.Time, args ...interface{}) {
+	TraceInfo(traceId, conf.Default.Host, name, map[string]string{
+		"Msg":      "End",
+		"Username": conf.Ctl.Username,
+		"Project":  conf.Ctl.Project,
+		"Func":     getFunc(0),
+		"Latency":  strconv.FormatInt(time.Now().Sub(startTime).Nanoseconds()/1000000, 10),
+		"Err":      fmt.Sprint(args...),
 	})
 }

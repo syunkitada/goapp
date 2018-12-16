@@ -287,6 +287,9 @@ func (cli *ResourceApiClient) DeleteCompute(req *resource_api_grpc_pb.DeleteComp
 	return rep, err
 }
 
+//
+// Image
+//
 func (cli *ResourceApiClient) GetImage(req *resource_api_grpc_pb.GetImageRequest) (*resource_api_grpc_pb.GetImageReply, error) {
 	var rep *resource_api_grpc_pb.GetImageReply
 	var err error
@@ -308,6 +311,72 @@ func (cli *ResourceApiClient) GetImage(req *resource_api_grpc_pb.GetImageRequest
 	return rep, err
 }
 
+func (cli *ResourceApiClient) CreateImage(req *resource_api_grpc_pb.CreateImageRequest) (*resource_api_grpc_pb.CreateImageReply, error) {
+	var rep *resource_api_grpc_pb.CreateImageReply
+	var err error
+	conn, err := cli.NewClientConnection()
+	defer conn.Close()
+	if err != nil {
+		return rep, err
+	}
+
+	ctx, cancel := cli.GetContext()
+	defer cancel()
+	if cli.conf.Default.EnableTest {
+		rep, err = cli.localServer.CreateImage(ctx, req)
+	} else {
+		grpcClient := resource_api_grpc_pb.NewResourceApiClient(conn)
+		rep, err = grpcClient.CreateImage(ctx, req)
+	}
+
+	return rep, err
+}
+
+func (cli *ResourceApiClient) UpdateImage(req *resource_api_grpc_pb.UpdateImageRequest) (*resource_api_grpc_pb.UpdateImageReply, error) {
+	var rep *resource_api_grpc_pb.UpdateImageReply
+	var err error
+	conn, err := cli.NewClientConnection()
+	defer conn.Close()
+	if err != nil {
+		return rep, err
+	}
+
+	ctx, cancel := cli.GetContext()
+	defer cancel()
+	if cli.conf.Default.EnableTest {
+		rep, err = cli.localServer.UpdateImage(ctx, req)
+	} else {
+		grpcClient := resource_api_grpc_pb.NewResourceApiClient(conn)
+		rep, err = grpcClient.UpdateImage(ctx, req)
+	}
+
+	return rep, err
+}
+
+func (cli *ResourceApiClient) DeleteImage(req *resource_api_grpc_pb.DeleteImageRequest) (*resource_api_grpc_pb.DeleteImageReply, error) {
+	var rep *resource_api_grpc_pb.DeleteImageReply
+	var err error
+	conn, err := cli.NewClientConnection()
+	defer conn.Close()
+	if err != nil {
+		return rep, err
+	}
+
+	ctx, cancel := cli.GetContext()
+	defer cancel()
+	if cli.conf.Default.EnableTest {
+		rep, err = cli.localServer.DeleteImage(ctx, req)
+	} else {
+		grpcClient := resource_api_grpc_pb.NewResourceApiClient(conn)
+		rep, err = grpcClient.DeleteImage(ctx, req)
+	}
+
+	return rep, err
+}
+
+//
+// Volume
+//
 func (cli *ResourceApiClient) GetVolume(req *resource_api_grpc_pb.GetVolumeRequest) (*resource_api_grpc_pb.GetVolumeReply, error) {
 	var rep *resource_api_grpc_pb.GetVolumeReply
 	var err error
@@ -324,6 +393,69 @@ func (cli *ResourceApiClient) GetVolume(req *resource_api_grpc_pb.GetVolumeReque
 	} else {
 		grpcClient := resource_api_grpc_pb.NewResourceApiClient(conn)
 		rep, err = grpcClient.GetVolume(ctx, req)
+	}
+
+	return rep, err
+}
+
+func (cli *ResourceApiClient) CreateVolume(req *resource_api_grpc_pb.CreateVolumeRequest) (*resource_api_grpc_pb.CreateVolumeReply, error) {
+	var rep *resource_api_grpc_pb.CreateVolumeReply
+	var err error
+	conn, err := cli.NewClientConnection()
+	defer conn.Close()
+	if err != nil {
+		return rep, err
+	}
+
+	ctx, cancel := cli.GetContext()
+	defer cancel()
+	if cli.conf.Default.EnableTest {
+		rep, err = cli.localServer.CreateVolume(ctx, req)
+	} else {
+		grpcClient := resource_api_grpc_pb.NewResourceApiClient(conn)
+		rep, err = grpcClient.CreateVolume(ctx, req)
+	}
+
+	return rep, err
+}
+
+func (cli *ResourceApiClient) UpdateVolume(req *resource_api_grpc_pb.UpdateVolumeRequest) (*resource_api_grpc_pb.UpdateVolumeReply, error) {
+	var rep *resource_api_grpc_pb.UpdateVolumeReply
+	var err error
+	conn, err := cli.NewClientConnection()
+	defer conn.Close()
+	if err != nil {
+		return rep, err
+	}
+
+	ctx, cancel := cli.GetContext()
+	defer cancel()
+	if cli.conf.Default.EnableTest {
+		rep, err = cli.localServer.UpdateVolume(ctx, req)
+	} else {
+		grpcClient := resource_api_grpc_pb.NewResourceApiClient(conn)
+		rep, err = grpcClient.UpdateVolume(ctx, req)
+	}
+
+	return rep, err
+}
+
+func (cli *ResourceApiClient) DeleteVolume(req *resource_api_grpc_pb.DeleteVolumeRequest) (*resource_api_grpc_pb.DeleteVolumeReply, error) {
+	var rep *resource_api_grpc_pb.DeleteVolumeReply
+	var err error
+	conn, err := cli.NewClientConnection()
+	defer conn.Close()
+	if err != nil {
+		return rep, err
+	}
+
+	ctx, cancel := cli.GetContext()
+	defer cancel()
+	if cli.conf.Default.EnableTest {
+		rep, err = cli.localServer.DeleteVolume(ctx, req)
+	} else {
+		grpcClient := resource_api_grpc_pb.NewResourceApiClient(conn)
+		rep, err = grpcClient.DeleteVolume(ctx, req)
 	}
 
 	return rep, err

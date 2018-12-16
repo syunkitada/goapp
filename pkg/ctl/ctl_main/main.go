@@ -1,7 +1,6 @@
 package ctl_main
 
 import (
-	"github.com/golang/glog"
 	"github.com/spf13/cobra"
 
 	"github.com/syunkitada/goapp/pkg/config"
@@ -13,7 +12,7 @@ var rootCmd = &cobra.Command{}
 
 func Main() {
 	if err := rootCmd.Execute(); err != nil {
-		glog.Fatal(err)
+		logger.Error(config.Conf.Default.Host, "ctl", err)
 	}
 }
 

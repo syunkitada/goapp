@@ -68,8 +68,9 @@ message GetClusterRequest {
 }
 
 message GetClusterReply {
-    string err = 1;
-    repeated Cluster clusters = 2;
+    int64 status_code = 1;
+    string err = 2;
+    repeated Cluster clusters = 3;
 }
 
 message Cluster {
@@ -93,8 +94,9 @@ message GetNodeRequest {
 }
 
 message GetNodeReply {
-    string err = 1;
-    repeated Node nodes = 2;
+    int64 status_code = 1;
+    string err = 2;
+    repeated Node nodes = 3;
 }
 
 message UpdateNodeRequest {
@@ -115,13 +117,14 @@ message UpdateNodeReply {
 message Node {
     google.protobuf.Timestamp updated_at = 1;
     google.protobuf.Timestamp created_at = 2;
-    string name = 3;
-    string kind = 4;
-    string role = 5;
-    string status = 6;
-    string status_reason = 7;
-    string state = 8;
-    string state_reason = 9;
+    string cluster = 3;
+    string name = 4;
+    string kind = 5;
+    string role = 6;
+    string status = 7;
+    string status_reason = 8;
+    string state = 9;
+    string state_reason = 10;
 }
 
 
@@ -187,7 +190,6 @@ message DeleteNetworkV4Request {
 message DeleteNetworkV4Reply {
     int64 status_code = 1;
     string err = 2;
-    NetworkV4 network = 3;
 }
 
 message NetworkV4 {
@@ -208,53 +210,64 @@ message NetworkV4 {
 // Compute
 //
 message GetComputeRequest {
-    string user_name = 1;
-    string role_name = 2;
-    string project_name = 3;
-    string project_role_name = 4;
-    string target = 5;
-    string cluster = 6;
+    string trace_id = 1;
+    string user_name = 2;
+    string role_name = 3;
+    string project_name = 4;
+    string project_role_name = 5;
+    string target = 6;
+    string cluster = 7;
 }
 
 message GetComputeReply {
-    repeated Compute computes = 1;
+    int64 status_code = 1;
+    string err = 2;
+    repeated Compute computes = 3;
 }
 
 message CreateComputeRequest {
-    string user_name = 1;
-    string role_name = 2;
-    string project_name = 3;
-    string project_role_name = 4;
-    string spec = 5;
+    string trace_id = 1;
+    string user_name = 2;
+    string role_name = 3;
+    string project_name = 4;
+    string project_role_name = 5;
+    string spec = 6;
 }
 
 message CreateComputeReply {
-    Compute compute = 1;
+    int64 status_code = 1;
+    string err = 2;
+    Compute compute = 3;
 }
 
 message UpdateComputeRequest {
-    string user_name = 1;
-    string role_name = 2;
-    string project_name = 3;
-    string project_role_name = 4;
-    string spec = 5;
+    string trace_id = 1;
+    string user_name = 2;
+    string role_name = 3;
+    string project_name = 4;
+    string project_role_name = 5;
+    string spec = 6;
 }
 
 message UpdateComputeReply {
-    Compute compute = 1;
+    int64 status_code = 1;
+    string err = 2;
+    Compute compute = 3;
 }
 
 message DeleteComputeRequest {
-    string user_name = 1;
-    string role_name = 2;
-    string project_name = 3;
-    string project_role_name = 4;
-    string target = 5;
-    string cluster = 6;
+    string trace_id = 1;
+    string user_name = 2;
+    string role_name = 3;
+    string project_name = 4;
+    string project_role_name = 5;
+    string target = 6;
+    string cluster = 7;
 }
 
 message DeleteComputeReply {
-    Compute compute = 1;
+    int64 status_code = 1;
+    string err = 2;
 }
 
 message Compute {
@@ -275,53 +288,64 @@ message Compute {
 // Container
 //
 message GetContainerRequest {
-    string user_name = 1;
-    string role_name = 2;
-    string project_name = 3;
-    string project_role_name = 4;
-    string target = 5;
-    string cluster = 6;
+    string trace_id = 1;
+    string user_name = 2;
+    string role_name = 3;
+    string project_name = 4;
+    string project_role_name = 5;
+    string target = 6;
+    string cluster = 7;
 }
 
 message GetContainerReply {
-    repeated Container containers = 1;
+    int64 status_code = 1;
+    string err = 2;
+    repeated Container containers = 3;
 }
 
 message CreateContainerRequest {
-    string user_name = 1;
-    string role_name = 2;
-    string project_name = 3;
-    string project_role_name = 4;
-    string spec = 5;
+    string trace_id = 1;
+    string user_name = 2;
+    string role_name = 3;
+    string project_name = 4;
+    string project_role_name = 5;
+    string spec = 6;
 }
 
 message CreateContainerReply {
-    Container container = 1;
+    int64 status_code = 1;
+    string err = 2;
+    Container container = 3;
 }
 
 message UpdateContainerRequest {
-    string user_name = 1;
-    string role_name = 2;
-    string project_name = 3;
-    string project_role_name = 4;
-    string spec = 5;
+    string trace_id = 1;
+    string user_name = 2;
+    string role_name = 3;
+    string project_name = 4;
+    string project_role_name = 5;
+    string spec = 6;
 }
 
 message UpdateContainerReply {
-    Container container = 1;
+    int64 status_code = 1;
+    string err = 2;
+    Container container = 3;
 }
 
 message DeleteContainerRequest {
-    string user_name = 1;
-    string role_name = 2;
-    string project_name = 3;
-    string project_role_name = 4;
-    string target = 5;
-    string cluster = 6;
+    string trace_id = 1;
+    string user_name = 2;
+    string role_name = 3;
+    string project_name = 4;
+    string project_role_name = 5;
+    string target = 6;
+    string cluster = 7;
 }
 
 message DeleteContainerReply {
-    Container container = 1;
+    int64 status_code = 1;
+    string err = 2;
 }
 
 message Container {
@@ -342,53 +366,64 @@ message Container {
 // Image
 //
 message GetImageRequest {
-    string user_name = 1;
-    string role_name = 2;
-    string project_name = 3;
-    string project_role_name = 4;
-    string target = 5;
-    string cluster = 6;
+    string trace_id = 1;
+    string user_name = 2;
+    string role_name = 3;
+    string project_name = 4;
+    string project_role_name = 5;
+    string target = 6;
+    string cluster = 7;
 }
 
 message GetImageReply {
-    repeated Image images = 1;
+    int64 status_code = 1;
+    string err = 2;
+    repeated Image images = 3;
 }
 
 message CreateImageRequest {
-    string user_name = 1;
-    string role_name = 2;
-    string project_name = 3;
-    string project_role_name = 4;
-    string spec = 5;
+    string trace_id = 1;
+    string user_name = 2;
+    string role_name = 3;
+    string project_name = 4;
+    string project_role_name = 5;
+    string spec = 6;
 }
 
 message CreateImageReply {
-    Image image = 1;
+    int64 status_code = 1;
+    string err = 2;
+    Image image = 3;
 }
 
 message UpdateImageRequest {
-    string user_name = 1;
-    string role_name = 2;
-    string project_name = 3;
-    string project_role_name = 4;
-    string spec = 5;
+    string trace_id = 1;
+    string user_name = 2;
+    string role_name = 3;
+    string project_name = 4;
+    string project_role_name = 5;
+    string spec = 6;
 }
 
 message UpdateImageReply {
-    Image image = 1;
+    int64 status_code = 1;
+    string err = 2;
+    Image image = 3;
 }
 
 message DeleteImageRequest {
-    string user_name = 1;
-    string role_name = 2;
-    string project_name = 3;
-    string project_role_name = 4;
-    string target = 5;
-    string cluster = 6;
+    string trace_id = 1;
+    string user_name = 2;
+    string role_name = 3;
+    string project_name = 4;
+    string project_role_name = 5;
+    string target = 6;
+    string cluster = 7;
 }
 
 message DeleteImageReply {
-    Image image = 1;
+    int64 status_code = 1;
+    string err = 2;
 }
 
 message Image {
@@ -409,53 +444,64 @@ message Image {
 // Volume
 //
 message GetVolumeRequest {
-    string user_name = 1;
-    string role_name = 2;
-    string project_name = 3;
-    string project_role_name = 4;
-    string target = 5;
-    string cluster = 6;
+    string trace_id = 1;
+    string user_name = 2;
+    string role_name = 3;
+    string project_name = 4;
+    string project_role_name = 5;
+    string target = 6;
+    string cluster = 7;
 }
 
 message GetVolumeReply {
-    repeated Volume volumes = 1;
+    int64 status_code = 1;
+    string err = 2;
+    repeated Volume volumes = 3;
 }
 
 message CreateVolumeRequest {
-    string user_name = 1;
-    string role_name = 2;
-    string project_name = 3;
-    string project_role_name = 4;
-    string spec = 5;
+    string trace_id = 1;
+    string user_name = 2;
+    string role_name = 3;
+    string project_name = 4;
+    string project_role_name = 5;
+    string spec = 6;
 }
 
 message CreateVolumeReply {
-    Volume volume = 1;
+    int64 status_code = 1;
+    string err = 2;
+    Volume volume = 3;
 }
 
 message UpdateVolumeRequest {
-    string user_name = 1;
-    string role_name = 2;
-    string project_name = 3;
-    string project_role_name = 4;
-    string spec = 5;
+    string trace_id = 1;
+    string user_name = 2;
+    string role_name = 3;
+    string project_name = 4;
+    string project_role_name = 5;
+    string spec = 6;
 }
 
 message UpdateVolumeReply {
-    Volume volume = 1;
+    int64 status_code = 1;
+    string err = 2;
+    Volume volume = 3;
 }
 
 message DeleteVolumeRequest {
-    string user_name = 1;
-    string role_name = 2;
-    string project_name = 3;
-    string project_role_name = 4;
-    string target = 5;
-    string cluster = 6;
+    string trace_id = 1;
+    string user_name = 2;
+    string role_name = 3;
+    string project_name = 4;
+    string project_role_name = 5;
+    string target = 6;
+    string cluster = 7;
 }
 
 message DeleteVolumeReply {
-    Volume volume = 1;
+    int64 status_code = 1;
+    string err = 2;
 }
 
 message Volume {
@@ -476,53 +522,64 @@ message Volume {
 // Loadbalancer
 //
 message GetLoadbalancerRequest {
-    string user_name = 1;
-    string role_name = 2;
-    string project_name = 3;
-    string project_role_name = 4;
-    string target = 5;
-    string cluster = 6;
+    string trace_id = 1;
+    string user_name = 2;
+    string role_name = 3;
+    string project_name = 4;
+    string project_role_name = 5;
+    string target = 6;
+    string cluster = 7;
 }
 
 message GetLoadbalancerReply {
-    repeated Loadbalancer loadbalancers = 1;
+    int64 status_code = 1;
+    string err = 2;
+    repeated Loadbalancer loadbalancers = 3;
 }
 
 message CreateLoadbalancerRequest {
-    string user_name = 1;
-    string role_name = 2;
-    string project_name = 3;
-    string project_role_name = 4;
-    string spec = 5;
+    string trace_id = 1;
+    string user_name = 2;
+    string role_name = 3;
+    string project_name = 4;
+    string project_role_name = 5;
+    string spec = 6;
 }
 
 message CreateLoadbalancerReply {
-    Loadbalancer loadbalancer = 1;
+    int64 status_code = 1;
+    string err = 2;
+    Loadbalancer loadbalancer = 3;
 }
 
 message UpdateLoadbalancerRequest {
-    string user_name = 1;
-    string role_name = 2;
-    string project_name = 3;
-    string project_role_name = 4;
-    string spec = 5;
+    string trace_id = 1;
+    string user_name = 2;
+    string role_name = 3;
+    string project_name = 4;
+    string project_role_name = 5;
+    string spec = 6;
 }
 
 message UpdateLoadbalancerReply {
-    Loadbalancer loadbalancer = 1;
+    int64 status_code = 1;
+    string err = 2;
+    Loadbalancer loadbalancer = 3;
 }
 
 message DeleteLoadbalancerRequest {
-    string user_name = 1;
-    string role_name = 2;
-    string project_name = 3;
-    string project_role_name = 4;
-    string target = 5;
-    string cluster = 6;
+    string trace_id = 1;
+    string user_name = 2;
+    string role_name = 3;
+    string project_name = 4;
+    string project_role_name = 5;
+    string target = 6;
+    string cluster = 7;
 }
 
 message DeleteLoadbalancerReply {
-    Loadbalancer loadbalancer = 1;
+    int64 status_code = 1;
+    string err = 2;
 }
 
 message Loadbalancer {

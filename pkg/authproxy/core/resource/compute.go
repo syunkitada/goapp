@@ -15,31 +15,31 @@ import (
 	"github.com/syunkitada/goapp/pkg/resource/resource_api/resource_api_grpc_pb"
 )
 
-type ResponseGetNetworkV4 struct {
-	Networks []resource_api_grpc_pb.NetworkV4
+type ResponseGetCompute struct {
+	Computes []resource_api_grpc_pb.Compute
 	TraceId  string
 	Err      string
 }
 
-type ResponseCreateNetworkV4 struct {
-	Network resource_api_grpc_pb.NetworkV4
+type ResponseCreateCompute struct {
+	Compute resource_api_grpc_pb.Compute
 	TraceId string
 	Err     string
 }
 
-type ResponseUpdateNetworkV4 struct {
-	Network resource_api_grpc_pb.NetworkV4
+type ResponseUpdateCompute struct {
+	Compute resource_api_grpc_pb.Compute
 	TraceId string
 	Err     string
 }
 
-type ResponseDeleteNetworkV4 struct {
+type ResponseDeleteCompute struct {
 	TraceId string
 	Err     string
 }
 
-func (resource *Resource) GetNetworkV4(c *gin.Context, rc *ResourceContext) (int, string) {
-	var reqData resource_api_grpc_pb.GetNetworkV4Request
+func (resource *Resource) GetCompute(c *gin.Context, rc *ResourceContext) (int, string) {
+	var reqData resource_api_grpc_pb.GetComputeRequest
 	if err := json.Unmarshal([]byte(rc.action.Data), &reqData); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"TraceId": rc.traceId,
@@ -53,7 +53,7 @@ func (resource *Resource) GetNetworkV4(c *gin.Context, rc *ResourceContext) (int
 	reqData.ProjectName = rc.userAuthority.ActionProjectService.ProjectName
 	reqData.ProjectRoleName = rc.userAuthority.ActionProjectService.ProjectRoleName
 
-	rep, err := resource.resourceApiClient.GetNetworkV4(&reqData)
+	rep, err := resource.resourceApiClient.GetCompute(&reqData)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"TraceId": rc.traceId,
@@ -72,13 +72,13 @@ func (resource *Resource) GetNetworkV4(c *gin.Context, rc *ResourceContext) (int
 
 	c.JSON(http.StatusOK, gin.H{
 		"TraceId":  rc.traceId,
-		"Networks": rep.Networks,
+		"Computes": rep.Computes,
 	})
 	return int(rep.StatusCode), rep.Err
 }
 
-func (resource *Resource) CreateNetworkV4(c *gin.Context, rc *ResourceContext) (int, string) {
-	var reqData resource_api_grpc_pb.CreateNetworkV4Request
+func (resource *Resource) CreateCompute(c *gin.Context, rc *ResourceContext) (int, string) {
+	var reqData resource_api_grpc_pb.CreateComputeRequest
 	if err := json.Unmarshal([]byte(rc.action.Data), &reqData); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"TraceId": rc.traceId,
@@ -92,7 +92,7 @@ func (resource *Resource) CreateNetworkV4(c *gin.Context, rc *ResourceContext) (
 	reqData.ProjectName = rc.userAuthority.ActionProjectService.ProjectName
 	reqData.ProjectRoleName = rc.userAuthority.ActionProjectService.ProjectRoleName
 
-	rep, err := resource.resourceApiClient.CreateNetworkV4(&reqData)
+	rep, err := resource.resourceApiClient.CreateCompute(&reqData)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"TraceId": rc.traceId,
@@ -111,13 +111,13 @@ func (resource *Resource) CreateNetworkV4(c *gin.Context, rc *ResourceContext) (
 
 	c.JSON(200, gin.H{
 		"TraceId": rc.traceId,
-		"Network": rep.Network,
+		"Compute": rep.Compute,
 	})
 	return int(rep.StatusCode), rep.Err
 }
 
-func (resource *Resource) UpdateNetworkV4(c *gin.Context, rc *ResourceContext) (int, string) {
-	var reqData resource_api_grpc_pb.UpdateNetworkV4Request
+func (resource *Resource) UpdateCompute(c *gin.Context, rc *ResourceContext) (int, string) {
+	var reqData resource_api_grpc_pb.UpdateComputeRequest
 	if err := json.Unmarshal([]byte(rc.action.Data), &reqData); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"TraceId": rc.traceId,
@@ -131,7 +131,7 @@ func (resource *Resource) UpdateNetworkV4(c *gin.Context, rc *ResourceContext) (
 	reqData.ProjectName = rc.userAuthority.ActionProjectService.ProjectName
 	reqData.ProjectRoleName = rc.userAuthority.ActionProjectService.ProjectRoleName
 
-	rep, err := resource.resourceApiClient.UpdateNetworkV4(&reqData)
+	rep, err := resource.resourceApiClient.UpdateCompute(&reqData)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"TraceId": rc.traceId,
@@ -150,13 +150,13 @@ func (resource *Resource) UpdateNetworkV4(c *gin.Context, rc *ResourceContext) (
 
 	c.JSON(200, gin.H{
 		"TraceId": rc.traceId,
-		"Network": rep.Network,
+		"Compute": rep.Compute,
 	})
 	return int(rep.StatusCode), rep.Err
 }
 
-func (resource *Resource) DeleteNetworkV4(c *gin.Context, rc *ResourceContext) (int, string) {
-	var reqData resource_api_grpc_pb.DeleteNetworkV4Request
+func (resource *Resource) DeleteCompute(c *gin.Context, rc *ResourceContext) (int, string) {
+	var reqData resource_api_grpc_pb.DeleteComputeRequest
 	if err := json.Unmarshal([]byte(rc.action.Data), &reqData); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"TraceId": rc.traceId,
@@ -170,7 +170,7 @@ func (resource *Resource) DeleteNetworkV4(c *gin.Context, rc *ResourceContext) (
 	reqData.ProjectName = rc.userAuthority.ActionProjectService.ProjectName
 	reqData.ProjectRoleName = rc.userAuthority.ActionProjectService.ProjectRoleName
 
-	rep, err := resource.resourceApiClient.DeleteNetworkV4(&reqData)
+	rep, err := resource.resourceApiClient.DeleteCompute(&reqData)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"TraceId": rc.traceId,
@@ -193,8 +193,8 @@ func (resource *Resource) DeleteNetworkV4(c *gin.Context, rc *ResourceContext) (
 	return int(rep.StatusCode), rep.Err
 }
 
-func (resource *Resource) CtlGetNetworkV4(token string, cluster string, target string) (*ResponseGetNetworkV4, error) {
-	reqData := resource_api_grpc_pb.GetNetworkV4Request{
+func (resource *Resource) CtlGetCompute(token string, cluster string, target string) (*ResponseGetCompute, error) {
+	reqData := resource_api_grpc_pb.GetComputeRequest{
 		Cluster: cluster,
 		Target:  target,
 	}
@@ -208,7 +208,7 @@ func (resource *Resource) CtlGetNetworkV4(token string, cluster string, target s
 		Action: authproxy_model.ActionRequest{
 			ProjectName: resource.conf.Ctl.Project,
 			ServiceName: "Resource",
-			Name:        "GetNetworkV4",
+			Name:        "GetCompute",
 			Data:        string(reqDataJson),
 		},
 	}
@@ -223,7 +223,7 @@ func (resource *Resource) CtlGetNetworkV4(token string, cluster string, target s
 		return nil, fmt.Errorf("Err: %v", err)
 	}
 
-	var resp ResponseGetNetworkV4
+	var resp ResponseGetCompute
 	var body []byte
 	var statusCode int
 	if resource.conf.Default.EnableTest {
@@ -262,8 +262,8 @@ func (resource *Resource) CtlGetNetworkV4(token string, cluster string, target s
 	return &resp, nil
 }
 
-func (resource *Resource) CtlCreateNetworkV4(token string, spec string) (*ResponseCreateNetworkV4, error) {
-	reqData := resource_api_grpc_pb.CreateNetworkV4Request{
+func (resource *Resource) CtlCreateCompute(token string, spec string) (*ResponseCreateCompute, error) {
+	reqData := resource_api_grpc_pb.CreateComputeRequest{
 		Spec: spec,
 	}
 	reqDataJson, err := json.Marshal(reqData)
@@ -276,7 +276,7 @@ func (resource *Resource) CtlCreateNetworkV4(token string, spec string) (*Respon
 		Action: authproxy_model.ActionRequest{
 			ProjectName: resource.conf.Ctl.Project,
 			ServiceName: "Resource",
-			Name:        "CreateNetworkV4",
+			Name:        "CreateCompute",
 			Data:        string(reqDataJson),
 		},
 	}
@@ -291,7 +291,7 @@ func (resource *Resource) CtlCreateNetworkV4(token string, spec string) (*Respon
 		return nil, fmt.Errorf("Err: %v", err)
 	}
 
-	var resp ResponseCreateNetworkV4
+	var resp ResponseCreateCompute
 	var body []byte
 	var statusCode int
 	if resource.conf.Default.EnableTest {
@@ -330,8 +330,8 @@ func (resource *Resource) CtlCreateNetworkV4(token string, spec string) (*Respon
 	return &resp, nil
 }
 
-func (resource *Resource) CtlUpdateNetworkV4(token string, spec string) (*ResponseUpdateNetworkV4, error) {
-	reqData := resource_api_grpc_pb.UpdateNetworkV4Request{
+func (resource *Resource) CtlUpdateCompute(token string, spec string) (*ResponseUpdateCompute, error) {
+	reqData := resource_api_grpc_pb.UpdateComputeRequest{
 		Spec: spec,
 	}
 	reqDataJson, err := json.Marshal(reqData)
@@ -344,7 +344,7 @@ func (resource *Resource) CtlUpdateNetworkV4(token string, spec string) (*Respon
 		Action: authproxy_model.ActionRequest{
 			ProjectName: resource.conf.Ctl.Project,
 			ServiceName: "Resource",
-			Name:        "UpdateNetworkV4",
+			Name:        "UpdateCompute",
 			Data:        string(reqDataJson),
 		},
 	}
@@ -359,7 +359,7 @@ func (resource *Resource) CtlUpdateNetworkV4(token string, spec string) (*Respon
 		return nil, fmt.Errorf("Err: %v", err)
 	}
 
-	var resp ResponseUpdateNetworkV4
+	var resp ResponseUpdateCompute
 	var body []byte
 	var statusCode int
 	if resource.conf.Default.EnableTest {
@@ -398,8 +398,8 @@ func (resource *Resource) CtlUpdateNetworkV4(token string, spec string) (*Respon
 	return &resp, nil
 }
 
-func (resource *Resource) CtlDeleteNetworkV4(token string, cluster string, target string) (*ResponseDeleteNetworkV4, error) {
-	reqData := resource_api_grpc_pb.DeleteNetworkV4Request{
+func (resource *Resource) CtlDeleteCompute(token string, cluster string, target string) (*ResponseDeleteCompute, error) {
+	reqData := resource_api_grpc_pb.DeleteComputeRequest{
 		Cluster: cluster,
 		Target:  target,
 	}
@@ -413,7 +413,7 @@ func (resource *Resource) CtlDeleteNetworkV4(token string, cluster string, targe
 		Action: authproxy_model.ActionRequest{
 			ProjectName: resource.conf.Ctl.Project,
 			ServiceName: "Resource",
-			Name:        "DeleteNetworkV4",
+			Name:        "DeleteCompute",
 			Data:        string(reqDataJson),
 		},
 	}
@@ -428,7 +428,7 @@ func (resource *Resource) CtlDeleteNetworkV4(token string, cluster string, targe
 		return nil, fmt.Errorf("Err: %v", err)
 	}
 
-	var resp ResponseDeleteNetworkV4
+	var resp ResponseDeleteCompute
 	var body []byte
 	var statusCode int
 	if resource.conf.Default.EnableTest {

@@ -177,14 +177,6 @@ func (modelApi *ResourceModelApi) DeleteNetworkV4(req *resource_api_grpc_pb.Dele
 	}
 	tx.Commit()
 
-	networkPb, err := modelApi.convertNetworkV4(&network)
-	if err != nil {
-		rep.Err = err.Error()
-		rep.StatusCode = codes.ServerInternalError
-		return rep
-	}
-
-	rep.Network = networkPb
 	rep.StatusCode = codes.Ok
 	return rep
 }
