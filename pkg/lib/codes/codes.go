@@ -17,6 +17,7 @@ const (
 	ServerInternalError int64 = 500
 
 	// 52x Server Remote Errors
-	RemoteTimeout int64 = 520
-	RemoteDbError int64 = 521
+	RemoteTimeout      int64 = 520
+	RemoteDbError      int64 = 521
+	RemoteClusterError int64 = 525
 )

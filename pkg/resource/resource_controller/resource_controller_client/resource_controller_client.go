@@ -4,7 +4,6 @@ import (
 	"errors"
 	"time"
 
-	"github.com/golang/glog"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -36,14 +35,12 @@ func (resourceClient *ResourceClient) NewClientConnection() (*grpc.ClientConn, e
 	for _, target := range resourceClient.Targets {
 		creds, credsErr := credentials.NewClientTLSFromFile(resourceClient.CaFilePath, resourceClient.ServerHostOverride)
 		if credsErr != nil {
-			glog.Warning("Failed to create TLS credentials %v", credsErr)
 			continue
 		}
 		opts = append(opts, grpc.WithTransportCredentials(creds))
 
 		conn, err := grpc.Dial(target, opts...)
 		if err != nil {
-			glog.Warning("fail to dial: %v", err)
 			continue
 		}
 
@@ -57,7 +54,6 @@ func (resourceClient *ResourceClient) Status() (*resource_controller_grpc_pb.Sta
 	conn, connErr := resourceClient.NewClientConnection()
 	defer conn.Close()
 	if connErr != nil {
-		glog.Warning("Failed NewClientConnection")
 		return nil, connErr
 	}
 
@@ -68,7 +64,6 @@ func (resourceClient *ResourceClient) Status() (*resource_controller_grpc_pb.Sta
 
 	statusResponse, err := client.Status(ctx, &resource_controller_grpc_pb.StatusRequest{})
 	if err != nil {
-		glog.Error("%v.GetFeatures(_) = _, %v: ", client, err)
 		return nil, err
 	}
 

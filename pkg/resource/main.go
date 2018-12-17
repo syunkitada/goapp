@@ -1,7 +1,6 @@
 package resource
 
 import (
-	"github.com/golang/glog"
 	"github.com/spf13/cobra"
 
 	"github.com/syunkitada/goapp/pkg/config"
@@ -17,7 +16,7 @@ var rootCmd = &cobra.Command{}
 
 func Main() {
 	if err := rootCmd.Execute(); err != nil {
-		glog.Fatal(err)
+		logger.Fatal(config.Conf.Default.Host, "resource", err)
 	}
 }
 

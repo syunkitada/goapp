@@ -7,7 +7,7 @@ import (
 	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_model"
 )
 
-func (srv *ResourceClusterApiServer) MainTask() error {
+func (srv *ResourceClusterApiServer) MainTask(traceId string) error {
 	glog.Info("Run MainTask")
 	srv.UpdateNodeTask()
 

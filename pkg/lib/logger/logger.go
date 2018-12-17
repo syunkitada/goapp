@@ -88,6 +88,16 @@ func Infof(host string, source string, format string, args ...interface{}) {
 	TraceInfo("nil", host, source, metadata)
 }
 
+func Warning(host string, source string, args ...interface{}) {
+	metadata := map[string]string{"Err": fmt.Sprint(args...)}
+	TraceWarning("nil", host, source, metadata)
+}
+
+func Warningf(host string, source string, format string, args ...interface{}) {
+	metadata := map[string]string{"Err": fmt.Sprintf(format, args...)}
+	TraceWarning("nil", host, source, metadata)
+}
+
 func Error(host string, source string, args ...interface{}) {
 	metadata := map[string]string{"Err": fmt.Sprint(args...)}
 	TraceError("nil", host, source, metadata)
@@ -113,6 +123,15 @@ func NewTraceId() string {
 }
 
 func TraceInfo(traceid string, host string, source string, metadata map[string]string) {
+	msg, err := json.Marshal(metadata)
+	if err != nil {
+		failedJsonMarshal(source, err.Error())
+		return
+	}
+	Tracer.Print(traceLog + " " + infoLog + " " + traceid + " " + host + " " + source + " " + string(msg))
+}
+
+func TraceWarning(traceid string, host string, source string, metadata map[string]string) {
 	msg, err := json.Marshal(metadata)
 	if err != nil {
 		failedJsonMarshal(source, err.Error())
@@ -211,5 +230,24 @@ func EndCtlTrace(traceId string, name string, startTime time.Time, args ...inter
 		"Func":     getFunc(0),
 		"Latency":  strconv.FormatInt(time.Now().Sub(startTime).Nanoseconds()/1000000, 10),
 		"Err":      fmt.Sprint(args...),
+	})
+}
+
+func StartTaskTrace(traceId string, host string, name string) time.Time {
+	startTime := time.Now()
+	TraceInfo(traceId, host, name, map[string]string{
+		"Msg":  "Start",
+		"Func": getFunc(0),
+	})
+
+	return startTime
+}
+
+func EndTaskTrace(traceId string, host string, name string, startTime time.Time, args ...interface{}) {
+	TraceInfo(traceId, host, name, map[string]string{
+		"Msg":     "End",
+		"Func":    getFunc(0),
+		"Latency": strconv.FormatInt(time.Now().Sub(startTime).Nanoseconds()/1000000, 10),
+		"Err":     fmt.Sprint(args...),
 	})
 }

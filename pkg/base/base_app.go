@@ -7,17 +7,17 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/golang/glog"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 
 	"github.com/syunkitada/goapp/pkg/config"
+	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
 
 type BaseAppDriver interface {
 	RegisterGrpcServer(*grpc.Server) error
-	MainTask() error
+	MainTask(string) error
 }
 
 type BaseApp struct {
@@ -55,25 +55,28 @@ func (app *BaseApp) StartMainLoop() error {
 }
 
 func (app *BaseApp) mainLoop() {
-	glog.Info("Starting mainLoop")
+	var traceId string
+	var startTime time.Time
+	var err error
+	logger.Info(app.Host, app.Name, "Start mainLoop")
 	for {
-		if err := app.driver.MainTask(); err != nil {
-			glog.Warning(err)
-		}
+		traceId = logger.NewTraceId()
+		startTime = logger.StartTaskTrace(traceId, app.Host, app.Name)
+		err = app.driver.MainTask(traceId)
+		logger.EndTaskTrace(traceId, app.Host, app.Name, startTime, err)
 
 		if app.isGracefulShutdown {
-			glog.Info("Completed graceful shutdown mainTask")
-			glog.Info("Starting grpcServer.GracefulStop")
+			logger.Info(app.Host, app.Name, "Completed graceful shutdown mainTask")
+			logger.Info(app.Host, app.Name, "Starting grpcServer.GracefulStop")
 			app.grpcServer.GracefulStop()
-			glog.Info("Completed grpcServer.GracefulStop")
-			glog.Info("Completed graceful shutdown")
+			logger.Info(app.Host, app.Name, "Completed grpcServer.GracefulStop")
+			logger.Info(app.Host, app.Name, "Completed graceful shutdown")
 			os.Exit(0)
 		}
-		glog.Infof("Completed mainTask, and sleep %v", app.loopInterval)
 		time.Sleep(app.loopInterval)
 	}
 
-	glog.Info("Completed mainLoop")
+	logger.Info(app.Host, app.Name, "Completed mainLoop")
 }
 
 func (app *BaseApp) Serve() error {
@@ -102,21 +105,22 @@ func (app *BaseApp) Serve() error {
 		signal.Notify(shutdown, syscall.SIGTERM)
 		<-shutdown
 		if err := app.gracefulShutdown(context.Background()); err != nil {
-			glog.Errorf("Failed gracefulShutdown: %v\n", err)
+			logger.Errorf(app.Host, app.Name, "Failed gracefulShutdown: %v", err)
 		}
 	}()
 
-	glog.Infof("Serve: %v", app.appConf.Listen)
+	logger.Infof(app.Host, app.Name, "Serve: %v", app.appConf.Listen)
 	if err := app.grpcServer.Serve(lis); err != nil {
-		glog.Infof("Failed Serve: %v\n", err)
+		logger.Errorf(app.Host, app.Name, "Failed Serve: %v", err)
+		return err
 	}
 
-	glog.Infof("Completed Serve")
+	logger.Infof(app.Host, app.Name, "Completed Serve: %v", app.appConf.Listen)
 	return nil
 }
 
 func (app *BaseApp) gracefulShutdown(ctx context.Context) error {
-	glog.Info("Starting graceful shutdown")
+	logger.Info(app.Host, app.Name, "Starting graceful shutdown")
 	ctx, cancel := context.WithTimeout(ctx, app.shutdownTimeout)
 	defer cancel()
 
@@ -124,7 +128,7 @@ func (app *BaseApp) gracefulShutdown(ctx context.Context) error {
 
 	select {
 	case <-ctx.Done():
-		glog.Warning(ctx.Err())
+		logger.Errorf(app.Host, app.Name, "Failed graceful shutdown: %v", ctx.Err())
 		os.Exit(1)
 	}
 

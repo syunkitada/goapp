@@ -1,8 +1,6 @@
 package resource_api_client
 
 import (
-	"github.com/golang/glog"
-
 	"github.com/syunkitada/goapp/pkg/base"
 	"github.com/syunkitada/goapp/pkg/config"
 	"github.com/syunkitada/goapp/pkg/resource/resource_api"
@@ -48,7 +46,6 @@ func (cli *ResourceApiClient) Status() (*resource_api_grpc_pb.StatusReply, error
 }
 
 func (cli *ResourceApiClient) GetCluster(req *resource_api_grpc_pb.GetClusterRequest) (*resource_api_grpc_pb.GetClusterReply, error) {
-	glog.V(2).Info("Called GetCluster")
 	var rep *resource_api_grpc_pb.GetClusterReply
 	var err error
 	conn, err := cli.NewClientConnection()

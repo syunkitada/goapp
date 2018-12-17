@@ -1,9 +1,6 @@
 package resource_api
 
 import (
-	"fmt"
-	"time"
-
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 
@@ -56,17 +53,17 @@ func (srv *ResourceApiServer) GetCluster(ctx context.Context, req *resource_api_
 // Node
 //
 func (srv *ResourceApiServer) GetNode(ctx context.Context, req *resource_api_grpc_pb.GetNodeRequest) (*resource_api_grpc_pb.GetNodeReply, error) {
-	var rep *resource_api_grpc_pb.GetNodeReply
-	var err error
-	rep, err = srv.resourceModelApi.GetNode(req)
-	return rep, err
+	startTime, clientIp := logger.StartGrpcTrace(req.TraceId, srv.Host, srv.Name, ctx)
+	rep := srv.resourceModelApi.GetNode(req)
+	logger.EndGrpcTrace(req.TraceId, srv.Host, srv.Name, startTime, clientIp, rep.StatusCode, rep.Err)
+	return rep, nil
 }
 
 func (srv *ResourceApiServer) UpdateNode(ctx context.Context, req *resource_api_grpc_pb.UpdateNodeRequest) (*resource_api_grpc_pb.UpdateNodeReply, error) {
-	var rep *resource_api_grpc_pb.UpdateNodeReply
-	var err error
-	rep, err = srv.resourceModelApi.UpdateNode(req)
-	return rep, err
+	startTime, clientIp := logger.StartGrpcTrace(req.TraceId, srv.Host, srv.Name, ctx)
+	rep := srv.resourceModelApi.UpdateNode(req)
+	logger.EndGrpcTrace(req.TraceId, srv.Host, srv.Name, startTime, clientIp, rep.StatusCode, rep.Err)
+	return rep, nil
 }
 
 //
@@ -104,67 +101,62 @@ func (srv *ResourceApiServer) DeleteNetworkV4(ctx context.Context, req *resource
 // Compute
 //
 func (srv *ResourceApiServer) GetCompute(ctx context.Context, req *resource_api_grpc_pb.GetComputeRequest) (*resource_api_grpc_pb.GetComputeReply, error) {
-	var rep *resource_api_grpc_pb.GetComputeReply
-	var err error
-	rep, err = srv.resourceModelApi.GetCompute(req)
-
-	return rep, err
+	startTime, clientIp := logger.StartGrpcTrace(req.TraceId, srv.Host, srv.Name, ctx)
+	rep := srv.resourceModelApi.GetCompute(req)
+	logger.EndGrpcTrace(req.TraceId, srv.Host, srv.Name, startTime, clientIp, rep.StatusCode, rep.Err)
+	return rep, nil
 }
 
 func (srv *ResourceApiServer) CreateCompute(ctx context.Context, req *resource_api_grpc_pb.CreateComputeRequest) (*resource_api_grpc_pb.CreateComputeReply, error) {
-	startTime := time.Now()
-	var rep *resource_api_grpc_pb.CreateComputeReply
-	var err error
-	rep, err = srv.resourceModelApi.CreateCompute(req)
-	if err != nil {
-		return rep, fmt.Errorf("@@ApiCreateCompute: time=%v, error=%v", time.Now().Sub(startTime), err)
-	}
-	return rep, err
+	startTime, clientIp := logger.StartGrpcTrace(req.TraceId, srv.Host, srv.Name, ctx)
+	rep := srv.resourceModelApi.CreateCompute(req)
+	logger.EndGrpcTrace(req.TraceId, srv.Host, srv.Name, startTime, clientIp, rep.StatusCode, rep.Err)
+	return rep, nil
 }
 
 func (srv *ResourceApiServer) UpdateCompute(ctx context.Context, req *resource_api_grpc_pb.UpdateComputeRequest) (*resource_api_grpc_pb.UpdateComputeReply, error) {
-	var rep *resource_api_grpc_pb.UpdateComputeReply
-	var err error
-	rep, err = srv.resourceModelApi.UpdateCompute(req)
-	return rep, err
+	startTime, clientIp := logger.StartGrpcTrace(req.TraceId, srv.Host, srv.Name, ctx)
+	rep := srv.resourceModelApi.UpdateCompute(req)
+	logger.EndGrpcTrace(req.TraceId, srv.Host, srv.Name, startTime, clientIp, rep.StatusCode, rep.Err)
+	return rep, nil
 }
 
 func (srv *ResourceApiServer) DeleteCompute(ctx context.Context, req *resource_api_grpc_pb.DeleteComputeRequest) (*resource_api_grpc_pb.DeleteComputeReply, error) {
-	var rep *resource_api_grpc_pb.DeleteComputeReply
-	var err error
-	rep, err = srv.resourceModelApi.DeleteCompute(req)
-	return rep, err
+	startTime, clientIp := logger.StartGrpcTrace(req.TraceId, srv.Host, srv.Name, ctx)
+	rep := srv.resourceModelApi.DeleteCompute(req)
+	logger.EndGrpcTrace(req.TraceId, srv.Host, srv.Name, startTime, clientIp, rep.StatusCode, rep.Err)
+	return rep, nil
 }
 
 //
 // Container
 //
 func (srv *ResourceApiServer) GetContainer(ctx context.Context, req *resource_api_grpc_pb.GetContainerRequest) (*resource_api_grpc_pb.GetContainerReply, error) {
-	var rep *resource_api_grpc_pb.GetContainerReply
-	var err error
-	rep, err = srv.resourceModelApi.GetContainer(req)
-	return rep, err
+	startTime, clientIp := logger.StartGrpcTrace(req.TraceId, srv.Host, srv.Name, ctx)
+	rep := srv.resourceModelApi.GetContainer(req)
+	logger.EndGrpcTrace(req.TraceId, srv.Host, srv.Name, startTime, clientIp, rep.StatusCode, rep.Err)
+	return rep, nil
 }
 
 func (srv *ResourceApiServer) CreateContainer(ctx context.Context, req *resource_api_grpc_pb.CreateContainerRequest) (*resource_api_grpc_pb.CreateContainerReply, error) {
-	var rep *resource_api_grpc_pb.CreateContainerReply
-	var err error
-	rep, err = srv.resourceModelApi.CreateContainer(req)
-	return rep, err
+	startTime, clientIp := logger.StartGrpcTrace(req.TraceId, srv.Host, srv.Name, ctx)
+	rep := srv.resourceModelApi.CreateContainer(req)
+	logger.EndGrpcTrace(req.TraceId, srv.Host, srv.Name, startTime, clientIp, rep.StatusCode, rep.Err)
+	return rep, nil
 }
 
 func (srv *ResourceApiServer) UpdateContainer(ctx context.Context, req *resource_api_grpc_pb.UpdateContainerRequest) (*resource_api_grpc_pb.UpdateContainerReply, error) {
-	var rep *resource_api_grpc_pb.UpdateContainerReply
-	var err error
-	rep, err = srv.resourceModelApi.UpdateContainer(req)
-	return rep, err
+	startTime, clientIp := logger.StartGrpcTrace(req.TraceId, srv.Host, srv.Name, ctx)
+	rep := srv.resourceModelApi.UpdateContainer(req)
+	logger.EndGrpcTrace(req.TraceId, srv.Host, srv.Name, startTime, clientIp, rep.StatusCode, rep.Err)
+	return rep, nil
 }
 
 func (srv *ResourceApiServer) DeleteContainer(ctx context.Context, req *resource_api_grpc_pb.DeleteContainerRequest) (*resource_api_grpc_pb.DeleteContainerReply, error) {
-	var rep *resource_api_grpc_pb.DeleteContainerReply
-	var err error
-	rep, err = srv.resourceModelApi.DeleteContainer(req)
-	return rep, err
+	startTime, clientIp := logger.StartGrpcTrace(req.TraceId, srv.Host, srv.Name, ctx)
+	rep := srv.resourceModelApi.DeleteContainer(req)
+	logger.EndGrpcTrace(req.TraceId, srv.Host, srv.Name, startTime, clientIp, rep.StatusCode, rep.Err)
+	return rep, nil
 }
 
 //
@@ -202,60 +194,60 @@ func (srv *ResourceApiServer) DeleteImage(ctx context.Context, req *resource_api
 // Volume
 //
 func (srv *ResourceApiServer) GetVolume(ctx context.Context, req *resource_api_grpc_pb.GetVolumeRequest) (*resource_api_grpc_pb.GetVolumeReply, error) {
-	var rep *resource_api_grpc_pb.GetVolumeReply
-	var err error
-	rep, err = srv.resourceModelApi.GetVolume(req)
-	return rep, err
+	startTime, clientIp := logger.StartGrpcTrace(req.TraceId, srv.Host, srv.Name, ctx)
+	rep := srv.resourceModelApi.GetVolume(req)
+	logger.EndGrpcTrace(req.TraceId, srv.Host, srv.Name, startTime, clientIp, rep.StatusCode, rep.Err)
+	return rep, nil
 }
 
 func (srv *ResourceApiServer) CreateVolume(ctx context.Context, req *resource_api_grpc_pb.CreateVolumeRequest) (*resource_api_grpc_pb.CreateVolumeReply, error) {
-	var rep *resource_api_grpc_pb.CreateVolumeReply
-	var err error
-	rep, err = srv.resourceModelApi.CreateVolume(req)
-	return rep, err
+	startTime, clientIp := logger.StartGrpcTrace(req.TraceId, srv.Host, srv.Name, ctx)
+	rep := srv.resourceModelApi.CreateVolume(req)
+	logger.EndGrpcTrace(req.TraceId, srv.Host, srv.Name, startTime, clientIp, rep.StatusCode, rep.Err)
+	return rep, nil
 }
 
 func (srv *ResourceApiServer) UpdateVolume(ctx context.Context, req *resource_api_grpc_pb.UpdateVolumeRequest) (*resource_api_grpc_pb.UpdateVolumeReply, error) {
-	var rep *resource_api_grpc_pb.UpdateVolumeReply
-	var err error
-	rep, err = srv.resourceModelApi.UpdateVolume(req)
-	return rep, err
+	startTime, clientIp := logger.StartGrpcTrace(req.TraceId, srv.Host, srv.Name, ctx)
+	rep := srv.resourceModelApi.UpdateVolume(req)
+	logger.EndGrpcTrace(req.TraceId, srv.Host, srv.Name, startTime, clientIp, rep.StatusCode, rep.Err)
+	return rep, nil
 }
 
 func (srv *ResourceApiServer) DeleteVolume(ctx context.Context, req *resource_api_grpc_pb.DeleteVolumeRequest) (*resource_api_grpc_pb.DeleteVolumeReply, error) {
-	var rep *resource_api_grpc_pb.DeleteVolumeReply
-	var err error
-	rep, err = srv.resourceModelApi.DeleteVolume(req)
-	return rep, err
+	startTime, clientIp := logger.StartGrpcTrace(req.TraceId, srv.Host, srv.Name, ctx)
+	rep := srv.resourceModelApi.DeleteVolume(req)
+	logger.EndGrpcTrace(req.TraceId, srv.Host, srv.Name, startTime, clientIp, rep.StatusCode, rep.Err)
+	return rep, nil
 }
 
 //
 // Loadbalancer
 //
 func (srv *ResourceApiServer) GetLoadbalancer(ctx context.Context, req *resource_api_grpc_pb.GetLoadbalancerRequest) (*resource_api_grpc_pb.GetLoadbalancerReply, error) {
-	var rep *resource_api_grpc_pb.GetLoadbalancerReply
-	var err error
-	rep, err = srv.resourceModelApi.GetLoadbalancer(req)
-	return rep, err
+	startTime, clientIp := logger.StartGrpcTrace(req.TraceId, srv.Host, srv.Name, ctx)
+	rep := srv.resourceModelApi.GetLoadbalancer(req)
+	logger.EndGrpcTrace(req.TraceId, srv.Host, srv.Name, startTime, clientIp, rep.StatusCode, rep.Err)
+	return rep, nil
 }
 
 func (srv *ResourceApiServer) CreateLoadbalancer(ctx context.Context, req *resource_api_grpc_pb.CreateLoadbalancerRequest) (*resource_api_grpc_pb.CreateLoadbalancerReply, error) {
-	var rep *resource_api_grpc_pb.CreateLoadbalancerReply
-	var err error
-	rep, err = srv.resourceModelApi.CreateLoadbalancer(req)
-	return rep, err
+	startTime, clientIp := logger.StartGrpcTrace(req.TraceId, srv.Host, srv.Name, ctx)
+	rep := srv.resourceModelApi.CreateLoadbalancer(req)
+	logger.EndGrpcTrace(req.TraceId, srv.Host, srv.Name, startTime, clientIp, rep.StatusCode, rep.Err)
+	return rep, nil
 }
 
 func (srv *ResourceApiServer) UpdateLoadbalancer(ctx context.Context, req *resource_api_grpc_pb.UpdateLoadbalancerRequest) (*resource_api_grpc_pb.UpdateLoadbalancerReply, error) {
-	var rep *resource_api_grpc_pb.UpdateLoadbalancerReply
-	var err error
-	rep, err = srv.resourceModelApi.UpdateLoadbalancer(req)
-	return rep, err
+	startTime, clientIp := logger.StartGrpcTrace(req.TraceId, srv.Host, srv.Name, ctx)
+	rep := srv.resourceModelApi.UpdateLoadbalancer(req)
+	logger.EndGrpcTrace(req.TraceId, srv.Host, srv.Name, startTime, clientIp, rep.StatusCode, rep.Err)
+	return rep, nil
 }
 
 func (srv *ResourceApiServer) DeleteLoadbalancer(ctx context.Context, req *resource_api_grpc_pb.DeleteLoadbalancerRequest) (*resource_api_grpc_pb.DeleteLoadbalancerReply, error) {
-	var rep *resource_api_grpc_pb.DeleteLoadbalancerReply
-	var err error
-	rep, err = srv.resourceModelApi.DeleteLoadbalancer(req)
-	return rep, err
+	startTime, clientIp := logger.StartGrpcTrace(req.TraceId, srv.Host, srv.Name, ctx)
+	rep := srv.resourceModelApi.DeleteLoadbalancer(req)
+	logger.EndGrpcTrace(req.TraceId, srv.Host, srv.Name, startTime, clientIp, rep.StatusCode, rep.Err)
+	return rep, nil
 }

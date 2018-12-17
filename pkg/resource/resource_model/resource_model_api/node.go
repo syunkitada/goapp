@@ -9,65 +9,77 @@ import (
 	"github.com/golang/protobuf/ptypes"
 	"github.com/jinzhu/gorm"
 
+	"github.com/syunkitada/goapp/pkg/lib/codes"
 	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_api/resource_cluster_api_grpc_pb"
 	"github.com/syunkitada/goapp/pkg/resource/resource_api/resource_api_grpc_pb"
 	"github.com/syunkitada/goapp/pkg/resource/resource_model"
 )
 
-func (modelApi *ResourceModelApi) GetNode(req *resource_api_grpc_pb.GetNodeRequest) (*resource_api_grpc_pb.GetNodeReply, error) {
-	var err error
+func (modelApi *ResourceModelApi) GetNode(req *resource_api_grpc_pb.GetNodeRequest) *resource_api_grpc_pb.GetNodeReply {
+	rep := &resource_api_grpc_pb.GetNodeReply{}
+
 	db, err := gorm.Open("mysql", modelApi.conf.Resource.Database.Connection)
 	defer db.Close()
 	if err != nil {
-		return nil, err
+		rep.Err = err.Error()
+		rep.StatusCode = codes.RemoteDbError
+		return rep
 	}
 	db.LogMode(modelApi.conf.Default.EnableDatabaseLog)
 
 	if req.Cluster != "" {
 		clusterClient, ok := modelApi.clusterClientMap[req.Cluster]
 		if !ok {
-			return nil, fmt.Errorf("NotFound cluster: ", req.Cluster)
+			rep.Err = fmt.Sprintf("NotFound cluster: ", req.Cluster)
+			rep.StatusCode = codes.ClientNotFound
+			return rep
 		}
-		// TODO get cluster nodes
-		glog.Info(clusterClient)
+
 		getNodeReq := &resource_cluster_api_grpc_pb.GetNodeRequest{
 			Target: req.Target,
 		}
-		rep, err := clusterClient.GetNode(getNodeReq)
+		remoteRep, err := clusterClient.GetNode(getNodeReq)
 		if err != nil {
-			return nil, err
+			rep.Err = err.Error()
+			rep.StatusCode = codes.RemoteClusterError
+			return rep
 		}
 
-		return &resource_api_grpc_pb.GetNodeReply{
-			Nodes: modelApi.convertClusterNodes(rep.Nodes),
-		}, nil
+		rep.Nodes = modelApi.convertClusterNodes(remoteRep.Nodes)
+		rep.StatusCode = codes.Ok
+		return rep
 	}
 
 	var nodes []resource_model.Node
 	if err = db.Where("name like ?", req.Target).Find(&nodes).Error; err != nil {
-		return nil, err
+		rep.Err = err.Error()
+		rep.StatusCode = codes.RemoteDbError
+		return rep
 	}
 
-	return &resource_api_grpc_pb.GetNodeReply{
-		Nodes: modelApi.convertNodes(nodes),
-	}, nil
+	rep.Nodes = modelApi.convertNodes(nodes)
+	rep.StatusCode = codes.Ok
+	return rep
 }
 
-func (modelApi *ResourceModelApi) UpdateNode(req *resource_api_grpc_pb.UpdateNodeRequest) (*resource_api_grpc_pb.UpdateNodeReply, error) {
+func (modelApi *ResourceModelApi) UpdateNode(req *resource_api_grpc_pb.UpdateNodeRequest) *resource_api_grpc_pb.UpdateNodeReply {
 	rep := &resource_api_grpc_pb.UpdateNodeReply{}
-	var err error
 
 	db, err := gorm.Open("mysql", modelApi.conf.Resource.Database.Connection)
 	defer db.Close()
 	if err != nil {
-		return rep, err
+		rep.Err = err.Error()
+		rep.StatusCode = codes.RemoteDbError
+		return rep
 	}
 	db.LogMode(modelApi.conf.Default.EnableDatabaseLog)
 
 	var node resource_model.Node
 	if err = db.Where("name = ? and kind = ?", req.Name, req.Kind).First(&node).Error; err != nil {
 		if !gorm.IsRecordNotFoundError(err) {
-			return rep, err
+			rep.Err = err.Error()
+			rep.StatusCode = codes.RemoteDbError
+			return rep
 		}
 
 		node = resource_model.Node{
@@ -80,18 +92,22 @@ func (modelApi *ResourceModelApi) UpdateNode(req *resource_api_grpc_pb.UpdateNod
 			StateReason:  req.StateReason,
 		}
 		if err = db.Create(&node).Error; err != nil {
-			return rep, err
+			rep.Err = err.Error()
+			rep.StatusCode = codes.RemoteDbError
+			return rep
 		}
 	} else {
 		node.State = req.State
 		node.StateReason = req.StateReason
 		if err = db.Save(&node).Error; err != nil {
-			return rep, err
+			rep.Err = err.Error()
+			rep.StatusCode = codes.RemoteDbError
+			return rep
 		}
 	}
 
-	glog.Info("Completed UpdateNode")
-	return rep, err
+	rep.StatusCode = codes.Ok
+	return rep
 }
 
 func (modelApi *ResourceModelApi) SyncRole(kind string) ([]resource_model.Node, error) {
