@@ -1,12 +1,13 @@
 {
   "Kind": "Compute",
-  "Name": "hoge",
+  "Name": "testvm01",
   "Cluster": "cluster1",
   "Spec": {
     "Kind": "Libvirt",
     "Vcpus": 1,
     "MemorySize": 1024,
     "DiskSize": 2,
-    "Image": "CentOS7:latest"
+    "Image": "cirros-0.4.0",
+    "Network": "local-net1"
   }
 }

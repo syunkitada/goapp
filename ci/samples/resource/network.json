@@ -1,6 +1,6 @@
 {
   "Kind": "NetworkV4",
-  "Name": "LocalNet1",
+  "Name": "local-net1",
   "Cluster": "cluster1",
   "Spec": {
     "Kind": "Local",

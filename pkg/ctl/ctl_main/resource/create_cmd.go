@@ -4,11 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"os"
-	"time"
 
 	"github.com/golang/glog"
-	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 
 	"github.com/syunkitada/goapp/pkg/authproxy/core"
@@ -71,27 +68,15 @@ func CreateResource() error {
 		logger.EndCtlTrace(traceId, appName, startTime, err)
 		return err
 	case resource_model.SpecCompute:
-		resp, err := authproxy.Resource.CtlCreateCompute(token.Token, string(bytes))
-		if err != nil {
-			return err
-		}
-
-		table := tablewriter.NewWriter(os.Stdout)
-		table.SetHeader([]string{"Cluster", "Name", "Status", "Status Reason", "Updated At", "Created At"})
-		table.Append([]string{
-			resp.Compute.Cluster,
-			resp.Compute.Name,
-			resp.Compute.Status,
-			resp.Compute.StatusReason,
-			fmt.Sprint(time.Unix(resp.Compute.UpdatedAt.Seconds, 0)),
-			fmt.Sprint(time.Unix(resp.Compute.CreatedAt.Seconds, 0)),
-		})
-		table.Render()
-
+		err = CreateCompute(token.Token, string(bytes))
+		logger.EndCtlTrace(traceId, appName, startTime, err)
+		return err
 	case resource_model.SpecContainer:
 		glog.Info("Container")
 	case resource_model.SpecImage:
-		glog.Info("Image")
+		err = CreateImage(token.Token, string(bytes))
+		logger.EndCtlTrace(traceId, appName, startTime, err)
+		return err
 	case resource_model.SpecVolume:
 		glog.Info("Volume")
 	case resource_model.SpecLoadbalancer:

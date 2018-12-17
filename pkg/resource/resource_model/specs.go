@@ -30,6 +30,7 @@ type ComputeSpecData struct {
 	MemorySize int    `validate:"required"`
 	DiskSize   int    `validate:"required"`
 	Image      string `validate:"required"`
+	Network    string `validate:"required"`
 }
 
 type ContainerSpec struct {
