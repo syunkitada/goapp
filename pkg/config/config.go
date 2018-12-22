@@ -33,8 +33,10 @@ var (
 )
 
 func InitFlags(rootCmd *cobra.Command) {
-	rootCmd.PersistentFlags().StringVar(&configDir, "config-dir", "", "config directory (default is $PWD/ci/etc)")
+	rootCmd.PersistentFlags().StringVar(&configDir, "config-dir", "", "config directory (default is $HOMEL/.goapp/etc)")
 	rootCmd.PersistentFlags().StringVar(&configFile, "config-file", "", "config file (default is config.toml)")
+	rootCmd.PersistentFlags().StringVar(&logDir, "log-dir", "", "config directory (default is $HOMEL/.goapp/logs)")
+	rootCmd.PersistentFlags().StringVar(&tmpDir, "tmp-dir", "", "config directory (default is $HOMEL/.goapp/tmp)")
 	rootCmd.PersistentFlags().BoolVar(&enableDebug, "debug", false, "enable debug mode")
 	rootCmd.PersistentFlags().BoolVar(&enableDevelop, "develop", false, "enable develop mode")
 	rootCmd.PersistentFlags().BoolVar(&enableDatabaseLog, "database-log", false, "enable database logging")
@@ -61,11 +63,14 @@ func InitConfig() {
 		"log_backtrace_at": glogLogBacktraceAt,
 	})
 
-	pwd := os.Getenv("PWD")
+	home := os.Getenv("HOME")
+	appDir := filepath.Join(home, ".goapp")
+	os.Mkdir(appDir, 0755)
 	if configDir == "" {
 		configDir = os.Getenv("CONFIG_DIR")
 		if configDir == "" {
-			configDir = filepath.Join(pwd, "ci", "etc")
+			configDir = filepath.Join(appDir, "etc")
+			os.Mkdir(configDir, 0755)
 		}
 	}
 
@@ -79,7 +84,7 @@ func InitConfig() {
 	if tmpDir == "" {
 		tmpDir = os.Getenv("TMP_DIR")
 		if tmpDir == "" {
-			tmpDir = filepath.Join(pwd, "tmp")
+			tmpDir = filepath.Join(appDir, "tmp")
 			os.Mkdir(tmpDir, 0755)
 		}
 	}
@@ -87,7 +92,7 @@ func InitConfig() {
 	if logDir == "" {
 		logDir = os.Getenv("LOG_DIR")
 		if logDir == "" {
-			logDir = filepath.Join(tmpDir, "logs")
+			logDir = filepath.Join(appDir, "logs")
 			os.Mkdir(logDir, 0755)
 		}
 	}

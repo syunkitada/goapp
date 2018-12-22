@@ -22,11 +22,11 @@
 * sarのようにローカルからも参照できるようにする
 
 
-## dataproxy-reporter
+## monitor-agent
 * reporterは、ログファイル、メトリクスファイルからデータを拾いdataproxyにデータを送る
 
 
-## dataproxy
+## monitor-proxy
 * log, tracelog, metricsをproxyする
     * logやtracelogを解析して、metricsに変換してproxyする場合もある
 * プロトコルはlineprotocolを参考にする
@@ -50,6 +50,21 @@
     * シャーディング先で冗長化が担保できてるなら、書き込みも読み込みも1つから行う
 
 
-## alert-manager
+## monitor-alert-manager
 * APIで受け取ったアラートをルールに従って、メールなどを配信する
 * アラートの抑制はここで行う
+
+
+```
+                                          <--------- monitor-agent(index1)
+monitor-alert-manager --> monitor-proxy   <--------- monitor-agent(index1)
+dashboard -> authproxy -> monitor-proxy   <--------- monitor-agent(index2)
+                               |          <--------- monitor-agent(index2)
+                               |
+                               |
+                               |-------- influxdb
+                               |index1 - influxdb
+                               |
+                               |-------- influxdb
+                               |index2 - influxdb
+```

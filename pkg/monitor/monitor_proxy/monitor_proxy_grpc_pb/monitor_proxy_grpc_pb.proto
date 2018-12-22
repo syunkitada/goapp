@@ -1,0 +1,72 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+
+option java_multiple_files = true;
+option java_package = "io.grpc.examples.routeguide";
+option java_outer_classname = "RouteGuideProto";
+
+package monitor_proxy_grpc_pb;
+
+
+service MonitorProxy {
+  rpc Status(StatusRequest) returns (StatusReply) {}
+
+  rpc GetNode(GetNodeRequest) returns (GetNodeReply) {}
+  rpc UpdateNode(UpdateNodeRequest) returns (UpdateNodeReply) {}
+}
+
+message StatusRequest {}
+
+message StatusReply {
+    string msg = 1;
+}
+
+
+//
+// Node
+//
+message GetNodeRequest {
+    string trace_id = 1;
+    string user_name = 2;
+    string role_name = 3;
+    string project_name = 4;
+    string project_role_name = 5;
+    string target = 6;
+    string cluster = 7;
+}
+
+message GetNodeReply {
+    int64 status_code = 1;
+    string err = 2;
+    repeated Node nodes = 3;
+}
+
+message UpdateNodeRequest {
+    string trace_id = 1;
+    string name = 2;
+    string kind = 3;
+    string role = 4;
+    string status = 5;
+    string status_reason = 6;
+    string state = 7;
+    string state_reason = 8;
+}
+
+message UpdateNodeReply {
+    int64 status_code = 1;
+    string err = 2;
+}
+
+message Node {
+    google.protobuf.Timestamp updated_at = 1;
+    google.protobuf.Timestamp created_at = 2;
+    string cluster = 3;
+    string name = 4;
+    string kind = 5;
+    string role = 6;
+    string status = 7;
+    string status_reason = 8;
+    string state = 9;
+    string state_reason = 10;
+}

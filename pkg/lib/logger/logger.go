@@ -19,10 +19,11 @@ import (
 )
 
 var (
-	conf   *config.Config
-	name   string
-	Logger *log.Logger
-	Tracer *log.Logger
+	conf         *config.Config
+	name         string
+	Logger       *log.Logger
+	Tracer       *log.Logger
+	stdoutLogger *log.Logger
 )
 
 const (
@@ -36,6 +37,8 @@ const (
 )
 
 func Init() {
+	stdoutLogger = log.New(os.Stdout, "", log.Ldate|log.Ltime)
+
 	conf = &config.Conf
 	name = os.Getenv("LOG_FILE")
 	if name == "" {
@@ -69,7 +72,6 @@ func Init() {
 }
 
 func FatalStdoutf(format string, args ...interface{}) {
-	stdoutLogger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
 	stdoutLogger.Printf(fatalLog+" "+format, args...)
 	os.Exit(1)
 }
@@ -156,6 +158,9 @@ func TraceFatal(traceid string, host string, source string, metadata map[string]
 		return
 	}
 	Tracer.Print(traceLog + " " + fatalLog + " " + traceid + " " + host + " " + source + " " + string(msg))
+	if conf.Default.LogDir != "stdout" {
+		stdoutLogger.Printf(traceLog + " " + fatalLog + " " + traceid + " " + host + " " + source + " " + string(msg))
+	}
 }
 
 func getFunc(depth int) string {
@@ -222,14 +227,19 @@ func StartCtlTrace(traceId string, name string) time.Time {
 	return startTime
 }
 
-func EndCtlTrace(traceId string, name string, startTime time.Time, args ...interface{}) {
+func EndCtlTrace(traceId string, name string, startTime time.Time, err error) {
+	var errStr string
+	if err != nil {
+		errStr = err.Error()
+	}
+
 	TraceInfo(traceId, conf.Default.Host, name, map[string]string{
 		"Msg":      "End",
 		"Username": conf.Ctl.Username,
 		"Project":  conf.Ctl.Project,
 		"Func":     getFunc(0),
 		"Latency":  strconv.FormatInt(time.Now().Sub(startTime).Nanoseconds()/1000000, 10),
-		"Err":      fmt.Sprint(args...),
+		"Err":      errStr,
 	})
 }
 
@@ -243,11 +253,16 @@ func StartTaskTrace(traceId string, host string, name string) time.Time {
 	return startTime
 }
 
-func EndTaskTrace(traceId string, host string, name string, startTime time.Time, args ...interface{}) {
+func EndTaskTrace(traceId string, host string, name string, startTime time.Time, err error) {
+	var errStr string
+	if err != nil {
+		errStr = err.Error()
+	}
+
 	TraceInfo(traceId, host, name, map[string]string{
 		"Msg":     "End",
 		"Func":    getFunc(0),
 		"Latency": strconv.FormatInt(time.Now().Sub(startTime).Nanoseconds()/1000000, 10),
-		"Err":     fmt.Sprint(args...),
+		"Err":     errStr,
 	})
 }

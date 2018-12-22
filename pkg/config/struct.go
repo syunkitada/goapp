@@ -12,6 +12,7 @@ type Config struct {
 	Authproxy AuthproxyConfig
 	Dashboard DashboardConfig
 	Resource  ResourceConfig
+	Monitor   MonitorConfig
 }
 
 type DefaultConfig struct {

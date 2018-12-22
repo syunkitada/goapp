@@ -17,7 +17,12 @@ func (srv *ResourceApiServer) MainTask(traceId string) error {
 }
 
 func (srv *ResourceApiServer) UpdateNodeTask(traceId string) error {
+	var err error
 	startTime := logger.StartTaskTrace(traceId, srv.Host, srv.Name)
+	defer func() {
+		logger.EndTaskTrace(traceId, srv.Host, srv.Name, startTime, err)
+	}()
+
 	req := &resource_api_grpc_pb.UpdateNodeRequest{
 		Name:         srv.Host,
 		Kind:         resource_model.KindResourceApi,
@@ -29,10 +34,9 @@ func (srv *ResourceApiServer) UpdateNodeTask(traceId string) error {
 	}
 
 	rep := srv.resourceModelApi.UpdateNode(req)
-	logger.EndTaskTrace(traceId, srv.Host, srv.Name, startTime, rep.Err)
 	if rep.Err != "" {
-		return fmt.Errorf(rep.Err)
+		err = fmt.Errorf(rep.Err)
+		return err
 	}
-
 	return nil
 }

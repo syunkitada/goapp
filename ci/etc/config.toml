@@ -1,3 +1,40 @@
+[Monitor.ProxyApp]
+Name = "proxy"
+ClientTimeout = 5
+ShutdownTimeout = 10
+LoopInterval = 10
+CertFile = "server.pem"
+KeyFile = "server.key"
+CaFile = "ca.pem"
+ServerHostOverride = "x.test.youtube.com"
+Listen = "localhost:13200"
+Targets = ["localhost:13200"]
+
+[Monitor.AlertManagerApp]
+Name = "alert-manager"
+ClientTimeout = 5
+ShutdownTimeout = 10
+LoopInterval = 10
+CertFile = "server.pem"
+KeyFile = "server.key"
+CaFile = "ca.pem"
+ServerHostOverride = "x.test.youtube.com"
+Listen = "localhost:13201"
+Targets = ["localhost:13201"]
+
+[Monitor.AgentApp]
+Name = "agent"
+ClientTimeout = 5
+ShutdownTimeout = 10
+LoopInterval = 10
+CertFile = "server.pem"
+KeyFile = "server.key"
+CaFile = "ca.pem"
+ServerHostOverride = "x.test.youtube.com"
+Listen = "localhost:13202"
+Targets = ["localhost:13202"]
+
+
 [Resource]
 AppDownTime = 120
 

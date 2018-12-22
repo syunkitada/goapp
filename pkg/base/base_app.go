@@ -1,6 +1,7 @@
 package base
 
 import (
+	"fmt"
 	"net"
 	"os"
 	"os/signal"
@@ -91,7 +92,7 @@ func (app *BaseApp) Serve() error {
 		app.conf.Path(app.appConf.KeyFile),
 	)
 	if err != nil {
-		return err
+		return fmt.Errorf("Failed credentials.NewServerTLSFromFile: %v", err)
 	}
 	opts = []grpc.ServerOption{grpc.Creds(creds)}
 

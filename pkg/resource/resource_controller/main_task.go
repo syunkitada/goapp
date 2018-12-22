@@ -42,7 +42,10 @@ func (srv *ResourceControllerServer) MainTask(traceId string) error {
 }
 
 func (srv *ResourceControllerServer) UpdateNode(traceId string) error {
+	var err error
 	startTime := logger.StartTaskTrace(traceId, srv.Host, srv.Name)
+	defer func() { logger.EndTaskTrace(traceId, srv.Host, srv.Name, startTime, err) }()
+
 	req := &resource_api_grpc_pb.UpdateNodeRequest{
 		TraceId:      traceId,
 		Name:         srv.Host,
@@ -55,19 +58,21 @@ func (srv *ResourceControllerServer) UpdateNode(traceId string) error {
 	}
 
 	rep := srv.resourceModelApi.UpdateNode(req)
-	logger.EndTaskTrace(traceId, srv.Host, srv.Name, startTime, rep.Err)
 	if rep.Err != "" {
-		return fmt.Errorf(rep.Err)
+		err = fmt.Errorf(rep.Err)
+		return err
 	}
 
 	return nil
 }
 
 func (srv *ResourceControllerServer) SyncRole(traceId string) error {
+	var err error
 	startTime := logger.StartTaskTrace(traceId, srv.Host, srv.Name)
+	defer func() { logger.EndTaskTrace(traceId, srv.Host, srv.Name, startTime, err) }()
+
 	nodes, err := srv.resourceModelApi.SyncRole(resource_model.KindResourceController)
 	if err != nil {
-		logger.EndTaskTrace(traceId, srv.Host, srv.Name, startTime, err)
 		return err
 	}
 
@@ -90,23 +95,22 @@ func (srv *ResourceControllerServer) SyncRole(traceId string) error {
 
 	if !existsSelfNode {
 		err = fmt.Errorf("This node is not activated")
-		logger.EndTaskTrace(traceId, srv.Host, srv.Name, startTime, err)
 		return err
 	}
 
 	if !existsActiveLeader {
 		err = fmt.Errorf("Active Leader is not exists, after ReassignNode")
-		logger.EndTaskTrace(traceId, srv.Host, srv.Name, startTime, err)
 		return err
 	}
 
-	logger.EndTaskTrace(traceId, srv.Host, srv.Name, startTime, "")
 	return nil
 }
 
 func (srv *ResourceControllerServer) SyncCompute(traceId string, wg *sync.WaitGroup) {
-	startTime := logger.StartTaskTrace(traceId, srv.Host, srv.Name)
 	defer func() { wg.Done() }()
+	var err error
+	startTime := logger.StartTaskTrace(traceId, srv.Host, srv.Name)
+	defer func() { logger.EndTaskTrace(traceId, srv.Host, srv.Name, startTime, err) }()
 
 	errChan := make(chan error)
 
@@ -119,13 +123,9 @@ func (srv *ResourceControllerServer) SyncCompute(traceId string, wg *sync.WaitGr
 	}()
 
 	select {
-	case err := <-errChan:
-		if err != nil {
-			logger.EndTaskTrace(traceId, srv.Host, srv.Name, startTime, "Failed SyncCompute: %v", err)
-		} else {
-			logger.EndTaskTrace(traceId, srv.Host, srv.Name, startTime, "")
-		}
+	case err = <-errChan:
+		break
 	case <-ctx.Done():
-		logger.EndTaskTrace(traceId, srv.Host, srv.Name, startTime, "Failed SyncCompute: %v", ctx.Err())
+		err = ctx.Err()
 	}
 }
