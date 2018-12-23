@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/syunkitada/goapp/pkg/lib/logger"
+	"github.com/syunkitada/goapp/pkg/monitor/monitor_api/monitor_api_grpc_pb"
 	"github.com/syunkitada/goapp/pkg/monitor/monitor_model"
-	"github.com/syunkitada/goapp/pkg/monitor/monitor_proxy/monitor_proxy_grpc_pb"
 )
 
 func (srv *MonitorAlertManagerServer) MainTask(traceId string) error {
@@ -33,7 +33,7 @@ func (srv *MonitorAlertManagerServer) UpdateNode(traceId string) error {
 	startTime := logger.StartTaskTrace(traceId, srv.Host, srv.Name)
 	defer func() { logger.EndTaskTrace(traceId, srv.Host, srv.Name, startTime, err) }()
 
-	req := &monitor_proxy_grpc_pb.UpdateNodeRequest{
+	req := &monitor_api_grpc_pb.UpdateNodeRequest{
 		TraceId:      traceId,
 		Name:         srv.Host,
 		Kind:         monitor_model.KindMonitorAlertManager,

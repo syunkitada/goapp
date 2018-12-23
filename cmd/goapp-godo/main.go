@@ -20,8 +20,8 @@ func tasks(p *do.Project) {
 		c.Start("main.go", do.M{"$in": "cmd/goapp-dashboard"})
 	}).Src("pkg/**/*.go")
 
-	p.Task("goapp-monitor-proxy", nil, func(c *do.Context) {
-		c.Start("main.go proxy", do.M{"$in": "cmd/goapp-monitor"})
+	p.Task("goapp-monitor-api", nil, func(c *do.Context) {
+		c.Start("main.go api", do.M{"$in": "cmd/goapp-monitor"})
 	}).Src("pkg/**/*.go")
 
 	p.Task("goapp-monitor-alert-manager", nil, func(c *do.Context) {

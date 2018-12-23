@@ -7,7 +7,7 @@ import (
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/monitor/monitor_agent"
 	"github.com/syunkitada/goapp/pkg/monitor/monitor_alert_manager"
-	"github.com/syunkitada/goapp/pkg/monitor/monitor_proxy"
+	"github.com/syunkitada/goapp/pkg/monitor/monitor_api"
 )
 
 var rootCmd = &cobra.Command{}
@@ -22,7 +22,7 @@ func init() {
 	cobra.OnInitialize(config.InitConfig, logger.Init)
 	config.InitFlags(rootCmd)
 
-	rootCmd.AddCommand(monitor_proxy.RootCmd)
+	rootCmd.AddCommand(monitor_api.RootCmd)
 	rootCmd.AddCommand(monitor_agent.RootCmd)
 	rootCmd.AddCommand(monitor_alert_manager.RootCmd)
 }

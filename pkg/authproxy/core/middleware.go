@@ -9,7 +9,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
-	"github.com/golang/glog"
 
 	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_model"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
@@ -109,9 +108,8 @@ func (authproxy *Authproxy) AuthRequired() gin.HandlerFunc {
 		var tokenAuthRequest authproxy_model.TokenAuthRequest
 
 		if err := c.ShouldBindWith(&tokenAuthRequest, binding.JSON); err != nil {
-			glog.Warningf("Invalid TokenAuthRequest: Failed ShouldBindJSON: %v", err)
 			c.JSON(http.StatusUnauthorized, gin.H{
-				"err": "Invalid AuthRequest",
+				"Err": "Invalid Auth Request",
 			})
 			c.Abort()
 			return
@@ -120,14 +118,12 @@ func (authproxy *Authproxy) AuthRequired() gin.HandlerFunc {
 		value, cookieErr := c.Cookie("token")
 		if cookieErr == nil {
 			tokenAuthRequest.Token = value
-			glog.Info(tokenAuthRequest.Token)
 		}
 
 		claims, err := authproxy.Token.ParseToken(tokenAuthRequest)
 		if err != nil {
-			glog.Warning("Invalid AuthRequest: Failed ParseToken")
 			c.JSON(http.StatusUnauthorized, gin.H{
-				"err": "Invalid AuthRequest",
+				"Err": "Invalid Auth Token",
 			})
 			c.Abort()
 			return
@@ -136,9 +132,8 @@ func (authproxy *Authproxy) AuthRequired() gin.HandlerFunc {
 		username := claims["Username"].(string)
 		userAuthority, getUserAuthorityErr := authproxy.AuthproxyModelApi.GetUserAuthority(username, &tokenAuthRequest.Action)
 		if getUserAuthorityErr != nil {
-			glog.Error(getUserAuthorityErr)
 			c.JSON(http.StatusUnauthorized, gin.H{
-				"err": "Invalid AuthRequest",
+				"Err": "Invalid Auth Action",
 			})
 			c.Abort()
 			return

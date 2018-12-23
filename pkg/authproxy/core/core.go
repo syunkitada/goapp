@@ -12,6 +12,7 @@ import (
 	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_model/authproxy_model_api"
 	"github.com/syunkitada/goapp/pkg/authproxy/core/auth"
 	"github.com/syunkitada/goapp/pkg/authproxy/core/dashboard"
+	"github.com/syunkitada/goapp/pkg/authproxy/core/monitor"
 	"github.com/syunkitada/goapp/pkg/authproxy/core/resource"
 	"github.com/syunkitada/goapp/pkg/config"
 )
@@ -30,6 +31,7 @@ type Authproxy struct {
 	Auth              *auth.Auth
 	Dashboard         *dashboard.Dashboard
 	Resource          *resource.Resource
+	Monitor           *monitor.Monitor
 }
 
 func NewAuthproxy(conf *config.Config) *Authproxy {
@@ -50,6 +52,7 @@ func NewAuthproxy(conf *config.Config) *Authproxy {
 		Auth:              auth.NewAuth(conf, authproxyModelApi, token),
 		Dashboard:         dashboard.NewDashboard(conf, authproxyModelApi, token),
 		Resource:          resource.NewResource(conf),
+		Monitor:           monitor.NewMonitor(conf),
 	}
 
 	if conf.Default.EnableTest {

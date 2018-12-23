@@ -1,4 +1,4 @@
-package resource
+package monitor
 
 import (
 	"fmt"
@@ -40,7 +40,7 @@ func GetNode() error {
 		return err
 	}
 
-	resp, err := authproxy.Resource.CtlGetNode(token.Token, getCmdClusterFlag, "%")
+	resp, err := authproxy.Monitor.CtlGetNode(token.Token, "%")
 	if err != nil {
 		return err
 	}

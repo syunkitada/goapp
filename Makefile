@@ -2,7 +2,7 @@ env:
 	ci/tools/setup-env.sh	
 
 compile-pb:
-	protoc -I /usr/local/include/ -I pkg/monitor/monitor_proxy/monitor_proxy_grpc_pb/ pkg/monitor/monitor_proxy/monitor_proxy_grpc_pb/monitor_proxy_grpc_pb.proto --go_out=plugins=grpc:pkg/monitor/monitor_proxy/monitor_proxy_grpc_pb
+	protoc -I /usr/local/include/ -I pkg/monitor/monitor_api/monitor_api_grpc_pb/ pkg/monitor/monitor_api/monitor_api_grpc_pb/monitor_api_grpc_pb.proto --go_out=plugins=grpc:pkg/monitor/monitor_api/monitor_api_grpc_pb
 	protoc -I /usr/local/include/ -I pkg/monitor/monitor_agent/monitor_agent_grpc_pb/ pkg/monitor/monitor_agent/monitor_agent_grpc_pb/monitor_agent_grpc_pb.proto --go_out=plugins=grpc:pkg/monitor/monitor_agent/monitor_agent_grpc_pb
 	protoc -I /usr/local/include/ -I pkg/monitor/monitor_alert_manager/monitor_alert_manager_grpc_pb/ pkg/monitor/monitor_alert_manager/monitor_alert_manager_grpc_pb/monitor_alert_manager_grpc_pb.proto --go_out=plugins=grpc:pkg/monitor/monitor_alert_manager/monitor_alert_manager_grpc_pb
 

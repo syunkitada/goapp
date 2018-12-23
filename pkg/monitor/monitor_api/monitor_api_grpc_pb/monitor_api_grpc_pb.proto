@@ -6,10 +6,10 @@ option java_multiple_files = true;
 option java_package = "io.grpc.examples.routeguide";
 option java_outer_classname = "RouteGuideProto";
 
-package monitor_proxy_grpc_pb;
+package monitor_api_grpc_pb;
 
 
-service MonitorProxy {
+service MonitorApi {
   rpc Status(StatusRequest) returns (StatusReply) {}
 
   rpc GetNode(GetNodeRequest) returns (GetNodeReply) {}

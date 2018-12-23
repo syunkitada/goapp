@@ -9,12 +9,12 @@ import (
 	"github.com/jinzhu/gorm"
 
 	"github.com/syunkitada/goapp/pkg/lib/codes"
+	"github.com/syunkitada/goapp/pkg/monitor/monitor_api/monitor_api_grpc_pb"
 	"github.com/syunkitada/goapp/pkg/monitor/monitor_model"
-	"github.com/syunkitada/goapp/pkg/monitor/monitor_proxy/monitor_proxy_grpc_pb"
 )
 
-func (modelApi *MonitorModelApi) GetNode(req *monitor_proxy_grpc_pb.GetNodeRequest) *monitor_proxy_grpc_pb.GetNodeReply {
-	rep := &monitor_proxy_grpc_pb.GetNodeReply{}
+func (modelApi *MonitorModelApi) GetNode(req *monitor_api_grpc_pb.GetNodeRequest) *monitor_api_grpc_pb.GetNodeReply {
+	rep := &monitor_api_grpc_pb.GetNodeReply{}
 
 	db, err := gorm.Open("mysql", modelApi.conf.Monitor.Database.Connection)
 	defer db.Close()
@@ -37,8 +37,8 @@ func (modelApi *MonitorModelApi) GetNode(req *monitor_proxy_grpc_pb.GetNodeReque
 	return rep
 }
 
-func (modelApi *MonitorModelApi) UpdateNode(req *monitor_proxy_grpc_pb.UpdateNodeRequest) *monitor_proxy_grpc_pb.UpdateNodeReply {
-	rep := &monitor_proxy_grpc_pb.UpdateNodeReply{}
+func (modelApi *MonitorModelApi) UpdateNode(req *monitor_api_grpc_pb.UpdateNodeRequest) *monitor_api_grpc_pb.UpdateNodeReply {
+	rep := &monitor_api_grpc_pb.UpdateNodeReply{}
 
 	db, err := gorm.Open("mysql", modelApi.conf.Monitor.Database.Connection)
 	defer db.Close()
@@ -150,8 +150,8 @@ func (modelApi *MonitorModelApi) SyncRole(kind string) ([]monitor_model.Node, er
 	return newNodes, nil
 }
 
-func (modelApi *MonitorModelApi) convertNodes(nodes []monitor_model.Node) []*monitor_proxy_grpc_pb.Node {
-	pbNodes := make([]*monitor_proxy_grpc_pb.Node, len(nodes))
+func (modelApi *MonitorModelApi) convertNodes(nodes []monitor_model.Node) []*monitor_api_grpc_pb.Node {
+	pbNodes := make([]*monitor_api_grpc_pb.Node, len(nodes))
 	for i, node := range nodes {
 		updatedAt, err := ptypes.TimestampProto(node.Model.UpdatedAt)
 		createdAt, err := ptypes.TimestampProto(node.Model.CreatedAt)
@@ -160,7 +160,7 @@ func (modelApi *MonitorModelApi) convertNodes(nodes []monitor_model.Node) []*mon
 			continue
 		}
 
-		pbNodes[i] = &monitor_proxy_grpc_pb.Node{
+		pbNodes[i] = &monitor_api_grpc_pb.Node{
 			Name:         node.Name,
 			Kind:         node.Kind,
 			Role:         node.Role,

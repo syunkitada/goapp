@@ -2,7 +2,7 @@ package config
 
 type MonitorConfig struct {
 	AppDownTime     int
-	ProxyApp        AppConfig
+	ApiApp          AppConfig
 	AlertManagerApp AppConfig
 	AgentApp        AppConfig
 	Database        DatabaseConfig

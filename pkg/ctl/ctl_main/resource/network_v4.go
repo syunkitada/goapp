@@ -40,19 +40,21 @@ var deleteNetworkV4Cmd = &cobra.Command{
 }
 
 func GetNetworkV4() error {
+	var err error
 	traceId := logger.NewTraceId()
 	startTime := logger.StartCtlTrace(traceId, appName)
+	defer func() {
+		logger.EndCtlTrace(traceId, appName, startTime, err)
+	}()
 
 	authproxy := core.NewAuthproxy(&config.Conf)
 	token, err := authproxy.Auth.CtlIssueToken()
 	if err != nil {
-		logger.EndCtlTrace(traceId, appName, startTime, err)
 		return err
 	}
 
 	resp, err := authproxy.Resource.CtlGetNetworkV4(token.Token, getCmdClusterFlag, "%")
 	if err != nil {
-		logger.EndCtlTrace(traceId, appName, startTime, err)
 		return err
 	}
 	if config.Conf.Default.EnableDebug {
@@ -73,7 +75,6 @@ func GetNetworkV4() error {
 	}
 	table.Render()
 
-	logger.EndCtlTrace(traceId, appName, startTime, "")
 	return nil
 }
 
@@ -128,19 +129,21 @@ func UpdateNetworkV4(token string, spec string) error {
 }
 
 func DeleteNetworkV4(networkName string) error {
+	var err error
 	traceId := logger.NewTraceId()
 	startTime := logger.StartCtlTrace(traceId, appName)
+	defer func() {
+		logger.EndCtlTrace(traceId, appName, startTime, err)
+	}()
 
 	authproxy := core.NewAuthproxy(&config.Conf)
 	token, err := authproxy.Auth.CtlIssueToken()
 	if err != nil {
-		logger.EndCtlTrace(traceId, appName, startTime, err)
 		return err
 	}
 
 	resp, err := authproxy.Resource.CtlDeleteNetworkV4(token.Token, deleteCmdClusterFlag, networkName)
 	if err != nil {
-		logger.EndCtlTrace(traceId, appName, startTime, err)
 		return err
 	}
 	if config.Conf.Default.EnableDebug {
@@ -149,6 +152,5 @@ func DeleteNetworkV4(networkName string) error {
 
 	fmt.Println("Deleted")
 
-	logger.EndCtlTrace(traceId, appName, startTime, "")
 	return nil
 }

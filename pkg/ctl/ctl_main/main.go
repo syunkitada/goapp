@@ -4,6 +4,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/syunkitada/goapp/pkg/config"
+	"github.com/syunkitada/goapp/pkg/ctl/ctl_main/monitor"
 	"github.com/syunkitada/goapp/pkg/ctl/ctl_main/resource"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
@@ -21,4 +22,5 @@ func init() {
 	config.InitFlags(rootCmd)
 
 	rootCmd.AddCommand(resource.RootCmd)
+	rootCmd.AddCommand(monitor.RootCmd)
 }

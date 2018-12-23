@@ -40,19 +40,21 @@ var deleteComputeCmd = &cobra.Command{
 }
 
 func GetCompute() error {
+	var err error
 	traceId := logger.NewTraceId()
 	startTime := logger.StartCtlTrace(traceId, appName)
+	defer func() {
+		logger.EndCtlTrace(traceId, appName, startTime, err)
+	}()
 
 	authproxy := core.NewAuthproxy(&config.Conf)
 	token, err := authproxy.Auth.CtlIssueToken()
 	if err != nil {
-		logger.EndCtlTrace(traceId, appName, startTime, err)
 		return err
 	}
 
 	resp, err := authproxy.Resource.CtlGetCompute(token.Token, getCmdClusterFlag, "%")
 	if err != nil {
-		logger.EndCtlTrace(traceId, appName, startTime, err)
 		return err
 	}
 	if config.Conf.Default.EnableDebug {
@@ -73,7 +75,6 @@ func GetCompute() error {
 	}
 	table.Render()
 
-	logger.EndCtlTrace(traceId, appName, startTime, "")
 	return nil
 }
 
@@ -128,19 +129,21 @@ func UpdateCompute(token string, spec string) error {
 }
 
 func DeleteCompute(computeName string) error {
+	var err error
 	traceId := logger.NewTraceId()
 	startTime := logger.StartCtlTrace(traceId, appName)
+	defer func() {
+		logger.EndCtlTrace(traceId, appName, startTime, err)
+	}()
 
 	authproxy := core.NewAuthproxy(&config.Conf)
 	token, err := authproxy.Auth.CtlIssueToken()
 	if err != nil {
-		logger.EndCtlTrace(traceId, appName, startTime, err)
 		return err
 	}
 
 	resp, err := authproxy.Resource.CtlDeleteCompute(token.Token, deleteCmdClusterFlag, computeName)
 	if err != nil {
-		logger.EndCtlTrace(traceId, appName, startTime, err)
 		return err
 	}
 	if config.Conf.Default.EnableDebug {
@@ -149,6 +152,5 @@ func DeleteCompute(computeName string) error {
 
 	fmt.Println("Deleted")
 
-	logger.EndCtlTrace(traceId, appName, startTime, "")
 	return nil
 }

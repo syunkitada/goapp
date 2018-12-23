@@ -40,19 +40,21 @@ var deleteImageCmd = &cobra.Command{
 }
 
 func GetImage() error {
+	var err error
 	traceId := logger.NewTraceId()
 	startTime := logger.StartCtlTrace(traceId, appName)
+	defer func() {
+		logger.EndCtlTrace(traceId, appName, startTime, err)
+	}()
 
 	authproxy := core.NewAuthproxy(&config.Conf)
 	token, err := authproxy.Auth.CtlIssueToken()
 	if err != nil {
-		logger.EndCtlTrace(traceId, appName, startTime, err)
 		return err
 	}
 
 	resp, err := authproxy.Resource.CtlGetImage(token.Token, getCmdClusterFlag, "%")
 	if err != nil {
-		logger.EndCtlTrace(traceId, appName, startTime, err)
 		return err
 	}
 	if config.Conf.Default.EnableDebug {
@@ -73,7 +75,6 @@ func GetImage() error {
 	}
 	table.Render()
 
-	logger.EndCtlTrace(traceId, appName, startTime, "")
 	return nil
 }
 
@@ -128,19 +129,21 @@ func UpdateImage(token string, spec string) error {
 }
 
 func DeleteImage(imageName string) error {
+	var err error
 	traceId := logger.NewTraceId()
 	startTime := logger.StartCtlTrace(traceId, appName)
+	defer func() {
+		logger.EndCtlTrace(traceId, appName, startTime, err)
+	}()
 
 	authproxy := core.NewAuthproxy(&config.Conf)
 	token, err := authproxy.Auth.CtlIssueToken()
 	if err != nil {
-		logger.EndCtlTrace(traceId, appName, startTime, err)
 		return err
 	}
 
 	resp, err := authproxy.Resource.CtlDeleteImage(token.Token, deleteCmdClusterFlag, imageName)
 	if err != nil {
-		logger.EndCtlTrace(traceId, appName, startTime, err)
 		return err
 	}
 	if config.Conf.Default.EnableDebug {
@@ -149,6 +152,5 @@ func DeleteImage(imageName string) error {
 
 	fmt.Println("Deleted")
 
-	logger.EndCtlTrace(traceId, appName, startTime, "")
 	return nil
 }

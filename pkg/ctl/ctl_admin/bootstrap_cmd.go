@@ -64,6 +64,10 @@ func (ctl *Ctl) Bootstrap(isRecreate bool) error {
 		return err
 	}
 
+	if err := ctl.MonitorModelApi.Bootstrap(); err != nil {
+		return err
+	}
+
 	if err := ctl.ResourceModelApi.Bootstrap(); err != nil {
 		return err
 	}
@@ -82,6 +86,7 @@ func (ctl *Ctl) CreateDatabases(isRecreate bool) error {
 	databaseConnections := []string{
 		ctl.Conf.Authproxy.Database.Connection,
 		ctl.Conf.Resource.Database.Connection,
+		ctl.Conf.Monitor.Database.Connection,
 	}
 
 	for _, cluster := range ctl.Conf.Resource.ClusterMap {

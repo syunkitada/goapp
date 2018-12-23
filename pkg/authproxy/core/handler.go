@@ -23,6 +23,7 @@ func (authproxy *Authproxy) NewHandler() http.Handler {
 		authorized.POST("/dashboard/logout", authproxy.Dashboard.Logout)
 		authorized.POST("/dashboard/state", authproxy.Dashboard.GetState)
 		authorized.POST("/resource", authproxy.Resource.Action)
+		authorized.POST("/monitor", authproxy.Monitor.Action)
 	}
 
 	return handler

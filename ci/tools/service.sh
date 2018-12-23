@@ -3,10 +3,9 @@
 COMMAND="${@:-start}"
 LOG_DIR=~/.goapp/logs
 
-declare -a SERVICES=("authproxy" "resource-api" "resource-controller" "resource-cluster-api" "resource-cluster-controller" "resource-cluster-agent")
-declare -a MONITOR_SERVICES=("monitor-proxy" "monitor-alert-manager" "monitor-agent")
-declare -a SERVICES2=("resource-api2" "resource-controller2")
-declare -a SERVICES3=("resource-api3" "resource-controller3")
+declare -a SERVICES=("authproxy")
+declare -a RESOURCE_SERVICES=("resource-api" "resource-controller" "resource-cluster-api" "resource-cluster-controller" "resource-cluster-agent")
+declare -a MONITOR_SERVICES=("monitor-api" "monitor-alert-manager" "monitor-agent")
 
 start_all() {
     for service in ${SERVICES[@]}
@@ -15,7 +14,18 @@ start_all() {
         echo "Started goapp-${service}"
     done
 
-    echo "If you want to logs, you watch /tmp/goapp/logs/*.log"
+    start_resource
+    start_monitor
+}
+
+start_resource() {
+    for service in ${RESOURCE_SERVICES[@]}
+    do
+        go run cmd/goapp-godo/main.go goapp-${service} --watch &> ${LOG_DIR}/stdout-${service}.log &
+        echo "Started goapp-${service}"
+    done
+
+    echo "If you want to logs, you watch ${LOG_DIR}/*.log"
 }
 
 start_monitor() {

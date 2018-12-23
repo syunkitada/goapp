@@ -1,4 +1,4 @@
-package monitor_proxy
+package monitor_api
 
 import (
 	"github.com/spf13/cobra"
@@ -8,12 +8,12 @@ import (
 )
 
 var RootCmd = &cobra.Command{
-	Use:   "proxy",
-	Short: "This proxy monitoring data",
-	Long: `This proxy monitoring data
+	Use:   "api",
+	Short: "This api monitoring data",
+	Long: `This api monitoring data
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
-		srv := NewMonitorProxyServer(&config.Conf)
+		srv := NewMonitorApiServer(&config.Conf)
 		if err := srv.StartMainLoop(); err != nil {
 			logger.Fatal(srv.Host, srv.Name, err)
 		}
