@@ -82,6 +82,12 @@
   version = "v1.1.0"
 
 [[projects]]
+  name = "github.com/gorilla/websocket"
+  packages = ["."]
+  revision = "66b9c49e59c6c48f0ffce28c2d8b8a5678502c6d"
+  version = "v1.4.0"
+
+[[projects]]
   branch = "master"
   name = "github.com/howeyc/gopass"
   packages = ["."]
@@ -376,6 +382,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "f8671a9f061f1c4c6b38ed81e2e390cc582ae8f7594a3511372240298e85755a"
+  inputs-digest = "ee47d0b3561ef4c70625707b96c0f3e8a68ff59b67ce976204153f8fe1b8bb0e"
   solver-name = "gps-cdcl"
   solver-version = 1

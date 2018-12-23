@@ -6,6 +6,7 @@ import (
 
 func init() {
 	GetCmd.AddCommand(getNodeCmd)
+	GetCmd.AddCommand(getLogCmd)
 	RootCmd.AddCommand(GetCmd)
 }
 

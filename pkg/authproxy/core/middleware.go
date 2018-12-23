@@ -144,3 +144,51 @@ func (authproxy *Authproxy) AuthRequired() gin.HandlerFunc {
 		c.Set("Action", tokenAuthRequest.Action)
 	}
 }
+
+func (authproxy *Authproxy) WsAuthRequired() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		token := c.Request.Header["X-Auth-Token"]
+		projectName := c.Request.Header["X-Auth-Project"]
+		serviceName := c.Request.Header["X-Auth-Service"]
+		actionName := c.Request.Header["X-Auth-Action"]
+
+		tokenAuthRequest := authproxy_model.TokenAuthRequest{
+			Token: token[0],
+			Action: authproxy_model.ActionRequest{
+				ProjectName: projectName[0],
+				ServiceName: serviceName[0],
+				Name:        actionName[0],
+			},
+		}
+
+		value, cookieErr := c.Cookie("token")
+		if cookieErr == nil {
+			tokenAuthRequest.Token = value
+		}
+
+		claims, err := authproxy.Token.ParseToken(tokenAuthRequest)
+		if err != nil {
+			fmt.Println("hogelwlwlwlwbbb")
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"Err": "Invalid Auth Token",
+			})
+			c.Abort()
+			return
+		}
+
+		username := claims["Username"].(string)
+		userAuthority, getUserAuthorityErr := authproxy.AuthproxyModelApi.GetUserAuthority(username, &tokenAuthRequest.Action)
+		if getUserAuthorityErr != nil {
+			fmt.Println("hogelwlwlwlwssssszzzzz")
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"Err": "Invalid Auth Action",
+			})
+			c.Abort()
+			return
+		}
+
+		c.Set("Username", claims["Username"])
+		c.Set("UserAuthority", userAuthority)
+		c.Set("Action", tokenAuthRequest.Action)
+	}
+}

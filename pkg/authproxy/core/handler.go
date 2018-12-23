@@ -17,6 +17,12 @@ func (authproxy *Authproxy) NewHandler() http.Handler {
 	handler.POST("/token", authproxy.Auth.IssueToken)
 	handler.POST("/dashboard/login", authproxy.Dashboard.Login)
 
+	ws_authorized := handler.Group("/ws")
+	ws_authorized.Use(authproxy.WsAuthRequired())
+	{
+		ws_authorized.GET("/monitor", authproxy.Monitor.Ws)
+	}
+
 	authorized := handler.Group("/")
 	authorized.Use(authproxy.AuthRequired())
 	{
