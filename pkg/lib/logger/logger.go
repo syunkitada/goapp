@@ -1,7 +1,6 @@
 package logger
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -22,7 +21,6 @@ var (
 	conf         *config.Config
 	name         string
 	Logger       *log.Logger
-	Tracer       *log.Logger
 	stdoutLogger *log.Logger
 )
 
@@ -35,6 +33,52 @@ const (
 	benchLog   = "B"
 	traceLog   = "T"
 )
+
+type TraceContext struct {
+	Host     string
+	App      string
+	Func     string
+	TraceId  string
+	Metadata map[string]string
+}
+
+func NewTraceContext(host string, app string) *TraceContext {
+	return &TraceContext{
+		TraceId:  xid.New().String(),
+		Host:     host,
+		App:      app,
+		Metadata: map[string]string{},
+	}
+}
+
+func NewAuthproxyActionTraceContext(host string, app string, traceId string, user string) *TraceContext {
+	return &TraceContext{
+		TraceId: xid.New().String(),
+		Host:    host,
+		App:     app,
+		Metadata: map[string]string{
+			"AuthUser": user,
+		},
+	}
+}
+
+func NewGrpcTraceContext(host string, app string, ctx context.Context) *TraceContext {
+	var client string
+	if pr, ok := peer.FromContext(ctx); ok {
+		client = pr.Addr.String()
+	} else {
+		client = ""
+	}
+
+	return &TraceContext{
+		TraceId: xid.New().String(),
+		Host:    host,
+		App:     app,
+		Metadata: map[string]string{
+			"Client": client,
+		},
+	}
+}
 
 func Init() {
 	stdoutLogger = log.New(os.Stdout, "", log.Ldate|log.Ltime)
@@ -57,110 +101,25 @@ func Init() {
 	}
 
 	if conf.Default.LogDir == "stdout" {
-		Logger = log.New(os.Stdout, "", log.Ldate|log.Ltime)
-		Tracer = log.New(os.Stdout, "", log.Ldate|log.Ltime)
+		Logger = log.New(os.Stdout, "", 0)
 	} else {
 		logfilePath := filepath.Join(conf.Default.LogDir, name+".log")
 		logfile, err := os.OpenFile(logfilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
 		if err != nil {
-			FatalStdoutf("Failed open logfile: %v", logfile)
+			StdoutFatalf("Failed open logfile: %v", logfile)
 		} else {
-			Logger = log.New(logfile, "", log.Ldate|log.Ltime)
-			Tracer = log.New(logfile, "", log.Ldate|log.Ltime)
+			Logger = log.New(logfile, "", 0)
 		}
 	}
 }
 
-func FatalStdoutf(format string, args ...interface{}) {
-	stdoutLogger.Printf(fatalLog+" "+format, args...)
-	os.Exit(1)
+func timePrefix() string {
+	return "Time=\"hoge\""
 }
 
-func failedJsonMarshal(source string, msg string) {
-	Logger.Print(errorLog + " " + source + " {\"msg\"=\"Failed json.Marshal\"")
-}
-
-func Info(host string, source string, args ...interface{}) {
-	metadata := map[string]string{"Msg": fmt.Sprint(args...)}
-	TraceInfo("nil", host, source, metadata)
-}
-
-func Infof(host string, source string, format string, args ...interface{}) {
-	metadata := map[string]string{"Msg": fmt.Sprintf(format, args...)}
-	TraceInfo("nil", host, source, metadata)
-}
-
-func Warning(host string, source string, args ...interface{}) {
-	metadata := map[string]string{"Err": fmt.Sprint(args...)}
-	TraceWarning("nil", host, source, metadata)
-}
-
-func Warningf(host string, source string, format string, args ...interface{}) {
-	metadata := map[string]string{"Err": fmt.Sprintf(format, args...)}
-	TraceWarning("nil", host, source, metadata)
-}
-
-func Error(host string, source string, args ...interface{}) {
-	metadata := map[string]string{"Err": fmt.Sprint(args...)}
-	TraceError("nil", host, source, metadata)
-}
-
-func Errorf(host string, source string, format string, args ...interface{}) {
-	metadata := map[string]string{"Err": fmt.Sprintf(format, args...)}
-	TraceError("nil", host, source, metadata)
-}
-
-func Fatal(host string, source string, args ...interface{}) {
-	metadata := map[string]string{"Err": fmt.Sprint(args...)}
-	TraceFatal("nil", host, source, metadata)
-}
-
-func Fatalf(host string, source string, format string, args ...interface{}) {
-	metadata := map[string]string{"Err": fmt.Sprintf(format, args...)}
-	TraceFatal("nil", host, source, metadata)
-}
-
-func NewTraceId() string {
-	return xid.New().String()
-}
-
-func TraceInfo(traceid string, host string, source string, metadata map[string]string) {
-	msg, err := json.Marshal(metadata)
-	if err != nil {
-		failedJsonMarshal(source, err.Error())
-		return
-	}
-	Tracer.Print(traceLog + " " + infoLog + " " + traceid + " " + host + " " + source + " " + string(msg))
-}
-
-func TraceWarning(traceid string, host string, source string, metadata map[string]string) {
-	msg, err := json.Marshal(metadata)
-	if err != nil {
-		failedJsonMarshal(source, err.Error())
-		return
-	}
-	Tracer.Print(traceLog + " " + infoLog + " " + traceid + " " + host + " " + source + " " + string(msg))
-}
-
-func TraceError(traceid string, host string, source string, metadata map[string]string) {
-	msg, err := json.Marshal(metadata)
-	if err != nil {
-		failedJsonMarshal(source, err.Error())
-		return
-	}
-	Tracer.Print(traceLog + " " + errorLog + " " + traceid + " " + host + " " + source + " " + string(msg))
-}
-
-func TraceFatal(traceid string, host string, source string, metadata map[string]string) {
-	msg, err := json.Marshal(metadata)
-	if err != nil {
-		failedJsonMarshal(source, err.Error())
-		return
-	}
-	Tracer.Print(traceLog + " " + fatalLog + " " + traceid + " " + host + " " + source + " " + string(msg))
-	if conf.Default.LogDir != "stdout" {
-		stdoutLogger.Printf(traceLog + " " + fatalLog + " " + traceid + " " + host + " " + source + " " + string(msg))
-	}
+func convertTags(ctx *TraceContext) string {
+	tags := ""
+	return tags
 }
 
 func getFunc(depth int) string {
@@ -185,84 +144,78 @@ func getFunc(depth int) string {
 	return fmt.Sprintf("%s:%d:%s", file, line, function)
 }
 
-func StartGrpcTrace(traceId string, host string, name string, ctx context.Context) (time.Time, string) {
-	startTime := time.Now()
-	var client string
+func StdoutInfo(format string, args ...interface{}) {
+	stdoutLogger.Print(infoLog + " " + fmt.Sprint(args...))
+}
 
-	if pr, ok := peer.FromContext(ctx); ok {
-		client = pr.Addr.String()
+func StdoutInfof(format string, args ...interface{}) {
+	stdoutLogger.Print(infoLog + " " + fmt.Sprintf(format, args...))
+}
+
+func StdoutFatal(args ...interface{}) {
+	stdoutLogger.Print(fatalLog + " " + fmt.Sprint(args...))
+	os.Exit(1)
+}
+
+func StdoutFatalf(format string, args ...interface{}) {
+	stdoutLogger.Print(fatalLog + " " + fmt.Sprintf(format, args...))
+	os.Exit(1)
+}
+
+func Info(ctx *TraceContext, args ...interface{}) {
+	Logger.Print(timePrefix() + " Level=\"" + infoLog +
+		"\" Msg=\"" + fmt.Sprint(args...) + "\"" + convertTags(ctx))
+}
+
+func Infof(ctx *TraceContext, format string, args ...interface{}) {
+	Logger.Print(timePrefix() + " Level=\"" + infoLog +
+		"\" Msg=\"" + fmt.Sprintf(format, args...) + "\"" + convertTags(ctx))
+}
+
+func Warning(ctx *TraceContext, err error, args ...interface{}) {
+	Logger.Print(timePrefix() + " Level=\"" + warningLog +
+		"\" Err=\"" + err.Error() + "\" Msg=\"" + fmt.Sprint(args...) + "\"" + convertTags(ctx))
+}
+
+func Warningf(ctx *TraceContext, err error, format string, args ...interface{}) {
+	Logger.Print(timePrefix() + " Level=\"" + warningLog +
+		"\" Err=\"" + err.Error() + "\" Msg=\"" + fmt.Sprintf(format, args...) + "\"" + convertTags(ctx))
+}
+
+func Error(ctx *TraceContext, err error, args ...interface{}) {
+	Logger.Print(timePrefix() + " Level=\"" + errorLog +
+		"\" Err=\"" + err.Error() + "\" Msg=\"" + fmt.Sprint(args...) + "\"" + convertTags(ctx))
+}
+
+func Errorf(ctx *TraceContext, err error, format string, args ...interface{}) {
+	Logger.Print(timePrefix() + " Level=\"" + errorLog +
+		"\" Err=\"" + err.Error() + "\" Msg=\"" + fmt.Sprintf(format, args...) + "\"" + convertTags(ctx))
+}
+
+func StartTrace(tctx *TraceContext) time.Time {
+	startTime := time.Now()
+	tctx.Func = getFunc(0)
+	Info(tctx, "StartTrace")
+	return startTime
+}
+
+func EndTrace(tctx *TraceContext, startTime time.Time, err error) {
+	tctx.Func = getFunc(0)
+	tctx.Metadata["Latency"] = strconv.FormatInt(time.Now().Sub(startTime).Nanoseconds()/1000000, 10)
+	if err != nil {
+		Error(tctx, err, "EndTrace")
 	} else {
-		client = ""
+		Info(tctx, "EndTrace")
 	}
-
-	TraceInfo(traceId, host, name, map[string]string{
-		"Msg":    "Start",
-		"Client": client,
-		"Func":   getFunc(0),
-	})
-
-	return startTime, client
 }
 
-func EndGrpcTrace(traceId string, host string, name string, startTime time.Time, client string, statusCode int64, err string) {
-	TraceInfo(traceId, host, name, map[string]string{
-		"Msg":        "End",
-		"Client":     client,
-		"Func":       getFunc(0),
-		"Latency":    strconv.FormatInt(time.Now().Sub(startTime).Nanoseconds()/1000000, 10),
-		"StatusCode": strconv.FormatInt(statusCode, 10),
-		"Err":        err,
-	})
-}
-
-func StartCtlTrace(traceId string, name string) time.Time {
-	startTime := time.Now()
-	TraceInfo(traceId, conf.Default.Host, name, map[string]string{
-		"Msg":      "Start",
-		"Username": conf.Ctl.Username,
-		"Project":  conf.Ctl.Project,
-		"Func":     getFunc(0),
-	})
-
-	return startTime
-}
-
-func EndCtlTrace(traceId string, name string, startTime time.Time, err error) {
-	var errStr string
-	if err != nil {
-		errStr = err.Error()
+func EndGrpcTrace(tctx *TraceContext, startTime time.Time, statusCode int64, err string) {
+	tctx.Func = getFunc(0)
+	tctx.Metadata["Latency"] = strconv.FormatInt(time.Now().Sub(startTime).Nanoseconds()/1000000, 10)
+	tctx.Metadata["StatusCode"] = strconv.FormatInt(statusCode, 10)
+	if err != "" {
+		Error(tctx, fmt.Errorf(err), "EndTrace")
+	} else {
+		Info(tctx, "EndTrace")
 	}
-
-	TraceInfo(traceId, conf.Default.Host, name, map[string]string{
-		"Msg":      "End",
-		"Username": conf.Ctl.Username,
-		"Project":  conf.Ctl.Project,
-		"Func":     getFunc(0),
-		"Latency":  strconv.FormatInt(time.Now().Sub(startTime).Nanoseconds()/1000000, 10),
-		"Err":      errStr,
-	})
-}
-
-func StartTaskTrace(traceId string, host string, name string) time.Time {
-	startTime := time.Now()
-	TraceInfo(traceId, host, name, map[string]string{
-		"Msg":  "Start",
-		"Func": getFunc(0),
-	})
-
-	return startTime
-}
-
-func EndTaskTrace(traceId string, host string, name string, startTime time.Time, err error) {
-	var errStr string
-	if err != nil {
-		errStr = err.Error()
-	}
-
-	TraceInfo(traceId, host, name, map[string]string{
-		"Msg":     "End",
-		"Func":    getFunc(0),
-		"Latency": strconv.FormatInt(time.Now().Sub(startTime).Nanoseconds()/1000000, 10),
-		"Err":     errStr,
-	})
 }

@@ -11,11 +11,11 @@ import (
 	"github.com/syunkitada/goapp/pkg/resource/resource_model"
 )
 
-func (srv *ResourceControllerServer) MainTask(traceId string) error {
-	if err := srv.UpdateNode(traceId); err != nil {
+func (srv *ResourceControllerServer) MainTask(tctx *logger.TraceContext) error {
+	if err := srv.UpdateNode(tctx); err != nil {
 		return err
 	}
-	if err := srv.SyncRole(traceId); err != nil {
+	if err := srv.SyncRole(tctx); err != nil {
 		return err
 	}
 	if srv.role == resource_model.RoleMember {
@@ -28,7 +28,7 @@ func (srv *ResourceControllerServer) MainTask(traceId string) error {
 
 	wg := sync.WaitGroup{}
 	wg.Add(1)
-	go srv.SyncCompute(traceId, &wg)
+	go srv.SyncCompute(tctx, &wg)
 	wg.Wait()
 
 	// TODO
@@ -41,13 +41,13 @@ func (srv *ResourceControllerServer) MainTask(traceId string) error {
 	return nil
 }
 
-func (srv *ResourceControllerServer) UpdateNode(traceId string) error {
+func (srv *ResourceControllerServer) UpdateNode(tctx *logger.TraceContext) error {
 	var err error
-	startTime := logger.StartTaskTrace(traceId, srv.Host, srv.Name)
-	defer func() { logger.EndTaskTrace(traceId, srv.Host, srv.Name, startTime, err) }()
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err) }()
 
 	req := &resource_api_grpc_pb.UpdateNodeRequest{
-		TraceId:      traceId,
+		TraceId:      tctx.TraceId,
 		Name:         srv.Host,
 		Kind:         resource_model.KindResourceController,
 		Role:         resource_model.RoleMember,
@@ -66,10 +66,10 @@ func (srv *ResourceControllerServer) UpdateNode(traceId string) error {
 	return nil
 }
 
-func (srv *ResourceControllerServer) SyncRole(traceId string) error {
+func (srv *ResourceControllerServer) SyncRole(tctx *logger.TraceContext) error {
 	var err error
-	startTime := logger.StartTaskTrace(traceId, srv.Host, srv.Name)
-	defer func() { logger.EndTaskTrace(traceId, srv.Host, srv.Name, startTime, err) }()
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err) }()
 
 	nodes, err := srv.resourceModelApi.SyncRole(resource_model.KindResourceController)
 	if err != nil {
@@ -106,11 +106,11 @@ func (srv *ResourceControllerServer) SyncRole(traceId string) error {
 	return nil
 }
 
-func (srv *ResourceControllerServer) SyncCompute(traceId string, wg *sync.WaitGroup) {
+func (srv *ResourceControllerServer) SyncCompute(tctx *logger.TraceContext, wg *sync.WaitGroup) {
 	defer func() { wg.Done() }()
 	var err error
-	startTime := logger.StartTaskTrace(traceId, srv.Host, srv.Name)
-	defer func() { logger.EndTaskTrace(traceId, srv.Host, srv.Name, startTime, err) }()
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err) }()
 
 	errChan := make(chan error)
 
@@ -119,7 +119,7 @@ func (srv *ResourceControllerServer) SyncCompute(traceId string, wg *sync.WaitGr
 	defer cancel()
 
 	go func() {
-		errChan <- srv.resourceModelApi.SyncCompute(traceId)
+		errChan <- srv.resourceModelApi.SyncCompute(tctx)
 	}()
 
 	select {

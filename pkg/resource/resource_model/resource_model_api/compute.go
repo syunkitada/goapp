@@ -16,7 +16,7 @@ import (
 	"github.com/syunkitada/goapp/pkg/resource/resource_model"
 )
 
-func (modelApi *ResourceModelApi) GetCompute(req *resource_api_grpc_pb.GetComputeRequest) *resource_api_grpc_pb.GetComputeReply {
+func (modelApi *ResourceModelApi) GetCompute(tctx *logger.TraceContext, req *resource_api_grpc_pb.GetComputeRequest) *resource_api_grpc_pb.GetComputeReply {
 	rep := &resource_api_grpc_pb.GetComputeReply{}
 
 	db, err := gorm.Open("mysql", modelApi.conf.Resource.Database.Connection)
@@ -35,7 +35,7 @@ func (modelApi *ResourceModelApi) GetCompute(req *resource_api_grpc_pb.GetComput
 		return rep
 	}
 
-	rep.Computes = modelApi.convertComputes(req.TraceId, computes)
+	rep.Computes = modelApi.convertComputes(tctx, computes)
 	rep.StatusCode = codes.Ok
 	return rep
 }
@@ -174,25 +174,19 @@ func (modelApi *ResourceModelApi) DeleteCompute(req *resource_api_grpc_pb.Delete
 	return rep
 }
 
-func (modelApi *ResourceModelApi) convertComputes(traceId string, computes []resource_model.Compute) []*resource_api_grpc_pb.Compute {
+func (modelApi *ResourceModelApi) convertComputes(tctx *logger.TraceContext, computes []resource_model.Compute) []*resource_api_grpc_pb.Compute {
 	pbComputes := make([]*resource_api_grpc_pb.Compute, len(computes))
 	for i, compute := range computes {
 		updatedAt, err := ptypes.TimestampProto(compute.Model.UpdatedAt)
 		if err != nil {
-			logger.TraceError(traceId, modelApi.host, modelApi.name, map[string]string{
-				"Msg":    fmt.Sprintf("Failed ptypes.TimestampProto: %v", compute.Model.UpdatedAt),
-				"Err":    err.Error(),
-				"Method": "CreateCompute",
-			})
+			logger.Warningf(tctx, err,
+				"Failed ptypes.TimestampProto: %v", compute.Model.UpdatedAt)
 			continue
 		}
 		createdAt, err := ptypes.TimestampProto(compute.Model.CreatedAt)
 		if err != nil {
-			logger.TraceError(traceId, modelApi.host, modelApi.name, map[string]string{
-				"Msg":    fmt.Sprintf("Failed ptypes.TimestampProto: %v", compute.Model.CreatedAt),
-				"Err":    err.Error(),
-				"Method": "CreateCompute",
-			})
+			logger.Warningf(tctx, err,
+				"Failed ptypes.TimestampProto: %v", compute.Model.CreatedAt)
 			continue
 		}
 
@@ -254,7 +248,7 @@ func (modelApi *ResourceModelApi) validateComputeSpec(db *gorm.DB, specStr strin
 	switch spec.Spec.Kind {
 	case resource_model.SpecKindComputeLibvirt:
 		// TODO Implement Validate SpecKindComputeLibvirt
-		logger.Warning(modelApi.host, modelApi.name, "Validate SpecKindComputeLibvirt is not implemented")
+		fmt.Printf("Validate SpecKindComputeLibvirt is not implemented")
 
 	default:
 		errors = append(errors, fmt.Sprintf("Invalid kind: %v", spec.Spec.Kind))
@@ -267,7 +261,7 @@ func (modelApi *ResourceModelApi) validateComputeSpec(db *gorm.DB, specStr strin
 	return spec, codes.Ok, nil
 }
 
-func (modelApi *ResourceModelApi) SyncCompute(traceId string) error {
+func (modelApi *ResourceModelApi) SyncCompute(tctx *logger.TraceContext) error {
 	var err error
 	db, err := gorm.Open("mysql", modelApi.conf.Resource.Database.Connection)
 	defer db.Close()
@@ -286,9 +280,7 @@ func (modelApi *ResourceModelApi) SyncCompute(traceId string) error {
 	for clusterName, clusterClient := range modelApi.clusterClientMap {
 		result, err := clusterClient.GetCompute(&req)
 		if err != nil {
-			logger.TraceError(traceId, modelApi.host, modelApi.name, map[string]string{
-				"Err": fmt.Sprintf("Failed GetCompute from %v: %v", clusterName, err),
-			})
+			logger.Errorf(tctx, err, "Failed GetCompute from %v", clusterName)
 		}
 		for _, compute := range result.Computes {
 			computeMap[compute.FullName] = *compute
@@ -298,34 +290,20 @@ func (modelApi *ResourceModelApi) SyncCompute(traceId string) error {
 	for _, compute := range computes {
 		switch compute.Status {
 		case resource_model.StatusCreating:
-			logger.TraceInfo(traceId, modelApi.host, modelApi.name, map[string]string{
-				"Msg": fmt.Sprintf("Found %v resource: %v", compute.Status, compute.Name),
-			})
+			logger.Infof(tctx, "Found %v resource: %v", compute.Status, compute.Name)
 			modelApi.InitializeCompute(db, &compute, computeMap)
 		case resource_model.StatusCreatingInitialized:
-			logger.TraceInfo(traceId, modelApi.host, modelApi.name, map[string]string{
-				"Msg": fmt.Sprintf("Found %v resource: %v", compute.Status, compute.Name),
-			})
+			logger.Infof(tctx, "Found %v resource: %v", compute.Status, compute.Name)
 		case resource_model.StatusCreatingScheduled:
-			logger.TraceInfo(traceId, modelApi.host, modelApi.name, map[string]string{
-				"Msg": fmt.Sprintf("Found %v resource: %v", compute.Status, compute.Name),
-			})
+			logger.Infof(tctx, "Found %v resource: %v", compute.Status, compute.Name)
 		case resource_model.StatusUpdating:
-			logger.TraceInfo(traceId, modelApi.host, modelApi.name, map[string]string{
-				"Msg": fmt.Sprintf("Found %v resource: %v", compute.Status, compute.Name),
-			})
+			logger.Infof(tctx, "Found %v resource: %v", compute.Status, compute.Name)
 		case resource_model.StatusUpdatingScheduled:
-			logger.TraceInfo(traceId, modelApi.host, modelApi.name, map[string]string{
-				"Msg": fmt.Sprintf("Found %v resource: %v", compute.Status, compute.Name),
-			})
+			logger.Infof(tctx, "Found %v resource: %v", compute.Status, compute.Name)
 		case resource_model.StatusDeleting:
-			logger.TraceInfo(traceId, modelApi.host, modelApi.name, map[string]string{
-				"Msg": fmt.Sprintf("Found %v resource: %v", compute.Status, compute.Name),
-			})
+			logger.Infof(tctx, "Found %v resource: %v", compute.Status, compute.Name)
 		case resource_model.StatusDeletingScheduled:
-			logger.TraceInfo(traceId, modelApi.host, modelApi.name, map[string]string{
-				"Msg": fmt.Sprintf("Found %v resource: %v", compute.Status, compute.Name),
-			})
+			logger.Infof(tctx, "Found %v resource: %v", compute.Status, compute.Name)
 		}
 	}
 

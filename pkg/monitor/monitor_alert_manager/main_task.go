@@ -8,11 +8,11 @@ import (
 	"github.com/syunkitada/goapp/pkg/monitor/monitor_model"
 )
 
-func (srv *MonitorAlertManagerServer) MainTask(traceId string) error {
-	if err := srv.UpdateNode(traceId); err != nil {
+func (srv *MonitorAlertManagerServer) MainTask(tctx *logger.TraceContext) error {
+	if err := srv.UpdateNode(tctx); err != nil {
 		return err
 	}
-	if err := srv.SyncRole(traceId); err != nil {
+	if err := srv.SyncRole(tctx); err != nil {
 		return err
 	}
 	if srv.role == monitor_model.RoleMember {
@@ -28,13 +28,13 @@ func (srv *MonitorAlertManagerServer) MainTask(traceId string) error {
 	return nil
 }
 
-func (srv *MonitorAlertManagerServer) UpdateNode(traceId string) error {
+func (srv *MonitorAlertManagerServer) UpdateNode(tctx *logger.TraceContext) error {
 	var err error
-	startTime := logger.StartTaskTrace(traceId, srv.Host, srv.Name)
-	defer func() { logger.EndTaskTrace(traceId, srv.Host, srv.Name, startTime, err) }()
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err) }()
 
 	req := &monitor_api_grpc_pb.UpdateNodeRequest{
-		TraceId:      traceId,
+		TraceId:      tctx.TraceId,
 		Name:         srv.Host,
 		Kind:         monitor_model.KindMonitorAlertManager,
 		Role:         monitor_model.RoleMember,
@@ -53,10 +53,10 @@ func (srv *MonitorAlertManagerServer) UpdateNode(traceId string) error {
 	return nil
 }
 
-func (srv *MonitorAlertManagerServer) SyncRole(traceId string) error {
+func (srv *MonitorAlertManagerServer) SyncRole(tctx *logger.TraceContext) error {
 	var err error
-	startTime := logger.StartTaskTrace(traceId, srv.Host, srv.Name)
-	defer func() { logger.EndTaskTrace(traceId, srv.Host, srv.Name, startTime, err) }()
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err) }()
 
 	nodes, err := srv.monitorModelApi.SyncRole(monitor_model.KindMonitorAlertManager)
 	if err != nil {

@@ -23,10 +23,10 @@
 
 
 ## monitor-agent
-* reporterは、ログファイル、メトリクスファイルからデータを拾いdataproxyにデータを送る
+* reporterは、ログファイル、メトリクスファイルからデータを拾いmonitor-apiにデータを送る
 
 
-## monitor-proxy
+## monitor-api
 * log, tracelog, metricsをproxyする
     * logやtracelogを解析して、metricsに変換してproxyする場合もある
 * プロトコルはlineprotocolを参考にする
@@ -56,10 +56,10 @@
 
 
 ```
-                                          <--------- monitor-agent(index1)
-monitor-alert-manager --> monitor-proxy   <--------- monitor-agent(index1)
-dashboard -> authproxy -> monitor-proxy   <--------- monitor-agent(index2)
-                               |          <--------- monitor-agent(index2)
+                                        <--------- monitor-agent(index1)
+monitor-alert-manager --> monitor-api   <--------- monitor-agent(index1)
+dashboard -> authproxy -> monitor-api   <--------- monitor-agent(index2)
+ctl       ->                   |        <--------- monitor-agent(index2)
                                |
                                |
                                |-------- influxdb

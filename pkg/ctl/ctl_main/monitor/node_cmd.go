@@ -28,7 +28,7 @@ var getNodeCmd = &cobra.Command{
 
 func GetNode() error {
 	var err error
-	traceId := logger.NewTraceId()
+	traceId := logger.NewTraceContext()
 	startTime := logger.StartCtlTrace(traceId, appName)
 	defer func() {
 		logger.EndCtlTrace(traceId, appName, startTime, err)

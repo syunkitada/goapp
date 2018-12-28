@@ -41,7 +41,7 @@ var deleteNetworkV4Cmd = &cobra.Command{
 
 func GetNetworkV4() error {
 	var err error
-	traceId := logger.NewTraceId()
+	traceId := logger.NewTraceContext()
 	startTime := logger.StartCtlTrace(traceId, appName)
 	defer func() {
 		logger.EndCtlTrace(traceId, appName, startTime, err)
@@ -130,7 +130,7 @@ func UpdateNetworkV4(token string, spec string) error {
 
 func DeleteNetworkV4(networkName string) error {
 	var err error
-	traceId := logger.NewTraceId()
+	traceId := logger.NewTraceContext()
 	startTime := logger.StartCtlTrace(traceId, appName)
 	defer func() {
 		logger.EndCtlTrace(traceId, appName, startTime, err)

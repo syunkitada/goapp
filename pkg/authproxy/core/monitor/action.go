@@ -1,13 +1,13 @@
 package monitor
 
 import (
+	"fmt"
 	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
 
 	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_model"
-	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
 
 type MonitorContext struct {
@@ -39,7 +39,7 @@ func (monitor *Monitor) Action(c *gin.Context) {
 		userAuthority: tmpUserAuthority.(*authproxy_model.UserAuthority),
 		startTime:     time.Now(),
 	}
-	logger.TraceInfo(rc.traceId, monitor.host, monitor.name, map[string]string{
+	fmt.Println(rc.traceId, monitor.host, monitor.name, map[string]string{
 		"Msg":             "Start",
 		"TraceId":         rc.traceId,
 		"Action":          action.Name,
@@ -61,7 +61,7 @@ func (monitor *Monitor) Action(c *gin.Context) {
 	}
 
 	if statusCode == 0 {
-		logger.TraceInfo(rc.traceId, monitor.host, monitor.name, map[string]string{
+		fmt.Println(rc.traceId, monitor.host, monitor.name, map[string]string{
 			"Msg":             "End",
 			"TraceId":         rc.traceId,
 			"Action":          action.Name,
@@ -74,7 +74,7 @@ func (monitor *Monitor) Action(c *gin.Context) {
 			"RpcErr":          errMsg,
 		})
 	} else {
-		logger.TraceError(rc.traceId, monitor.host, monitor.name, map[string]string{
+		fmt.Println(rc.traceId, monitor.host, monitor.name, map[string]string{
 			"Msg":             "End",
 			"TraceId":         rc.traceId,
 			"Action":          action.Name,

@@ -1,8 +1,6 @@
 package resource_model_api
 
 import (
-	"fmt"
-
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/jinzhu/gorm"
@@ -13,7 +11,7 @@ import (
 	"github.com/syunkitada/goapp/pkg/resource/resource_model"
 )
 
-func (modelApi *ResourceModelApi) GetCluster(req *resource_api_grpc_pb.GetClusterRequest) *resource_api_grpc_pb.GetClusterReply {
+func (modelApi *ResourceModelApi) GetCluster(tctx *logger.TraceContext, req *resource_api_grpc_pb.GetClusterRequest) *resource_api_grpc_pb.GetClusterReply {
 	rep := &resource_api_grpc_pb.GetClusterReply{}
 
 	db, err := gorm.Open("mysql", modelApi.conf.Resource.Database.Connection)
@@ -32,7 +30,7 @@ func (modelApi *ResourceModelApi) GetCluster(req *resource_api_grpc_pb.GetCluste
 		return rep
 	}
 
-	rep.Clusters = modelApi.convertClusters(req.TraceId, clusters)
+	rep.Clusters = modelApi.convertClusters(tctx, clusters)
 	rep.StatusCode = codes.Ok
 	return rep
 }
@@ -50,25 +48,19 @@ func (modelApi *ResourceModelApi) ValidateClusterName(db *gorm.DB, name string) 
 	return false, nil
 }
 
-func (modelApi *ResourceModelApi) convertClusters(traceId string, clusters []resource_model.Cluster) []*resource_api_grpc_pb.Cluster {
+func (modelApi *ResourceModelApi) convertClusters(tctx *logger.TraceContext, clusters []resource_model.Cluster) []*resource_api_grpc_pb.Cluster {
 	pbClusters := make([]*resource_api_grpc_pb.Cluster, len(clusters))
 	for i, cluster := range clusters {
 		updatedAt, err := ptypes.TimestampProto(cluster.Model.UpdatedAt)
 		if err != nil {
-			logger.TraceError(traceId, modelApi.host, modelApi.name, map[string]string{
-				"Msg":    fmt.Sprintf("Failed ptypes.TimestampProto: %v", cluster.Model.UpdatedAt),
-				"Err":    err.Error(),
-				"Method": "CreateCluster",
-			})
+			logger.Warningf(tctx, err,
+				"Failed ptypes.TimestampProto: %v", cluster.Model.UpdatedAt)
 			continue
 		}
 		createdAt, err := ptypes.TimestampProto(cluster.Model.CreatedAt)
 		if err != nil {
-			logger.TraceError(traceId, modelApi.host, modelApi.name, map[string]string{
-				"Msg":    fmt.Sprintf("Failed ptypes.TimestampProto: %v", cluster.Model.CreatedAt),
-				"Err":    err.Error(),
-				"Method": "CreateCluster",
-			})
+			logger.Warningf(tctx, err,
+				"Failed ptypes.TimestampProto: %v", cluster.Model.CreatedAt)
 			continue
 		}
 

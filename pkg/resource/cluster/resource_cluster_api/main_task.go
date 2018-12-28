@@ -3,11 +3,12 @@ package resource_cluster_api
 import (
 	"github.com/golang/glog"
 
+	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_api/resource_cluster_api_grpc_pb"
 	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_model"
 )
 
-func (srv *ResourceClusterApiServer) MainTask(traceId string) error {
+func (srv *ResourceClusterApiServer) MainTask(tctx *logger.TraceContext) error {
 	glog.Info("Run MainTask")
 	srv.UpdateNodeTask()
 

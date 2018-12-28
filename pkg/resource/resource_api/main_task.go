@@ -8,19 +8,19 @@ import (
 	"github.com/syunkitada/goapp/pkg/resource/resource_model"
 )
 
-func (srv *ResourceApiServer) MainTask(traceId string) error {
-	if err := srv.UpdateNodeTask(traceId); err != nil {
+func (srv *ResourceApiServer) MainTask(tctx *logger.TraceContext) error {
+	if err := srv.UpdateNodeTask(tctx); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (srv *ResourceApiServer) UpdateNodeTask(traceId string) error {
+func (srv *ResourceApiServer) UpdateNodeTask(tctx *logger.TraceContext) error {
 	var err error
-	startTime := logger.StartTaskTrace(traceId, srv.Host, srv.Name)
+	startTime := logger.StartTrace(tctx)
 	defer func() {
-		logger.EndTaskTrace(traceId, srv.Host, srv.Name, startTime, err)
+		logger.EndTrace(tctx, startTime, err)
 	}()
 
 	req := &resource_api_grpc_pb.UpdateNodeRequest{

@@ -15,7 +15,7 @@ import (
 	"github.com/syunkitada/goapp/pkg/resource/resource_model"
 )
 
-func (modelApi *ResourceModelApi) GetVolume(req *resource_api_grpc_pb.GetVolumeRequest) *resource_api_grpc_pb.GetVolumeReply {
+func (modelApi *ResourceModelApi) GetVolume(tctx *logger.TraceContext, req *resource_api_grpc_pb.GetVolumeRequest) *resource_api_grpc_pb.GetVolumeReply {
 	rep := &resource_api_grpc_pb.GetVolumeReply{}
 
 	db, err := gorm.Open("mysql", modelApi.conf.Resource.Database.Connection)
@@ -34,7 +34,7 @@ func (modelApi *ResourceModelApi) GetVolume(req *resource_api_grpc_pb.GetVolumeR
 		return rep
 	}
 
-	rep.Volumes = modelApi.convertVolumes(req.TraceId, volumes)
+	rep.Volumes = modelApi.convertVolumes(tctx, volumes)
 	rep.StatusCode = codes.Ok
 	return rep
 }
@@ -173,25 +173,17 @@ func (modelApi *ResourceModelApi) DeleteVolume(req *resource_api_grpc_pb.DeleteV
 	return rep
 }
 
-func (modelApi *ResourceModelApi) convertVolumes(traceId string, volumes []resource_model.Volume) []*resource_api_grpc_pb.Volume {
+func (modelApi *ResourceModelApi) convertVolumes(tctx *logger.TraceContext, volumes []resource_model.Volume) []*resource_api_grpc_pb.Volume {
 	pbVolumes := make([]*resource_api_grpc_pb.Volume, len(volumes))
 	for i, volume := range volumes {
 		updatedAt, err := ptypes.TimestampProto(volume.Model.UpdatedAt)
 		if err != nil {
-			logger.TraceError(traceId, modelApi.host, modelApi.name, map[string]string{
-				"Msg":    fmt.Sprintf("Failed ptypes.TimestampProto: %v", volume.Model.UpdatedAt),
-				"Err":    err.Error(),
-				"Method": "CreateVolume",
-			})
+			logger.Warningf(tctx, err, "Failed ptypes.TimestampProto: %v", volume.Model.UpdatedAt)
 			continue
 		}
 		createdAt, err := ptypes.TimestampProto(volume.Model.CreatedAt)
 		if err != nil {
-			logger.TraceError(traceId, modelApi.host, modelApi.name, map[string]string{
-				"Msg":    fmt.Sprintf("Failed ptypes.TimestampProto: %v", volume.Model.CreatedAt),
-				"Err":    err.Error(),
-				"Method": "CreateVolume",
-			})
+			logger.Warningf(tctx, err, "Failed ptypes.TimestampProto: %v", volume.Model.CreatedAt)
 			continue
 		}
 
@@ -253,7 +245,7 @@ func (modelApi *ResourceModelApi) validateVolumeSpec(db *gorm.DB, specStr string
 	switch spec.Spec.Kind {
 	case resource_model.SpecKindVolumeNfs:
 		// TODO Implement Validate SpecKindVolumeNfs
-		logger.Warning(modelApi.host, modelApi.name, "Validate SpecKindVolumeNfs is not implemented")
+		fmt.Println(modelApi.host, modelApi.name, "Validate SpecKindVolumeNfs is not implemented")
 
 	default:
 		errors = append(errors, fmt.Sprintf("Invalid kind: %v", spec.Spec.Kind))

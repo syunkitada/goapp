@@ -7,18 +7,18 @@ import (
 	"github.com/hpcloud/tail"
 )
 
-func (srv *MonitorAgentServer) MainTask(traceId string) error {
-	if err := srv.Report(traceId); err != nil {
+func (srv *MonitorAgentServer) MainTask(tctx *logger.TraceContext) error {
+	if err := srv.Report(tctx); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (srv *MonitorAgentServer) Report(traceId string) error {
+func (srv *MonitorAgentServer) Report(tctx *logger.TraceContext) error {
 	var err error
-	startTime := logger.StartTaskTrace(traceId, srv.Host, srv.Name)
-	defer func() { logger.EndTaskTrace(traceId, srv.Host, srv.Name, startTime, err) }()
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err) }()
 
 	t, err := tail.TailFile("/home/owner/.goapp/logs/goapp-resource-api.log", tail.Config{Follow: true})
 	if err != nil {

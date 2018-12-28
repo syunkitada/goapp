@@ -15,7 +15,7 @@ import (
 	"github.com/syunkitada/goapp/pkg/resource/resource_model"
 )
 
-func (modelApi *ResourceModelApi) GetContainer(req *resource_api_grpc_pb.GetContainerRequest) *resource_api_grpc_pb.GetContainerReply {
+func (modelApi *ResourceModelApi) GetContainer(tctx *logger.TraceContext, req *resource_api_grpc_pb.GetContainerRequest) *resource_api_grpc_pb.GetContainerReply {
 	rep := &resource_api_grpc_pb.GetContainerReply{}
 
 	db, err := gorm.Open("mysql", modelApi.conf.Resource.Database.Connection)
@@ -34,7 +34,7 @@ func (modelApi *ResourceModelApi) GetContainer(req *resource_api_grpc_pb.GetCont
 		return rep
 	}
 
-	rep.Containers = modelApi.convertContainers(req.TraceId, containers)
+	rep.Containers = modelApi.convertContainers(tctx, containers)
 	rep.StatusCode = codes.Ok
 	return rep
 }
@@ -173,25 +173,17 @@ func (modelApi *ResourceModelApi) DeleteContainer(req *resource_api_grpc_pb.Dele
 	return rep
 }
 
-func (modelApi *ResourceModelApi) convertContainers(traceId string, containers []resource_model.Container) []*resource_api_grpc_pb.Container {
+func (modelApi *ResourceModelApi) convertContainers(tctx *logger.TraceContext, containers []resource_model.Container) []*resource_api_grpc_pb.Container {
 	pbContainers := make([]*resource_api_grpc_pb.Container, len(containers))
 	for i, container := range containers {
 		updatedAt, err := ptypes.TimestampProto(container.Model.UpdatedAt)
 		if err != nil {
-			logger.TraceError(traceId, modelApi.host, modelApi.name, map[string]string{
-				"Msg":    fmt.Sprintf("Failed ptypes.TimestampProto: %v", container.Model.UpdatedAt),
-				"Err":    err.Error(),
-				"Method": "CreateContainer",
-			})
+			logger.Warningf(tctx, err, "Failed ptypes.TimestampProto: %v", container.Model.UpdatedAt)
 			continue
 		}
 		createdAt, err := ptypes.TimestampProto(container.Model.CreatedAt)
 		if err != nil {
-			logger.TraceError(traceId, modelApi.host, modelApi.name, map[string]string{
-				"Msg":    fmt.Sprintf("Failed ptypes.TimestampProto: %v", container.Model.CreatedAt),
-				"Err":    err.Error(),
-				"Method": "CreateContainer",
-			})
+			logger.Warningf(tctx, err, "Failed ptypes.TimestampProto: %v", container.Model.CreatedAt)
 			continue
 		}
 
@@ -253,7 +245,7 @@ func (modelApi *ResourceModelApi) validateContainerSpec(db *gorm.DB, specStr str
 	switch spec.Spec.Kind {
 	case resource_model.SpecKindContainerDocker:
 		// TODO Implement Validate SpecKindContainerDocker
-		logger.Warning(modelApi.host, modelApi.name, "Validate SpecKindContainerDocker is not implemented")
+		fmt.Println("Validate SpecKindContainerDocker is not implemented")
 
 	default:
 		errors = append(errors, fmt.Sprintf("Invalid kind: %v", spec.Spec.Kind))

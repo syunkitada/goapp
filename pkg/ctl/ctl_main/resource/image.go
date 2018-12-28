@@ -41,7 +41,7 @@ var deleteImageCmd = &cobra.Command{
 
 func GetImage() error {
 	var err error
-	traceId := logger.NewTraceId()
+	traceId := logger.NewTraceContext()
 	startTime := logger.StartCtlTrace(traceId, appName)
 	defer func() {
 		logger.EndCtlTrace(traceId, appName, startTime, err)
@@ -130,7 +130,7 @@ func UpdateImage(token string, spec string) error {
 
 func DeleteImage(imageName string) error {
 	var err error
-	traceId := logger.NewTraceId()
+	traceId := logger.NewTraceContext()
 	startTime := logger.StartCtlTrace(traceId, appName)
 	defer func() {
 		logger.EndCtlTrace(traceId, appName, startTime, err)

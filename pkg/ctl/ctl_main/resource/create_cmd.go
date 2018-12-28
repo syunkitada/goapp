@@ -39,7 +39,7 @@ func init() {
 }
 
 func CreateResource() error {
-	traceId := logger.NewTraceId()
+	traceId := logger.NewTraceContext()
 	startTime := logger.StartCtlTrace(traceId, appName)
 	var err error
 

@@ -15,7 +15,7 @@ import (
 	"github.com/syunkitada/goapp/pkg/resource/resource_model"
 )
 
-func (modelApi *ResourceModelApi) GetLoadbalancer(req *resource_api_grpc_pb.GetLoadbalancerRequest) *resource_api_grpc_pb.GetLoadbalancerReply {
+func (modelApi *ResourceModelApi) GetLoadbalancer(tctx *logger.TraceContext, req *resource_api_grpc_pb.GetLoadbalancerRequest) *resource_api_grpc_pb.GetLoadbalancerReply {
 	rep := &resource_api_grpc_pb.GetLoadbalancerReply{}
 
 	db, err := gorm.Open("mysql", modelApi.conf.Resource.Database.Connection)
@@ -34,7 +34,7 @@ func (modelApi *ResourceModelApi) GetLoadbalancer(req *resource_api_grpc_pb.GetL
 		return rep
 	}
 
-	rep.Loadbalancers = modelApi.convertLoadbalancers(req.TraceId, volumes)
+	rep.Loadbalancers = modelApi.convertLoadbalancers(tctx, volumes)
 	rep.StatusCode = codes.Ok
 	return rep
 }
@@ -173,25 +173,17 @@ func (modelApi *ResourceModelApi) DeleteLoadbalancer(req *resource_api_grpc_pb.D
 	return rep
 }
 
-func (modelApi *ResourceModelApi) convertLoadbalancers(traceId string, volumes []resource_model.Loadbalancer) []*resource_api_grpc_pb.Loadbalancer {
+func (modelApi *ResourceModelApi) convertLoadbalancers(tctx *logger.TraceContext, volumes []resource_model.Loadbalancer) []*resource_api_grpc_pb.Loadbalancer {
 	pbLoadbalancers := make([]*resource_api_grpc_pb.Loadbalancer, len(volumes))
 	for i, volume := range volumes {
 		updatedAt, err := ptypes.TimestampProto(volume.Model.UpdatedAt)
 		if err != nil {
-			logger.TraceError(traceId, modelApi.host, modelApi.name, map[string]string{
-				"Msg":    fmt.Sprintf("Failed ptypes.TimestampProto: %v", volume.Model.UpdatedAt),
-				"Err":    err.Error(),
-				"Method": "CreateLoadbalancer",
-			})
+			logger.Warningf(tctx, err, "Failed ptypes.TimestampProto: %v", volume.Model.UpdatedAt)
 			continue
 		}
 		createdAt, err := ptypes.TimestampProto(volume.Model.CreatedAt)
 		if err != nil {
-			logger.TraceError(traceId, modelApi.host, modelApi.name, map[string]string{
-				"Msg":    fmt.Sprintf("Failed ptypes.TimestampProto: %v", volume.Model.CreatedAt),
-				"Err":    err.Error(),
-				"Method": "CreateLoadbalancer",
-			})
+			logger.Warningf(tctx, err, "Failed ptypes.TimestampProto: %v", volume.Model.CreatedAt)
 			continue
 		}
 
@@ -253,7 +245,7 @@ func (modelApi *ResourceModelApi) validateLoadbalancerSpec(db *gorm.DB, specStr 
 	switch spec.Spec.Kind {
 	case resource_model.SpecKindLoadbalancerVpp:
 		// TODO Implement Validate SpecKindLoadbalancerVpp
-		logger.Warning(modelApi.host, modelApi.name, "Validate SpecKindLoadbalancerVpp is not implemented")
+		fmt.Println(modelApi.host, modelApi.name, "Validate SpecKindLoadbalancerVpp is not implemented")
 
 	default:
 		errors = append(errors, fmt.Sprintf("Invalid kind: %v", spec.Spec.Kind))

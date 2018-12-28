@@ -15,11 +15,11 @@ var RootCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		server := NewMonitorAlertManagerServer(&config.Conf)
 		if err := server.StartMainLoop(); err != nil {
-			logger.Fatal(server.Host, server.Name, err)
+			logger.StdoutFatal(err)
 		}
 
 		if err := server.Serve(); err != nil {
-			logger.Fatal(server.Host, server.Name, err)
+			logger.StdoutFatal(err)
 		}
 	},
 }

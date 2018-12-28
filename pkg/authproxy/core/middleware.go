@@ -21,10 +21,11 @@ func (authproxy *Authproxy) Logger() gin.HandlerFunc {
 		method := c.Request.Method
 		path := c.Request.URL.Path
 
-		traceId := logger.NewTraceId()
+		tctx := logger.NewTraceContext(authproxy.host, authproxy.name)
 
-		c.Set("TraceId", traceId)
-		logger.TraceInfo(traceId, authproxy.host, authproxy.name, map[string]string{
+		c.Set("TraceId", tctx.TraceId)
+		// TODO FIX
+		fmt.Println(tctx, authproxy.host, authproxy.name, map[string]string{
 			"Msg":    "Start",
 			"Client": client,
 			"Method": method,
@@ -37,7 +38,8 @@ func (authproxy *Authproxy) Logger() gin.HandlerFunc {
 
 		statusCode := c.Writer.Status()
 
-		logger.TraceInfo(traceId, authproxy.host, authproxy.name, map[string]string{
+		// TODO FIX
+		fmt.Println(tctx, authproxy.host, authproxy.name, map[string]string{
 			"Msg":       "End",
 			"Client":    client,
 			"Method":    method,

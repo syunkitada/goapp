@@ -41,7 +41,7 @@ var deleteComputeCmd = &cobra.Command{
 
 func GetCompute() error {
 	var err error
-	traceId := logger.NewTraceId()
+	traceId := logger.NewTraceContext()
 	startTime := logger.StartCtlTrace(traceId, appName)
 	defer func() {
 		logger.EndCtlTrace(traceId, appName, startTime, err)
@@ -130,7 +130,7 @@ func UpdateCompute(token string, spec string) error {
 
 func DeleteCompute(computeName string) error {
 	var err error
-	traceId := logger.NewTraceId()
+	traceId := logger.NewTraceContext()
 	startTime := logger.StartCtlTrace(traceId, appName)
 	defer func() {
 		logger.EndCtlTrace(traceId, appName, startTime, err)

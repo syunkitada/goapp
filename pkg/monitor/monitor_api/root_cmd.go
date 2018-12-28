@@ -15,11 +15,11 @@ var RootCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		srv := NewMonitorApiServer(&config.Conf)
 		if err := srv.StartMainLoop(); err != nil {
-			logger.Fatal(srv.Host, srv.Name, err)
+			logger.StdoutFatal(err)
 		}
 
 		if err := srv.Serve(); err != nil {
-			logger.Fatal(srv.Host, srv.Name, err)
+			logger.StdoutFatal(err)
 		}
 	},
 }

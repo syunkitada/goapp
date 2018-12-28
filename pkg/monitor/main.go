@@ -14,7 +14,7 @@ var rootCmd = &cobra.Command{}
 
 func Main() {
 	if err := rootCmd.Execute(); err != nil {
-		logger.Fatal(config.Conf.Default.Host, "monitor", err)
+		logger.StdoutFatal(err)
 	}
 }
 

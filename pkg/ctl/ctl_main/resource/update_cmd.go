@@ -41,7 +41,7 @@ func init() {
 }
 
 func UpdateResource() error {
-	traceId := logger.NewTraceId()
+	traceId := logger.NewTraceContext()
 	startTime := logger.StartCtlTrace(traceId, appName)
 	var err error
 

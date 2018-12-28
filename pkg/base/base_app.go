@@ -1,7 +1,6 @@
 package base
 
 import (
-	"fmt"
 	"net"
 	"os"
 	"os/signal"
@@ -18,7 +17,7 @@ import (
 
 type BaseAppDriver interface {
 	RegisterGrpcServer(*grpc.Server) error
-	MainTask(string) error
+	MainTask(*logger.TraceContext) error
 }
 
 type BaseApp struct {
@@ -56,48 +55,60 @@ func (app *BaseApp) StartMainLoop() error {
 }
 
 func (app *BaseApp) mainLoop() {
-	var traceId string
+	var tctx *logger.TraceContext
 	var startTime time.Time
 	var err error
-	logger.Info(app.Host, app.Name, "Start mainLoop")
+	logger.StdoutInfof("Start mainLoop")
 	for {
-		traceId = logger.NewTraceId()
-		startTime = logger.StartTaskTrace(traceId, app.Host, app.Name)
-		err = app.driver.MainTask(traceId)
-		logger.EndTaskTrace(traceId, app.Host, app.Name, startTime, err)
+		tctx = logger.NewTraceContext(app.Host, app.Name)
+		startTime = logger.StartTrace(tctx)
+		err = app.driver.MainTask(tctx)
+		logger.EndTrace(tctx, startTime, err)
 
 		if app.isGracefulShutdown {
-			logger.Info(app.Host, app.Name, "Completed graceful shutdown mainTask")
-			logger.Info(app.Host, app.Name, "Starting grpcServer.GracefulStop")
+			logger.Info(tctx, "Completed graceful shutdown mainTask")
+			logger.Info(tctx, "Starting grpcServer.GracefulStop")
+			startTime = logger.StartTrace(tctx)
 			app.grpcServer.GracefulStop()
-			logger.Info(app.Host, app.Name, "Completed grpcServer.GracefulStop")
-			logger.Info(app.Host, app.Name, "Completed graceful shutdown")
+			logger.Info(tctx, "Completed grpcServer.GracefulStop")
+			logger.Info(tctx, "Completed graceful shutdown")
+			logger.EndTrace(tctx, startTime, nil)
 			os.Exit(0)
 		}
+
 		time.Sleep(app.loopInterval)
 	}
 
-	logger.Info(app.Host, app.Name, "Completed mainLoop")
+	logger.StdoutInfof("Completed mainLoop")
 }
 
 func (app *BaseApp) Serve() error {
-	lis, err := net.Listen("tcp", app.appConf.Listen)
+	var err error
+	tctx := logger.NewTraceContext(app.Host, app.Name)
+	startTime := logger.StartTrace(tctx)
+	defer func() {
+		logger.EndTrace(tctx, startTime, err)
+	}()
+
+	var lis net.Listener
+	lis, err = net.Listen("tcp", app.appConf.Listen)
 	if err != nil {
 		return err
 	}
 
 	var opts []grpc.ServerOption
-	creds, err := credentials.NewServerTLSFromFile(
+	var creds credentials.TransportCredentials
+	creds, err = credentials.NewServerTLSFromFile(
 		app.conf.Path(app.appConf.CertFile),
 		app.conf.Path(app.appConf.KeyFile),
 	)
 	if err != nil {
-		return fmt.Errorf("Failed credentials.NewServerTLSFromFile: %v", err)
+		return err
 	}
 	opts = []grpc.ServerOption{grpc.Creds(creds)}
 
 	app.grpcServer = grpc.NewServer(opts...)
-	if err := app.driver.RegisterGrpcServer(app.grpcServer); err != nil {
+	if err = app.driver.RegisterGrpcServer(app.grpcServer); err != nil {
 		return err
 	}
 
@@ -106,22 +117,28 @@ func (app *BaseApp) Serve() error {
 		signal.Notify(shutdown, syscall.SIGTERM)
 		<-shutdown
 		if err := app.gracefulShutdown(context.Background()); err != nil {
-			logger.Errorf(app.Host, app.Name, "Failed gracefulShutdown: %v", err)
+			logger.Error(tctx, err, "Failed gracefulShutdown")
 		}
 	}()
 
-	logger.Infof(app.Host, app.Name, "Serve: %v", app.appConf.Listen)
+	logger.Infof(tctx, "Serve: %v", app.appConf.Listen)
 	if err := app.grpcServer.Serve(lis); err != nil {
-		logger.Errorf(app.Host, app.Name, "Failed Serve: %v", err)
+		logger.Error(tctx, err, "Failed Serve")
 		return err
 	}
 
-	logger.Infof(app.Host, app.Name, "Completed Serve: %v", app.appConf.Listen)
+	logger.Infof(tctx, "Completed Serve: %v", app.appConf.Listen)
 	return nil
 }
 
 func (app *BaseApp) gracefulShutdown(ctx context.Context) error {
-	logger.Info(app.Host, app.Name, "Starting graceful shutdown")
+	var err error
+	tctx := logger.NewTraceContext(app.Host, app.Name)
+	startTime := logger.StartTrace(tctx)
+	defer func() {
+		logger.EndTrace(tctx, startTime, err)
+	}()
+
 	ctx, cancel := context.WithTimeout(ctx, app.shutdownTimeout)
 	defer cancel()
 
@@ -129,7 +146,7 @@ func (app *BaseApp) gracefulShutdown(ctx context.Context) error {
 
 	select {
 	case <-ctx.Done():
-		logger.Errorf(app.Host, app.Name, "Failed graceful shutdown: %v", ctx.Err())
+		err = ctx.Err()
 		os.Exit(1)
 	}
 

@@ -1,6 +1,7 @@
 package resource
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -9,7 +10,7 @@ import (
 	"github.com/golang/glog"
 
 	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_model"
-	"github.com/syunkitada/goapp/pkg/lib/logger"
+	// "github.com/syunkitada/goapp/pkg/lib/logger"
 )
 
 type ResourceContext struct {
@@ -41,7 +42,8 @@ func (resource *Resource) Action(c *gin.Context) {
 		userAuthority: tmpUserAuthority.(*authproxy_model.UserAuthority),
 		startTime:     time.Now(),
 	}
-	logger.TraceInfo(rc.traceId, resource.host, resource.name, map[string]string{
+	// TODO FIX
+	fmt.Println(rc.traceId, resource.host, resource.name, map[string]string{
 		"Msg":             "Start",
 		"TraceId":         rc.traceId,
 		"Action":          action.Name,
@@ -107,7 +109,8 @@ func (resource *Resource) Action(c *gin.Context) {
 	}
 
 	if statusCode == 0 {
-		logger.TraceInfo(rc.traceId, resource.host, resource.name, map[string]string{
+		// TODO FIX
+		fmt.Println(rc.traceId, resource.host, resource.name, map[string]string{
 			"Msg":             "End",
 			"TraceId":         rc.traceId,
 			"Action":          action.Name,
@@ -120,7 +123,8 @@ func (resource *Resource) Action(c *gin.Context) {
 			"RpcErr":          errMsg,
 		})
 	} else {
-		logger.TraceError(rc.traceId, resource.host, resource.name, map[string]string{
+		// TODO FIX
+		fmt.Println(rc.traceId, resource.host, resource.name, map[string]string{
 			"Msg":             "End",
 			"TraceId":         rc.traceId,
 			"Action":          action.Name,

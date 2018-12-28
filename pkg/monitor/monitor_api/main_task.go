@@ -6,19 +6,19 @@ import (
 	// "github.com/syunkitada/goapp/pkg/monitor/monitor_api/monitor_api_grpc_pb"
 )
 
-func (srv *MonitorApiServer) MainTask(traceId string) error {
-	if err := srv.UpdateNodeTask(traceId); err != nil {
+func (srv *MonitorApiServer) MainTask(tctx *logger.TraceContext) error {
+	if err := srv.UpdateNodeTask(tctx); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (srv *MonitorApiServer) UpdateNodeTask(traceId string) error {
+func (srv *MonitorApiServer) UpdateNodeTask(tctx *logger.TraceContext) error {
 	var err error
-	startTime := logger.StartTaskTrace(traceId, srv.Host, srv.Name)
+	startTime := logger.StartTrace(tctx)
 	defer func() {
-		logger.EndTaskTrace(traceId, srv.Host, srv.Name, startTime, err)
+		logger.EndTrace(tctx, startTime, err)
 	}()
 
 	// req := &monitor_api_grpc_pb.UpdateNodeRequest{

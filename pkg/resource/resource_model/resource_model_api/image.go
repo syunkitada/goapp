@@ -16,7 +16,7 @@ import (
 	"github.com/syunkitada/goapp/pkg/resource/resource_model"
 )
 
-func (modelApi *ResourceModelApi) GetImage(req *resource_api_grpc_pb.GetImageRequest) *resource_api_grpc_pb.GetImageReply {
+func (modelApi *ResourceModelApi) GetImage(tctx *logger.TraceContext, req *resource_api_grpc_pb.GetImageRequest) *resource_api_grpc_pb.GetImageReply {
 	rep := &resource_api_grpc_pb.GetImageReply{}
 
 	db, err := gorm.Open("mysql", modelApi.conf.Resource.Database.Connection)
@@ -35,7 +35,7 @@ func (modelApi *ResourceModelApi) GetImage(req *resource_api_grpc_pb.GetImageReq
 		return rep
 	}
 
-	rep.Images = modelApi.convertImages(req.TraceId, images)
+	rep.Images = modelApi.convertImages(tctx, images)
 	rep.StatusCode = codes.Ok
 	return rep
 }
@@ -174,25 +174,17 @@ func (modelApi *ResourceModelApi) DeleteImage(req *resource_api_grpc_pb.DeleteIm
 	return rep
 }
 
-func (modelApi *ResourceModelApi) convertImages(traceId string, images []resource_model.Image) []*resource_api_grpc_pb.Image {
+func (modelApi *ResourceModelApi) convertImages(tctx *logger.TraceContext, images []resource_model.Image) []*resource_api_grpc_pb.Image {
 	pbImages := make([]*resource_api_grpc_pb.Image, len(images))
 	for i, image := range images {
 		updatedAt, err := ptypes.TimestampProto(image.Model.UpdatedAt)
 		if err != nil {
-			logger.TraceError(traceId, modelApi.host, modelApi.name, map[string]string{
-				"Msg":    fmt.Sprintf("Failed ptypes.TimestampProto: %v", image.Model.UpdatedAt),
-				"Err":    err.Error(),
-				"Method": "CreateImage",
-			})
+			logger.Warningf(tctx, err, "Failed ptypes.TimestampProto: %v", image.Model.UpdatedAt)
 			continue
 		}
 		createdAt, err := ptypes.TimestampProto(image.Model.CreatedAt)
 		if err != nil {
-			logger.TraceError(traceId, modelApi.host, modelApi.name, map[string]string{
-				"Msg":    fmt.Sprintf("Failed ptypes.TimestampProto: %v", image.Model.CreatedAt),
-				"Err":    err.Error(),
-				"Method": "CreateImage",
-			})
+			logger.Warningf(tctx, err, "Failed ptypes.TimestampProto: %v", image.Model.CreatedAt)
 			continue
 		}
 

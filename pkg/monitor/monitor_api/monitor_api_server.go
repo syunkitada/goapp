@@ -43,15 +43,17 @@ func (srv *MonitorApiServer) Status(ctx context.Context, statusRequest *monitor_
 // Node
 //
 func (srv *MonitorApiServer) GetNode(ctx context.Context, req *monitor_api_grpc_pb.GetNodeRequest) (*monitor_api_grpc_pb.GetNodeReply, error) {
-	startTime, clientIp := logger.StartGrpcTrace(req.TraceId, srv.Host, srv.Name, ctx)
+	tctx := logger.NewGrpcTraceContext(srv.Host, srv.Name, ctx)
+	startTime := logger.StartTrace(tctx)
 	rep := srv.monitorModelApi.GetNode(req)
-	logger.EndGrpcTrace(req.TraceId, srv.Host, srv.Name, startTime, clientIp, rep.StatusCode, rep.Err)
+	logger.EndGrpcTrace(tctx, startTime, rep.StatusCode, rep.Err)
 	return rep, nil
 }
 
 func (srv *MonitorApiServer) UpdateNode(ctx context.Context, req *monitor_api_grpc_pb.UpdateNodeRequest) (*monitor_api_grpc_pb.UpdateNodeReply, error) {
-	startTime, clientIp := logger.StartGrpcTrace(req.TraceId, srv.Host, srv.Name, ctx)
+	tctx := logger.NewGrpcTraceContext(srv.Host, srv.Name, ctx)
+	startTime := logger.StartTrace(tctx)
 	rep := srv.monitorModelApi.UpdateNode(req)
-	logger.EndGrpcTrace(req.TraceId, srv.Host, srv.Name, startTime, clientIp, rep.StatusCode, rep.Err)
+	logger.EndGrpcTrace(tctx, startTime, rep.StatusCode, rep.Err)
 	return rep, nil
 }

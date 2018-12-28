@@ -16,7 +16,7 @@ import (
 	"github.com/syunkitada/goapp/pkg/resource/resource_model"
 )
 
-func (modelApi *ResourceModelApi) GetNetworkV4(req *resource_api_grpc_pb.GetNetworkV4Request) *resource_api_grpc_pb.GetNetworkV4Reply {
+func (modelApi *ResourceModelApi) GetNetworkV4(tctx *logger.TraceContext, req *resource_api_grpc_pb.GetNetworkV4Request) *resource_api_grpc_pb.GetNetworkV4Reply {
 	rep := &resource_api_grpc_pb.GetNetworkV4Reply{}
 
 	db, err := gorm.Open("mysql", modelApi.conf.Resource.Database.Connection)
@@ -35,7 +35,7 @@ func (modelApi *ResourceModelApi) GetNetworkV4(req *resource_api_grpc_pb.GetNetw
 		return rep
 	}
 
-	rep.Networks = modelApi.convertNetworkV4s(req.TraceId, networks)
+	rep.Networks = modelApi.convertNetworkV4s(tctx, networks)
 	rep.StatusCode = codes.Ok
 	return rep
 }
@@ -181,25 +181,17 @@ func (modelApi *ResourceModelApi) DeleteNetworkV4(req *resource_api_grpc_pb.Dele
 	return rep
 }
 
-func (modelApi *ResourceModelApi) convertNetworkV4s(traceId string, networks []resource_model.NetworkV4) []*resource_api_grpc_pb.NetworkV4 {
+func (modelApi *ResourceModelApi) convertNetworkV4s(tctx *logger.TraceContext, networks []resource_model.NetworkV4) []*resource_api_grpc_pb.NetworkV4 {
 	pbNetworkV4s := make([]*resource_api_grpc_pb.NetworkV4, len(networks))
 	for i, network := range networks {
 		updatedAt, err := ptypes.TimestampProto(network.Model.UpdatedAt)
 		if err != nil {
-			logger.TraceError(traceId, modelApi.host, modelApi.name, map[string]string{
-				"Msg":    fmt.Sprintf("Failed ptypes.TimestampProto: %v", network.Model.UpdatedAt),
-				"Err":    err.Error(),
-				"Method": "CreateNetworkV4",
-			})
+			logger.Warningf(tctx, err, "Failed ptypes.TimestampProto: %v", network.Model.UpdatedAt)
 			continue
 		}
 		createdAt, err := ptypes.TimestampProto(network.Model.CreatedAt)
 		if err != nil {
-			logger.TraceError(traceId, modelApi.host, modelApi.name, map[string]string{
-				"Msg":    fmt.Sprintf("Failed ptypes.TimestampProto: %v", network.Model.CreatedAt),
-				"Err":    err.Error(),
-				"Method": "CreateNetworkV4",
-			})
+			logger.Warningf(tctx, err, "Failed ptypes.TimestampProto: %v", network.Model.CreatedAt)
 			continue
 		}
 
