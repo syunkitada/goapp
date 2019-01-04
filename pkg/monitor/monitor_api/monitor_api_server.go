@@ -1,6 +1,8 @@
 package monitor_api
 
 import (
+	"fmt"
+
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 
@@ -20,7 +22,7 @@ type MonitorApiServer struct {
 func NewMonitorApiServer(conf *config.Config) *MonitorApiServer {
 	conf.Monitor.ApiApp.Name = "monitor.api"
 	server := MonitorApiServer{
-		BaseApp:         base.NewBaseApp(conf, &conf.Monitor.ApiApp),
+		BaseApp:         base.NewBaseApp(conf, &conf.Monitor.ApiApp.AppConfig),
 		conf:            conf,
 		monitorModelApi: monitor_model_api.NewMonitorModelApi(conf),
 	}
@@ -54,6 +56,18 @@ func (srv *MonitorApiServer) UpdateNode(ctx context.Context, req *monitor_api_gr
 	tctx := logger.NewGrpcTraceContext(srv.Host, srv.Name, ctx)
 	startTime := logger.StartTrace(tctx)
 	rep := srv.monitorModelApi.UpdateNode(req)
+	logger.EndGrpcTrace(tctx, startTime, rep.StatusCode, rep.Err)
+	return rep, nil
+}
+
+//
+// Report
+//
+func (srv *MonitorApiServer) Report(ctx context.Context, req *monitor_api_grpc_pb.ReportRequest) (*monitor_api_grpc_pb.ReportReply, error) {
+	tctx := logger.NewGrpcTraceContext(srv.Host, srv.Name, ctx)
+	startTime := logger.StartTrace(tctx)
+	fmt.Println(req)
+	rep := &monitor_api_grpc_pb.ReportReply{}
 	logger.EndGrpcTrace(tctx, startTime, rep.StatusCode, rep.Err)
 	return rep, nil
 }

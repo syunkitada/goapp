@@ -19,7 +19,7 @@ type MonitorAgentServer struct {
 func NewMonitorAgentServer(conf *config.Config) *MonitorAgentServer {
 	conf.Monitor.AgentApp.Name = "monitor.agent"
 	server := MonitorAgentServer{
-		BaseApp:          base.NewBaseApp(conf, &conf.Monitor.AgentApp),
+		BaseApp:          base.NewBaseApp(conf, &conf.Monitor.AgentApp.AppConfig),
 		conf:             conf,
 		monitorApiClient: monitor_api_client.NewMonitorApiClient(conf),
 	}

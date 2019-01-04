@@ -28,11 +28,9 @@ var getNodeCmd = &cobra.Command{
 
 func GetNode() error {
 	var err error
-	traceId := logger.NewTraceContext()
-	startTime := logger.StartCtlTrace(traceId, appName)
-	defer func() {
-		logger.EndCtlTrace(traceId, appName, startTime, err)
-	}()
+	tctx := logger.NewCtlTraceContext(appName)
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err) }()
 
 	authproxy := core.NewAuthproxy(&config.Conf)
 	token, err := authproxy.Auth.CtlIssueToken()
@@ -49,13 +47,16 @@ func GetNode() error {
 	}
 
 	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"Cluster", "Name", "Status", "Status Reason", "Updated At", "Created At"})
+	table.SetHeader([]string{"Cluster", "Name", "Kind", "Status", "Status Reason", "State", "State Reason", "Updated At", "Created At"})
 	for _, node := range resp.Nodes {
 		table.Append([]string{
 			node.Cluster,
 			node.Name,
+			node.Kind,
 			node.Status,
 			node.StatusReason,
+			node.State,
+			node.StateReason,
 			fmt.Sprint(time.Unix(node.UpdatedAt.Seconds, 0)),
 			fmt.Sprint(time.Unix(node.CreatedAt.Seconds, 0)),
 		})

@@ -14,6 +14,8 @@ service MonitorApi {
 
   rpc GetNode(GetNodeRequest) returns (GetNodeReply) {}
   rpc UpdateNode(UpdateNodeRequest) returns (UpdateNodeReply) {}
+
+  rpc Report(ReportRequest) returns (ReportReply) {}
 }
 
 message StatusRequest {}
@@ -69,4 +71,15 @@ message Node {
     string status_reason = 8;
     string state = 9;
     string state_reason = 10;
+}
+
+
+// Report
+message ReportRequest {
+    string index = 1;
+}
+
+message ReportReply {
+    int64 status_code = 1;
+    string err = 2;
 }

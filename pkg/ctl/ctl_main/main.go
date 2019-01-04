@@ -13,7 +13,7 @@ var rootCmd = &cobra.Command{}
 
 func Main() {
 	if err := rootCmd.Execute(); err != nil {
-		logger.Error(config.Conf.Default.Host, "ctl", err)
+		logger.StdoutFatal(err)
 	}
 }
 

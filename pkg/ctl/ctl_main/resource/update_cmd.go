@@ -41,9 +41,10 @@ func init() {
 }
 
 func UpdateResource() error {
-	traceId := logger.NewTraceContext()
-	startTime := logger.StartCtlTrace(traceId, appName)
 	var err error
+	tctx := logger.NewCtlTraceContext(appName)
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err) }()
 
 	authproxy := core.NewAuthproxy(&config.Conf)
 	token, err := authproxy.Auth.CtlIssueToken()
@@ -64,10 +65,8 @@ func UpdateResource() error {
 	switch resourceSpec.Kind {
 	case resource_model.SpecNetworkV4:
 		err = UpdateNetworkV4(token.Token, string(bytes))
-		logger.EndCtlTrace(traceId, appName, startTime, err)
 		return err
 	}
 
-	logger.EndCtlTrace(traceId, appName, startTime, err)
 	return nil
 }

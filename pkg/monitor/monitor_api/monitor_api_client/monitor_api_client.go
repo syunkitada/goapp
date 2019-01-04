@@ -15,7 +15,7 @@ type MonitorApiClient struct {
 
 func NewMonitorApiClient(conf *config.Config) *MonitorApiClient {
 	monitorClient := MonitorApiClient{
-		BaseClient:  base.NewBaseClient(conf, &conf.Monitor.ApiApp),
+		BaseClient:  base.NewBaseClient(conf, &conf.Monitor.ApiApp.AppConfig),
 		conf:        conf,
 		localServer: monitor_api.NewMonitorApiServer(conf),
 	}
@@ -61,6 +61,27 @@ func (cli *MonitorApiClient) GetNode(req *monitor_api_grpc_pb.GetNodeRequest) (*
 	} else {
 		grpcClient := monitor_api_grpc_pb.NewMonitorApiClient(conn)
 		rep, err = grpcClient.GetNode(ctx, req)
+	}
+
+	return rep, err
+}
+
+func (cli *MonitorApiClient) Report(req *monitor_api_grpc_pb.ReportRequest) (*monitor_api_grpc_pb.ReportReply, error) {
+	var rep *monitor_api_grpc_pb.ReportReply
+	var err error
+	conn, err := cli.NewClientConnection()
+	defer conn.Close()
+	if err != nil {
+		return rep, err
+	}
+
+	ctx, cancel := cli.GetContext()
+	defer cancel()
+	if cli.conf.Default.EnableTest {
+		rep, err = cli.localServer.Report(ctx, req)
+	} else {
+		grpcClient := monitor_api_grpc_pb.NewMonitorApiClient(conn)
+		rep, err = grpcClient.Report(ctx, req)
 	}
 
 	return rep, err

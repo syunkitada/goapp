@@ -23,11 +23,9 @@ var getLogCmd = &cobra.Command{
 
 func GetLog() error {
 	var err error
-	traceId := logger.NewTraceContext()
-	startTime := logger.StartCtlTrace(traceId, appName)
-	defer func() {
-		logger.EndCtlTrace(traceId, appName, startTime, err)
-	}()
+	tctx := logger.NewCtlTraceContext(appName)
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err) }()
 
 	authproxy := core.NewAuthproxy(&config.Conf)
 	token, err := authproxy.Auth.CtlIssueToken()

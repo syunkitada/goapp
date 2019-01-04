@@ -55,16 +55,17 @@
 * アラートの抑制はここで行う
 
 
+## システム概要
 ```
-                                        <--------- monitor-agent(index1)
-monitor-alert-manager --> monitor-api   <--------- monitor-agent(index1)
-dashboard -> authproxy -> monitor-api   <--------- monitor-agent(index2)
-ctl       ->                   |        <--------- monitor-agent(index2)
-                               |
-                               |
-                               |-------- influxdb
-                               |index1 - influxdb
-                               |
-                               |-------- influxdb
-                               |index2 - influxdb
+authproxy -->                       monitor-api(clusterA) <--------- monitor-agents(index=cluster1)
+monitor-alert-manager(clusterA) --> monitor-api(clusterA) <--------- monitor-agents(index=cluster2)
+monitor-alert-manager(clusterB) --> monitor-api(clusterB) <--------- monitor-agents(index=cluster3)
+                                    monitor-api(clusterB) <--------- monitor-agents(index=cluster4)
+                                         |
+                                         |
+                                         |-------------------------> influxdb(clusterI)
+                                         |(if index==cluster1, 2) -> influxdb(clusterI)
+                                         |
+                                         |-------------------------> influxdb(clusterJ)
+                                         |(if index==cluster3, 4) -> influxdb(clusterJ)
 ```

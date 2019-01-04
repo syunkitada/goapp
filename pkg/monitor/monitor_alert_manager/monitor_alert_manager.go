@@ -21,7 +21,7 @@ type MonitorAlertManagerServer struct {
 func NewMonitorAlertManagerServer(conf *config.Config) *MonitorAlertManagerServer {
 	conf.Monitor.AlertManagerApp.Name = "monitor.alert_manager"
 	server := MonitorAlertManagerServer{
-		BaseApp:          base.NewBaseApp(conf, &conf.Monitor.AlertManagerApp),
+		BaseApp:          base.NewBaseApp(conf, &conf.Monitor.AlertManagerApp.AppConfig),
 		conf:             conf,
 		monitorApiClient: monitor_api_client.NewMonitorApiClient(conf),
 		monitorModelApi:  monitor_model_api.NewMonitorModelApi(conf),

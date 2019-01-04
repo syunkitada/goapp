@@ -41,11 +41,9 @@ var deleteImageCmd = &cobra.Command{
 
 func GetImage() error {
 	var err error
-	traceId := logger.NewTraceContext()
-	startTime := logger.StartCtlTrace(traceId, appName)
-	defer func() {
-		logger.EndCtlTrace(traceId, appName, startTime, err)
-	}()
+	tctx := logger.NewCtlTraceContext(appName)
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err) }()
 
 	authproxy := core.NewAuthproxy(&config.Conf)
 	token, err := authproxy.Auth.CtlIssueToken()
@@ -130,11 +128,9 @@ func UpdateImage(token string, spec string) error {
 
 func DeleteImage(imageName string) error {
 	var err error
-	traceId := logger.NewTraceContext()
-	startTime := logger.StartCtlTrace(traceId, appName)
-	defer func() {
-		logger.EndCtlTrace(traceId, appName, startTime, err)
-	}()
+	tctx := logger.NewCtlTraceContext(appName)
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err) }()
 
 	authproxy := core.NewAuthproxy(&config.Conf)
 	token, err := authproxy.Auth.CtlIssueToken()

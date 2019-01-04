@@ -1,11 +1,11 @@
 package ctl_admin
 
 import (
-	"github.com/golang/glog"
 	"github.com/spf13/cobra"
 
 	"github.com/syunkitada/goapp/pkg/config"
 	"github.com/syunkitada/goapp/pkg/ctl/ctl_admin/resource"
+	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
 
 var RootCmd = &cobra.Command{
@@ -17,7 +17,7 @@ var RootCmd = &cobra.Command{
 
 func Main() {
 	if err := RootCmd.Execute(); err != nil {
-		glog.Fatal(err)
+		logger.StdoutFatal(err)
 	}
 }
 

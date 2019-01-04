@@ -39,43 +39,38 @@ func init() {
 }
 
 func CreateResource() error {
-	traceId := logger.NewTraceContext()
-	startTime := logger.StartCtlTrace(traceId, appName)
 	var err error
+	tctx := logger.NewCtlTraceContext(appName)
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err) }()
 
 	authproxy := core.NewAuthproxy(&config.Conf)
 	token, err := authproxy.Auth.CtlIssueToken()
 	if err != nil {
-		logger.EndCtlTrace(traceId, appName, startTime, err)
 		return fmt.Errorf("Failed issue token: %v", err)
 	}
 
 	bytes, err := ioutil.ReadFile(createCmdFileFlag)
 	if err != nil {
-		logger.EndCtlTrace(traceId, appName, startTime, err)
 		return fmt.Errorf("Failed read file: %v", err)
 	}
 
 	var resourceSpec resource_model.ResourceSpec
 	if err = json.Unmarshal(bytes, &resourceSpec); err != nil {
-		logger.EndCtlTrace(traceId, appName, startTime, err)
 		return fmt.Errorf("Failed unmarshal file: %v", err)
 	}
 
 	switch resourceSpec.Kind {
 	case resource_model.SpecNetworkV4:
 		err = CreateNetworkV4(token.Token, string(bytes))
-		logger.EndCtlTrace(traceId, appName, startTime, err)
 		return err
 	case resource_model.SpecCompute:
 		err = CreateCompute(token.Token, string(bytes))
-		logger.EndCtlTrace(traceId, appName, startTime, err)
 		return err
 	case resource_model.SpecContainer:
 		glog.Info("Container")
 	case resource_model.SpecImage:
 		err = CreateImage(token.Token, string(bytes))
-		logger.EndCtlTrace(traceId, appName, startTime, err)
 		return err
 	case resource_model.SpecVolume:
 		glog.Info("Volume")
@@ -83,6 +78,5 @@ func CreateResource() error {
 		glog.Info("Loadbalancer")
 	}
 
-	logger.EndCtlTrace(traceId, appName, startTime, err)
 	return nil
 }

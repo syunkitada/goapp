@@ -51,6 +51,19 @@ func NewTraceContext(host string, app string) *TraceContext {
 	}
 }
 
+func NewCtlTraceContext(app string) *TraceContext {
+	return &TraceContext{
+		TraceId: xid.New().String(),
+		Host:    conf.Default.Host,
+		App:     app,
+		Metadata: map[string]string{
+			"Username": conf.Ctl.Username,
+			"Project":  conf.Ctl.Project,
+			"ApiUrl":   conf.Ctl.ApiUrl,
+		},
+	}
+}
+
 func NewAuthproxyActionTraceContext(host string, app string, traceId string, user string) *TraceContext {
 	return &TraceContext{
 		TraceId: xid.New().String(),

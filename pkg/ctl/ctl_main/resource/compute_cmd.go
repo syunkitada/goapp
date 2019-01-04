@@ -41,11 +41,9 @@ var deleteComputeCmd = &cobra.Command{
 
 func GetCompute() error {
 	var err error
-	traceId := logger.NewTraceContext()
-	startTime := logger.StartCtlTrace(traceId, appName)
-	defer func() {
-		logger.EndCtlTrace(traceId, appName, startTime, err)
-	}()
+	tctx := logger.NewCtlTraceContext(appName)
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err) }()
 
 	authproxy := core.NewAuthproxy(&config.Conf)
 	token, err := authproxy.Auth.CtlIssueToken()
@@ -130,11 +128,9 @@ func UpdateCompute(token string, spec string) error {
 
 func DeleteCompute(computeName string) error {
 	var err error
-	traceId := logger.NewTraceContext()
-	startTime := logger.StartCtlTrace(traceId, appName)
-	defer func() {
-		logger.EndCtlTrace(traceId, appName, startTime, err)
-	}()
+	tctx := logger.NewCtlTraceContext(appName)
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err) }()
 
 	authproxy := core.NewAuthproxy(&config.Conf)
 	token, err := authproxy.Auth.CtlIssueToken()
