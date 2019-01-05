@@ -77,6 +77,13 @@ message Node {
 // Report
 message ReportRequest {
     string index = 1;
+    repeated Log logs = 2;
+}
+
+message Log {
+    string name = 1;
+    string time = 2;
+    map<string, string> log = 3;
 }
 
 message ReportReply {

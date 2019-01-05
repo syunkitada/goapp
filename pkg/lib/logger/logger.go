@@ -18,10 +18,11 @@ import (
 )
 
 var (
-	conf         *config.Config
-	name         string
-	Logger       *log.Logger
-	stdoutLogger *log.Logger
+	conf          *config.Config
+	name          string
+	Logger        *log.Logger
+	stdoutLogger  *log.Logger
+	logTimeFormat string
 )
 
 const (
@@ -94,9 +95,11 @@ func NewGrpcTraceContext(host string, app string, ctx context.Context) *TraceCon
 }
 
 func Init() {
-	stdoutLogger = log.New(os.Stdout, "", log.Ldate|log.Ltime)
-
 	conf = &config.Conf
+
+	stdoutLogger = log.New(os.Stdout, "", log.Ldate|log.Ltime)
+	logTimeFormat = conf.Default.LogTimeFormat
+
 	name = os.Getenv("LOG_FILE")
 	if name == "" {
 		for _, arg := range os.Args {
@@ -127,7 +130,7 @@ func Init() {
 }
 
 func timePrefix() string {
-	return "Time=\"hoge\""
+	return "Time=\"" + time.Now().Format(logTimeFormat) + "\""
 }
 
 func convertTags(ctx *TraceContext) string {

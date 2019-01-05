@@ -21,6 +21,7 @@ type DefaultConfig struct {
 	ConfigFile        string
 	TmpDir            string
 	LogDir            string
+	LogTimeFormat     string
 	EnableTest        bool
 	EnableDevelop     bool
 	EnableDebug       bool
@@ -129,4 +130,8 @@ func newConfig(defaultConfig *DefaultConfig) *Config {
 
 func (conf *Config) Path(path string) string {
 	return filepath.Join(conf.Default.ConfigDir, path)
+}
+
+func (conf *Config) LogPath(path string) string {
+	return filepath.Join(conf.Default.LogDir, path)
 }

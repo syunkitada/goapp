@@ -19,8 +19,10 @@ type MonitorAlertManagerAppConfig struct {
 
 type MonitorAgentAppConfig struct {
 	AppConfig
-	Index  string
-	LogMap map[string]MonitorLogConfig
+	Index                string
+	FlushSpan            int
+	LogReaderRefreshSpan int
+	LogMap               map[string]MonitorLogConfig
 }
 
 type MonitorDatabaseConfig struct {
@@ -29,12 +31,13 @@ type MonitorDatabaseConfig struct {
 
 type MonitorLogConfig struct {
 	Path               string
-	MaxInitialReadLine int
+	LogFormat          string
+	MaxInitialReadSize int64
 	AlertMap           map[string]MonitorLogAlertConfig
 }
 
 type MonitorLogAlertConfig struct {
-	Patterns       []string
-	OccurenceCount int
-	OccurenceSpan  int
+	Key     string
+	Pattern string
+	Handler string
 }

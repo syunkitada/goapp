@@ -1,10 +1,7 @@
 package monitor_agent
 
 import (
-	"fmt"
-	// "path/filepath"
-
-	"github.com/hpcloud/tail"
+	// "fmt"
 
 	// "github.com/syunkitada/goapp/pkg/config"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
@@ -12,44 +9,60 @@ import (
 )
 
 func (srv *MonitorAgentServer) MainTask(tctx *logger.TraceContext) error {
-	// if err := srv.Report(tctx); err != nil {
-	// 	return err
-	// }
+	var err error
 
-	if err := srv.TestReport(tctx); err != nil {
-		return err
+	if srv.logReaderRefreshCount == 0 {
+		for logName, logConf := range srv.conf.Monitor.AgentApp.LogMap {
+			if _, ok := srv.logReaderMap[logName]; ok {
+				continue
+			}
+
+			reader, err := NewLogReader(srv.conf, logName, &logConf)
+			if err != nil {
+				continue
+			}
+			srv.logReaderMap[logName] = reader
+		}
+	}
+
+	if srv.logReaderRefreshCount >= srv.logReaderRefreshSpan {
+		srv.logReaderRefreshCount = 0
+	} else {
+		srv.logReaderRefreshCount += 1
+	}
+
+	for logName, logReader := range srv.logReaderMap {
+		err = logReader.ReadUntilEOF(tctx)
+		if err != nil {
+			logger.Warningf(tctx, err, "Failed logReader.ReadUntilEOF(): %v", logName)
+		}
+	}
+
+	if srv.flushCount == 0 {
+		srv.Report(tctx)
+	}
+
+	if srv.flushCount >= srv.flushSpan {
+		srv.flushCount = 0
+	} else {
+		srv.flushCount += 1
 	}
 
 	return nil
 }
 
 func (srv *MonitorAgentServer) Report(tctx *logger.TraceContext) error {
-	var err error
-	startTime := logger.StartTrace(tctx)
-	defer func() { logger.EndTrace(tctx, startTime, err) }()
-
-	t, err := tail.TailFile("/home/owner/.goapp/logs/goapp-resource-api.log", tail.Config{
-		Follow: true,
-	})
-
-	if err != nil {
-		fmt.Print(err)
-		return nil
+	pbLogs := []*monitor_api_grpc_pb.Log{}
+	for _, logReader := range srv.logReaderMap {
+		logs := logReader.GetLogs()
+		pbLogs = append(pbLogs, logs...)
 	}
-	for line := range t.Lines {
-		fmt.Println(line.Text)
-		break
-	}
-	t.Cleanup()
 
-	return nil
-}
-
-func (srv *MonitorAgentServer) TestReport(tctx *logger.TraceContext) error {
 	req := &monitor_api_grpc_pb.ReportRequest{
-		Index: "hoge",
+		Index: srv.reportIndex,
+		Logs:  pbLogs,
 	}
-	rep, err := srv.monitorApiClient.Report(req)
-	fmt.Println(rep)
+
+	_, err := srv.monitorApiClient.Report(req)
 	return err
 }

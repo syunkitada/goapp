@@ -97,6 +97,8 @@ func InitConfig() {
 		}
 	}
 
+	logTimeFormat := "2006-01-02T15:04:05Z09:00"
+
 	if enableDebug {
 		enableDatabaseLog = true
 	}
@@ -114,6 +116,7 @@ func InitConfig() {
 		ConfigFile:        filepath.Join(configDir, configFile),
 		TmpDir:            tmpDir,
 		LogDir:            logDir,
+		LogTimeFormat:     logTimeFormat,
 		EnableDebug:       enableDebug,
 		EnableDevelop:     enableDevelop,
 		EnableDatabaseLog: enableDatabaseLog,
