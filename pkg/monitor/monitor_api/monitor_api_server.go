@@ -87,7 +87,7 @@ func (srv *MonitorApiServer) Report(ctx context.Context, req *monitor_api_grpc_p
 
 	if indexers, ok := srv.indexersMap[req.Index]; ok {
 		for _, indexer := range indexers {
-			indexer.Report(req.Logs)
+			indexer.Report(tctx, req.Logs)
 		}
 	} else {
 		logger.Warningf(tctx, fmt.Errorf("InvalidIndex"), "index=%v", req.Index)

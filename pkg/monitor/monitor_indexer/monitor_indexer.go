@@ -4,11 +4,12 @@ import (
 	"fmt"
 
 	"github.com/syunkitada/goapp/pkg/config"
+	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/monitor/monitor_api/monitor_api_grpc_pb"
 )
 
 type Indexer interface {
-	Report(logs []*monitor_api_grpc_pb.Log) error
+	Report(tctx *logger.TraceContext, logs []*monitor_api_grpc_pb.Log) error
 }
 
 func NewIndexer(indexerConfig *config.MonitorIndexerConfig) (Indexer, error) {

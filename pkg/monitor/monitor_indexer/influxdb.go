@@ -14,37 +14,40 @@ import (
 )
 
 type InfluxdbIndexer struct {
-	clients []Client
+	logClients    []*Client
+	metricClients []*Client
 }
 
 func NewInfluxdbIndexer(indexerConfig *config.MonitorIndexerConfig) (*InfluxdbIndexer, error) {
-	clients := []Client{}
-	for _, connection := range indexerConfig.Connections {
-		userPassUrlDb := strings.Split(connection, "@")
-		if len(userPassUrlDb) != 3 {
-			return nil, fmt.Errorf("Invalid influxdb connection")
+	logClients := []*Client{}
+	for _, databaseInfo := range indexerConfig.LogDatabases {
+		client, err := NewClient(databaseInfo)
+		if err != nil {
+			return nil, err
 		}
+		logClients = append(logClients, client)
+	}
 
-		userPass := strings.Split(userPassUrlDb[0], ":")
-		if len(userPass) != 2 {
-			return nil, fmt.Errorf("Invalid influxdb connection")
+	metricClients := []*Client{}
+	for _, databaseInfo := range indexerConfig.MetricDatabases {
+		client, err := NewClient(databaseInfo)
+		if err != nil {
+			return nil, err
 		}
-
-		clients = append(clients, Client{
-			queryUrl:   userPassUrlDb[1] + "/query",
-			writeUrl:   userPassUrlDb[1] + "/write?db=" + userPassUrlDb[2],
-			username:   userPass[0],
-			password:   userPass[1],
-			httpClient: &http.Client{},
-		})
+		metricClients = append(metricClients, client)
 	}
 
 	return &InfluxdbIndexer{
-		clients: clients,
+		logClients:    logClients,
+		metricClients: metricClients,
 	}, nil
 }
 
-func (indexer *InfluxdbIndexer) Report(logs []*monitor_api_grpc_pb.Log) error {
+func (indexer *InfluxdbIndexer) Report(tctx *logger.TraceContext, logs []*monitor_api_grpc_pb.Log) error {
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err) }()
+
 	data := ""
 	for _, log := range logs {
 		tags := ""
@@ -76,10 +79,12 @@ func (indexer *InfluxdbIndexer) Report(logs []*monitor_api_grpc_pb.Log) error {
 		}
 		data += log.Name + tags + " Log=\"" + logstr[1:] + "\"" + values + " " + strconv.FormatInt(timestamp.UnixNano(), 10) + "\n"
 	}
-	fmt.Println(data)
 
-	for _, client := range indexer.clients {
-		client.Write(data)
+	for _, client := range indexer.logClients {
+		err := client.Write(data)
+		if err != nil {
+			logger.Warning(tctx, err, "Failed Write")
+		}
 	}
 
 	return nil
@@ -93,6 +98,26 @@ type Client struct {
 	httpClient *http.Client
 }
 
+func NewClient(databaseInfo string) (*Client, error) {
+	userPassUrlDb := strings.Split(databaseInfo, "@")
+	if len(userPassUrlDb) != 3 {
+		return nil, fmt.Errorf("Invalid influxdb connection")
+	}
+
+	userPass := strings.Split(userPassUrlDb[0], ":")
+	if len(userPass) != 2 {
+		return nil, fmt.Errorf("Invalid influxdb connection")
+	}
+
+	return &Client{
+		queryUrl:   userPassUrlDb[1] + "/query",
+		writeUrl:   userPassUrlDb[1] + "/write?db=" + userPassUrlDb[2],
+		username:   userPass[0],
+		password:   userPass[1],
+		httpClient: &http.Client{},
+	}, nil
+}
+
 func (c *Client) Write(data string) error {
 	var err error
 	req, err := http.NewRequest("POST", c.writeUrl, bytes.NewBuffer([]byte(data)))
@@ -103,10 +128,10 @@ func (c *Client) Write(data string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(c.writeUrl)
-	fmt.Println(resp.StatusCode)
-	if resp.StatusCode == 200 {
+
+	if resp.StatusCode == 204 {
 		return nil
 	}
-	return nil
+
+	return fmt.Errorf("InvalidStatusCode: %v", resp.StatusCode)
 }
