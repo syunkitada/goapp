@@ -10,6 +10,7 @@ import (
 	"github.com/syunkitada/goapp/pkg/config"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/monitor/monitor_api/monitor_api_grpc_pb"
+	"github.com/syunkitada/goapp/pkg/monitor/monitor_indexer"
 	"github.com/syunkitada/goapp/pkg/monitor/monitor_model/monitor_model_api"
 )
 
@@ -17,14 +18,31 @@ type MonitorApiServer struct {
 	base.BaseApp
 	conf            *config.Config
 	monitorModelApi *monitor_model_api.MonitorModelApi
+	indexersMap     map[string][]monitor_indexer.Indexer
 }
 
 func NewMonitorApiServer(conf *config.Config) *MonitorApiServer {
+	indexersMap := map[string][]monitor_indexer.Indexer{}
+	for _, indexer := range conf.Monitor.Indexers {
+		for _, index := range indexer.Indexes {
+			newIndexer, err := monitor_indexer.NewIndexer(&indexer)
+			if err != nil {
+				logger.StdoutFatal(err)
+			}
+			if indexers, ok := indexersMap[index]; ok {
+				indexersMap[index] = append(indexers, newIndexer)
+			} else {
+				indexersMap[index] = []monitor_indexer.Indexer{newIndexer}
+			}
+		}
+	}
+
 	conf.Monitor.ApiApp.Name = "monitor.api"
 	server := MonitorApiServer{
 		BaseApp:         base.NewBaseApp(conf, &conf.Monitor.ApiApp.AppConfig),
 		conf:            conf,
 		monitorModelApi: monitor_model_api.NewMonitorModelApi(conf),
+		indexersMap:     indexersMap,
 	}
 
 	server.RegisterDriver(&server)
@@ -66,7 +84,15 @@ func (srv *MonitorApiServer) UpdateNode(ctx context.Context, req *monitor_api_gr
 func (srv *MonitorApiServer) Report(ctx context.Context, req *monitor_api_grpc_pb.ReportRequest) (*monitor_api_grpc_pb.ReportReply, error) {
 	tctx := logger.NewGrpcTraceContext(srv.Host, srv.Name, ctx)
 	startTime := logger.StartTrace(tctx)
-	fmt.Println(req)
+
+	if indexers, ok := srv.indexersMap[req.Index]; ok {
+		for _, indexer := range indexers {
+			indexer.Report(req.Logs)
+		}
+	} else {
+		logger.Warningf(tctx, fmt.Errorf("InvalidIndex"), "index=%v", req.Index)
+	}
+
 	rep := &monitor_api_grpc_pb.ReportReply{}
 	logger.EndGrpcTrace(tctx, startTime, rep.StatusCode, rep.Err)
 	return rep, nil

@@ -133,8 +133,11 @@ func timePrefix() string {
 	return "Time=\"" + time.Now().Format(logTimeFormat) + "\""
 }
 
-func convertTags(ctx *TraceContext) string {
-	tags := ""
+func convertTags(tctx *TraceContext) string {
+	tags := " TraceId=\"" + tctx.TraceId + " Host=\"" + tctx.Host + "\" App=\"" + tctx.App + "\" Func=\"" + tctx.Func + "\""
+	for k, v := range tctx.Metadata {
+		tags += " " + k + "=\"" + v + "\""
+	}
 	return tags
 }
 

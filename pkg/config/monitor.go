@@ -6,11 +6,17 @@ type MonitorConfig struct {
 	AlertManagerApp MonitorAlertManagerAppConfig
 	AgentApp        MonitorAgentAppConfig
 	Database        DatabaseConfig
+	Indexers        []MonitorIndexerConfig
+}
+
+type MonitorIndexerConfig struct {
+	Driver      string
+	Indexes     []string
+	Connections []string
 }
 
 type MonitorApiAppConfig struct {
 	AppConfig
-	IndexDatabaseMap map[string]MonitorDatabaseConfig
 }
 
 type MonitorAlertManagerAppConfig struct {
@@ -23,10 +29,6 @@ type MonitorAgentAppConfig struct {
 	FlushSpan            int
 	LogReaderRefreshSpan int
 	LogMap               map[string]MonitorLogConfig
-}
-
-type MonitorDatabaseConfig struct {
-	Connections []string
 }
 
 type MonitorLogConfig struct {
