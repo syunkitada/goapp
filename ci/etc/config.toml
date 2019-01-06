@@ -19,7 +19,7 @@ Connection = "admin:adminpass@tcp(localhost:3306)/goapp_monitor?charset=utf8&par
 [[Monitor.Indexers]]
 Driver = "influxdb"
 Indexes = ["cluster1"]
-Connections = ["goapp:goapppass@http://localhost:8086"]
+Connections = ["goapp:goapppass@http://localhost:8086@goapp_monitor_logs"]
 
 [Monitor.AlertManagerApp]
 Name = "alert-manager"

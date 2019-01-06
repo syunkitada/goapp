@@ -22,7 +22,7 @@ var (
 	name          string
 	Logger        *log.Logger
 	stdoutLogger  *log.Logger
-	logTimeFormat string
+	LogTimeFormat string
 )
 
 const (
@@ -98,7 +98,7 @@ func Init() {
 	conf = &config.Conf
 
 	stdoutLogger = log.New(os.Stdout, "", log.Ldate|log.Ltime)
-	logTimeFormat = conf.Default.LogTimeFormat
+	LogTimeFormat = conf.Default.LogTimeFormat
 
 	name = os.Getenv("LOG_FILE")
 	if name == "" {
@@ -130,11 +130,11 @@ func Init() {
 }
 
 func timePrefix() string {
-	return "Time=\"" + time.Now().Format(logTimeFormat) + "\""
+	return "Time=\"" + time.Now().Format(LogTimeFormat) + "\""
 }
 
 func convertTags(tctx *TraceContext) string {
-	tags := " TraceId=\"" + tctx.TraceId + " Host=\"" + tctx.Host + "\" App=\"" + tctx.App + "\" Func=\"" + tctx.Func + "\""
+	tags := " TraceId=\"" + tctx.TraceId + "\" Host=\"" + tctx.Host + "\" App=\"" + tctx.App + "\" Func=\"" + tctx.Func + "\""
 	for k, v := range tctx.Metadata {
 		tags += " " + k + "=\"" + v + "\""
 	}
