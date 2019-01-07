@@ -1,9 +1,9 @@
-package resource
+package monitor
 
 import (
 	"fmt"
 	"os"
-	"time"
+	// "time"
 
 	"github.com/golang/glog"
 	"github.com/spf13/cobra"
@@ -14,19 +14,19 @@ import (
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
 
-var getNodeCmd = &cobra.Command{
-	Use:   "node",
-	Short: "Show nodes",
-	Long: `Show nodes
+var getHostCmd = &cobra.Command{
+	Use:   "host",
+	Short: "Show hosts",
+	Long: `Show hosts
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
-		if err := GetNode(); err != nil {
+		if err := GetHost(); err != nil {
 			glog.Fatal(err)
 		}
 	},
 }
 
-func GetNode() error {
+func GetHost() error {
 	var err error
 	tctx := logger.NewCtlTraceContext(appName)
 	startTime := logger.StartTrace(tctx)
@@ -38,24 +38,20 @@ func GetNode() error {
 		return err
 	}
 
-	resp, err := authproxy.Resource.CtlGetNode(token.Token, getCmdClusterFlag, "%")
+	// TODO set index
+	resp, err := authproxy.Monitor.CtlGetHost(token.Token, "cluster1")
 	if err != nil {
 		return err
 	}
 	if config.Conf.Default.EnableDebug {
-		fmt.Printf("GetNode.TraceID: %v\n", resp.TraceId)
+		fmt.Printf("GetHost.TraceID: %v\n", resp.TraceId)
 	}
 
 	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"Cluster", "Name", "Status", "Status Reason", "Updated At", "Created At"})
-	for _, node := range resp.Nodes {
+	table.SetHeader([]string{"Name"})
+	for _, host := range resp.HostMap {
 		table.Append([]string{
-			node.Cluster,
-			node.Name,
-			node.Status,
-			node.StatusReason,
-			fmt.Sprint(time.Unix(node.UpdatedAt.Seconds, 0)),
-			fmt.Sprint(time.Unix(node.CreatedAt.Seconds, 0)),
+			host.Name,
 		})
 	}
 	table.Render()

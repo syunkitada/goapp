@@ -113,7 +113,7 @@ message GetHostRequest {
 message GetHostReply {
     int64 status_code = 1;
     string err = 2;
-    repeated Host hosts = 3;
+    map<string, Host> host_map = 3;
 }
 
 message Host {

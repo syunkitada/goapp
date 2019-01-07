@@ -31,7 +31,7 @@ func (srv *MonitorAlertManagerServer) MainTask(tctx *logger.TraceContext) error 
 func (srv *MonitorAlertManagerServer) UpdateNode(tctx *logger.TraceContext) error {
 	var err error
 	startTime := logger.StartTrace(tctx)
-	defer func() { logger.EndTrace(tctx, startTime, err) }()
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
 	req := &monitor_api_grpc_pb.UpdateNodeRequest{
 		TraceId:      tctx.TraceId,
@@ -56,7 +56,7 @@ func (srv *MonitorAlertManagerServer) UpdateNode(tctx *logger.TraceContext) erro
 func (srv *MonitorAlertManagerServer) SyncRole(tctx *logger.TraceContext) error {
 	var err error
 	startTime := logger.StartTrace(tctx)
-	defer func() { logger.EndTrace(tctx, startTime, err) }()
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
 	nodes, err := srv.monitorModelApi.SyncRole(monitor_model.KindMonitorAlertManager)
 	if err != nil {

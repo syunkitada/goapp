@@ -81,7 +81,7 @@ func (modelApi *AuthproxyModelApi) Bootstrap() error {
 		"GetLoadbalancer", "CreateLoadbalancer", "UpdateLoadbalancer", "DeleteLoadbalancer",
 	}
 	actionMap["Monitor"] = []string{
-		"GetState", "GetNode", "GetLog",
+		"GetState", "GetNode", "GetHost", "GetLog", "GetMetric",
 	}
 
 	for _, userTenantService := range userTenantServices {

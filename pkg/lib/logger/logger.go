@@ -218,8 +218,8 @@ func StartTrace(tctx *TraceContext) time.Time {
 	return startTime
 }
 
-func EndTrace(tctx *TraceContext, startTime time.Time, err error) {
-	tctx.Func = getFunc(1)
+func EndTrace(tctx *TraceContext, startTime time.Time, err error, depth int) {
+	tctx.Func = getFunc(depth)
 	tctx.Metadata["Latency"] = strconv.FormatInt(time.Now().Sub(startTime).Nanoseconds()/1000000, 10)
 	if err != nil {
 		Error(tctx, err, "EndTrace")

@@ -16,7 +16,7 @@ import (
 )
 
 type ResponseGetHost struct {
-	Hosts   []monitor_api_grpc_pb.Host
+	HostMap map[string]monitor_api_grpc_pb.Host
 	TraceId string
 	Err     string
 }
@@ -61,7 +61,7 @@ func (monitor *Monitor) GetHost(c *gin.Context, rc *MonitorContext) (int, string
 
 	c.JSON(http.StatusOK, gin.H{
 		"TraceId": rc.traceId,
-		"Hosts":   rep.Hosts,
+		"HostMap": rep.HostMap,
 	})
 	return int(rep.StatusCode), rep.Err
 }

@@ -44,7 +44,7 @@ func (srv *ResourceControllerServer) MainTask(tctx *logger.TraceContext) error {
 func (srv *ResourceControllerServer) UpdateNode(tctx *logger.TraceContext) error {
 	var err error
 	startTime := logger.StartTrace(tctx)
-	defer func() { logger.EndTrace(tctx, startTime, err) }()
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
 	req := &resource_api_grpc_pb.UpdateNodeRequest{
 		TraceId:      tctx.TraceId,
@@ -69,7 +69,7 @@ func (srv *ResourceControllerServer) UpdateNode(tctx *logger.TraceContext) error
 func (srv *ResourceControllerServer) SyncRole(tctx *logger.TraceContext) error {
 	var err error
 	startTime := logger.StartTrace(tctx)
-	defer func() { logger.EndTrace(tctx, startTime, err) }()
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
 	nodes, err := srv.resourceModelApi.SyncRole(resource_model.KindResourceController)
 	if err != nil {
@@ -110,7 +110,7 @@ func (srv *ResourceControllerServer) SyncCompute(tctx *logger.TraceContext, wg *
 	defer func() { wg.Done() }()
 	var err error
 	startTime := logger.StartTrace(tctx)
-	defer func() { logger.EndTrace(tctx, startTime, err) }()
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
 	errChan := make(chan error)
 

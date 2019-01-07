@@ -25,7 +25,7 @@ func GetLog() error {
 	var err error
 	tctx := logger.NewCtlTraceContext(appName)
 	startTime := logger.StartTrace(tctx)
-	defer func() { logger.EndTrace(tctx, startTime, err) }()
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
 	authproxy := core.NewAuthproxy(&config.Conf)
 	token, err := authproxy.Auth.CtlIssueToken()

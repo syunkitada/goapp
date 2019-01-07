@@ -1,12 +1,14 @@
 package monitor_agent
 
 import (
-	// "fmt"
+	"fmt"
 
 	// "github.com/syunkitada/goapp/pkg/config"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/monitor/monitor_api/monitor_api_grpc_pb"
 )
+
+var _ = fmt.Printf // For debugging: TODO Remove
 
 func (srv *MonitorAgentServer) MainTask(tctx *logger.TraceContext) error {
 	var err error
@@ -65,5 +67,8 @@ func (srv *MonitorAgentServer) Report(tctx *logger.TraceContext) error {
 	}
 
 	_, err := srv.monitorApiClient.Report(req)
+
+	// TODO clear logs
+
 	return err
 }

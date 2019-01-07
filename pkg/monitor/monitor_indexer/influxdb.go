@@ -2,7 +2,9 @@ package monitor_indexer
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 	"strings"
@@ -46,7 +48,7 @@ func NewInfluxdbIndexer(indexerConfig *config.MonitorIndexerConfig) (*InfluxdbIn
 func (indexer *InfluxdbIndexer) Report(tctx *logger.TraceContext, req *monitor_api_grpc_pb.ReportRequest) error {
 	var err error
 	startTime := logger.StartTrace(tctx)
-	defer func() { logger.EndTrace(tctx, startTime, err) }()
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
 	data := ""
 	for _, log := range req.Logs {
@@ -90,6 +92,25 @@ func (indexer *InfluxdbIndexer) Report(tctx *logger.TraceContext, req *monitor_a
 	return nil
 }
 
+func (indexer *InfluxdbIndexer) GetHost(tctx *logger.TraceContext, req *monitor_api_grpc_pb.GetHostRequest, hostMap map[string]*monitor_api_grpc_pb.Host) error {
+	// TODO FIX query
+	query := "show tag values from \"monitor-api\" with key = \"Host\""
+	for _, client := range indexer.logClients {
+		result, err := client.Query(query)
+		for _, v := range result.Results[0].Series[0].Values {
+			host := v[1]
+			hostMap[host] = &monitor_api_grpc_pb.Host{
+				Name: host,
+			}
+		}
+		if err != nil {
+			logger.Warning(tctx, err, "Failed Query")
+		}
+	}
+
+	return nil
+}
+
 type Client struct {
 	queryUrl   string
 	writeUrl   string
@@ -110,12 +131,61 @@ func NewClient(databaseInfo string) (*Client, error) {
 	}
 
 	return &Client{
-		queryUrl:   userPassUrlDb[1] + "/query",
+		queryUrl:   userPassUrlDb[1] + "/query?db=" + userPassUrlDb[2],
 		writeUrl:   userPassUrlDb[1] + "/write?db=" + userPassUrlDb[2],
 		username:   userPass[0],
 		password:   userPass[1],
 		httpClient: &http.Client{},
 	}, nil
+}
+
+type QueryResult struct {
+	Results []Result
+}
+
+type Result struct {
+	Series []Series
+}
+
+type Series struct {
+	Name    string
+	Columns []string
+	Values  [][]string
+}
+
+func (c *Client) Query(data string) (*QueryResult, error) {
+	var err error
+
+	req, err := http.NewRequest("GET", c.queryUrl, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	query := req.URL.Query()
+	query.Add("q", data)
+	req.URL.RawQuery = query.Encode()
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var result *QueryResult
+	if err := json.Unmarshal(body, &result); err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode == 200 {
+		return result, nil
+	}
+
+	return nil, fmt.Errorf("InvalidStatusCode: %v", resp.StatusCode)
 }
 
 func (c *Client) Write(data string) error {

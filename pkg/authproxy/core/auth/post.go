@@ -33,7 +33,7 @@ func (auth *Auth) IssueToken(c *gin.Context) {
 	}
 	tctx := logger.NewAuthproxyActionTraceContext(auth.host, auth.name, traceId, authRequest.Username)
 	startTime := logger.StartTrace(tctx)
-	defer func() { logger.EndTrace(tctx, startTime, err) }()
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
 	var token string
 	token, err = auth.token.AuthAndIssueToken(&authRequest)

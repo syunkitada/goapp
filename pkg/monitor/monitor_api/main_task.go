@@ -19,9 +19,7 @@ func (srv *MonitorApiServer) MainTask(tctx *logger.TraceContext) error {
 func (srv *MonitorApiServer) UpdateNodeTask(tctx *logger.TraceContext) error {
 	var err error
 	startTime := logger.StartTrace(tctx)
-	defer func() {
-		logger.EndTrace(tctx, startTime, err)
-	}()
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
 	req := &monitor_api_grpc_pb.UpdateNodeRequest{
 		Name:         srv.Host,

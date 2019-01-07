@@ -10,6 +10,7 @@ import (
 
 type Indexer interface {
 	Report(tctx *logger.TraceContext, req *monitor_api_grpc_pb.ReportRequest) error
+	GetHost(tctx *logger.TraceContext, req *monitor_api_grpc_pb.GetHostRequest, hostMap map[string]*monitor_api_grpc_pb.Host) error
 }
 
 func NewIndexer(indexerConfig *config.MonitorIndexerConfig) (Indexer, error) {

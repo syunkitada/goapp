@@ -63,7 +63,7 @@ func (app *BaseApp) mainLoop() {
 		tctx = logger.NewTraceContext(app.Host, app.Name)
 		startTime = logger.StartTrace(tctx)
 		err = app.driver.MainTask(tctx)
-		logger.EndTrace(tctx, startTime, err)
+		logger.EndTrace(tctx, startTime, err, 0)
 
 		if app.isGracefulShutdown {
 			logger.Info(tctx, "Completed graceful shutdown mainTask")
@@ -72,7 +72,7 @@ func (app *BaseApp) mainLoop() {
 			app.grpcServer.GracefulStop()
 			logger.Info(tctx, "Completed grpcServer.GracefulStop")
 			logger.Info(tctx, "Completed graceful shutdown")
-			logger.EndTrace(tctx, startTime, nil)
+			logger.EndTrace(tctx, startTime, nil, 0)
 			os.Exit(0)
 		}
 
@@ -87,7 +87,7 @@ func (app *BaseApp) Serve() error {
 	tctx := logger.NewTraceContext(app.Host, app.Name)
 	startTime := logger.StartTrace(tctx)
 	defer func() {
-		logger.EndTrace(tctx, startTime, err)
+		logger.EndTrace(tctx, startTime, err, 0)
 	}()
 
 	var lis net.Listener
@@ -136,7 +136,7 @@ func (app *BaseApp) gracefulShutdown(ctx context.Context) error {
 	tctx := logger.NewTraceContext(app.Host, app.Name)
 	startTime := logger.StartTrace(tctx)
 	defer func() {
-		logger.EndTrace(tctx, startTime, err)
+		logger.EndTrace(tctx, startTime, err, 0)
 	}()
 
 	ctx, cancel := context.WithTimeout(ctx, app.shutdownTimeout)

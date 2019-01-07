@@ -20,7 +20,7 @@ func (srv *ResourceApiServer) UpdateNodeTask(tctx *logger.TraceContext) error {
 	var err error
 	startTime := logger.StartTrace(tctx)
 	defer func() {
-		logger.EndTrace(tctx, startTime, err)
+		logger.EndTrace(tctx, startTime, err, 0)
 	}()
 
 	req := &resource_api_grpc_pb.UpdateNodeRequest{
