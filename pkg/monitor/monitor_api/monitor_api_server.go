@@ -85,7 +85,6 @@ func (srv *MonitorApiServer) Report(ctx context.Context, req *monitor_api_grpc_p
 	tctx := logger.NewGrpcTraceContext(srv.Host, srv.Name, ctx)
 	startTime := logger.StartTrace(tctx)
 
-	fmt.Println(req)
 	if indexers, ok := srv.indexersMap[req.Index]; ok {
 		for _, indexer := range indexers {
 			indexer.Report(tctx, req)

@@ -50,7 +50,7 @@ func (indexer *InfluxdbIndexer) Report(tctx *logger.TraceContext, req *monitor_a
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
-	data := ""
+	logData := ""
 	for _, log := range req.Logs {
 		tags := ",Project=" + req.Project
 		logstr := ""
@@ -79,11 +79,11 @@ func (indexer *InfluxdbIndexer) Report(tctx *logger.TraceContext, req *monitor_a
 		if err != nil {
 			continue
 		}
-		data += log.Name + tags + " Log=\"" + logstr[1:] + "\"" + values + " " + strconv.FormatInt(timestamp.UnixNano(), 10) + "\n"
+		logData += log.Name + tags + " Log=\"" + logstr[1:] + "\"" + values + " " + strconv.FormatInt(timestamp.UnixNano(), 10) + "\n"
 	}
 
 	for _, client := range indexer.logClients {
-		err := client.Write(data)
+		err := client.Write(logData)
 		if err != nil {
 			logger.Warning(tctx, err, "Failed Write")
 		}

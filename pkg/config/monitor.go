@@ -31,6 +31,7 @@ type MonitorAgentAppConfig struct {
 	ReportSpan           int
 	LogReaderRefreshSpan int
 	LogMap               map[string]MonitorLogConfig
+	Metrics              MonitorMetricsConfig
 }
 
 type MonitorLogConfig struct {
@@ -44,4 +45,14 @@ type MonitorLogAlertConfig struct {
 	Key     string
 	Pattern string
 	Handler string
+}
+
+type MonitorMetricsConfig struct {
+	System MonitorMetricsSystemConfig
+}
+
+type MonitorMetricsSystemConfig struct {
+	Enable       bool
+	EnableCpu    bool
+	EnableMemory bool
 }

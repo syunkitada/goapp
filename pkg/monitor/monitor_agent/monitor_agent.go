@@ -5,6 +5,8 @@ import (
 
 	"github.com/syunkitada/goapp/pkg/base"
 	"github.com/syunkitada/goapp/pkg/config"
+	"github.com/syunkitada/goapp/pkg/monitor/monitor_agent/metric_plugins"
+	"github.com/syunkitada/goapp/pkg/monitor/monitor_agent/metric_plugins/system"
 	"github.com/syunkitada/goapp/pkg/monitor/monitor_agent/monitor_agent_grpc_pb"
 	"github.com/syunkitada/goapp/pkg/monitor/monitor_api/monitor_api_client"
 )
@@ -18,12 +20,18 @@ type MonitorAgentServer struct {
 	reportProject         string
 	reportSpan            int
 	reportCount           int
+	metricReaders         []metric_plugins.MetricReader
 	logReaderMap          map[string]*LogReader
 	logReaderRefreshSpan  int
 	logReaderRefreshCount int
 }
 
 func NewMonitorAgentServer(conf *config.Config) *MonitorAgentServer {
+	metricReaders := []metric_plugins.MetricReader{}
+	if conf.Monitor.AgentApp.Metrics.System.Enable {
+		metricReaders = append(metricReaders, system.NewSystemMetricReader(&conf.Monitor.AgentApp.Metrics.System))
+	}
+
 	conf.Monitor.AgentApp.Name = "monitor.agent"
 	server := MonitorAgentServer{
 		BaseApp:               base.NewBaseApp(conf, &conf.Monitor.AgentApp.AppConfig),
@@ -33,6 +41,7 @@ func NewMonitorAgentServer(conf *config.Config) *MonitorAgentServer {
 		reportProject:         conf.Monitor.AgentApp.ReportProject,
 		reportSpan:            conf.Monitor.AgentApp.ReportSpan,
 		reportCount:           0,
+		metricReaders:         metricReaders,
 		logReaderMap:          map[string]*LogReader{},
 		logReaderRefreshSpan:  conf.Monitor.AgentApp.LogReaderRefreshSpan,
 		logReaderRefreshCount: 0,

@@ -84,6 +84,7 @@ message ReportRequest {
     string index = 1;
     string project = 2;
     repeated Log logs = 3;
+    repeated Metric metrics = 4;
 }
 
 message ReportReply {
@@ -95,6 +96,13 @@ message Log {
     string name = 1;
     string time = 2;
     map<string, string> log = 3;
+}
+
+message Metric {
+    string name = 1;
+    string time = 2;
+    map<string, string> tag = 3;
+    map<string, int64> metric = 4;
 }
 
 

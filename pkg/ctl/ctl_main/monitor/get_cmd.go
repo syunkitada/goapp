@@ -4,7 +4,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var (
+	getCmdIndexFlag string
+)
+
 func init() {
+	GetCmd.PersistentFlags().StringVarP(&getCmdIndexFlag, "index", "c", "", "Filtering by index")
+
 	GetCmd.AddCommand(getNodeCmd)
 	GetCmd.AddCommand(getHostCmd)
 	GetCmd.AddCommand(getLogCmd)

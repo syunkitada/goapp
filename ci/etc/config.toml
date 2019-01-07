@@ -59,6 +59,11 @@ Key = "Level"
 Pattern = "E"
 Handler = "Mail"
 
+[Monitor.AgentApp.Metrics.System]
+Enable = true
+EnableCpu = true
+EnableMemory = true
+
 
 #
 # Resource

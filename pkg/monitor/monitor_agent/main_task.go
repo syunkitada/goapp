@@ -13,6 +13,13 @@ var _ = fmt.Printf // For debugging: TODO Remove
 func (srv *MonitorAgentServer) MainTask(tctx *logger.TraceContext) error {
 	var err error
 
+	for _, metricReader := range srv.metricReaders {
+		err = metricReader.Read(tctx)
+		if err != nil {
+			logger.Warningf(tctx, err, "Failed metricReader.Read(): %v", metricReader.GetName())
+		}
+	}
+
 	if srv.logReaderRefreshCount == 0 {
 		for logName, logConf := range srv.conf.Monitor.AgentApp.LogMap {
 			if _, ok := srv.logReaderMap[logName]; ok {

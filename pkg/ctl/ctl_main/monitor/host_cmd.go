@@ -38,8 +38,7 @@ func GetHost() error {
 		return err
 	}
 
-	// TODO set index
-	resp, err := authproxy.Monitor.CtlGetHost(token.Token, "cluster1")
+	resp, err := authproxy.Monitor.CtlGetHost(token.Token, getCmdIndexFlag)
 	if err != nil {
 		return err
 	}
