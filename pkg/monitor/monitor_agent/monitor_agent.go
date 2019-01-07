@@ -15,8 +15,9 @@ type MonitorAgentServer struct {
 	monitorApiClient      *monitor_api_client.MonitorApiClient
 	role                  string
 	reportIndex           string
-	flushSpan             int
-	flushCount            int
+	reportProject         string
+	reportSpan            int
+	reportCount           int
 	logReaderMap          map[string]*LogReader
 	logReaderRefreshSpan  int
 	logReaderRefreshCount int
@@ -28,9 +29,10 @@ func NewMonitorAgentServer(conf *config.Config) *MonitorAgentServer {
 		BaseApp:               base.NewBaseApp(conf, &conf.Monitor.AgentApp.AppConfig),
 		conf:                  conf,
 		monitorApiClient:      monitor_api_client.NewMonitorApiClient(conf),
-		reportIndex:           conf.Monitor.AgentApp.Index,
-		flushSpan:             conf.Monitor.AgentApp.FlushSpan,
-		flushCount:            0,
+		reportIndex:           conf.Monitor.AgentApp.ReportIndex,
+		reportProject:         conf.Monitor.AgentApp.ReportProject,
+		reportSpan:            conf.Monitor.AgentApp.ReportSpan,
+		reportCount:           0,
 		logReaderMap:          map[string]*LogReader{},
 		logReaderRefreshSpan:  conf.Monitor.AgentApp.LogReaderRefreshSpan,
 		logReaderRefreshCount: 0,

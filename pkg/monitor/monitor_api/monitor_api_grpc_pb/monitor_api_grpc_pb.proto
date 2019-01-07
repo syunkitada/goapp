@@ -16,6 +16,9 @@ service MonitorApi {
   rpc UpdateNode(UpdateNodeRequest) returns (UpdateNodeReply) {}
 
   rpc Report(ReportRequest) returns (ReportReply) {}
+
+  rpc GetHost(GetHostRequest) returns (GetHostReply) {}
+  rpc GetLog(GetLogRequest) returns (GetLogReply) {}
 }
 
 message StatusRequest {}
@@ -74,10 +77,18 @@ message Node {
 }
 
 
+//
 // Report
+//
 message ReportRequest {
     string index = 1;
-    repeated Log logs = 2;
+    string project = 2;
+    repeated Log logs = 3;
+}
+
+message ReportReply {
+    int64 status_code = 1;
+    string err = 2;
 }
 
 message Log {
@@ -86,7 +97,47 @@ message Log {
     map<string, string> log = 3;
 }
 
-message ReportReply {
+
+//
+// GetHost
+//
+message GetHostRequest {
+    string trace_id = 1;
+    string user_name = 2;
+    string role_name = 3;
+    string project_name = 4;
+    string project_role_name = 5;
+    string index = 6;
+}
+
+message GetHostReply {
     int64 status_code = 1;
     string err = 2;
+    repeated Host hosts = 3;
+}
+
+message Host {
+    string name = 1;
+}
+
+
+//
+// GetLog
+//
+message GetLogRequest {
+    string trace_id = 1;
+    string user_name = 2;
+    string role_name = 3;
+    string project_name = 4;
+    string project_role_name = 5;
+    string index = 6;
+    string log_name = 7;
+    string log_host = 8;
+    string log_trace_id = 9;
+}
+
+message GetLogReply {
+    int64 status_code = 1;
+    string err = 2;
+    repeated Log logs = 3;
 }

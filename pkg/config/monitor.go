@@ -26,8 +26,9 @@ type MonitorAlertManagerAppConfig struct {
 
 type MonitorAgentAppConfig struct {
 	AppConfig
-	Index                string
-	FlushSpan            int
+	ReportIndex          string
+	ReportProject        string
+	ReportSpan           int
 	LogReaderRefreshSpan int
 	LogMap               map[string]MonitorLogConfig
 }

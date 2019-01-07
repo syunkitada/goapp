@@ -87,13 +87,50 @@ func (srv *MonitorApiServer) Report(ctx context.Context, req *monitor_api_grpc_p
 
 	if indexers, ok := srv.indexersMap[req.Index]; ok {
 		for _, indexer := range indexers {
-			indexer.Report(tctx, req.Logs)
+			indexer.Report(tctx, req)
 		}
 	} else {
 		logger.Warningf(tctx, fmt.Errorf("InvalidIndex"), "index=%v", req.Index)
 	}
 
 	rep := &monitor_api_grpc_pb.ReportReply{}
+	logger.EndGrpcTrace(tctx, startTime, rep.StatusCode, rep.Err)
+	return rep, nil
+}
+
+//
+// Get
+//
+func (srv *MonitorApiServer) GetHost(ctx context.Context, req *monitor_api_grpc_pb.GetHostRequest) (*monitor_api_grpc_pb.GetHostReply, error) {
+	tctx := logger.NewGrpcTraceContext(srv.Host, srv.Name, ctx)
+	startTime := logger.StartTrace(tctx)
+
+	// if indexers, ok := srv.indexersMap[req.Index]; ok {
+	// 	for _, indexer := range indexers {
+	// 		indexer.Report(tctx, req.Logs)
+	// 	}
+	// } else {
+	// 	logger.Warningf(tctx, fmt.Errorf("InvalidIndex"), "index=%v", req.Index)
+	// }
+
+	rep := &monitor_api_grpc_pb.GetHostReply{}
+	logger.EndGrpcTrace(tctx, startTime, rep.StatusCode, rep.Err)
+	return rep, nil
+}
+
+func (srv *MonitorApiServer) GetLog(ctx context.Context, req *monitor_api_grpc_pb.GetLogRequest) (*monitor_api_grpc_pb.GetLogReply, error) {
+	tctx := logger.NewGrpcTraceContext(srv.Host, srv.Name, ctx)
+	startTime := logger.StartTrace(tctx)
+
+	// if indexers, ok := srv.indexersMap[req.Index]; ok {
+	// 	for _, indexer := range indexers {
+	// 		indexer.Report(tctx, req.Logs)
+	// 	}
+	// } else {
+	// 	logger.Warningf(tctx, fmt.Errorf("InvalidIndex"), "index=%v", req.Index)
+	// }
+
+	rep := &monitor_api_grpc_pb.GetLogReply{}
 	logger.EndGrpcTrace(tctx, startTime, rep.StatusCode, rep.Err)
 	return rep, nil
 }

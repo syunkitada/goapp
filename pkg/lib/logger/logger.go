@@ -219,7 +219,7 @@ func StartTrace(tctx *TraceContext) time.Time {
 }
 
 func EndTrace(tctx *TraceContext, startTime time.Time, err error) {
-	tctx.Func = getFunc(0)
+	tctx.Func = getFunc(1)
 	tctx.Metadata["Latency"] = strconv.FormatInt(time.Now().Sub(startTime).Nanoseconds()/1000000, 10)
 	if err != nil {
 		Error(tctx, err, "EndTrace")
@@ -233,8 +233,8 @@ func EndGrpcTrace(tctx *TraceContext, startTime time.Time, statusCode int64, err
 	tctx.Metadata["Latency"] = strconv.FormatInt(time.Now().Sub(startTime).Nanoseconds()/1000000, 10)
 	tctx.Metadata["StatusCode"] = strconv.FormatInt(statusCode, 10)
 	if err != "" {
-		Error(tctx, fmt.Errorf(err), "EndTrace")
+		Error(tctx, fmt.Errorf(err), "EndGrpcTrace")
 	} else {
-		Info(tctx, "EndTrace")
+		Info(tctx, "EndGrpcTrace")
 	}
 }

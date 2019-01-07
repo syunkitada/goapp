@@ -45,9 +45,10 @@ CaFile = "ca.pem"
 ServerHostOverride = "x.test.youtube.com"
 Listen = "localhost:13202"
 Targets = ["localhost:13202"]
-Index = "cluster1"
-FlushSpan = 3
 LogReaderRefreshSpan = 3
+ReportIndex = "cluster1"
+ReportProject = "admin"
+ReportSpan = 3
 
 [Monitor.AgentApp.LogMap."monitor-api"]
 Path = "goapp-authproxy.log"

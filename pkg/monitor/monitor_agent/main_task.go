@@ -38,14 +38,14 @@ func (srv *MonitorAgentServer) MainTask(tctx *logger.TraceContext) error {
 		}
 	}
 
-	if srv.flushCount == 0 {
+	if srv.reportCount == 0 {
 		srv.Report(tctx)
 	}
 
-	if srv.flushCount >= srv.flushSpan {
-		srv.flushCount = 0
+	if srv.reportCount >= srv.reportSpan {
+		srv.reportCount = 0
 	} else {
-		srv.flushCount += 1
+		srv.reportCount += 1
 	}
 
 	return nil
@@ -59,8 +59,9 @@ func (srv *MonitorAgentServer) Report(tctx *logger.TraceContext) error {
 	}
 
 	req := &monitor_api_grpc_pb.ReportRequest{
-		Index: srv.reportIndex,
-		Logs:  pbLogs,
+		Index:   srv.reportIndex,
+		Project: srv.reportProject,
+		Logs:    pbLogs,
 	}
 
 	_, err := srv.monitorApiClient.Report(req)

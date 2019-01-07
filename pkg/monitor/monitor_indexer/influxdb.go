@@ -43,14 +43,14 @@ func NewInfluxdbIndexer(indexerConfig *config.MonitorIndexerConfig) (*InfluxdbIn
 	}, nil
 }
 
-func (indexer *InfluxdbIndexer) Report(tctx *logger.TraceContext, logs []*monitor_api_grpc_pb.Log) error {
+func (indexer *InfluxdbIndexer) Report(tctx *logger.TraceContext, req *monitor_api_grpc_pb.ReportRequest) error {
 	var err error
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err) }()
 
 	data := ""
-	for _, log := range logs {
-		tags := ""
+	for _, log := range req.Logs {
+		tags := ",Project=" + req.Project
 		logstr := ""
 		values := ""
 		for key, value := range log.Log {

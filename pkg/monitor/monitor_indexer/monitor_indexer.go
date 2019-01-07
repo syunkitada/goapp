@@ -9,7 +9,7 @@ import (
 )
 
 type Indexer interface {
-	Report(tctx *logger.TraceContext, logs []*monitor_api_grpc_pb.Log) error
+	Report(tctx *logger.TraceContext, req *monitor_api_grpc_pb.ReportRequest) error
 }
 
 func NewIndexer(indexerConfig *config.MonitorIndexerConfig) (Indexer, error) {
