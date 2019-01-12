@@ -65,7 +65,7 @@ func (srv *MonitorApiServer) Status(ctx context.Context, statusRequest *monitor_
 func (srv *MonitorApiServer) GetNode(ctx context.Context, req *monitor_api_grpc_pb.GetNodeRequest) (*monitor_api_grpc_pb.GetNodeReply, error) {
 	tctx := logger.NewGrpcTraceContext(srv.Host, srv.Name, ctx)
 	startTime := logger.StartTrace(tctx)
-	rep := srv.monitorModelApi.GetNode(req)
+	rep := srv.monitorModelApi.GetNode(tctx, req)
 	logger.EndGrpcTrace(tctx, startTime, rep.StatusCode, rep.Err)
 	return rep, nil
 }
@@ -73,7 +73,7 @@ func (srv *MonitorApiServer) GetNode(ctx context.Context, req *monitor_api_grpc_
 func (srv *MonitorApiServer) UpdateNode(ctx context.Context, req *monitor_api_grpc_pb.UpdateNodeRequest) (*monitor_api_grpc_pb.UpdateNodeReply, error) {
 	tctx := logger.NewGrpcTraceContext(srv.Host, srv.Name, ctx)
 	startTime := logger.StartTrace(tctx)
-	rep := srv.monitorModelApi.UpdateNode(req)
+	rep := srv.monitorModelApi.UpdateNode(tctx, req)
 	logger.EndGrpcTrace(tctx, startTime, rep.StatusCode, rep.Err)
 	return rep, nil
 }

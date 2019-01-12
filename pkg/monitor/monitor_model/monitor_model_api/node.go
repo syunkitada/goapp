@@ -4,26 +4,29 @@ import (
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/golang/glog"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/jinzhu/gorm"
 
 	"github.com/syunkitada/goapp/pkg/lib/codes"
+	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/monitor/monitor_api/monitor_api_grpc_pb"
 	"github.com/syunkitada/goapp/pkg/monitor/monitor_model"
 )
 
-func (modelApi *MonitorModelApi) GetNode(req *monitor_api_grpc_pb.GetNodeRequest) *monitor_api_grpc_pb.GetNodeReply {
+func (modelApi *MonitorModelApi) GetNode(tctx *logger.TraceContext, req *monitor_api_grpc_pb.GetNodeRequest) *monitor_api_grpc_pb.GetNodeReply {
 	rep := &monitor_api_grpc_pb.GetNodeReply{}
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
-	db, err := gorm.Open("mysql", modelApi.conf.Monitor.Database.Connection)
-	defer db.Close()
+	var db *gorm.DB
+	db, err = modelApi.open(tctx)
 	if err != nil {
 		rep.Err = err.Error()
 		rep.StatusCode = codes.RemoteDbError
 		return rep
 	}
-	db.LogMode(modelApi.conf.Default.EnableDatabaseLog)
+	defer db.Close()
 
 	var nodes []monitor_model.Node
 	if err = db.Where("name like ?", req.Target).Find(&nodes).Error; err != nil {
@@ -32,22 +35,25 @@ func (modelApi *MonitorModelApi) GetNode(req *monitor_api_grpc_pb.GetNodeRequest
 		return rep
 	}
 
-	rep.Nodes = modelApi.convertNodes(nodes)
+	rep.Nodes = modelApi.convertNodes(tctx, nodes)
 	rep.StatusCode = codes.Ok
 	return rep
 }
 
-func (modelApi *MonitorModelApi) UpdateNode(req *monitor_api_grpc_pb.UpdateNodeRequest) *monitor_api_grpc_pb.UpdateNodeReply {
+func (modelApi *MonitorModelApi) UpdateNode(tctx *logger.TraceContext, req *monitor_api_grpc_pb.UpdateNodeRequest) *monitor_api_grpc_pb.UpdateNodeReply {
 	rep := &monitor_api_grpc_pb.UpdateNodeReply{}
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
-	db, err := gorm.Open("mysql", modelApi.conf.Monitor.Database.Connection)
-	defer db.Close()
+	var db *gorm.DB
+	db, err = modelApi.open(tctx)
 	if err != nil {
 		rep.Err = err.Error()
 		rep.StatusCode = codes.RemoteDbError
 		return rep
 	}
-	db.LogMode(modelApi.conf.Default.EnableDatabaseLog)
+	defer db.Close()
 
 	var node monitor_model.Node
 	if err = db.Where("name = ? and kind = ?", req.Name, req.Kind).First(&node).Error; err != nil {
@@ -85,16 +91,18 @@ func (modelApi *MonitorModelApi) UpdateNode(req *monitor_api_grpc_pb.UpdateNodeR
 	return rep
 }
 
-func (modelApi *MonitorModelApi) SyncRole(kind string) ([]monitor_model.Node, error) {
+func (modelApi *MonitorModelApi) SyncRole(tctx *logger.TraceContext, kind string) ([]monitor_model.Node, error) {
 	var nodes []monitor_model.Node
 	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
-	db, err := gorm.Open("mysql", modelApi.conf.Monitor.Database.Connection)
-	defer db.Close()
+	var db *gorm.DB
+	db, err = modelApi.open(tctx)
 	if err != nil {
-		return nodes, err
+		return nil, err
 	}
-	db.LogMode(modelApi.conf.Default.EnableDatabaseLog)
+	defer db.Close()
 
 	tx := db.Begin()
 	defer tx.Rollback()
@@ -107,7 +115,7 @@ func (modelApi *MonitorModelApi) SyncRole(kind string) ([]monitor_model.Node, er
 	for _, node := range nodes {
 		if node.Role == monitor_model.RoleLeader {
 			if node.Status == monitor_model.StatusEnabled && node.State == monitor_model.StateUp && node.UpdatedAt.After(downTime) {
-				glog.Infof("Found Active Leader: %v", node.Name)
+				logger.Infof(tctx, "Found Active Leader: %v", node.Name)
 				existsActiveLeader = true
 			}
 			break
@@ -116,7 +124,7 @@ func (modelApi *MonitorModelApi) SyncRole(kind string) ([]monitor_model.Node, er
 	if existsActiveLeader {
 		return nodes, nil
 	}
-	glog.Info("Active Leader is not exists, Leader will be assigned.")
+	logger.Info(tctx, "Active Leader is not exists, Leader will be assigned.")
 
 	isReassignLeader := false
 	newNodes := []monitor_model.Node{}
@@ -135,7 +143,7 @@ func (modelApi *MonitorModelApi) SyncRole(kind string) ([]monitor_model.Node, er
 				return nil, err
 			}
 			isReassignLeader = true
-			glog.Infof("Leader is assigned: %v", node.Name)
+			logger.Infof(tctx, "Leader is assigned: %v", node.Name)
 		} else {
 			node.Role = monitor_model.RoleMember
 			if err = tx.Save(&node).Error; err != nil {
@@ -146,17 +154,16 @@ func (modelApi *MonitorModelApi) SyncRole(kind string) ([]monitor_model.Node, er
 	}
 	tx.Commit()
 
-	glog.Info("Completed SyncNode")
 	return newNodes, nil
 }
 
-func (modelApi *MonitorModelApi) convertNodes(nodes []monitor_model.Node) []*monitor_api_grpc_pb.Node {
+func (modelApi *MonitorModelApi) convertNodes(tctx *logger.TraceContext, nodes []monitor_model.Node) []*monitor_api_grpc_pb.Node {
 	pbNodes := make([]*monitor_api_grpc_pb.Node, len(nodes))
 	for i, node := range nodes {
 		updatedAt, err := ptypes.TimestampProto(node.Model.UpdatedAt)
 		createdAt, err := ptypes.TimestampProto(node.Model.CreatedAt)
 		if err != nil {
-			glog.Warningf("Invalid timestamp: %v", err)
+			logger.Warning(tctx, err, "Invalid timestamp")
 			continue
 		}
 
@@ -176,15 +183,17 @@ func (modelApi *MonitorModelApi) convertNodes(nodes []monitor_model.Node) []*mon
 	return pbNodes
 }
 
-func (modelApi *MonitorModelApi) CheckNodes() error {
+func (modelApi *MonitorModelApi) CheckNodes(tctx *logger.TraceContext) error {
 	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
-	db, err := gorm.Open("mysql", modelApi.conf.Monitor.Database.Connection)
-	defer db.Close()
+	var db *gorm.DB
+	db, err = modelApi.open(tctx)
 	if err != nil {
 		return err
 	}
-	db.LogMode(modelApi.conf.Default.EnableDatabaseLog)
+	defer db.Close()
 
 	tx := db.Begin()
 	defer tx.Rollback()
@@ -206,6 +215,5 @@ func (modelApi *MonitorModelApi) CheckNodes() error {
 	}
 	tx.Commit()
 
-	glog.Info("Completed CheckNodes")
 	return nil
 }

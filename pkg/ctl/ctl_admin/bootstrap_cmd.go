@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/syunkitada/goapp/pkg/config"
+	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_model/resource_cluster_model_api"
 )
 
@@ -56,6 +57,8 @@ var RebootstrapCmd = &cobra.Command{
 }
 
 func (ctl *Ctl) Bootstrap(isRecreate bool) error {
+	tctx := logger.NewCtlTraceContext(ctl.Name)
+
 	if err := ctl.CreateDatabases(isRecreate); err != nil {
 		return err
 	}
@@ -64,7 +67,7 @@ func (ctl *Ctl) Bootstrap(isRecreate bool) error {
 		return err
 	}
 
-	if err := ctl.MonitorModelApi.Bootstrap(); err != nil {
+	if err := ctl.MonitorModelApi.Bootstrap(tctx); err != nil {
 		return err
 	}
 

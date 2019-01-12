@@ -115,8 +115,12 @@ func (reader *LogReader) Init() error {
 	return nil
 }
 
-func (reader *LogReader) GetLogs() []*monitor_api_grpc_pb.Log {
+func (reader *LogReader) Report() []*monitor_api_grpc_pb.Log {
 	return reader.logs
+}
+
+func (reader *LogReader) Reported() {
+	reader.ClearLogs()
 }
 
 func (reader *LogReader) ClearLogs() {

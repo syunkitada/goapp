@@ -61,21 +61,40 @@ func (srv *MonitorAgentServer) MainTask(tctx *logger.TraceContext) error {
 }
 
 func (srv *MonitorAgentServer) Report(tctx *logger.TraceContext) error {
-	pbLogs := []*monitor_api_grpc_pb.Log{}
+	var err error
+
+	pbMetrics := make([]*monitor_api_grpc_pb.Metric, 0, 100)
+	for _, metricReader := range srv.metricReaders {
+		metrics := metricReader.Report()
+		pbMetrics = append(pbMetrics, metrics...)
+	}
+
+	pbLogs := make([]*monitor_api_grpc_pb.Log, 0, 100)
 	for _, logReader := range srv.logReaderMap {
-		logs := logReader.GetLogs()
+		logs := logReader.Report()
 		pbLogs = append(pbLogs, logs...)
 	}
 
 	req := &monitor_api_grpc_pb.ReportRequest{
 		Index:   srv.reportIndex,
 		Project: srv.reportProject,
+		Host:    srv.Host,
+		Metrics: pbMetrics,
 		Logs:    pbLogs,
 	}
 
-	_, err := srv.monitorApiClient.Report(req)
+	_, err = srv.monitorApiClient.Report(req)
+	if err != nil {
+		return err
+	}
 
-	// TODO clear logs
+	for _, metricReader := range srv.metricReaders {
+		metricReader.Reported()
+	}
+
+	for _, logReader := range srv.logReaderMap {
+		logReader.Reported()
+	}
 
 	return err
 }

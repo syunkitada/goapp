@@ -83,8 +83,9 @@ message Node {
 message ReportRequest {
     string index = 1;
     string project = 2;
-    repeated Log logs = 3;
-    repeated Metric metrics = 4;
+    string host = 3;
+    repeated Log logs = 4;
+    repeated Metric metrics = 5;
 }
 
 message ReportReply {

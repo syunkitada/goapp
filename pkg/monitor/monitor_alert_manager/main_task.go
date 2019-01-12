@@ -19,7 +19,7 @@ func (srv *MonitorAlertManagerServer) MainTask(tctx *logger.TraceContext) error 
 		return nil
 	}
 
-	if err := srv.monitorModelApi.CheckNodes(); err != nil {
+	if err := srv.monitorModelApi.CheckNodes(tctx); err != nil {
 		return err
 	}
 
@@ -44,7 +44,7 @@ func (srv *MonitorAlertManagerServer) UpdateNode(tctx *logger.TraceContext) erro
 		StateReason:  "UpdateNode",
 	}
 
-	rep := srv.monitorModelApi.UpdateNode(req)
+	rep := srv.monitorModelApi.UpdateNode(tctx, req)
 	if rep.Err != "" {
 		err = fmt.Errorf(rep.Err)
 		return err
@@ -58,7 +58,7 @@ func (srv *MonitorAlertManagerServer) SyncRole(tctx *logger.TraceContext) error 
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
-	nodes, err := srv.monitorModelApi.SyncRole(monitor_model.KindMonitorAlertManager)
+	nodes, err := srv.monitorModelApi.SyncRole(tctx, monitor_model.KindMonitorAlertManager)
 	if err != nil {
 		return err
 	}

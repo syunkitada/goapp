@@ -20,7 +20,8 @@ type SystemMetricReader struct {
 	enableCpu    bool
 	enableMemory bool
 	cpuCount     int
-	procStats    []ProcStat
+	cacheLength  int
+	cpuStats     []CpuStat
 }
 
 func NewSystemMetricReader(conf *config.MonitorMetricsSystemConfig) metric_plugins.MetricReader {
@@ -43,12 +44,14 @@ func NewSystemMetricReader(conf *config.MonitorMetricsSystemConfig) metric_plugi
 		name:         "system",
 		enableCpu:    conf.EnableCpu,
 		enableMemory: conf.EnableMemory,
+		cacheLength:  conf.CacheLength,
 		cpuCount:     cpuCount,
-		procStats:    make([]ProcStat, 0, 10),
+		cpuStats:     make([]CpuStat, 0, conf.CacheLength),
 	}
 }
 
-type ProcStat struct {
+type CpuStat struct {
+	reportStatus  int // 0, 1(GetReport), 2(Reported)
 	timestamp     time.Time
 	cpuMap        map[string][]int64
 	intr          int64
@@ -88,7 +91,7 @@ func (reader *SystemMetricReader) Read(tctx *logger.TraceContext) error {
 		var cpu []string
 		cpuMap := map[string][]int64{}
 		lastIndex := reader.cpuCount + 1
-		for i := 1; i < lastIndex; i++ {
+		for i := 0; i < lastIndex; i++ {
 			cpu = strings.Split(lines[i], " ")
 			v := make([]int64, len(cpu)-1)
 			for j, c := range cpu[1:] {
@@ -104,7 +107,8 @@ func (reader *SystemMetricReader) Read(tctx *logger.TraceContext) error {
 		procs_running, _ := strconv.ParseInt(strings.Split(lines[lastIndex+4], " ")[1], 10, 64)
 		procs_blocked, _ := strconv.ParseInt(strings.Split(lines[lastIndex+5], " ")[1], 10, 64)
 		softirq, _ := strconv.ParseInt(strings.Split(lines[lastIndex+6], " ")[1], 10, 64)
-		stat := ProcStat{
+		stat := CpuStat{
+			reportStatus:  0,
 			timestamp:     timestamp,
 			cpuMap:        cpuMap,
 			intr:          intr,
@@ -115,7 +119,11 @@ func (reader *SystemMetricReader) Read(tctx *logger.TraceContext) error {
 			procs_blocked: procs_blocked,
 			softirq:       softirq,
 		}
-		reader.procStats = append(reader.procStats, stat)
+
+		if len(reader.cpuStats) > reader.cacheLength {
+			reader.cpuStats = reader.cpuStats[1:]
+		}
+		reader.cpuStats = append(reader.cpuStats, stat)
 	}
 
 	if reader.enableMemory {
@@ -123,7 +131,7 @@ func (reader *SystemMetricReader) Read(tctx *logger.TraceContext) error {
 		fmt.Println("READ Memory")
 	}
 
-	fmt.Println(reader.procStats)
+	fmt.Println(reader.cpuStats)
 	return nil
 }
 
@@ -131,24 +139,61 @@ func (reader *SystemMetricReader) GetName() string {
 	return reader.name
 }
 
-func (reader *SystemMetricReader) GetMetrics() []monitor_api_grpc_pb.Metric {
-	metrics := make([]monitor_api_grpc_pb.Metric, 0, 100)
+func (reader *SystemMetricReader) Report() []*monitor_api_grpc_pb.Metric {
+	metrics := make([]*monitor_api_grpc_pb.Metric, 0, 100)
+
+	for _, stat := range reader.cpuStats {
+		timestamp := strconv.FormatInt(stat.timestamp.UnixNano(), 10)
+		for cpuName, cpu := range stat.cpuMap {
+			metrics = append(metrics, &monitor_api_grpc_pb.Metric{
+				Name: "system_cpu",
+				Time: timestamp,
+				Tag: map[string]string{
+					"cpu": cpuName,
+				},
+				Metric: map[string]int64{
+					"user":       cpu[0],
+					"nice":       cpu[1],
+					"system":     cpu[2],
+					"idle":       cpu[3],
+					"iowait":     cpu[4],
+					"irq":        cpu[5],
+					"softirq":    cpu[6],
+					"steal":      cpu[7],
+					"guest":      cpu[8],
+					"guest_nice": cpu[9],
+				},
+			})
+		}
+
+		metrics = append(metrics, &monitor_api_grpc_pb.Metric{
+			Name: "system_cpu",
+			Time: timestamp,
+			Tag: map[string]string{
+				"cpu": "cpu",
+			},
+			Metric: map[string]int64{
+				"intr":          stat.intr,
+				"ctx":           stat.ctx,
+				"btime":         stat.btime,
+				"processes":     stat.processes,
+				"procs_running": stat.procs_running,
+				"procs_blocked": stat.procs_blocked,
+				"softirq":       stat.softirq,
+			},
+		})
+
+		stat.reportStatus = 1
+	}
 
 	// TODO convert to metrics
 	// TODO check metrics and issue alerts
 
-	metrics = append(metrics, monitor_api_grpc_pb.Metric{
-		Name: "system_cpu",
-		Time: "",
-		Tag: map[string]string{
-			"cpu": "cpu0",
-		},
-		Metric: map[string]int64{
-			"user":   0,
-			"nice":   0,
-			"system": 0,
-		},
-	})
-
 	return metrics
+}
+
+func (reader *SystemMetricReader) Reported() {
+	for _, stat := range reader.cpuStats {
+		stat.reportStatus = 2
+	}
 }

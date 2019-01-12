@@ -8,6 +8,7 @@ import (
 )
 
 type Ctl struct {
+	Name              string
 	Conf              *config.Config
 	AuthproxyModelApi *authproxy_model_api.AuthproxyModelApi
 	MonitorModelApi   *monitor_model_api.MonitorModelApi
@@ -16,6 +17,7 @@ type Ctl struct {
 
 func NewCtl(conf *config.Config) *Ctl {
 	ctl := Ctl{
+		Name:              "admin-ctl",
 		Conf:              conf,
 		AuthproxyModelApi: authproxy_model_api.NewAuthproxyModelApi(conf),
 		MonitorModelApi:   monitor_model_api.NewMonitorModelApi(conf),

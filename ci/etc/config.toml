@@ -63,6 +63,7 @@ Handler = "Mail"
 Enable = true
 EnableCpu = true
 EnableMemory = true
+CacheLength = 10
 
 
 #

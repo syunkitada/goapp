@@ -50,16 +50,46 @@ func (indexer *InfluxdbIndexer) Report(tctx *logger.TraceContext, req *monitor_a
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
+	metricsData := ""
+	for _, metric := range req.Metrics {
+		tags := ",Project=" + req.Project + ",Host=" + req.Host
+		values := ""
+		for key, value := range metric.Tag {
+			switch key {
+			case "Project":
+				continue
+			case "Host":
+				continue
+			default:
+				tags += "," + key + "=" + value
+			}
+		}
+
+		for key, value := range metric.Metric {
+			values += "," + key + "=" + strconv.FormatInt(value, 10) + ""
+		}
+		metricsData += metric.Name + tags + " metric=\"" + "\"" + values + " " + metric.Time + "\n"
+	}
+
+	for _, client := range indexer.metricClients {
+		err := client.Write(metricsData)
+		if err != nil {
+			logger.Warning(tctx, err, "Failed Write")
+		}
+	}
+
 	logData := ""
 	for _, log := range req.Logs {
-		tags := ",Project=" + req.Project
+		tags := ",Project=" + req.Project + ",Host=" + req.Host
 		logstr := ""
 		values := ""
 		for key, value := range log.Log {
 			logstr += " " + key + "=\\\"" + value + "\\\""
 			switch key {
+			case "Project":
+				continue
 			case "Host":
-				tags += ",Host=" + value
+				continue
 			case "App":
 				tags += ",App=" + value
 			case "Func":

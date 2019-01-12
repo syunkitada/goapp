@@ -31,7 +31,7 @@ func (srv *MonitorApiServer) UpdateNodeTask(tctx *logger.TraceContext) error {
 		StateReason:  "UpdateNode",
 	}
 
-	rep := srv.monitorModelApi.UpdateNode(req)
+	rep := srv.monitorModelApi.UpdateNode(tctx, req)
 	if rep.Err != "" {
 		err = fmt.Errorf(rep.Err)
 		return err

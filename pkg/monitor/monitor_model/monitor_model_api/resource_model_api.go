@@ -4,11 +4,11 @@ import (
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/golang/glog"
 	"github.com/jinzhu/gorm"
 	"gopkg.in/go-playground/validator.v9"
 
 	"github.com/syunkitada/goapp/pkg/config"
+	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/monitor/monitor_model"
 )
 
@@ -32,17 +32,32 @@ func NewMonitorModelApi(conf *config.Config) *MonitorModelApi {
 	return &modelApi
 }
 
-func (modelApi *MonitorModelApi) Bootstrap() error {
-	glog.V(2).Info("MonitorModelApi: Complete AutoMigrate")
-	db, dbErr := gorm.Open("mysql", modelApi.conf.Monitor.Database.Connection)
-	defer db.Close()
-	if dbErr != nil {
-		return dbErr
+func (modelApi *MonitorModelApi) Bootstrap(tctx *logger.TraceContext) error {
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	var db *gorm.DB
+	db, err = modelApi.open(tctx)
+	if err != nil {
+		return err
 	}
-	db.LogMode(modelApi.conf.Default.EnableDatabaseLog)
+	defer db.Close()
 
 	db.AutoMigrate(&monitor_model.Node{})
-	glog.V(2).Info("MonitorModelApi: Complete AutoMigrate")
 
 	return nil
+}
+
+func (modelApi *MonitorModelApi) open(tctx *logger.TraceContext) (*gorm.DB, error) {
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	db, err := gorm.Open("mysql", modelApi.conf.Monitor.Database.Connection)
+	if err != nil {
+		return nil, err
+	}
+	db.LogMode(modelApi.conf.Default.EnableDatabaseLog)
+	return db, nil
 }
