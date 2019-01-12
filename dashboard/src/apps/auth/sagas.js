@@ -4,12 +4,13 @@ import actions from '../../actions'
 import modules from '../../modules'
 
 function* syncState(action) {
-  console.log("auth: syncState", action.payload)
+  console.log("auth.sagas.syncState", action.payload)
   const {payload, error} = yield call(modules.auth.syncState)
+  console.log("auth.sagas.syncState.called", payload)
 
   if (error) {
     yield put(actions.auth.authLoginFailure(""))
-  } else if (payload.error && payload.error != "") {
+  } else if (payload.Err && payload.Err != "") {
     yield put(actions.auth.authLoginFailure(""))
   } else {
     const user = {

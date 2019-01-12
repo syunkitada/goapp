@@ -18,6 +18,7 @@ import Ticket from '../apps/ticket'
 import Wiki from '../apps/wiki'
 import ProjectHome from '../apps/project/home'
 import ProjectResource from '../apps/project/resource'
+import ProjectMonitor from '../apps/project/monitor'
 
 const store = configureStore()
 
@@ -37,6 +38,7 @@ export default class Root extends Component {
               <AuthRoute path="/Wiki" component={Wiki} />
               <AuthRoute path="/Project/:project/Home" component={ProjectHome} />
               <AuthRoute path="/Project/:project/Resource" component={ProjectResource} />
+              <AuthRoute path="/Project/:project/Monitor" component={ProjectMonitor} />
               <Route component={NotFound} />
             </Switch>
           </BrowserRouter>

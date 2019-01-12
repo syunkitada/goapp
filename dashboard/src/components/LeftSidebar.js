@@ -20,6 +20,7 @@ import BarChartIcon from '@material-ui/icons/BarChart';
 import LayersIcon from '@material-ui/icons/Layers';
 import AssignmentIcon from '@material-ui/icons/Assignment';
 import ViewComfyIcon from '@material-ui/icons/ViewComfy';
+import AssessmentIcon from '@material-ui/icons/Assessment';
 import ExpansionPanel from '@material-ui/core/ExpansionPanel';
 import ExpansionPanelSummary from '@material-ui/core/ExpansionPanelSummary';
 import ExpansionPanelDetails from '@material-ui/core/ExpansionPanelDetails';
@@ -79,6 +80,7 @@ class LeftSidebar extends Component {
       ["Datacenter", <LayersIcon />],
       ["Home", <DashboardIcon />],
       ["Resource", <ViewComfyIcon />],
+      ["Monitor", <AssessmentIcon />],
     ]
 
     for (let serviceLink of serviceLinks) {

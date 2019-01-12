@@ -10,7 +10,7 @@ func (dashboard *Dashboard) GetState(c *gin.Context) {
 	userAuthority, userAuthorityOk := c.Get("UserAuthority")
 	if !usernameOk || !userAuthorityOk {
 		c.JSON(500, gin.H{
-			"error": "Invalid request",
+			"Error": "Invalid request",
 		})
 		return
 	}

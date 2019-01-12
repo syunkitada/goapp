@@ -2,6 +2,7 @@ import { all } from 'redux-saga/effects';
 import auth from '../apps/auth/sagas';
 import home from '../apps/home/sagas';
 import resource from '../apps/project/resource/sagas';
+import monitor from '../apps/project/monitor/sagas';
 
 // redux-sagaのMiddlewareが rootSaga タスクを起動する
 
@@ -14,5 +15,6 @@ export default function* rootSaga() {
     auth.watchLogout(),
     home.watchSyncState(),
     resource.watchSyncState(),
+    monitor.watchSyncState(),
   ])
 }
