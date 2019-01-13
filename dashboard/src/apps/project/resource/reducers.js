@@ -10,9 +10,12 @@ const defaultState = {
 };
 
 export default handleActions({
-  [actions.resource.syncState]: (state) => Object.assign({}, state, {
-    isFetching: true,
-  }),
+  [actions.resource.syncState]: (state) => {
+    console.log("resource handleActions")
+    return Object.assign({}, state, {
+      isFetching: true,
+    })
+  },
   [actions.resource.syncStateSuccess]: (state, action) => Object.assign({}, state, {
     isFetching: false,
     redirectToReferrer: true,

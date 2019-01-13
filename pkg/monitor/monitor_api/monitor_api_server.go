@@ -124,6 +124,25 @@ func (srv *MonitorApiServer) GetHost(ctx context.Context, req *monitor_api_grpc_
 	return rep, nil
 }
 
+// GetUserState
+func (srv *MonitorApiServer) GetUserState(ctx context.Context, req *monitor_api_grpc_pb.GetUserStateRequest) (*monitor_api_grpc_pb.GetUserStateReply, error) {
+	tctx := logger.NewGrpcTraceContext(srv.Host, srv.Name, ctx)
+	startTime := logger.StartTrace(tctx)
+
+	indexMap := map[string]*monitor_api_grpc_pb.IndexState{}
+	for name, _ := range srv.indexersMap {
+		indexMap[name] = &monitor_api_grpc_pb.IndexState{
+			Name: name,
+		}
+	}
+
+	rep := &monitor_api_grpc_pb.GetUserStateReply{
+		IndexMap: indexMap,
+	}
+	logger.EndGrpcTrace(tctx, startTime, rep.StatusCode, rep.Err)
+	return rep, nil
+}
+
 func (srv *MonitorApiServer) GetLog(ctx context.Context, req *monitor_api_grpc_pb.GetLogRequest) (*monitor_api_grpc_pb.GetLogReply, error) {
 	tctx := logger.NewGrpcTraceContext(srv.Host, srv.Name, ctx)
 	startTime := logger.StartTrace(tctx)

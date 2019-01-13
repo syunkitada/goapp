@@ -107,3 +107,24 @@ func (cli *MonitorApiClient) GetHost(req *monitor_api_grpc_pb.GetHostRequest) (*
 
 	return rep, err
 }
+
+func (cli *MonitorApiClient) GetUserState(req *monitor_api_grpc_pb.GetUserStateRequest) (*monitor_api_grpc_pb.GetUserStateReply, error) {
+	var rep *monitor_api_grpc_pb.GetUserStateReply
+	var err error
+	conn, err := cli.NewClientConnection()
+	defer conn.Close()
+	if err != nil {
+		return rep, err
+	}
+
+	ctx, cancel := cli.GetContext()
+	defer cancel()
+	if cli.conf.Default.EnableTest {
+		rep, err = cli.localServer.GetUserState(ctx, req)
+	} else {
+		grpcClient := monitor_api_grpc_pb.NewMonitorApiClient(conn)
+		rep, err = grpcClient.GetUserState(ctx, req)
+	}
+
+	return rep, err
+}

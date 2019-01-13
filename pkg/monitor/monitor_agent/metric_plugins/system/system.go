@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"strconv"
 	"strings"
 	"time"
@@ -17,10 +18,13 @@ import (
 
 type SystemMetricReader struct {
 	name         string
+	enableLogin  bool
 	enableCpu    bool
 	enableMemory bool
 	cpuCount     int
 	cacheLength  int
+	uptimeStats  []UptimeStat
+	loginStats   []LoginStat
 	cpuStats     []CpuStat
 }
 
@@ -42,12 +46,37 @@ func NewSystemMetricReader(conf *config.MonitorMetricsSystemConfig) metric_plugi
 
 	return &SystemMetricReader{
 		name:         "system",
+		enableLogin:  conf.EnableLogin,
 		enableCpu:    conf.EnableCpu,
 		enableMemory: conf.EnableMemory,
 		cacheLength:  conf.CacheLength,
 		cpuCount:     cpuCount,
+		uptimeStats:  make([]UptimeStat, 0, conf.CacheLength),
+		loginStats:   make([]LoginStat, 0, conf.CacheLength),
 		cpuStats:     make([]CpuStat, 0, conf.CacheLength),
 	}
+}
+
+type UptimeStat struct {
+	reportStatus int // 0, 1(GetReport), 2(Reported)
+	timestamp    time.Time
+	uptime       int64
+}
+
+type LoginStat struct {
+	users     []UserStat
+	timestamp time.Time
+}
+
+type UserStat struct {
+	user  string
+	tty   string
+	from  string
+	login string
+	idle  string
+	jcpu  string
+	pcpu  string
+	what  string
 }
 
 type CpuStat struct {
@@ -64,6 +93,64 @@ type CpuStat struct {
 }
 
 func (reader *SystemMetricReader) Read(tctx *logger.TraceContext) error {
+	timestamp := time.Now()
+
+	// Read /proc/uptime
+	// uptime(s)  idle(s)
+	// 2906.26 5507.43
+	fmt.Println("READ /proc/uptime")
+	procUptime, _ := os.Open("/proc/uptime")
+	defer procUptime.Close()
+	scanner := bufio.NewScanner(procUptime)
+	scanner.Scan()
+	uptimeText := scanner.Text()
+	uptimeWords := strings.Split(uptimeText, " ")
+	uptime, _ := strconv.ParseInt(uptimeWords[0], 10, 64)
+	uptimeStat := UptimeStat{
+		reportStatus: 0,
+		timestamp:    timestamp,
+		uptime:       uptime,
+	}
+	if len(reader.uptimeStats) > reader.cacheLength {
+		reader.uptimeStats = reader.uptimeStats[1:]
+	}
+	reader.uptimeStats = append(reader.uptimeStats, uptimeStat)
+
+	if reader.enableLogin {
+		// Don't read /var/run/utmp, because of this is binary
+		// Read w -h
+		// USER    TTY      FROM          LOGIN@   IDLE   JCPU   PCPU  WHAT
+		// hoge    pts/8    192.168.1.1   09:34    2.00s  0.10s  0.00s tmux a
+		out, err := exec.Command("w", "-h").Output()
+		users := []UserStat{}
+		if err != nil {
+			fmt.Println(err)
+		}
+		for _, line := range strings.Split(string(out), "\n") {
+			l := strings.Split(line, " ")
+			if len(l) != 8 {
+				continue
+			}
+			users = append(users, UserStat{
+				user:  l[0],
+				tty:   l[1],
+				from:  l[2],
+				login: l[3],
+				idle:  l[4],
+				jcpu:  l[5],
+				pcpu:  l[6],
+				what:  l[7],
+			})
+		}
+		if len(reader.loginStats) > reader.cacheLength {
+			reader.loginStats = reader.loginStats[1:]
+		}
+		reader.loginStats = append(reader.loginStats, LoginStat{
+			timestamp: timestamp,
+			users:     users,
+		})
+	}
+
 	if reader.enableCpu {
 		// Read /proc/stat
 		//      user   nice system idle    iowait irq softirq steal guest guest_nice
@@ -79,10 +166,9 @@ func (reader *SystemMetricReader) Read(tctx *logger.TraceContext) error {
 		// softirq 11650881 ...
 
 		fmt.Println("READ /proc/stat")
-		timestamp := time.Now()
 		f, _ := os.Open("/proc/stat")
 		defer f.Close()
-		scanner := bufio.NewScanner(f)
+		scanner = bufio.NewScanner(f)
 		lines := make([]string, 0, reader.cpuCount+20)
 		for scanner.Scan() {
 			lines = append(lines, scanner.Text())
@@ -142,6 +228,30 @@ func (reader *SystemMetricReader) GetName() string {
 func (reader *SystemMetricReader) Report() []*monitor_api_grpc_pb.Metric {
 	metrics := make([]*monitor_api_grpc_pb.Metric, 0, 100)
 
+	for _, stat := range reader.uptimeStats {
+		timestamp := strconv.FormatInt(stat.timestamp.UnixNano(), 10)
+		metrics = append(metrics, &monitor_api_grpc_pb.Metric{
+			Name: "system_uptime",
+			Time: timestamp,
+			Tag:  map[string]string{},
+			Metric: map[string]int64{
+				"uptime": stat.uptime,
+			},
+		})
+	}
+
+	for _, stat := range reader.loginStats {
+		timestamp := strconv.FormatInt(stat.timestamp.UnixNano(), 10)
+		metrics = append(metrics, &monitor_api_grpc_pb.Metric{
+			Name: "system_login",
+			Time: timestamp,
+			Tag:  map[string]string{},
+			Metric: map[string]int64{
+				"users": int64(len(stat.users)),
+			},
+		})
+	}
+
 	for _, stat := range reader.cpuStats {
 		timestamp := strconv.FormatInt(stat.timestamp.UnixNano(), 10)
 		for cpuName, cpu := range stat.cpuMap {
@@ -186,7 +296,6 @@ func (reader *SystemMetricReader) Report() []*monitor_api_grpc_pb.Metric {
 		stat.reportStatus = 1
 	}
 
-	// TODO convert to metrics
 	// TODO check metrics and issue alerts
 
 	return metrics

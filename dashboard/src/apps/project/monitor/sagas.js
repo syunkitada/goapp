@@ -15,10 +15,13 @@ function* syncState(action) {
   } else if (payload.error && payload.error != "") {
     yield put(actions.monitor.monitorSyncStateFailure(""))
   } else {
+    console.log("sagas.syncState Success")
     const monitor = {
-      payload: payload,
+      IndexMap: payload.IndexMap,
     }
+    console.log(monitor)
     yield put(actions.monitor.monitorSyncStateSuccess(monitor))
+    console.log("yield puted actions.monitor.monitorSyncStateSuccess")
   }
 }
 

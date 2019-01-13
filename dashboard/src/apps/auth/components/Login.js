@@ -54,21 +54,14 @@ class Login extends Component {
   };
 
   render() {
-    console.log(this.props)
     const { classes, auth, history, onSubmit } = this.props
     const { from } = history.location.state || { from: { pathname: "/" } };
-    console.log("login")
-    console.log(from)
-
-    console.log(auth.isFetching)
 
     if (auth.redirectToReferrer) {
-      console.log("DEaalalalalalal")
       return <Redirect to={from} />;
     }
 
     if (auth.user) {
-      console.log("DEBUGaaanbnbnbnbn", auth)
       return <Redirect to={{ pathname: "/" }} />;
     }
 

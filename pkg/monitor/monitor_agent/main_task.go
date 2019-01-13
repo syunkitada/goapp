@@ -2,6 +2,8 @@ package monitor_agent
 
 import (
 	"fmt"
+	"strconv"
+	"time"
 
 	// "github.com/syunkitada/goapp/pkg/config"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
@@ -62,8 +64,19 @@ func (srv *MonitorAgentServer) MainTask(tctx *logger.TraceContext) error {
 
 func (srv *MonitorAgentServer) Report(tctx *logger.TraceContext) error {
 	var err error
+	timestamp := time.Now()
+	timestampStr := strconv.FormatInt(timestamp.UnixNano(), 10)
 
 	pbMetrics := make([]*monitor_api_grpc_pb.Metric, 0, 100)
+	pbMetrics = append(pbMetrics, &monitor_api_grpc_pb.Metric{
+		Name: "agent",
+		Time: timestampStr,
+		Tag:  map[string]string{},
+		Metric: map[string]int64{
+			"status": 1,
+		},
+	})
+
 	for _, metricReader := range srv.metricReaders {
 		metrics := metricReader.Report()
 		pbMetrics = append(pbMetrics, metrics...)

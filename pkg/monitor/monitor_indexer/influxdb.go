@@ -123,18 +123,21 @@ func (indexer *InfluxdbIndexer) Report(tctx *logger.TraceContext, req *monitor_a
 }
 
 func (indexer *InfluxdbIndexer) GetHost(tctx *logger.TraceContext, req *monitor_api_grpc_pb.GetHostRequest, hostMap map[string]*monitor_api_grpc_pb.Host) error {
-	// TODO FIX query
-	query := "show tag values from \"monitor-api\" with key = \"Host\""
-	for _, client := range indexer.logClients {
+	// query := "show tag values from \"agent\" with key = \"Host\""
+	query := "select last(status) as status,time from agent where Project = 'admin' group by Host"
+	for _, client := range indexer.metricClients {
 		result, err := client.Query(query)
-		for _, v := range result.Results[0].Series[0].Values {
-			host := v[1]
-			hostMap[host] = &monitor_api_grpc_pb.Host{
-				Name: host,
-			}
-		}
 		if err != nil {
 			logger.Warning(tctx, err, "Failed Query")
+			continue
+		}
+
+		for _, s := range result.Results[0].Series {
+			hostMap[s.Tags["Host"]] = &monitor_api_grpc_pb.Host{
+				Name:      s.Tags["Host"],
+				Timestamp: s.Values[0][0].(string),
+				Status:    s.Values[0][1].(float64),
+			}
 		}
 	}
 
@@ -179,8 +182,9 @@ type Result struct {
 
 type Series struct {
 	Name    string
+	Tags    map[string]string
 	Columns []string
-	Values  [][]string
+	Values  [][]interface{}
 }
 
 func (c *Client) Query(data string) (*QueryResult, error) {
@@ -205,6 +209,8 @@ func (c *Client) Query(data string) (*QueryResult, error) {
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println("DEBUG")
+	fmt.Println(string(body))
 
 	var result *QueryResult
 	if err := json.Unmarshal(body, &result); err != nil {

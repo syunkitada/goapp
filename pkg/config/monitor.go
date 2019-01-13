@@ -53,6 +53,7 @@ type MonitorMetricsConfig struct {
 
 type MonitorMetricsSystemConfig struct {
 	Enable       bool
+	EnableLogin  bool
 	EnableCpu    bool
 	EnableMemory bool
 	CacheLength  int

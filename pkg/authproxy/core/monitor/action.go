@@ -54,6 +54,8 @@ func (monitor *Monitor) Action(c *gin.Context) {
 	switch action.Name {
 	case "GetNode":
 		statusCode, errMsg = monitor.GetNode(c, rc)
+	case "GetState":
+		statusCode, errMsg = monitor.GetState(c, rc)
 	case "GetHost":
 		statusCode, errMsg = monitor.GetHost(c, rc)
 	default:

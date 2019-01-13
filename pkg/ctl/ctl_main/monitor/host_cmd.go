@@ -47,10 +47,12 @@ func GetHost() error {
 	}
 
 	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"Name"})
+	table.SetHeader([]string{"Name", "Status", "Timestamp"})
 	for _, host := range resp.HostMap {
 		table.Append([]string{
 			host.Name,
+			fmt.Sprint(host.Status),
+			host.Timestamp,
 		})
 	}
 	table.Render()

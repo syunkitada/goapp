@@ -8,7 +8,7 @@ function syncState({projectName}) {
       Name: 'GetState',
     },
   });
-  console.log("DEBUGlalalala")
+  console.log("monitor.modules.syncState")
   console.log(body)
 
   return fetch(process.env.REACT_APP_AUTHPROXY_URL + '/monitor', {

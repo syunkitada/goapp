@@ -9,7 +9,7 @@ var (
 )
 
 func init() {
-	GetCmd.PersistentFlags().StringVarP(&getCmdIndexFlag, "index", "c", "", "Filtering by index")
+	GetCmd.PersistentFlags().StringVarP(&getCmdIndexFlag, "index", "i", "", "Filtering by index")
 
 	GetCmd.AddCommand(getNodeCmd)
 	GetCmd.AddCommand(getHostCmd)
