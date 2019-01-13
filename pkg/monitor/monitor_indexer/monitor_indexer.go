@@ -10,13 +10,13 @@ import (
 
 type Indexer interface {
 	Report(tctx *logger.TraceContext, req *monitor_api_grpc_pb.ReportRequest) error
-	GetHost(tctx *logger.TraceContext, req *monitor_api_grpc_pb.GetHostRequest, hostMap map[string]*monitor_api_grpc_pb.Host) error
+	GetHost(tctx *logger.TraceContext, projectName string, hostMap map[string]*monitor_api_grpc_pb.Host) error
 }
 
-func NewIndexer(indexerConfig *config.MonitorIndexerConfig) (Indexer, error) {
+func NewIndexer(index string, indexerConfig *config.MonitorIndexerConfig) (Indexer, error) {
 	switch indexerConfig.Driver {
 	case "influxdb":
-		return NewInfluxdbIndexer(indexerConfig)
+		return NewInfluxdbIndexer(index, indexerConfig)
 	}
 
 	return nil, fmt.Errorf("InvalidDriver: %v", indexerConfig.Driver)

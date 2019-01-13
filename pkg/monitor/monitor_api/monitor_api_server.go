@@ -25,7 +25,7 @@ func NewMonitorApiServer(conf *config.Config) *MonitorApiServer {
 	indexersMap := map[string][]monitor_indexer.Indexer{}
 	for _, indexer := range conf.Monitor.Indexers {
 		for _, index := range indexer.Indexes {
-			newIndexer, err := monitor_indexer.NewIndexer(&indexer)
+			newIndexer, err := monitor_indexer.NewIndexer(index, &indexer)
 			if err != nil {
 				logger.StdoutFatal(err)
 			}
@@ -106,15 +106,26 @@ func (srv *MonitorApiServer) GetHost(ctx context.Context, req *monitor_api_grpc_
 	startTime := logger.StartTrace(tctx)
 
 	hostMap := map[string]*monitor_api_grpc_pb.Host{}
-	if indexers, ok := srv.indexersMap[req.Index]; ok {
-		for _, indexer := range indexers {
-			err := indexer.GetHost(tctx, req, hostMap)
-			if err != nil {
-				logger.Warningf(tctx, err, "Failed GetHost: index=%v", req.Index)
+	if req.Index == "all" {
+		for index, indexers := range srv.indexersMap {
+			for _, indexer := range indexers {
+				err := indexer.GetHost(tctx, req.ProjectName, hostMap)
+				if err != nil {
+					logger.Warningf(tctx, err, "Failed GetHost: index=%v", index)
+				}
 			}
 		}
 	} else {
-		logger.Warningf(tctx, fmt.Errorf("InvalidIndex"), "index=%v", req.Index)
+		if indexers, ok := srv.indexersMap[req.Index]; ok {
+			for _, indexer := range indexers {
+				err := indexer.GetHost(tctx, req.ProjectName, hostMap)
+				if err != nil {
+					logger.Warningf(tctx, err, "Failed GetHost: index=%v", req.Index)
+				}
+			}
+		} else {
+			logger.Warningf(tctx, fmt.Errorf("InvalidIndex"), "index=%v", req.Index)
+		}
 	}
 
 	rep := &monitor_api_grpc_pb.GetHostReply{
@@ -129,16 +140,20 @@ func (srv *MonitorApiServer) GetUserState(ctx context.Context, req *monitor_api_
 	tctx := logger.NewGrpcTraceContext(srv.Host, srv.Name, ctx)
 	startTime := logger.StartTrace(tctx)
 
-	indexMap := map[string]*monitor_api_grpc_pb.IndexState{}
-	for name, _ := range srv.indexersMap {
-		indexMap[name] = &monitor_api_grpc_pb.IndexState{
-			Name: name,
+	hostMap := map[string]*monitor_api_grpc_pb.Host{}
+	for index, indexers := range srv.indexersMap {
+		for _, indexer := range indexers {
+			err := indexer.GetHost(tctx, req.ProjectName, hostMap)
+			if err != nil {
+				logger.Warningf(tctx, err, "Failed GetHost: index=%v", index)
+			}
 		}
 	}
 
 	rep := &monitor_api_grpc_pb.GetUserStateReply{
-		IndexMap: indexMap,
+		HostMap: hostMap,
 	}
+
 	logger.EndGrpcTrace(tctx, startTime, rep.StatusCode, rep.Err)
 	return rep, nil
 }

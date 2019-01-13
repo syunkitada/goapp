@@ -34,9 +34,12 @@ class ProjectMonitor extends Component {
       );
     } else {
       console.log("success monitor.monitor")
-      var indexHtml = ""
-      for (let index in monitor.monitor.IndexMap) {
-        indexHtml += index
+      let indexHtml = ""
+      let hostMap = monitor.monitor.HostMap
+      for (let key in hostMap) {
+        let host = hostMap[key]
+        console.log(host)
+        indexHtml += host.index + " " + host.name + " " + host.status + " " + host.timestamp
       }
       return (
         <Dashboard projectService={projectService} match={match}>

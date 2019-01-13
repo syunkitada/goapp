@@ -16,11 +16,12 @@ import (
 )
 
 type InfluxdbIndexer struct {
+	index         string
 	logClients    []*Client
 	metricClients []*Client
 }
 
-func NewInfluxdbIndexer(indexerConfig *config.MonitorIndexerConfig) (*InfluxdbIndexer, error) {
+func NewInfluxdbIndexer(index string, indexerConfig *config.MonitorIndexerConfig) (*InfluxdbIndexer, error) {
 	logClients := []*Client{}
 	for _, databaseInfo := range indexerConfig.LogDatabases {
 		client, err := NewClient(databaseInfo)
@@ -40,6 +41,7 @@ func NewInfluxdbIndexer(indexerConfig *config.MonitorIndexerConfig) (*InfluxdbIn
 	}
 
 	return &InfluxdbIndexer{
+		index:         index,
 		logClients:    logClients,
 		metricClients: metricClients,
 	}, nil
@@ -122,7 +124,7 @@ func (indexer *InfluxdbIndexer) Report(tctx *logger.TraceContext, req *monitor_a
 	return nil
 }
 
-func (indexer *InfluxdbIndexer) GetHost(tctx *logger.TraceContext, req *monitor_api_grpc_pb.GetHostRequest, hostMap map[string]*monitor_api_grpc_pb.Host) error {
+func (indexer *InfluxdbIndexer) GetHost(tctx *logger.TraceContext, projectName string, hostMap map[string]*monitor_api_grpc_pb.Host) error {
 	// query := "show tag values from \"agent\" with key = \"Host\""
 	query := "select last(status) as status,time from agent where Project = 'admin' group by Host"
 	for _, client := range indexer.metricClients {
@@ -134,6 +136,7 @@ func (indexer *InfluxdbIndexer) GetHost(tctx *logger.TraceContext, req *monitor_
 
 		for _, s := range result.Results[0].Series {
 			hostMap[s.Tags["Host"]] = &monitor_api_grpc_pb.Host{
+				Index:     indexer.index,
 				Name:      s.Tags["Host"],
 				Timestamp: s.Values[0][0].(string),
 				Status:    s.Values[0][1].(float64),

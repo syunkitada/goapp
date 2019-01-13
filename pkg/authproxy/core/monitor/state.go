@@ -16,9 +16,9 @@ import (
 )
 
 type ResponseGetState struct {
-	IndexMap map[string]monitor_api_grpc_pb.IndexState
-	TraceId  string
-	Err      string
+	HostMap map[string]monitor_api_grpc_pb.Host
+	TraceId string
+	Err     string
 }
 
 func (monitor *Monitor) GetState(c *gin.Context, rc *MonitorContext) (int, string) {
@@ -47,8 +47,8 @@ func (monitor *Monitor) GetState(c *gin.Context, rc *MonitorContext) (int, strin
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"TraceId":  rc.traceId,
-		"IndexMap": rep.IndexMap,
+		"TraceId": rc.traceId,
+		"HostMap": rep.HostMap,
 	})
 	return int(rep.StatusCode), rep.Err
 }

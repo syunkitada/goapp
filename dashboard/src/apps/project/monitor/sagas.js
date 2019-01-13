@@ -17,7 +17,7 @@ function* syncState(action) {
   } else {
     console.log("sagas.syncState Success")
     const monitor = {
-      IndexMap: payload.IndexMap,
+      HostMap: payload.HostMap,
     }
     console.log(monitor)
     yield put(actions.monitor.monitorSyncStateSuccess(monitor))
