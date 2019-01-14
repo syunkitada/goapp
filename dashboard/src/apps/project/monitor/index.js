@@ -2,6 +2,7 @@ import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 
+import HostTable from './components/HostTable'
 import Dashboard from '../../../components/Dashboard'
 import actions from '../../../actions'
 
@@ -46,6 +47,7 @@ class ProjectMonitor extends Component {
           <div>
             <h2>Monitor</h2>
             {indexHtml}
+            <HostTable />
           </div>
         </Dashboard>
       );
