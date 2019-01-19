@@ -86,8 +86,14 @@ message ReportRequest {
     string index = 1;
     string project = 2;
     string host = 3;
-    repeated Log logs = 4;
-    repeated Metric metrics = 5;
+    int64 state = 4;
+    string warning = 6;
+    int64 warnings = 5;
+    string error = 8;
+    int64 errors = 7;
+    int64 timestamp = 9;
+    repeated Log logs = 10;
+    repeated Metric metrics = 11;
 }
 
 message ReportReply {

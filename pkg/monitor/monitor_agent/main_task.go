@@ -69,11 +69,13 @@ func (srv *MonitorAgentServer) Report(tctx *logger.TraceContext) error {
 
 	pbMetrics := make([]*monitor_api_grpc_pb.Metric, 0, 100)
 	pbMetrics = append(pbMetrics, &monitor_api_grpc_pb.Metric{
-		Name: "agent",
+		Name: "report",
 		Time: timestampStr,
 		Tag:  map[string]string{},
 		Metric: map[string]int64{
-			"status": 1,
+			"state":    0,
+			"warnings": 0,
+			"errors":   0,
 		},
 	})
 
@@ -89,11 +91,17 @@ func (srv *MonitorAgentServer) Report(tctx *logger.TraceContext) error {
 	}
 
 	req := &monitor_api_grpc_pb.ReportRequest{
-		Index:   srv.reportIndex,
-		Project: srv.reportProject,
-		Host:    srv.Host,
-		Metrics: pbMetrics,
-		Logs:    pbLogs,
+		Index:     srv.reportIndex,
+		Project:   srv.reportProject,
+		Host:      srv.Host,
+		State:     0,
+		Warning:   "",
+		Warnings:  0,
+		Error:     "",
+		Errors:    0,
+		Timestamp: timestamp.UnixNano(),
+		Metrics:   pbMetrics,
+		Logs:      pbLogs,
 	}
 
 	_, err = srv.monitorApiClient.Report(req)

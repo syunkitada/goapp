@@ -16,15 +16,18 @@ import Checkbox from '@material-ui/core/Checkbox';
 import IconButton from '@material-ui/core/IconButton';
 import Tooltip from '@material-ui/core/Tooltip';
 import DeleteIcon from '@material-ui/icons/Delete';
+import NotificationsOffIcon from '@material-ui/icons/NotificationsOff';
 import FilterListIcon from '@material-ui/icons/FilterList';
 import { lighten } from '@material-ui/core/styles/colorManipulator';
 
+import { fade } from '@material-ui/core/styles/colorManipulator';
 import TableFooter from '@material-ui/core/TableFooter';
 import FirstPageIcon from '@material-ui/icons/FirstPage';
 import KeyboardArrowLeft from '@material-ui/icons/KeyboardArrowLeft';
 import KeyboardArrowRight from '@material-ui/icons/KeyboardArrowRight';
 import LastPageIcon from '@material-ui/icons/LastPage';
 
+import InputBase from '@material-ui/core/InputBase';
 import Input from '@material-ui/core/Input';
 import InputLabel from '@material-ui/core/InputLabel';
 import InputAdornment from '@material-ui/core/InputAdornment';
@@ -42,12 +45,13 @@ import CheckCircleOutlineIcon from '@material-ui/icons/CheckCircleOutline';
 import ErrorIcon from '@material-ui/icons/Error';
 import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline';
 import NotificationImportantIcon from '@material-ui/icons/NotificationImportant';
+import NotificationsNoneIcon from '@material-ui/icons/NotificationsNone';
 import WarningIcon from '@material-ui/icons/Search';
 
 let counter = 0;
-function createData(name, calories, fat, carbs, protein) {
+function createData(index, name, state, silenced, warnings, errors, timestamp) {
   counter += 1;
-  return { id: counter, name, calories, fat, carbs, protein };
+  return { id: counter, index, name, state, silenced, warnings, errors, timestamp };
 }
 
 function desc(a, b, orderBy) {
@@ -75,11 +79,13 @@ function getSorting(order, orderBy) {
 }
 
 const rows = [
-  { id: 'name', numeric: false, disablePadding: true, label: 'Dessert (100g serving)' },
-  { id: 'calories', numeric: true, disablePadding: false, label: 'Calories' },
-  { id: 'fat', numeric: true, disablePadding: false, label: 'Fat (g)' },
-  { id: 'carbs', numeric: true, disablePadding: false, label: 'Carbs (g)' },
-  { id: 'protein', numeric: true, disablePadding: false, label: 'Protein (g)' },
+  { id: 'index', numeric: false, disablePadding: true, label: 'Index' },
+  { id: 'name', numeric: false, disablePadding: true, label: 'Hostname' },
+  { id: 'state', numeric: true, disablePadding: false, label: 'State' },
+  { id: 'silenced', numeric: true, disablePadding: false, label: 'Silenced' },
+  { id: 'warnings', numeric: true, disablePadding: false, label: 'Warnings' },
+  { id: 'errors', numeric: true, disablePadding: false, label: 'Errors' },
+  { id: 'timestamp', numeric: true, disablePadding: false, label: 'Timestamp' },
 ];
 
 class HostTableHead extends React.Component {
@@ -140,101 +146,6 @@ HostTableHead.propTypes = {
   rowCount: PropTypes.number.isRequired,
 };
 
-const toolbarStyles = theme => ({
-  root: {
-    paddingRight: theme.spacing.unit,
-  },
-  highlight:
-    theme.palette.type === 'light'
-      ? {
-          color: theme.palette.secondary.main,
-          backgroundColor: lighten(theme.palette.secondary.light, 0.85),
-        }
-      : {
-          color: theme.palette.text.primary,
-          backgroundColor: theme.palette.secondary.dark,
-        },
-  spacer: {
-    flex: '1 1 100%',
-  },
-  actions: {
-    color: theme.palette.text.secondary,
-  },
-  title: {
-    flex: '0 0 auto',
-  },
-});
-
-let HostTableToolbar = props => {
-  const { numSelected, classes } = props;
-
-  return (
-    <Toolbar
-      className={classNames(classes.root, {
-        [classes.highlight]: numSelected > 0,
-      })}
-    >
-      <div>
-        <FormControl className={classes.margin}>
-          <Input
-            id="input-with-icon-adornment"
-            placeholder="Search"
-            startAdornment={
-              <InputAdornment position="start">
-                <SearchIcon />
-              </InputAdornment>
-            }
-          />
-        </FormControl>
-      </div>
-      <span>&nbsp;&nbsp;</span>
-      <div>
-        <IconButton aria-label="Cart">
-          <Badge badgeContent={4} color="primary" classes={{ badge: classes.badge }}>
-            <ShoppingCartIcon />
-          </Badge>
-        </IconButton>
-      </div>
-      <span>&nbsp;&nbsp;</span>
-      <div l={5} className={classes.title}>
-        {numSelected > 0 ? (
-          <Typography color="inherit" variant="subheading">
-            {numSelected} selected
-          </Typography>
-        ) : (
-          <Typography variant="subheading">
-          </Typography>
-        )
-        }
-      </div>
-      <div className={classes.spacer} />
-      <div className={classes.actions}>
-        {numSelected > 0 ? (
-          <Tooltip title="Delete">
-            <IconButton aria-label="Delete">
-              <DeleteIcon />
-            </IconButton>
-          </Tooltip>
-        ) : (
-          <Tooltip title="Filter list">
-            <IconButton aria-label="Filter list">
-              <FilterListIcon />
-            </IconButton>
-          </Tooltip>
-        )}
-      </div>
-
-    </Toolbar>
-  );
-};
-
-HostTableToolbar.propTypes = {
-  classes: PropTypes.object.isRequired,
-  numSelected: PropTypes.number.isRequired,
-};
-
-HostTableToolbar = withStyles(toolbarStyles)(HostTableToolbar);
-
 const styles = theme => ({
   root: {
     width: '100%',
@@ -246,6 +157,9 @@ const styles = theme => ({
   tableWrapper: {
     overflowX: 'auto',
   },
+  margin: {
+    margin: theme.spacing.unit * 2,
+  },
   highlight:
     theme.palette.type === 'light'
       ? {
@@ -264,6 +178,30 @@ const styles = theme => ({
   },
   title: {
     flex: '0 0 auto',
+  },
+  search: {
+    position: 'relative',
+    borderRadius: theme.shape.borderRadius,
+    backgroundColor: fade(theme.palette.common.white, 0.15),
+    '&:hover': {
+      backgroundColor: fade(theme.palette.common.white, 0.25),
+    },
+    marginRight: theme.spacing.unit * 2,
+    marginLeft: 0,
+    width: '100%',
+    [theme.breakpoints.up('sm')]: {
+      marginLeft: theme.spacing.unit * 3,
+      width: 'auto',
+    },
+  },
+  searchIcon: {
+    width: theme.spacing.unit * 9,
+    height: '100%',
+    position: 'absolute',
+    pointerEvents: 'none',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
 
@@ -350,22 +288,22 @@ const TablePaginationActionsWrapped = withStyles(actionsStyles, { withTheme: tru
 class HostTable extends React.Component {
   state = {
     order: 'asc',
-    orderBy: 'calories',
+    orderBy: 'state',
     selected: [],
     data: [
-      createData('Cupcake', 305, 3.7, 67, 4.3),
-      createData('Donut', 452, 25.0, 51, 4.9),
-      createData('Eclair', 262, 16.0, 24, 6.0),
-      createData('Frozen yoghurt', 159, 6.0, 24, 4.0),
-      createData('Gingerbread', 356, 16.0, 49, 3.9),
-      createData('Honeycomb', 408, 3.2, 87, 6.5),
-      createData('Ice cream sandwich', 237, 9.0, 37, 4.3),
-      createData('Jelly Bean', 375, 0.0, 94, 0.0),
-      createData('KitKat', 518, 26.0, 65, 7.0),
-      createData('Lollipop', 392, 0.2, 98, 0.0),
-      createData('Marshmallow', 318, 0, 81, 2.0),
-      createData('Nougat', 360, 19.0, 9, 37.0),
-      createData('Oreo', 437, 18.0, 63, 4.0),
+      createData('cluster1', 'test1.example.com', 0, 0, 0, 0, "2019-01-19T02:41:06.675857081Z"),
+      createData('cluster1', 'test2.example.com', 0, 0, 0, 0, "2019-01-19T02:41:06.675857081Z"),
+      createData('cluster1', 'test3.example.com', 0, 0, 0, 0, "2019-01-19T02:41:06.675857081Z"),
+      createData('cluster2', 'hoge1.example.com', 0, 0, 0, 0, "2019-01-19T02:41:06.675857081Z"),
+      createData('cluster2', 'hoge2.example.com', 0, 0, 0, 0, "2019-01-19T02:41:06.675857081Z"),
+      createData('cluster2', 'hoge3.example.com', 0, 0, 0, 0, "2019-01-19T02:41:06.675857081Z"),
+      createData('cluster2', 'hoge4.example.com', 0, 0, 0, 0, "2019-01-19T02:41:06.675857081Z"),
+      createData('cluster2', 'hoge5.example.com', 0, 0, 0, 0, "2019-01-19T02:41:06.675857081Z"),
+      createData('cluster1', 'piyo1.example.com', 0, 0, 0, 0, "2019-01-19T02:41:06.675857081Z"),
+      createData('cluster1', 'piyo2.example.com', 0, 0, 0, 0, "2019-01-19T02:41:06.675857081Z"),
+      createData('cluster1', 'piyo3.example.com', 0, 0, 0, 0, "2019-01-19T02:41:06.675857081Z"),
+      createData('cluster1', 'piyo4.example.com', 0, 0, 0, 0, "2019-01-19T02:41:06.675857081Z"),
+      createData('cluster1', 'piyo5.example.com', 0, 0, 0, 0, "2019-01-19T02:41:06.675857081Z"),
     ],
     page: 0,
     rowsPerPage: 5,
@@ -482,14 +420,14 @@ class HostTable extends React.Component {
                   </Badge>
                 </IconButton>
               </Tooltip>
-              <Tooltip title="Filtering Error Nodes">
+              <Tooltip title="Error Nodes">
                 <IconButton aria-label="Filtering Error Node">
                   <Badge badgeContent={3} color="primary" classes={{ badge: classes.badge }}>
                     <ErrorIcon />
                   </Badge>
                 </IconButton>
               </Tooltip>
-              <Tooltip title="Filtering Silented Error Nodes">
+              <Tooltip title="Silented Error Nodes">
                 <IconButton aria-label="Filtering Silented Error Nodes">
                   <Badge badgeContent={1} color="primary" classes={{ badge: classes.badge }}>
                     <ErrorOutlineIcon />
@@ -503,6 +441,13 @@ class HostTable extends React.Component {
                   </Badge>
                 </IconButton>
               </Tooltip>
+              <Tooltip title="Ignore Alerts">
+                <IconButton aria-label="Ignore Alerts">
+                  <Badge badgeContent={1} color="primary" classes={{ badge: classes.badge }}>
+                    <NotificationsNoneIcon />
+                  </Badge>
+                </IconButton>
+              </Tooltip>
 
             </div>
           </Grid>
@@ -511,6 +456,11 @@ class HostTable extends React.Component {
             {numSelected > 0 ? (
               <Typography variant="subtitle" id="tableTitle">
                 {numSelected} selected
+                <Tooltip title="Silence">
+                  <IconButton aria-label="Silence">
+                    <NotificationsOffIcon />
+                  </IconButton>
+                </Tooltip>
                 <Tooltip title="Delete">
                   <IconButton aria-label="Delete">
                     <DeleteIcon />
@@ -562,12 +512,16 @@ class HostTable extends React.Component {
                         <Checkbox checked={isSelected} />
                       </TableCell>
                       <TableCell component="th" scope="row" padding="none">
+                        {n.index}
+                      </TableCell>
+                      <TableCell component="th" scope="row" padding="none">
                         {n.name}
                       </TableCell>
-                      <TableCell align="right">{n.calories}</TableCell>
-                      <TableCell align="right">{n.fat}</TableCell>
-                      <TableCell align="right">{n.carbs}</TableCell>
-                      <TableCell align="right">{n.protein}</TableCell>
+                      <TableCell align="right">{n.state}</TableCell>
+                      <TableCell align="right">{n.silenced}</TableCell>
+                      <TableCell align="right">{n.warnings}</TableCell>
+                      <TableCell align="right">{n.errors}</TableCell>
+                      <TableCell align="right">{n.timestamp}</TableCell>
                     </TableRow>
                   );
                 })}

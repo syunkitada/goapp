@@ -21,6 +21,7 @@ Driver = "influxdb"
 Indexes = ["cluster1"]
 LogDatabases = ["goapp:goapppass@http://localhost:8086@goapp_monitor_logs"]
 MetricDatabases = ["goapp:goapppass@http://localhost:8086@goapp_monitor_metrics"]
+PercistentDatabases = ["goapp:goapppass@http://localhost:8086@goapp_monitor_percistent"]
 
 [Monitor.AlertManagerApp]
 Name = "alert-manager"

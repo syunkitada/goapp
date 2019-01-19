@@ -10,10 +10,11 @@ type MonitorConfig struct {
 }
 
 type MonitorIndexerConfig struct {
-	Driver          string
-	Indexes         []string
-	LogDatabases    []string
-	MetricDatabases []string
+	Driver              string
+	Indexes             []string
+	LogDatabases        []string
+	MetricDatabases     []string
+	PercistentDatabases []string
 }
 
 type MonitorApiAppConfig struct {
