@@ -16,9 +16,10 @@ import (
 )
 
 type InfluxdbIndexer struct {
-	index         string
-	logClients    []*Client
-	metricClients []*Client
+	index             string
+	logClients        []*Client
+	metricClients     []*Client
+	percistentClients []*Client
 }
 
 func NewInfluxdbIndexer(index string, indexerConfig *config.MonitorIndexerConfig) (*InfluxdbIndexer, error) {
@@ -40,10 +41,20 @@ func NewInfluxdbIndexer(index string, indexerConfig *config.MonitorIndexerConfig
 		metricClients = append(metricClients, client)
 	}
 
+	percistentClients := []*Client{}
+	for _, databaseInfo := range indexerConfig.PercistentDatabases {
+		client, err := NewClient(databaseInfo)
+		if err != nil {
+			return nil, err
+		}
+		percistentClients = append(percistentClients, client)
+	}
+
 	return &InfluxdbIndexer{
-		index:         index,
-		logClients:    logClients,
-		metricClients: metricClients,
+		index:             index,
+		logClients:        logClients,
+		metricClients:     metricClients,
+		percistentClients: percistentClients,
 	}, nil
 }
 
@@ -51,6 +62,19 @@ func (indexer *InfluxdbIndexer) Report(tctx *logger.TraceContext, req *monitor_a
 	var err error
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	percistentData := "agent,Project=" + req.Project + ",Kind=" + req.Kind + ",Host=" + req.Host +
+		" State=" + strconv.FormatInt(req.State, 10) +
+		",Warning=\"" + req.Warning + "\",Warnings=" + strconv.FormatInt(req.Warnings, 10) +
+		",Error=\"" + req.Error + "\",Errors=" + strconv.FormatInt(req.Errors, 10) +
+		",Timestamp=" + strconv.FormatInt(req.Timestamp, 10) + " 0"
+
+	for _, client := range indexer.percistentClients {
+		err := client.Write(percistentData)
+		if err != nil {
+			logger.Warning(tctx, err, "Failed Write")
+		}
+	}
 
 	metricsData := ""
 	for _, metric := range req.Metrics {
@@ -70,7 +94,8 @@ func (indexer *InfluxdbIndexer) Report(tctx *logger.TraceContext, req *monitor_a
 		for key, value := range metric.Metric {
 			values += "," + key + "=" + strconv.FormatInt(value, 10) + ""
 		}
-		metricsData += metric.Name + tags + " metric=\"" + "\"" + values + " " + metric.Time + "\n"
+		values = values[1:]
+		metricsData += metric.Name + tags + " " + values + " " + metric.Time + "\n"
 	}
 
 	for _, client := range indexer.metricClients {
@@ -127,8 +152,8 @@ func (indexer *InfluxdbIndexer) Report(tctx *logger.TraceContext, req *monitor_a
 func (indexer *InfluxdbIndexer) GetHost(tctx *logger.TraceContext, projectName string, hostMap map[string]*monitor_api_grpc_pb.Host) error {
 	// hosts
 	// query := "show tag values from \"agent\" with key = \"Host\""
-	query := "select last(status) as status,time from agent where Project = 'admin' group by Host"
-	for _, client := range indexer.metricClients {
+	query := "select State, Warning, Warnings, Error, Errors, Timestamp from agent where Project = 'admin' group by Host,Kind"
+	for _, client := range indexer.percistentClients {
 		result, err := client.Query(query)
 		if err != nil {
 			logger.Warning(tctx, err, "Failed Query")
@@ -136,14 +161,22 @@ func (indexer *InfluxdbIndexer) GetHost(tctx *logger.TraceContext, projectName s
 		}
 
 		for _, s := range result.Results[0].Series {
+			fmt.Println(s.Values)
 			hostMap[s.Tags["Host"]] = &monitor_api_grpc_pb.Host{
 				Index:     indexer.index,
 				Name:      s.Tags["Host"],
-				Timestamp: s.Values[0][0].(string),
-				Status:    s.Values[0][1].(float64),
+				Kind:      s.Tags["Kind"],
+				State:     s.Values[0][1].(float64),
+				Warning:   s.Values[0][2].(string),
+				Warnings:  s.Values[0][3].(float64),
+				Error:     s.Values[0][4].(string),
+				Errors:    s.Values[0][5].(float64),
+				Timestamp: s.Values[0][6].(float64),
 			}
 		}
 	}
+
+	fmt.Println(hostMap)
 
 	return nil
 }
