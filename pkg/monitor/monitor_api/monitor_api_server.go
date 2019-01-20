@@ -178,6 +178,30 @@ func (srv *MonitorApiServer) GetUserState(ctx context.Context, req *monitor_api_
 	return rep, nil
 }
 
+// GetIndexState
+func (srv *MonitorApiServer) GetIndexState(ctx context.Context, req *monitor_api_grpc_pb.GetIndexStateRequest) (*monitor_api_grpc_pb.GetIndexStateReply, error) {
+	tctx := logger.NewGrpcTraceContext(srv.Host, srv.Name, ctx)
+	startTime := logger.StartTrace(tctx)
+
+	hostMap := map[string]*monitor_api_grpc_pb.Host{}
+	if indexers, ok := srv.indexersMap[req.Index]; ok {
+		for _, indexer := range indexers {
+			err := indexer.GetHost(tctx, req.ProjectName, hostMap)
+			if err != nil {
+				logger.Warningf(tctx, err, "Failed GetHost: index=%v", req.Index)
+			}
+		}
+	} else {
+		logger.Warningf(tctx, fmt.Errorf("InvalidIndex"), "index=%v", req.Index)
+	}
+
+	rep := &monitor_api_grpc_pb.GetIndexStateReply{
+		HostMap: hostMap,
+	}
+	logger.EndGrpcTrace(tctx, startTime, rep.StatusCode, rep.Err)
+	return rep, nil
+}
+
 func (srv *MonitorApiServer) GetLog(ctx context.Context, req *monitor_api_grpc_pb.GetLogRequest) (*monitor_api_grpc_pb.GetLogReply, error) {
 	tctx := logger.NewGrpcTraceContext(srv.Host, srv.Name, ctx)
 	startTime := logger.StartTrace(tctx)

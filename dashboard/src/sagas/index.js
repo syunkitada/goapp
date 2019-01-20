@@ -16,5 +16,6 @@ export default function* rootSaga() {
     home.watchSyncState(),
     resource.watchSyncState(),
     monitor.watchSyncState(),
+    monitor.watchSyncIndexState(),
   ])
 }

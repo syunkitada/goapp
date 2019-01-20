@@ -1,4 +1,5 @@
-import React from 'react';
+import React, {Component} from 'react';
+import { connect } from 'react-redux';
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
@@ -42,11 +43,13 @@ import ShoppingCartIcon from '@material-ui/icons/ShoppingCart';
 
 import CheckCircleIcon from '@material-ui/icons/CheckCircle';
 import CheckCircleOutlineIcon from '@material-ui/icons/CheckCircleOutline';
+import WarningIcon from '@material-ui/icons/Warning';
 import ErrorIcon from '@material-ui/icons/Error';
 import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline';
 import NotificationImportantIcon from '@material-ui/icons/NotificationImportant';
 import NotificationsNoneIcon from '@material-ui/icons/NotificationsNone';
-import WarningIcon from '@material-ui/icons/Search';
+
+import actions from '../../../../actions'
 
 let counter = 0;
 function createData(index, name, state, silenced, warnings, errors, timestamp) {
@@ -65,13 +68,14 @@ function desc(a, b, orderBy) {
 }
 
 function stableSort(array, cmp) {
-  const stabilizedThis = array.map((el, index) => [el, index]);
-  stabilizedThis.sort((a, b) => {
+  array.sort((a, b) => {
     const order = cmp(a[0], b[0]);
     if (order !== 0) return order;
     return a[1] - b[1];
   });
-  return stabilizedThis.map(el => el[0]);
+  console.log("Debug Sort array")
+  console.log(array)
+  return array
 }
 
 function getSorting(order, orderBy) {
@@ -80,15 +84,13 @@ function getSorting(order, orderBy) {
 
 const rows = [
   { id: 'index', numeric: false, disablePadding: true, label: 'Index' },
-  { id: 'name', numeric: false, disablePadding: true, label: 'Hostname' },
-  { id: 'state', numeric: true, disablePadding: false, label: 'State' },
-  { id: 'silenced', numeric: true, disablePadding: false, label: 'Silenced' },
+  { id: 'count', numeric: true, disablePadding: false, label: 'Count' },
+  { id: 'states', numeric: true, disablePadding: false, label: 'States' },
   { id: 'warnings', numeric: true, disablePadding: false, label: 'Warnings' },
   { id: 'errors', numeric: true, disablePadding: false, label: 'Errors' },
-  { id: 'timestamp', numeric: true, disablePadding: false, label: 'Timestamp' },
 ];
 
-class HostTableHead extends React.Component {
+class HostTableHead extends Component {
   createSortHandler = property => event => {
     this.props.onRequestSort(event, property);
   };
@@ -213,7 +215,7 @@ const actionsStyles = theme => ({
   },
 });
 
-class TablePaginationActions extends React.Component {
+class TablePaginationActions extends Component {
   handleFirstPageButtonClick = event => {
     this.props.onChangePage(event, 0);
   };
@@ -285,29 +287,20 @@ const TablePaginationActionsWrapped = withStyles(actionsStyles, { withTheme: tru
 );
 
 
-class HostTable extends React.Component {
+class HostTable extends Component {
   state = {
     order: 'asc',
     orderBy: 'state',
     selected: [],
-    data: [
-      createData('cluster1', 'test1.example.com', 0, 0, 0, 0, "2019-01-19T02:41:06.675857081Z"),
-      createData('cluster1', 'test2.example.com', 0, 0, 0, 0, "2019-01-19T02:41:06.675857081Z"),
-      createData('cluster1', 'test3.example.com', 0, 0, 0, 0, "2019-01-19T02:41:06.675857081Z"),
-      createData('cluster2', 'hoge1.example.com', 0, 0, 0, 0, "2019-01-19T02:41:06.675857081Z"),
-      createData('cluster2', 'hoge2.example.com', 0, 0, 0, 0, "2019-01-19T02:41:06.675857081Z"),
-      createData('cluster2', 'hoge3.example.com', 0, 0, 0, 0, "2019-01-19T02:41:06.675857081Z"),
-      createData('cluster2', 'hoge4.example.com', 0, 0, 0, 0, "2019-01-19T02:41:06.675857081Z"),
-      createData('cluster2', 'hoge5.example.com', 0, 0, 0, 0, "2019-01-19T02:41:06.675857081Z"),
-      createData('cluster1', 'piyo1.example.com', 0, 0, 0, 0, "2019-01-19T02:41:06.675857081Z"),
-      createData('cluster1', 'piyo2.example.com', 0, 0, 0, 0, "2019-01-19T02:41:06.675857081Z"),
-      createData('cluster1', 'piyo3.example.com', 0, 0, 0, 0, "2019-01-19T02:41:06.675857081Z"),
-      createData('cluster1', 'piyo4.example.com', 0, 0, 0, 0, "2019-01-19T02:41:06.675857081Z"),
-      createData('cluster1', 'piyo5.example.com', 0, 0, 0, 0, "2019-01-19T02:41:06.675857081Z"),
-    ],
+    data: [],
     page: 0,
     rowsPerPage: 5,
   };
+
+  componentWillMount() {
+    const {match, syncIndexState} = this.props
+    syncIndexState(match.params.project, match.params.index)
+  }
 
   handleRequestSort = (event, property) => {
     const orderBy = property;
@@ -360,15 +353,25 @@ class HostTable extends React.Component {
   isSelected = id => this.state.selected.indexOf(id) !== -1;
 
   render() {
-    const { classes } = this.props;
-    const { data, order, orderBy, selected, rowsPerPage, page } = this.state;
-    const emptyRows = rowsPerPage - Math.min(rowsPerPage, data.length - page * rowsPerPage);
+    const { match, classes, auth, monitor} = this.props
+    const { order, orderBy, selected, rowsPerPage, page } = this.state;
+    const indexMap = monitor.monitor.IndexMap
+
+    const data = []
+    for (let key in indexMap) {
+      let v = indexMap[key]
+      data.push([v.name, v.count? v.count:0,
+        v.states? v.states:0, v.warnings? v.warnings:0, v.errors? v.errors:0])
+    }
+    this.state.data = data
+    const indexLength = data.length
+    const emptyRows = rowsPerPage - Math.min(rowsPerPage, indexLength - page * rowsPerPage);
 
     let tablePagination = (
       <TablePagination
         rowsPerPageOptions={[5, 10, 25]}
         component="span"
-        count={data.length}
+        count={indexLength}
         rowsPerPage={rowsPerPage}
         page={page}
         backIconButtonProps={{
@@ -406,31 +409,24 @@ class HostTable extends React.Component {
                 />
               </FormControl>
 
-              <Tooltip title="All Check Nodes">
-                <IconButton aria-label="All Check Nodes">
+              <Tooltip title="All Check Indexes">
+                <IconButton aria-label="All Check Indexes">
                   <Badge badgeContent={20} color="primary" classes={{ badge: classes.badge }}>
                     <CheckCircleIcon />
                   </Badge>
                 </IconButton>
               </Tooltip>
-              <Tooltip title="All Silenced Nodes">
-                <IconButton aria-label="All Check Nodes">
-                  <Badge badgeContent={1} color="primary" classes={{ badge: classes.badge }}>
-                    <CheckCircleOutlineIcon />
+              <Tooltip title="Warning Indexes">
+                <IconButton aria-label="Filtering Warning Index">
+                  <Badge badgeContent={3} color="primary" classes={{ badge: classes.badge }}>
+                    <WarningIcon />
                   </Badge>
                 </IconButton>
               </Tooltip>
-              <Tooltip title="Error Nodes">
-                <IconButton aria-label="Filtering Error Node">
+              <Tooltip title="Error Indexes">
+                <IconButton aria-label="Filtering Error Index">
                   <Badge badgeContent={3} color="primary" classes={{ badge: classes.badge }}>
                     <ErrorIcon />
-                  </Badge>
-                </IconButton>
-              </Tooltip>
-              <Tooltip title="Silented Error Nodes">
-                <IconButton aria-label="Filtering Silented Error Nodes">
-                  <Badge badgeContent={1} color="primary" classes={{ badge: classes.badge }}>
-                    <ErrorOutlineIcon />
                   </Badge>
                 </IconButton>
               </Tooltip>
@@ -454,7 +450,7 @@ class HostTable extends React.Component {
 
           <Grid item>
             {numSelected > 0 ? (
-              <Typography variant="subtitle" id="tableTitle">
+              <Typography variant="title" id="tableTitle">
                 {numSelected} selected
                 <Tooltip title="Silence">
                   <IconButton aria-label="Silence">
@@ -482,6 +478,7 @@ class HostTable extends React.Component {
 
     return (
       <Paper className={classes.root}>
+        <h3>HostTable</h3>
         {toolBar}
         <div className={classes.tableWrapper}>
           <Table className={classes.table} aria-labelledby="tableTitle">
@@ -491,7 +488,7 @@ class HostTable extends React.Component {
               orderBy={orderBy}
               onSelectAllClick={this.handleSelectAllClick}
               onRequestSort={this.handleRequestSort}
-              rowCount={data.length}
+              rowCount={indexLength}
             />
             <TableBody>
               {stableSort(data, getSorting(order, orderBy))
@@ -505,23 +502,19 @@ class HostTable extends React.Component {
                       role="checkbox"
                       aria-checked={isSelected}
                       tabIndex={-1}
-                      key={n.id}
+                      key={n[0]}
                       selected={isSelected}
                     >
                       <TableCell padding="checkbox">
                         <Checkbox checked={isSelected} />
                       </TableCell>
                       <TableCell component="th" scope="row" padding="none">
-                        {n.index}
+                        {n[0]}
                       </TableCell>
-                      <TableCell component="th" scope="row" padding="none">
-                        {n.name}
-                      </TableCell>
-                      <TableCell align="right">{n.state}</TableCell>
-                      <TableCell align="right">{n.silenced}</TableCell>
-                      <TableCell align="right">{n.warnings}</TableCell>
-                      <TableCell align="right">{n.errors}</TableCell>
-                      <TableCell align="right">{n.timestamp}</TableCell>
+                      <TableCell align="right">{n[1]}</TableCell>
+                      <TableCell align="right">{n[2]}</TableCell>
+                      <TableCell align="right">{n[3]}</TableCell>
+                      <TableCell align="right">{n[4]}</TableCell>
                     </TableRow>
                   );
                 })}
@@ -541,6 +534,29 @@ class HostTable extends React.Component {
 
 HostTable.propTypes = {
   classes: PropTypes.object.isRequired,
+  syncIndexState: PropTypes.func.isRequired,
 };
 
-export default withStyles(styles)(HostTable);
+function mapStateToProps(state, ownProps) {
+  const auth = state.auth
+  const monitor = state.monitor
+
+  return {
+    auth: auth,
+    monitor: monitor,
+  }
+}
+
+function mapDispatchToProps(dispatch, ownProps) {
+  return {
+    syncIndexState: (projectName, indexName) => {
+      console.log("syncIndexState", projectName, indexName)
+      dispatch(actions.monitor.monitorSyncIndexState(projectName, indexName));
+    }
+  }
+}
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(withStyles(styles)(HostTable));

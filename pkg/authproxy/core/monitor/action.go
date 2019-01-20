@@ -54,8 +54,10 @@ func (monitor *Monitor) Action(c *gin.Context) {
 	switch action.Name {
 	case "GetNode":
 		statusCode, errMsg = monitor.GetNode(c, rc)
-	case "GetState":
-		statusCode, errMsg = monitor.GetState(c, rc)
+	case "GetUserState":
+		statusCode, errMsg = monitor.GetUserState(c, rc)
+	case "GetIndexState":
+		statusCode, errMsg = monitor.GetIndexState(c, rc)
 	case "GetIndex":
 		statusCode, errMsg = monitor.GetIndex(c, rc)
 	case "GetHost":

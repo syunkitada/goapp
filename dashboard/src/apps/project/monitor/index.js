@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
+import { Route } from 'react-router-dom';
 
 import HostTable from './components/HostTable'
 import IndexTable from './components/IndexTable'
@@ -39,7 +40,8 @@ class ProjectMonitor extends Component {
         <Dashboard projectService={projectService} match={match}>
           <div>
             <h2>Monitor</h2>
-            <IndexTable indexMap={monitor.monitor.IndexMap}/>
+            <Route path={`${match.path}/:index`} component={HostTable} />
+            <Route exact path={match.url} component={IndexTable} />
           </div>
         </Dashboard>
       );

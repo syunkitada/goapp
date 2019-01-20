@@ -149,3 +149,24 @@ func (cli *MonitorApiClient) GetUserState(req *monitor_api_grpc_pb.GetUserStateR
 
 	return rep, err
 }
+
+func (cli *MonitorApiClient) GetIndexState(req *monitor_api_grpc_pb.GetIndexStateRequest) (*monitor_api_grpc_pb.GetIndexStateReply, error) {
+	var rep *monitor_api_grpc_pb.GetIndexStateReply
+	var err error
+	conn, err := cli.NewClientConnection()
+	defer conn.Close()
+	if err != nil {
+		return rep, err
+	}
+
+	ctx, cancel := cli.GetContext()
+	defer cancel()
+	if cli.conf.Default.EnableTest {
+		rep, err = cli.localServer.GetIndexState(ctx, req)
+	} else {
+		grpcClient := monitor_api_grpc_pb.NewMonitorApiClient(conn)
+		rep, err = grpcClient.GetIndexState(ctx, req)
+	}
+
+	return rep, err
+}

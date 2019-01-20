@@ -1,5 +1,7 @@
 import React, {Component} from 'react';
 import { connect } from 'react-redux';
+import { Link } from 'react-router-dom';
+
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
@@ -471,6 +473,7 @@ class IndexTable extends Component {
 
     return (
       <Paper className={classes.root}>
+        <h3>IndexTable</h3>
         {toolBar}
         <div className={classes.tableWrapper}>
           <Table className={classes.table} aria-labelledby="tableTitle">
@@ -501,7 +504,7 @@ class IndexTable extends Component {
                         <Checkbox checked={isSelected} />
                       </TableCell>
                       <TableCell component="th" scope="row" padding="none">
-                        {n[0]}
+                        <Link to={`${match.url}/${n[0]}`}>{n[0]}</Link>
                       </TableCell>
                       <TableCell align="right">{n[1]}</TableCell>
                       <TableCell align="right">{n[2]}</TableCell>
@@ -526,7 +529,6 @@ class IndexTable extends Component {
 
 IndexTable.propTypes = {
   classes: PropTypes.object.isRequired,
-  indexMap: PropTypes.object.isRequired,
 };
 
 function mapStateToProps(state, ownProps) {

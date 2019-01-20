@@ -7,6 +7,7 @@ const defaultState = {
   isFetching: false,
   error: null,
   monitor: null,
+  indexState: null,
 };
 
 export default handleActions({
@@ -24,11 +25,6 @@ export default handleActions({
       monitor: action.payload.monitor,
     })
   },
-  // [actions.monitor.syncStateSuccess]: (state, action) => Object.assign({}, state, {
-  //   isFetching: false,
-  //   redirectToReferrer: true,
-  //   monitor: action.payload.monitor,
-  // }),
   [actions.monitor.monitorSyncStateFailure]: (state, action) => {
     console.log("monitor.reducers.syncStateFailure")
     return Object.assign({}, defaultState, {
@@ -36,4 +32,20 @@ export default handleActions({
       error: action.payload.error,
     })
   },
+  [actions.monitor.syncIndexState]: (state) => {
+    console.log("monitor.reducers.syncIndexState")
+    return Object.assign({}, state, {
+      isFetching: true,
+    })
+  },
+  [actions.monitor.syncIndexStateSuccess]: (state, action) => Object.assign({}, state, {
+    isFetching: false,
+    redirectToReferrer: true,
+    indexState: action.payload.indexState,
+  }),
+  [actions.monitor.syncIndexStateFailure]: (state, action) => Object.assign({}, state, {
+    isFetching: false,
+    redirectToReferrer: true,
+    indexState: action.payload.indexState,
+  }),
 }, defaultState);
