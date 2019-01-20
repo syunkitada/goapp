@@ -19,6 +19,7 @@ service MonitorApi {
 
   rpc GetUserState(GetUserStateRequest) returns (GetUserStateReply) {}
 
+  rpc GetIndex(GetIndexRequest) returns (GetIndexReply) {}
   rpc GetHost(GetHostRequest) returns (GetHostReply) {}
   rpc GetLog(GetLogRequest) returns (GetLogReply) {}
 }
@@ -130,7 +131,33 @@ message GetUserStateRequest {
 message GetUserStateReply {
     int64 status_code = 1;
     string err = 2;
-    map<string, Host> host_map = 3;
+    map<string, Index> index_map = 3;
+}
+
+
+//
+// GetIndex
+//
+message GetIndexRequest {
+    string trace_id = 1;
+    string user_name = 2;
+    string role_name = 3;
+    string project_name = 4;
+    string project_role_name = 5;
+}
+
+message GetIndexReply {
+    int64 status_code = 1;
+    string err = 2;
+    map<string, Index> index_map = 3;
+}
+
+message Index {
+    string name = 1;
+    double count = 2;
+    double states = 3;
+    double warnings = 4;
+    double errors = 5;
 }
 
 

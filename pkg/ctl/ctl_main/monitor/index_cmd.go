@@ -14,19 +14,19 @@ import (
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
 
-var getHostCmd = &cobra.Command{
-	Use:   "host",
-	Short: "Show hosts",
-	Long: `Show hosts
+var getIndexCmd = &cobra.Command{
+	Use:   "index",
+	Short: "Show indexes",
+	Long: `Show indexes
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
-		if err := GetHost(); err != nil {
+		if err := GetIndex(); err != nil {
 			glog.Fatal(err)
 		}
 	},
 }
 
-func GetHost() error {
+func GetIndex() error {
 	var err error
 	tctx := logger.NewCtlTraceContext(appName)
 	startTime := logger.StartTrace(tctx)
@@ -38,22 +38,23 @@ func GetHost() error {
 		return err
 	}
 
-	resp, err := authproxy.Monitor.CtlGetHost(token.Token, getCmdIndexFlag)
+	resp, err := authproxy.Monitor.CtlGetIndex(token.Token)
 	if err != nil {
 		return err
 	}
 	if config.Conf.Default.EnableDebug {
-		fmt.Printf("GetHost.TraceID: %v\n", resp.TraceId)
+		fmt.Printf("GetIndex.TraceID: %v\n", resp.TraceId)
 	}
 
 	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"Index", "Name", "Status", "Timestamp"})
-	for _, host := range resp.HostMap {
+	table.SetHeader([]string{"Index", "Count", "States", "Warnings", "Errors"})
+	for _, index := range resp.IndexMap {
 		table.Append([]string{
-			host.Index,
-			host.Name,
-			fmt.Sprint(host.State),
-			fmt.Sprint(host.Timestamp),
+			index.Name,
+			fmt.Sprint(index.Count),
+			fmt.Sprint(index.States),
+			fmt.Sprint(index.Warnings),
+			fmt.Sprint(index.Errors),
 		})
 	}
 	table.Render()

@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 
 import HostTable from './components/HostTable'
+import IndexTable from './components/IndexTable'
 import Dashboard from '../../../components/Dashboard'
 import actions from '../../../actions'
 
@@ -34,20 +35,11 @@ class ProjectMonitor extends Component {
         </Dashboard>
       );
     } else {
-      console.log("success monitor.monitor")
-      let indexHtml = ""
-      let hostMap = monitor.monitor.HostMap
-      for (let key in hostMap) {
-        let host = hostMap[key]
-        console.log(host)
-        indexHtml += host.index + " " + host.name + " " + host.state + " " + host.errors + " " + host.timestamp
-      }
       return (
         <Dashboard projectService={projectService} match={match}>
           <div>
             <h2>Monitor</h2>
-            {indexHtml}
-            <HostTable />
+            <IndexTable indexMap={monitor.monitor.IndexMap}/>
           </div>
         </Dashboard>
       );

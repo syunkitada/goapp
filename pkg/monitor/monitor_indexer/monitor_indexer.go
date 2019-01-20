@@ -11,6 +11,7 @@ import (
 type Indexer interface {
 	Report(tctx *logger.TraceContext, req *monitor_api_grpc_pb.ReportRequest) error
 	GetHost(tctx *logger.TraceContext, projectName string, hostMap map[string]*monitor_api_grpc_pb.Host) error
+	GetIndex(tctx *logger.TraceContext, projectName string, indexMap map[string]*monitor_api_grpc_pb.Index) error
 }
 
 func NewIndexer(index string, indexerConfig *config.MonitorIndexerConfig) (Indexer, error) {

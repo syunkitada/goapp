@@ -15,21 +15,34 @@ import (
 	"github.com/syunkitada/goapp/pkg/monitor/monitor_api/monitor_api_grpc_pb"
 )
 
-type ResponseGetState struct {
-	HostMap map[string]monitor_api_grpc_pb.Host
+type ResponseGetIndex struct {
+	IndexMap map[string]monitor_api_grpc_pb.Index
+	TraceId  string
+	Err      string
+}
+
+type ResponseCreateIndex struct {
+	Index   monitor_api_grpc_pb.Index
 	TraceId string
 	Err     string
 }
 
-func (monitor *Monitor) GetState(c *gin.Context, rc *MonitorContext) (int, string) {
-	reqData := monitor_api_grpc_pb.GetUserStateRequest{}
+func (monitor *Monitor) GetIndex(c *gin.Context, rc *MonitorContext) (int, string) {
+	var reqData monitor_api_grpc_pb.GetIndexRequest
+	if err := json.Unmarshal([]byte(rc.action.Data), &reqData); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"TraceId": rc.traceId,
+			"Err":     err,
+		})
+		return -1, err.Error()
+	}
 	reqData.TraceId = rc.traceId
 	reqData.UserName = rc.userName
 	reqData.RoleName = rc.userAuthority.ActionProjectService.RoleName
 	reqData.ProjectName = rc.userAuthority.ActionProjectService.ProjectName
 	reqData.ProjectRoleName = rc.userAuthority.ActionProjectService.ProjectRoleName
 
-	rep, err := monitor.monitorApiClient.GetUserState(&reqData)
+	rep, err := monitor.monitorApiClient.GetIndex(&reqData)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"TraceId": rc.traceId,
@@ -53,8 +66,8 @@ func (monitor *Monitor) GetState(c *gin.Context, rc *MonitorContext) (int, strin
 	return int(rep.StatusCode), rep.Err
 }
 
-func (monitor *Monitor) CtlGetState(token string, index string) (*ResponseGetState, error) {
-	reqData := monitor_api_grpc_pb.GetUserStateRequest{}
+func (monitor *Monitor) CtlGetIndex(token string) (*ResponseGetIndex, error) {
+	reqData := monitor_api_grpc_pb.GetIndexRequest{}
 	reqDataJson, err := json.Marshal(reqData)
 	if err != nil {
 		return nil, fmt.Errorf("Err: %v", err)
@@ -65,7 +78,7 @@ func (monitor *Monitor) CtlGetState(token string, index string) (*ResponseGetSta
 		Action: authproxy_model.ActionRequest{
 			ProjectName: monitor.conf.Ctl.Project,
 			ServiceName: "Monitor",
-			Name:        "GetState",
+			Name:        "GetIndex",
 			Data:        string(reqDataJson),
 		},
 	}
@@ -80,7 +93,7 @@ func (monitor *Monitor) CtlGetState(token string, index string) (*ResponseGetSta
 		return nil, fmt.Errorf("Err: %v", err)
 	}
 
-	var resp ResponseGetState
+	var resp ResponseGetIndex
 	var body []byte
 	var statusCode int
 	if monitor.conf.Default.EnableTest {

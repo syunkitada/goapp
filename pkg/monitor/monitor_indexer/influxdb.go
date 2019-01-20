@@ -149,6 +149,40 @@ func (indexer *InfluxdbIndexer) Report(tctx *logger.TraceContext, req *monitor_a
 	return nil
 }
 
+func (indexer *InfluxdbIndexer) GetIndex(tctx *logger.TraceContext, projectName string, indexMap map[string]*monitor_api_grpc_pb.Index) error {
+	// hosts
+	// query := "show tag values from \"agent\" with key = \"Host\""
+	query := "select count(State), sum(State) as states, sum(Warnings) as warnings, sum(Errors) as errors from agent where Project = 'admin' group by Host,Kind"
+	var count float64 = 0
+	var states float64 = 0
+	var warnings float64 = 0
+	var errors float64 = 0
+	for _, client := range indexer.percistentClients {
+		result, err := client.Query(query)
+		if err != nil {
+			logger.Warning(tctx, err, "Failed Query")
+			continue
+		}
+
+		for _, s := range result.Results[0].Series {
+			count = s.Values[0][1].(float64)
+			states = s.Values[0][2].(float64)
+			warnings = s.Values[0][3].(float64)
+			errors = s.Values[0][4].(float64)
+		}
+	}
+
+	indexMap[indexer.index] = &monitor_api_grpc_pb.Index{
+		Name:     indexer.index,
+		Count:    count,
+		States:   states,
+		Warnings: warnings,
+		Errors:   errors,
+	}
+
+	return nil
+}
+
 func (indexer *InfluxdbIndexer) GetHost(tctx *logger.TraceContext, projectName string, hostMap map[string]*monitor_api_grpc_pb.Host) error {
 	// hosts
 	// query := "show tag values from \"agent\" with key = \"Host\""

@@ -87,6 +87,27 @@ func (cli *MonitorApiClient) Report(req *monitor_api_grpc_pb.ReportRequest) (*mo
 	return rep, err
 }
 
+func (cli *MonitorApiClient) GetIndex(req *monitor_api_grpc_pb.GetIndexRequest) (*monitor_api_grpc_pb.GetIndexReply, error) {
+	var rep *monitor_api_grpc_pb.GetIndexReply
+	var err error
+	conn, err := cli.NewClientConnection()
+	defer conn.Close()
+	if err != nil {
+		return rep, err
+	}
+
+	ctx, cancel := cli.GetContext()
+	defer cancel()
+	if cli.conf.Default.EnableTest {
+		rep, err = cli.localServer.GetIndex(ctx, req)
+	} else {
+		grpcClient := monitor_api_grpc_pb.NewMonitorApiClient(conn)
+		rep, err = grpcClient.GetIndex(ctx, req)
+	}
+
+	return rep, err
+}
+
 func (cli *MonitorApiClient) GetHost(req *monitor_api_grpc_pb.GetHostRequest) (*monitor_api_grpc_pb.GetHostReply, error) {
 	var rep *monitor_api_grpc_pb.GetHostReply
 	var err error
