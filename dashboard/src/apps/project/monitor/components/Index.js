@@ -16,11 +16,9 @@ import ExpansionPanelSummary from '@material-ui/core/ExpansionPanelSummary';
 import ExpansionPanelDetails from '@material-ui/core/ExpansionPanelDetails';
 import Typography from '@material-ui/core/Typography';
 
-import HostTable from './components/HostTable'
-import IndexTable from './components/IndexTable'
-import Index from './components/Index'
-import Dashboard from '../../../components/Dashboard'
-import actions from '../../../actions'
+import HostTable from './HostTable'
+import IndexTable from './IndexTable'
+import actions from '../../../../actions'
 
 
 const styles = theme => ({
@@ -29,9 +27,9 @@ const styles = theme => ({
   },
 });
 
-class ProjectMonitor extends Component {
+class Index extends Component {
   state = {
-    expanded: "IndexPanel",
+    expanded: null,
   };
 
   handleChange = panel => (event, expanded) => {
@@ -47,7 +45,7 @@ class ProjectMonitor extends Component {
 
   render() {
     const {classes, match, auth, monitor} = this.props
-    const { expanded } = this.state;
+    let { expanded } = this.state;
     console.log("DEBUG Monitor")
     console.log(monitor)
 
@@ -60,27 +58,53 @@ class ProjectMonitor extends Component {
     if (!monitor.monitor) {
       console.log("!monitor.monitor")
       return (
-        <Dashboard projectService={projectService} match={match}>
-          <div>
-            <h2>Monitor</h2>
-          </div>
-        </Dashboard>
+        <div>
+        </div>
       );
     } else {
+      var selectedIndexHtml = ""
+      if (match.params.index) {
+        selectedIndexHtml = ": " + match.params.index
+        if (expanded === null) {
+          expanded = "HostPanel"
+        }
+      } else {
+        if (expanded === null) {
+          expanded = "IndexPanel"
+        }
+      }
+
       return (
-        <Dashboard projectService={projectService} match={match}>
-          <Typography variant="display1">
-            Monitor
-          </Typography>
-          <Route exact path={match.path} component={Index} />
-          <Route path={`${match.path}/:index`} component={Index} />
-        </Dashboard>
+        <div>
+          <ExpansionPanel expanded={expanded === 'IndexPanel'} onChange={this.handleChange('IndexPanel')}>
+            <ExpansionPanelSummary expandIcon={<ExpandMoreIcon />}>
+              <Typography variant="title">
+                Index Table
+                {selectedIndexHtml}
+              </Typography>
+            </ExpansionPanelSummary>
+            <ExpansionPanelDetails>
+              <IndexTable match={match} />
+            </ExpansionPanelDetails>
+          </ExpansionPanel>
+
+          <ExpansionPanel expanded={expanded === 'HostPanel'} onChange={this.handleChange('HostPanel')}>
+            <ExpansionPanelSummary expandIcon={<ExpandMoreIcon />}>
+              <Typography variant="title">
+                Host Table
+              </Typography>
+            </ExpansionPanelSummary>
+            <ExpansionPanelDetails>
+              <HostTable match={match} />
+            </ExpansionPanelDetails>
+          </ExpansionPanel>
+        </div>
       );
     }
   }
 }
 
-ProjectMonitor.propTypes = {
+Index.propTypes = {
   classes: PropTypes.object.isRequired,
   auth: PropTypes.object.isRequired,
   monitor: PropTypes.object.isRequired,
@@ -108,4 +132,4 @@ function mapDispatchToProps(dispatch, ownProps) {
 export default connect(
   mapStateToProps,
   mapDispatchToProps,
-)(withStyles(styles)(ProjectMonitor))
+)(withStyles(styles)(Index))

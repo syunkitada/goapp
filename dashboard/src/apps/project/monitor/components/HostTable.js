@@ -151,7 +151,6 @@ HostTableHead.propTypes = {
 const styles = theme => ({
   root: {
     width: '100%',
-    marginTop: theme.spacing.unit * 3,
   },
   table: {
     minWidth: 1020,
@@ -299,7 +298,9 @@ class HostTable extends Component {
 
   componentWillMount() {
     const {match, syncIndexState} = this.props
-    syncIndexState(match.params.project, match.params.index)
+    if (match.params.index) {
+      syncIndexState(match.params.project, match.params.index)
+    }
   }
 
   handleRequestSort = (event, property) => {
@@ -356,6 +357,14 @@ class HostTable extends Component {
     const { match, classes, auth, monitor} = this.props
     const { order, orderBy, selected, rowsPerPage, page } = this.state;
     const indexMap = monitor.monitor.IndexMap
+
+    if (!match.params.index) {
+      return (
+        <Typography variant="body1">
+          Index Is Not Selected
+        </Typography>
+      )
+    }
 
     const data = []
     for (let key in indexMap) {
@@ -477,8 +486,7 @@ class HostTable extends Component {
     )
 
     return (
-      <Paper className={classes.root}>
-        <h3>HostTable</h3>
+      <div className={classes.root}>
         {toolBar}
         <div className={classes.tableWrapper}>
           <Table className={classes.table} aria-labelledby="tableTitle">
@@ -527,7 +535,7 @@ class HostTable extends Component {
           </Table>
         </div>
         {tablePagination}
-      </Paper>
+      </div>
     );
   }
 }

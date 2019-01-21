@@ -151,7 +151,6 @@ IndexTableHead.propTypes = {
 const styles = theme => ({
   root: {
     width: '100%',
-    marginTop: theme.spacing.unit * 3,
   },
   table: {
     minWidth: 1020,
@@ -472,8 +471,7 @@ class IndexTable extends Component {
     )
 
     return (
-      <Paper className={classes.root}>
-        <h3>IndexTable</h3>
+      <div className={classes.root}>
         {toolBar}
         <div className={classes.tableWrapper}>
           <Table className={classes.table} aria-labelledby="tableTitle">
@@ -522,7 +520,7 @@ class IndexTable extends Component {
           </Table>
         </div>
         {tablePagination}
-      </Paper>
+      </div>
     );
   }
 }
