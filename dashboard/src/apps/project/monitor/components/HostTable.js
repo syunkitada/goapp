@@ -83,11 +83,12 @@ function getSorting(order, orderBy) {
 }
 
 const rows = [
-  { id: 'index', numeric: false, disablePadding: true, label: 'Index' },
-  { id: 'count', numeric: true, disablePadding: false, label: 'Count' },
-  { id: 'states', numeric: true, disablePadding: false, label: 'States' },
+  { id: 'name', numeric: false, disablePadding: true, label: 'Name' },
+  { id: 'kind', numeric: true, disablePadding: false, label: 'Kind' },
+  { id: 'state', numeric: true, disablePadding: false, label: 'State' },
   { id: 'warnings', numeric: true, disablePadding: false, label: 'Warnings' },
   { id: 'errors', numeric: true, disablePadding: false, label: 'Errors' },
+  { id: 'timestamp', numeric: true, disablePadding: false, label: 'Timestamp' },
 ];
 
 class HostTableHead extends Component {
@@ -356,25 +357,37 @@ class HostTable extends Component {
   render() {
     const { match, classes, auth, monitor} = this.props
     const { order, orderBy, selected, rowsPerPage, page } = this.state;
-    const indexMap = monitor.monitor.IndexMap
 
-    if (!match.params.index) {
+    if (!match.params.index || !monitor.indexState) {
       return (
         <Typography variant="body1">
           Index Is Not Selected
         </Typography>
       )
     }
+    const hostMap = monitor.indexState.hostMap
 
     const data = []
-    for (let key in indexMap) {
-      let v = indexMap[key]
-      data.push([v.name, v.count? v.count:0,
-        v.states? v.states:0, v.warnings? v.warnings:0, v.errors? v.errors:0])
+    for (let key in hostMap) {
+      let v = hostMap[key]
+
+      let d = new Date(v.timestamp/1000000)
+      let year  = d.getFullYear();
+      let month = d.getMonth() + 1;
+      let day  = d.getDate();
+      let hour = ( '0' + d.getHours() ).slice(-2);
+      let min  = ( '0' + d.getMinutes() ).slice(-2);
+      let sec   = ( '0' + d.getSeconds() ).slice(-2);
+      let timestamp = year + '/' + month + '/' + day + ' ' + hour + ':' + min + ':' + sec
+
+      data.push([v.name, v.kind,
+        v.state? v.state:0, v.warnings? v.warnings:0, v.errors? v.errors:0, timestamp])
     }
     this.state.data = data
     const indexLength = data.length
     const emptyRows = rowsPerPage - Math.min(rowsPerPage, indexLength - page * rowsPerPage);
+    console.log("HOGElalalala")
+    console.log(data)
 
     let tablePagination = (
       <TablePagination
@@ -523,6 +536,7 @@ class HostTable extends Component {
                       <TableCell align="right">{n[2]}</TableCell>
                       <TableCell align="right">{n[3]}</TableCell>
                       <TableCell align="right">{n[4]}</TableCell>
+                      <TableCell align="right">{n[5]}</TableCell>
                     </TableRow>
                   );
                 })}

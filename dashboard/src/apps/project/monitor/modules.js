@@ -33,7 +33,7 @@ function syncIndexState({projectName, indexName}) {
       ProjectName: projectName,
       ServiceName: 'Monitor',
       Name: 'GetIndexState',
-      Data: '',
+      Data: '{"Index":"' + indexName + '"}',
     },
   });
   console.log("monitor.modules.syncIndexState")

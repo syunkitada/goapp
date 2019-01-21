@@ -126,14 +126,21 @@ type ResponseGetIndexState struct {
 }
 
 func (monitor *Monitor) GetIndexState(c *gin.Context, rc *MonitorContext) (int, string) {
-	reqData := monitor_api_grpc_pb.GetUserStateRequest{}
+	var reqData monitor_api_grpc_pb.GetIndexStateRequest
+	if err := json.Unmarshal([]byte(rc.action.Data), &reqData); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"TraceId": rc.traceId,
+			"Err":     err,
+		})
+		return -1, err.Error()
+	}
 	reqData.TraceId = rc.traceId
 	reqData.UserName = rc.userName
 	reqData.RoleName = rc.userAuthority.ActionProjectService.RoleName
 	reqData.ProjectName = rc.userAuthority.ActionProjectService.ProjectName
 	reqData.ProjectRoleName = rc.userAuthority.ActionProjectService.ProjectRoleName
 
-	rep, err := monitor.monitorApiClient.GetUserState(&reqData)
+	rep, err := monitor.monitorApiClient.GetIndexState(&reqData)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"TraceId": rc.traceId,
@@ -151,8 +158,8 @@ func (monitor *Monitor) GetIndexState(c *gin.Context, rc *MonitorContext) (int, 
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"TraceId":  rc.traceId,
-		"IndexMap": rep.IndexMap,
+		"TraceId": rc.traceId,
+		"HostMap": rep.HostMap,
 	})
 	return int(rep.StatusCode), rep.Err
 }

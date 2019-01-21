@@ -39,7 +39,7 @@ function* syncIndexState(action) {
   } else {
     console.log("sagas.syncIndexState Success")
     const indexState = {
-      HostMap: payload.IndexMap,
+      hostMap: payload.HostMap,
     }
     console.log(indexState)
     yield put(actions.monitor.monitorSyncIndexStateSuccess(indexState))
