@@ -15,9 +15,13 @@ import ExpansionPanel from '@material-ui/core/ExpansionPanel';
 import ExpansionPanelSummary from '@material-ui/core/ExpansionPanelSummary';
 import ExpansionPanelDetails from '@material-ui/core/ExpansionPanelDetails';
 import Typography from '@material-ui/core/Typography';
+import Tabs from '@material-ui/core/Tabs';
+import Tab from '@material-ui/core/Tab';
+import AppBar from '@material-ui/core/AppBar';
 
-import HostTable from './HostTable'
 import IndexTable from './IndexTable'
+import HostTable from './HostTable'
+import LogTable from './LogTable'
 import actions from '../../../../actions'
 
 
@@ -27,15 +31,28 @@ const styles = theme => ({
   },
 });
 
+function TabContainer(props) {
+  return (
+    <Typography component="div" style={{ padding: 8 * 3 }}>
+      {props.children}
+    </Typography>
+  );
+}
+
 class Index extends Component {
   state = {
     expanded: null,
+    tabId: 0,
   };
 
   handleChange = panel => (event, expanded) => {
     this.setState({
       expanded: expanded ? panel : false,
     });
+  };
+
+  handleChangeTab = (event, tabId) => {
+    this.setState({ tabId });
   };
 
   componentWillMount() {
@@ -45,7 +62,7 @@ class Index extends Component {
 
   render() {
     const {classes, match, auth, monitor} = this.props
-    let { expanded } = this.state;
+    let { expanded, tabId } = this.state;
     console.log("DEBUG Monitor")
     console.log(monitor)
 
@@ -88,16 +105,36 @@ class Index extends Component {
             </ExpansionPanelDetails>
           </ExpansionPanel>
 
-          <ExpansionPanel expanded={expanded === 'HostPanel'} onChange={this.handleChange('HostPanel')}>
-            <ExpansionPanelSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="title">
-                Host Table
-              </Typography>
-            </ExpansionPanelSummary>
-            <ExpansionPanelDetails>
+          <Paper>
+            <AppBar position="static" color="default">
+              <Tabs
+                value={tabId}
+                onChange={this.handleChangeTab}
+                indicatorColor="primary"
+                textColor="primary"
+                variant="scrollable"
+                scrollButtons="auto"
+              >
+                <Tab label="Alerms" />
+                <Tab label="Silenced Alerms" />
+                <Tab label="Hosts" />
+                <Tab label="Logs" />
+              </Tabs>
+            </AppBar>
+            {tabId === 0 && <TabContainer>
+              Alerms
+            </TabContainer>}
+            {tabId === 1 && <TabContainer>
+              Silenced Alerms
+            </TabContainer>}
+            {tabId === 2 && <TabContainer>
               <HostTable match={match} />
-            </ExpansionPanelDetails>
-          </ExpansionPanel>
+            </TabContainer>}
+            {tabId === 3 && <TabContainer>
+              <LogTable match={match} />
+            </TabContainer>}
+          </Paper>
+
         </div>
       );
     }
