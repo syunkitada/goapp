@@ -12,6 +12,7 @@ type MonitorConfig struct {
 type MonitorIndexerConfig struct {
 	Driver              string
 	Indexes             []string
+	AlertDatabases      []string
 	LogDatabases        []string
 	MetricDatabases     []string
 	PercistentDatabases []string
@@ -45,6 +46,7 @@ type MonitorLogConfig struct {
 type MonitorLogAlertConfig struct {
 	Key     string
 	Pattern string
+	Level   string
 	Handler string
 }
 

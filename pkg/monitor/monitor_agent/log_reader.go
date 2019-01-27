@@ -21,6 +21,7 @@ const (
 type LogAlert struct {
 	name    string
 	handler string
+	level   string
 	pattern *regexp.Regexp
 }
 
@@ -32,6 +33,7 @@ type LogReader struct {
 	offset             int64
 	alertsMap          map[string][]LogAlert
 	logs               []*monitor_api_grpc_pb.Log
+	alerts             []*monitor_api_grpc_pb.Alert
 }
 
 func NewLogReader(conf *config.Config, name string, logConf *config.MonitorLogConfig) (*LogReader, error) {
@@ -48,6 +50,7 @@ func NewLogReader(conf *config.Config, name string, logConf *config.MonitorLogCo
 		logAlert := LogAlert{
 			name:    alertName,
 			handler: alert.Handler,
+			level:   alert.Level,
 			pattern: regexp.MustCompile(alert.Pattern),
 		}
 		if alerts, ok := alertsMap[alert.Key]; ok {
@@ -115,8 +118,8 @@ func (reader *LogReader) Init() error {
 	return nil
 }
 
-func (reader *LogReader) Report() []*monitor_api_grpc_pb.Log {
-	return reader.logs
+func (reader *LogReader) Report() ([]*monitor_api_grpc_pb.Log, []*monitor_api_grpc_pb.Alert) {
+	return reader.logs, reader.alerts
 }
 
 func (reader *LogReader) Reported() {
@@ -200,7 +203,16 @@ func (reader *LogReader) ReadUntilEOF(tctx *logger.TraceContext) error {
 							if alerts, ok := reader.alertsMap[keyStr]; ok {
 								for _, alert := range alerts {
 									if alert.pattern.MatchString(valueStr) {
-										logMap["Alert"+alert.name] = alert.handler
+										if time, ok := logMap["Time"]; ok {
+											logMap["Alert"+alert.name] = alert.handler
+											reader.alerts = append(reader.alerts, &monitor_api_grpc_pb.Alert{
+												Name:    alert.name,
+												Time:    time,
+												Level:   alert.level,
+												Handler: alert.handler,
+												Msg:     "",
+											})
+										}
 									}
 								}
 							}

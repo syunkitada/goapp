@@ -67,7 +67,10 @@ func (srv *MonitorAgentServer) Report(tctx *logger.TraceContext) error {
 	timestamp := time.Now()
 	timestampStr := strconv.FormatInt(timestamp.UnixNano(), 10)
 
+	pbAlerts := make([]*monitor_api_grpc_pb.Alert, 0, 10)
 	pbMetrics := make([]*monitor_api_grpc_pb.Metric, 0, 100)
+	pbLogs := make([]*monitor_api_grpc_pb.Log, 0, 100)
+
 	pbMetrics = append(pbMetrics, &monitor_api_grpc_pb.Metric{
 		Name: "report",
 		Time: timestampStr,
@@ -80,14 +83,15 @@ func (srv *MonitorAgentServer) Report(tctx *logger.TraceContext) error {
 	})
 
 	for _, metricReader := range srv.metricReaders {
-		metrics := metricReader.Report()
+		metrics, alerts := metricReader.Report()
 		pbMetrics = append(pbMetrics, metrics...)
+		pbAlerts = append(pbAlerts, alerts...)
 	}
 
-	pbLogs := make([]*monitor_api_grpc_pb.Log, 0, 100)
 	for _, logReader := range srv.logReaderMap {
-		logs := logReader.Report()
+		logs, alerts := logReader.Report()
 		pbLogs = append(pbLogs, logs...)
+		pbAlerts = append(pbAlerts, alerts...)
 	}
 
 	req := &monitor_api_grpc_pb.ReportRequest{

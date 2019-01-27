@@ -225,8 +225,9 @@ func (reader *SystemMetricReader) GetName() string {
 	return reader.name
 }
 
-func (reader *SystemMetricReader) Report() []*monitor_api_grpc_pb.Metric {
+func (reader *SystemMetricReader) Report() ([]*monitor_api_grpc_pb.Metric, []*monitor_api_grpc_pb.Alert) {
 	metrics := make([]*monitor_api_grpc_pb.Metric, 0, 100)
+	alerts := make([]*monitor_api_grpc_pb.Alert, 0, 100)
 
 	for _, stat := range reader.uptimeStats {
 		timestamp := strconv.FormatInt(stat.timestamp.UnixNano(), 10)
@@ -298,7 +299,7 @@ func (reader *SystemMetricReader) Report() []*monitor_api_grpc_pb.Metric {
 
 	// TODO check metrics and issue alerts
 
-	return metrics
+	return metrics, alerts
 }
 
 func (reader *SystemMetricReader) Reported() {

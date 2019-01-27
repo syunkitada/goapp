@@ -97,6 +97,7 @@ message ReportRequest {
     int64 timestamp = 10;
     repeated Log logs = 11;
     repeated Metric metrics = 12;
+    repeated Alert alerts = 13;
 }
 
 message ReportReply {
@@ -115,6 +116,15 @@ message Metric {
     string time = 2;
     map<string, string> tag = 3;
     map<string, int64> metric = 4;
+}
+
+message Alert {
+    string name = 1;
+    string time = 2;
+    string level = 3;
+    string handler = 4;
+    string msg = 5;
+    map<string, string> tag = 6;
 }
 
 

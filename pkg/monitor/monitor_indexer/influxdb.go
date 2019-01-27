@@ -17,12 +17,22 @@ import (
 
 type InfluxdbIndexer struct {
 	index             string
+	alertClients      []*Client
 	logClients        []*Client
 	metricClients     []*Client
 	percistentClients []*Client
 }
 
 func NewInfluxdbIndexer(index string, indexerConfig *config.MonitorIndexerConfig) (*InfluxdbIndexer, error) {
+	alertClients := []*Client{}
+	for _, databaseInfo := range indexerConfig.AlertDatabases {
+		client, err := NewClient(databaseInfo)
+		if err != nil {
+			return nil, err
+		}
+		alertClients = append(alertClients, client)
+	}
+
 	logClients := []*Client{}
 	for _, databaseInfo := range indexerConfig.LogDatabases {
 		client, err := NewClient(databaseInfo)
@@ -52,6 +62,7 @@ func NewInfluxdbIndexer(index string, indexerConfig *config.MonitorIndexerConfig
 
 	return &InfluxdbIndexer{
 		index:             index,
+		alertClients:      alertClients,
 		logClients:        logClients,
 		metricClients:     metricClients,
 		percistentClients: percistentClients,
@@ -71,6 +82,30 @@ func (indexer *InfluxdbIndexer) Report(tctx *logger.TraceContext, req *monitor_a
 
 	for _, client := range indexer.percistentClients {
 		err := client.Write(percistentData)
+		if err != nil {
+			logger.Warning(tctx, err, "Failed Write")
+		}
+	}
+
+	alertsData := ""
+	for _, alert := range req.Alerts {
+		tags := ",Project=" + req.Project + ",Host=" + req.Host
+		for key, value := range alert.Tag {
+			switch key {
+			case "Project":
+				continue
+			case "Host":
+				continue
+			default:
+				tags += "," + key + "=" + value
+			}
+		}
+
+		alertsData += alert.Name + tags + " Msg=\"" + alert.Msg + "\" " + alert.Time + "\n"
+	}
+
+	for _, client := range indexer.alertClients {
+		err := client.Write(alertsData)
 		if err != nil {
 			logger.Warning(tctx, err, "Failed Write")
 		}

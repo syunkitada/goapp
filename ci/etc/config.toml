@@ -19,6 +19,7 @@ Connection = "admin:adminpass@tcp(localhost:3306)/goapp_monitor?charset=utf8&par
 [[Monitor.Indexers]]
 Driver = "influxdb"
 Indexes = ["cluster1"]
+AlertDatabases = ["goapp:goapppass@http://localhost:8086@goapp_monitor_alerts"]
 LogDatabases = ["goapp:goapppass@http://localhost:8086@goapp_monitor_logs"]
 MetricDatabases = ["goapp:goapppass@http://localhost:8086@goapp_monitor_metrics"]
 PercistentDatabases = ["goapp:goapppass@http://localhost:8086@goapp_monitor_percistent"]
@@ -58,6 +59,7 @@ MaxInitialReadSize = 10000
 [Monitor.AgentApp.LogMap."monitor-api".AlertMap."FoundError"]
 Key = "Level"
 Pattern = "E"
+Level = "E"
 Handler = "Mail"
 
 [Monitor.AgentApp.Metrics.System]
