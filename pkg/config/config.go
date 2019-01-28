@@ -39,7 +39,7 @@ func InitFlags(rootCmd *cobra.Command) {
 	rootCmd.PersistentFlags().StringVar(&tmpDir, "tmp-dir", "", "config directory (default is $HOMEL/.goapp/tmp)")
 	rootCmd.PersistentFlags().BoolVar(&enableDebug, "debug", false, "enable debug mode")
 	rootCmd.PersistentFlags().BoolVar(&enableDevelop, "develop", false, "enable develop mode")
-	rootCmd.PersistentFlags().BoolVar(&enableDatabaseLog, "database-log", false, "enable database logging")
+	rootCmd.PersistentFlags().BoolVar(&enableDatabaseLog, "database-log", true, "enable database logging")
 
 	// glog flags
 	rootCmd.PersistentFlags().IntVar(&glogV, "glog-v", 0, "log level for V logs")
@@ -98,10 +98,6 @@ func InitConfig() {
 	}
 
 	logTimeFormat := "2006-01-02T15:04:05Z09:00"
-
-	if enableDebug {
-		enableDatabaseLog = true
-	}
 
 	var err error
 

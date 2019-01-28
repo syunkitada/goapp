@@ -79,6 +79,41 @@ func (srv *MonitorApiServer) UpdateNode(ctx context.Context, req *monitor_api_gr
 }
 
 //
+// IgnoreAlert
+//
+func (srv *MonitorApiServer) GetIgnoreAlert(ctx context.Context, req *monitor_api_grpc_pb.GetIgnoreAlertRequest) (*monitor_api_grpc_pb.GetIgnoreAlertReply, error) {
+	tctx := logger.NewGrpcTraceContext(srv.Host, srv.Name, ctx)
+	startTime := logger.StartTrace(tctx)
+	rep := srv.monitorModelApi.GetIgnoreAlert(tctx, req)
+	logger.EndGrpcTrace(tctx, startTime, rep.StatusCode, rep.Err)
+	return rep, nil
+}
+
+func (srv *MonitorApiServer) CreateIgnoreAlert(ctx context.Context, req *monitor_api_grpc_pb.CreateIgnoreAlertRequest) (*monitor_api_grpc_pb.CreateIgnoreAlertReply, error) {
+	tctx := logger.NewGrpcTraceContext(srv.Host, srv.Name, ctx)
+	startTime := logger.StartTrace(tctx)
+	rep := srv.monitorModelApi.CreateIgnoreAlert(tctx, req)
+	logger.EndGrpcTrace(tctx, startTime, rep.StatusCode, rep.Err)
+	return rep, nil
+}
+
+func (srv *MonitorApiServer) UpdateIgnoreAlert(ctx context.Context, req *monitor_api_grpc_pb.UpdateIgnoreAlertRequest) (*monitor_api_grpc_pb.UpdateIgnoreAlertReply, error) {
+	tctx := logger.NewGrpcTraceContext(srv.Host, srv.Name, ctx)
+	startTime := logger.StartTrace(tctx)
+	rep := srv.monitorModelApi.UpdateIgnoreAlert(tctx, req)
+	logger.EndGrpcTrace(tctx, startTime, rep.StatusCode, rep.Err)
+	return rep, nil
+}
+
+func (srv *MonitorApiServer) DeleteIgnoreAlert(ctx context.Context, req *monitor_api_grpc_pb.DeleteIgnoreAlertRequest) (*monitor_api_grpc_pb.DeleteIgnoreAlertReply, error) {
+	tctx := logger.NewGrpcTraceContext(srv.Host, srv.Name, ctx)
+	startTime := logger.StartTrace(tctx)
+	rep := srv.monitorModelApi.DeleteIgnoreAlert(tctx, req)
+	logger.EndGrpcTrace(tctx, startTime, rep.StatusCode, rep.Err)
+	return rep, nil
+}
+
+//
 // Report
 //
 func (srv *MonitorApiServer) Report(ctx context.Context, req *monitor_api_grpc_pb.ReportRequest) (*monitor_api_grpc_pb.ReportReply, error) {

@@ -14,6 +14,7 @@ func init() {
 	GetCmd.AddCommand(getNodeCmd)
 	GetCmd.AddCommand(getIndexCmd)
 	GetCmd.AddCommand(getHostCmd)
+	GetCmd.AddCommand(getIgnoreAlertCmd)
 	GetCmd.AddCommand(getLogCmd)
 	RootCmd.AddCommand(GetCmd)
 }

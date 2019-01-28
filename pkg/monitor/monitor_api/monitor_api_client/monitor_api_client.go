@@ -170,3 +170,90 @@ func (cli *MonitorApiClient) GetIndexState(req *monitor_api_grpc_pb.GetIndexStat
 
 	return rep, err
 }
+
+//
+// IgnoreAlert
+//
+func (cli *MonitorApiClient) GetIgnoreAlert(req *monitor_api_grpc_pb.GetIgnoreAlertRequest) (*monitor_api_grpc_pb.GetIgnoreAlertReply, error) {
+	var rep *monitor_api_grpc_pb.GetIgnoreAlertReply
+	var err error
+	conn, err := cli.NewClientConnection()
+	defer conn.Close()
+	if err != nil {
+		return rep, err
+	}
+
+	ctx, cancel := cli.GetContext()
+	defer cancel()
+	if cli.conf.Default.EnableTest {
+		rep, err = cli.localServer.GetIgnoreAlert(ctx, req)
+	} else {
+		grpcClient := monitor_api_grpc_pb.NewMonitorApiClient(conn)
+		rep, err = grpcClient.GetIgnoreAlert(ctx, req)
+	}
+
+	return rep, err
+}
+
+func (cli *MonitorApiClient) CreateIgnoreAlert(req *monitor_api_grpc_pb.CreateIgnoreAlertRequest) (*monitor_api_grpc_pb.CreateIgnoreAlertReply, error) {
+	var rep *monitor_api_grpc_pb.CreateIgnoreAlertReply
+	var err error
+	conn, err := cli.NewClientConnection()
+	defer conn.Close()
+	if err != nil {
+		return rep, err
+	}
+
+	ctx, cancel := cli.GetContext()
+	defer cancel()
+	if cli.conf.Default.EnableTest {
+		rep, err = cli.localServer.CreateIgnoreAlert(ctx, req)
+	} else {
+		grpcClient := monitor_api_grpc_pb.NewMonitorApiClient(conn)
+		rep, err = grpcClient.CreateIgnoreAlert(ctx, req)
+	}
+
+	return rep, err
+}
+
+func (cli *MonitorApiClient) UpdateIgnoreAlert(req *monitor_api_grpc_pb.UpdateIgnoreAlertRequest) (*monitor_api_grpc_pb.UpdateIgnoreAlertReply, error) {
+	var rep *monitor_api_grpc_pb.UpdateIgnoreAlertReply
+	var err error
+	conn, err := cli.NewClientConnection()
+	defer conn.Close()
+	if err != nil {
+		return rep, err
+	}
+
+	ctx, cancel := cli.GetContext()
+	defer cancel()
+	if cli.conf.Default.EnableTest {
+		rep, err = cli.localServer.UpdateIgnoreAlert(ctx, req)
+	} else {
+		grpcClient := monitor_api_grpc_pb.NewMonitorApiClient(conn)
+		rep, err = grpcClient.UpdateIgnoreAlert(ctx, req)
+	}
+
+	return rep, err
+}
+
+func (cli *MonitorApiClient) DeleteIgnoreAlert(req *monitor_api_grpc_pb.DeleteIgnoreAlertRequest) (*monitor_api_grpc_pb.DeleteIgnoreAlertReply, error) {
+	var rep *monitor_api_grpc_pb.DeleteIgnoreAlertReply
+	var err error
+	conn, err := cli.NewClientConnection()
+	defer conn.Close()
+	if err != nil {
+		return rep, err
+	}
+
+	ctx, cancel := cli.GetContext()
+	defer cancel()
+	if cli.conf.Default.EnableTest {
+		rep, err = cli.localServer.DeleteIgnoreAlert(ctx, req)
+	} else {
+		grpcClient := monitor_api_grpc_pb.NewMonitorApiClient(conn)
+		rep, err = grpcClient.DeleteIgnoreAlert(ctx, req)
+	}
+
+	return rep, err
+}

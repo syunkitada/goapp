@@ -62,6 +62,14 @@ func (monitor *Monitor) Action(c *gin.Context) {
 		statusCode, errMsg = monitor.GetIndex(c, rc)
 	case "GetHost":
 		statusCode, errMsg = monitor.GetHost(c, rc)
+	case "GetIgnoreAlert":
+		statusCode, errMsg = monitor.GetIgnoreAlert(c, rc)
+	case "CreateIgnoreAlert":
+		statusCode, errMsg = monitor.CreateIgnoreAlert(c, rc)
+	case "UpdateIgnoreAlert":
+		statusCode, errMsg = monitor.UpdateIgnoreAlert(c, rc)
+	case "DeleteIgnoreAlert":
+		statusCode, errMsg = monitor.DeleteIgnoreAlert(c, rc)
 	default:
 		c.JSON(404, gin.H{
 			"Err":     "NotFoundAction",

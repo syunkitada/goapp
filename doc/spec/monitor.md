@@ -53,6 +53,11 @@
 ## monitor-alert-manager
 * APIで受け取ったアラートをルールに従って、メールなどを配信する
 * アラートの抑制はここで行う
+* リーダは、IgnoreAlertsとIssuedAlertsとOccurencesの設定によりアラートをフィルタし、アラートを配信する
+* 配信したアラートはIssuedAlertsに自動追加され、設定した時間まではアラートがフィルタされるようになる
+    * 一定時間(ReissueDuration)を超過してもアラートを検知した場合は再度配信され、時間が更新される
+    * 一定時間(SuccessDuration)を経過しても続くアラートを検知しなかった場合は、Successとみなし、Successメッセージを配信する
+        * ただし、AlertのHostがActiveの場合にかぎる
 
 
 ## システム概要

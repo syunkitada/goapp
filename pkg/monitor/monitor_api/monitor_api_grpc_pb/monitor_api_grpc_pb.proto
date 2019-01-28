@@ -15,6 +15,11 @@ service MonitorApi {
   rpc GetNode(GetNodeRequest) returns (GetNodeReply) {}
   rpc UpdateNode(UpdateNodeRequest) returns (UpdateNodeReply) {}
 
+  rpc GetIgnoreAlert(GetIgnoreAlertRequest) returns (GetIgnoreAlertReply) {}
+  rpc CreateIgnoreAlert(CreateIgnoreAlertRequest) returns (CreateIgnoreAlertReply) {}
+  rpc UpdateIgnoreAlert(UpdateIgnoreAlertRequest) returns (UpdateIgnoreAlertReply) {}
+  rpc DeleteIgnoreAlert(DeleteIgnoreAlertRequest) returns (DeleteIgnoreAlertReply) {}
+
   rpc Report(ReportRequest) returns (ReportReply) {}
 
   rpc GetUserState(GetUserStateRequest) returns (GetUserStateReply) {}
@@ -78,6 +83,83 @@ message Node {
     string status_reason = 8;
     string state = 9;
     string state_reason = 10;
+}
+
+
+//
+// IgnoreAlert
+//
+message GetIgnoreAlertRequest {
+    string trace_id = 1;
+    string user_name = 2;
+    string role_name = 3;
+    string project_name = 4;
+    string project_role_name = 5;
+    string index = 6;
+}
+
+message GetIgnoreAlertReply {
+    int64 status_code = 1;
+    string err = 2;
+    repeated IgnoreAlert ignoreAlerts = 3;
+}
+
+message CreateIgnoreAlertRequest {
+    string trace_id = 1;
+    string user_name = 2;
+    string role_name = 3;
+    string project_name = 4;
+    string project_role_name = 5;
+    string spec = 6;
+}
+
+message CreateIgnoreAlertReply {
+    int64 status_code = 1;
+    string err = 2;
+    IgnoreAlert ignoreAlert = 3;
+}
+
+message UpdateIgnoreAlertRequest {
+    string trace_id = 1;
+    string user_name = 2;
+    string role_name = 3;
+    string project_name = 4;
+    string project_role_name = 5;
+    uint64 id = 6;
+    string spec = 7;
+}
+
+message UpdateIgnoreAlertReply {
+    int64 status_code = 1;
+    string err = 2;
+    IgnoreAlert ignoreAlert = 3;
+}
+
+message DeleteIgnoreAlertRequest {
+    string trace_id = 1;
+    string user_name = 2;
+    string role_name = 3;
+    string project_name = 4;
+    string project_role_name = 5;
+    uint64 id = 6;
+}
+
+message DeleteIgnoreAlertReply {
+    int64 status_code = 1;
+    string err = 2;
+    repeated IgnoreAlert alerts = 3;
+}
+
+message IgnoreAlert {
+    google.protobuf.Timestamp updated_at = 1;
+    google.protobuf.Timestamp created_at = 2;
+    string index = 3;
+    string host = 4;
+    string name = 5;
+    string level = 6;
+    string user = 7;
+    string reason = 8;
+    int64 until = 9;
 }
 
 

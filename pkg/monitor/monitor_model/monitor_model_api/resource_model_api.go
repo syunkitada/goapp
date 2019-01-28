@@ -45,6 +45,7 @@ func (modelApi *MonitorModelApi) Bootstrap(tctx *logger.TraceContext) error {
 	defer db.Close()
 
 	db.AutoMigrate(&monitor_model.Node{})
+	db.AutoMigrate(&monitor_model.IgnoreAlert{})
 
 	return nil
 }
