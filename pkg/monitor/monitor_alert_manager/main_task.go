@@ -23,6 +23,16 @@ func (srv *MonitorAlertManagerServer) MainTask(tctx *logger.TraceContext) error 
 		return err
 	}
 
+	// GetIgnoreAlerts from db
+
+	// GetIssuedAlerts from db
+
+	// GetAlerts from Indexers
+
+	// Filter by IgnoreAlerts, IssuedAlerts
+
+	// Issue Alerts
+
 	// TODO
 
 	return nil

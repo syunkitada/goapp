@@ -12,6 +12,7 @@ import (
 
 var rootCmd = &cobra.Command{}
 
+// Main is monitor's main function
 func Main() {
 	if err := rootCmd.Execute(); err != nil {
 		logger.StdoutFatal(err)
