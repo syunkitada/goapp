@@ -96,7 +96,7 @@ message GetNodeRequest {
 message GetNodeReply {
     int64 status_code = 1;
     string err = 2;
-    repeated Node nodes = 3;
+    map<string, Nodes> cluster_nodes_map = 3;
 }
 
 message UpdateNodeRequest {
@@ -128,6 +128,9 @@ message Node {
     string state_reason = 10;
 }
 
+message Nodes {
+    repeated Node nodes = 1;
+}
 
 //
 // NetworkV4

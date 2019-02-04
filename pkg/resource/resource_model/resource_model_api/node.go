@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	_ "github.com/go-sql-driver/mysql"
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/jinzhu/gorm"
@@ -27,7 +26,32 @@ func (modelApi *ResourceModelApi) GetNode(req *resource_api_grpc_pb.GetNodeReque
 	}
 	db.LogMode(modelApi.conf.Default.EnableDatabaseLog)
 
-	if req.Cluster != "" {
+	clusterNodesMap := map[string]*resource_api_grpc_pb.Nodes{}
+	if req.Cluster == "" {
+		var nodes []resource_model.Node
+		if err = db.Where("name like ?", req.Target).Find(&nodes).Error; err != nil {
+			rep.Err = err.Error()
+			rep.StatusCode = codes.RemoteDbError
+			return rep
+		}
+		clusterNodesMap["root"] = modelApi.convertNodes(nodes)
+		rep.StatusCode = codes.Ok
+
+		for clusterName, clusterClient := range modelApi.clusterClientMap {
+			getNodeReq := &resource_cluster_api_grpc_pb.GetNodeRequest{
+				Target: req.Target,
+			}
+			remoteRep, err := clusterClient.GetNode(getNodeReq)
+			if err != nil {
+				rep.Err += fmt.Sprintf("Failed get node from cluster(%v) by error(%v), ",
+					clusterName, err.Error())
+				rep.StatusCode = codes.RemoteClusterError
+			}
+
+			clusterNodesMap[clusterName] = modelApi.convertClusterNodes(remoteRep.Nodes)
+		}
+
+	} else {
 		clusterClient, ok := modelApi.clusterClientMap[req.Cluster]
 		if !ok {
 			rep.Err = fmt.Sprintf("NotFound cluster: ", req.Cluster)
@@ -45,20 +69,10 @@ func (modelApi *ResourceModelApi) GetNode(req *resource_api_grpc_pb.GetNodeReque
 			return rep
 		}
 
-		rep.Nodes = modelApi.convertClusterNodes(remoteRep.Nodes)
-		rep.StatusCode = codes.Ok
-		return rep
+		clusterNodesMap[req.Cluster] = modelApi.convertClusterNodes(remoteRep.Nodes)
 	}
 
-	var nodes []resource_model.Node
-	if err = db.Where("name like ?", req.Target).Find(&nodes).Error; err != nil {
-		rep.Err = err.Error()
-		rep.StatusCode = codes.RemoteDbError
-		return rep
-	}
-
-	rep.Nodes = modelApi.convertNodes(nodes)
-	rep.StatusCode = codes.Ok
+	rep.ClusterNodesMap = clusterNodesMap
 	return rep
 }
 
@@ -175,7 +189,7 @@ func (modelApi *ResourceModelApi) SyncRole(kind string) ([]resource_model.Node, 
 	return newNodes, nil
 }
 
-func (modelApi *ResourceModelApi) convertNodes(nodes []resource_model.Node) []*resource_api_grpc_pb.Node {
+func (modelApi *ResourceModelApi) convertNodes(nodes []resource_model.Node) *resource_api_grpc_pb.Nodes {
 	pbNodes := make([]*resource_api_grpc_pb.Node, len(nodes))
 	for i, node := range nodes {
 		updatedAt, err := ptypes.TimestampProto(node.Model.UpdatedAt)
@@ -198,10 +212,12 @@ func (modelApi *ResourceModelApi) convertNodes(nodes []resource_model.Node) []*r
 		}
 	}
 
-	return pbNodes
+	return &resource_api_grpc_pb.Nodes{
+		Nodes: pbNodes,
+	}
 }
 
-func (modelApi *ResourceModelApi) convertClusterNodes(nodes []*resource_cluster_api_grpc_pb.Node) []*resource_api_grpc_pb.Node {
+func (modelApi *ResourceModelApi) convertClusterNodes(nodes []*resource_cluster_api_grpc_pb.Node) *resource_api_grpc_pb.Nodes {
 	pbNodes := make([]*resource_api_grpc_pb.Node, len(nodes))
 	for i, node := range nodes {
 		pbNodes[i] = &resource_api_grpc_pb.Node{
@@ -217,7 +233,9 @@ func (modelApi *ResourceModelApi) convertClusterNodes(nodes []*resource_cluster_
 		}
 	}
 
-	return pbNodes
+	return &resource_api_grpc_pb.Nodes{
+		Nodes: pbNodes,
+	}
 }
 
 func (modelApi *ResourceModelApi) CheckNodes() error {

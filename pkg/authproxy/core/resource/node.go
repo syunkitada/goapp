@@ -16,9 +16,9 @@ import (
 )
 
 type ResponseGetNode struct {
-	Nodes   []resource_api_grpc_pb.Node
-	TraceId string
-	Err     string
+	ClusterNodesMap map[string]resource_api_grpc_pb.Nodes
+	TraceId         string
+	Err             string
 }
 
 type ResponseCreateNode struct {
@@ -71,8 +71,8 @@ func (resource *Resource) GetNode(c *gin.Context, rc *ResourceContext) (int, str
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"TraceId": rc.traceId,
-		"Nodes":   rep.Nodes,
+		"TraceId":         rc.traceId,
+		"ClusterNodesMap": rep.ClusterNodesMap,
 	})
 	return int(rep.StatusCode), rep.Err
 }
