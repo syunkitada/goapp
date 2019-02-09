@@ -21,7 +21,7 @@ func ws(w http.ResponseWriter, r *http.Request) {
 		fmt.Print("upgrade:", err)
 		return
 	}
-	defer c.Close()
+	defer func() { err = c.Close() }()
 	for {
 		mt, message, err := c.ReadMessage()
 		if err != nil {

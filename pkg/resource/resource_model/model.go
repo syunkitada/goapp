@@ -17,7 +17,7 @@ type Node struct {
 
 type Datacenter struct {
 	gorm.Model
-	Name string `gorm:"not null;size:50";"`
+	Name string `gorm:"not null;size:50;"`
 }
 
 type Cluster struct {

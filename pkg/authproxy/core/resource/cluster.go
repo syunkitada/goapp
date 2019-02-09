@@ -126,7 +126,7 @@ func (resource *Resource) CtlGetCluster(token string, cluster string, target str
 		if err != nil {
 			return nil, fmt.Errorf("Err: %v", err)
 		}
-		defer httpResp.Body.Close()
+		defer func() { err = httpResp.Body.Close() }()
 		body, err = ioutil.ReadAll(httpResp.Body)
 		if err != nil {
 			return nil, fmt.Errorf("Err: %v", err)

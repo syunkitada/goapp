@@ -108,6 +108,8 @@ func (authproxy *Authproxy) ValidateHeaders() gin.HandlerFunc {
 func (authproxy *Authproxy) AuthRequired() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var tokenAuthRequest authproxy_model.TokenAuthRequest
+		traceId := c.GetString("TraceId")
+		tctx := logger.NewTraceContextWithTraceId(traceId, authproxy.host, authproxy.name)
 
 		if err := c.ShouldBindWith(&tokenAuthRequest, binding.JSON); err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{
@@ -132,7 +134,7 @@ func (authproxy *Authproxy) AuthRequired() gin.HandlerFunc {
 		}
 
 		username := claims["Username"].(string)
-		userAuthority, getUserAuthorityErr := authproxy.AuthproxyModelApi.GetUserAuthority(username, &tokenAuthRequest.Action)
+		userAuthority, getUserAuthorityErr := authproxy.AuthproxyModelApi.GetUserAuthority(tctx, username, &tokenAuthRequest.Action)
 		if getUserAuthorityErr != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"Err": "Invalid Auth Action",
@@ -153,6 +155,9 @@ func (authproxy *Authproxy) WsAuthRequired() gin.HandlerFunc {
 		projectName := c.Request.Header["X-Auth-Project"]
 		serviceName := c.Request.Header["X-Auth-Service"]
 		actionName := c.Request.Header["X-Auth-Action"]
+
+		traceId := c.GetString("TraceId")
+		tctx := logger.NewTraceContextWithTraceId(traceId, authproxy.host, authproxy.name)
 
 		tokenAuthRequest := authproxy_model.TokenAuthRequest{
 			Token: token[0],
@@ -179,9 +184,9 @@ func (authproxy *Authproxy) WsAuthRequired() gin.HandlerFunc {
 		}
 
 		username := claims["Username"].(string)
-		userAuthority, getUserAuthorityErr := authproxy.AuthproxyModelApi.GetUserAuthority(username, &tokenAuthRequest.Action)
+		userAuthority, getUserAuthorityErr := authproxy.AuthproxyModelApi.GetUserAuthority(
+			tctx, username, &tokenAuthRequest.Action)
 		if getUserAuthorityErr != nil {
-			fmt.Println("hogelwlwlwlwssssszzzzz")
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"Err": "Invalid Auth Action",
 			})

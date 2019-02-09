@@ -5,31 +5,36 @@ import (
 	"errors"
 	"fmt"
 
-	_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
 	"golang.org/x/crypto/scrypt"
 
 	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_model"
+	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
 
-func (modelApi *AuthproxyModelApi) CreateUser(name string, password string) error {
-	db, dbErr := gorm.Open("mysql", modelApi.Conf.Authproxy.Database.Connection)
-	defer db.Close()
-	if dbErr != nil {
-		return dbErr
+func (modelApi *AuthproxyModelApi) CreateUser(tctx *logger.TraceContext, name string, password string) error {
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	var db *gorm.DB
+	db, err = modelApi.open(tctx)
+	if err != nil {
+		return err
 	}
-	db.LogMode(modelApi.Conf.Default.EnableDatabaseLog)
+	defer func() { err = db.Close() }()
 
 	var user authproxy_model.User
 
-	if err := db.Where("name = ?", name).First(&user).Error; err != nil {
+	if err = db.Where("name = ?", name).First(&user).Error; err != nil {
 		if !gorm.IsRecordNotFoundError(err) {
 			return err
 		}
 
-		hashedPassword, hashedErr := modelApi.GenerateHashFromPassword(name, password)
-		if hashedErr != nil {
-			return hashedErr
+		var hashedPassword string
+		hashedPassword, err = modelApi.GenerateHashFromPassword(name, password)
+		if err != nil {
+			return err
 		}
 
 		user = authproxy_model.User{
@@ -44,13 +49,17 @@ func (modelApi *AuthproxyModelApi) CreateUser(name string, password string) erro
 	return nil
 }
 
-func (modelApi *AuthproxyModelApi) CreateRole(name string, projectName string) error {
-	db, dbErr := gorm.Open("mysql", modelApi.Conf.Authproxy.Database.Connection)
-	defer db.Close()
-	if dbErr != nil {
-		return dbErr
+func (modelApi *AuthproxyModelApi) CreateRole(tctx *logger.TraceContext, name string, projectName string) error {
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	var db *gorm.DB
+	db, err = modelApi.open(tctx)
+	if err != nil {
+		return err
 	}
-	db.LogMode(modelApi.Conf.Default.EnableDatabaseLog)
+	defer func() { err = db.Close() }()
 
 	var role authproxy_model.Role
 	var project authproxy_model.Project
@@ -78,13 +87,17 @@ func (modelApi *AuthproxyModelApi) CreateRole(name string, projectName string) e
 	return nil
 }
 
-func (modelApi *AuthproxyModelApi) AssignRole(userName string, roleName string) error {
-	db, dbErr := gorm.Open("mysql", modelApi.Conf.Authproxy.Database.Connection)
-	defer db.Close()
-	if dbErr != nil {
-		return dbErr
+func (modelApi *AuthproxyModelApi) AssignRole(tctx *logger.TraceContext, userName string, roleName string) error {
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	var db *gorm.DB
+	db, err = modelApi.open(tctx)
+	if err != nil {
+		return err
 	}
-	db.LogMode(modelApi.Conf.Default.EnableDatabaseLog)
+	defer func() { err = db.Close() }()
 
 	var user authproxy_model.User
 	var role authproxy_model.Role
@@ -96,13 +109,17 @@ func (modelApi *AuthproxyModelApi) AssignRole(userName string, roleName string) 
 	return nil
 }
 
-func (modelApi *AuthproxyModelApi) CreateProject(name string, projectRoleName string) error {
-	db, dbErr := gorm.Open("mysql", modelApi.Conf.Authproxy.Database.Connection)
-	defer db.Close()
-	if dbErr != nil {
-		return dbErr
+func (modelApi *AuthproxyModelApi) CreateProject(tctx *logger.TraceContext, name string, projectRoleName string) error {
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	var db *gorm.DB
+	db, err = modelApi.open(tctx)
+	if err != nil {
+		return err
 	}
-	db.LogMode(modelApi.Conf.Default.EnableDatabaseLog)
+	defer func() { err = db.Close() }()
 
 	var project authproxy_model.Project
 	var projectRole authproxy_model.ProjectRole
@@ -130,13 +147,17 @@ func (modelApi *AuthproxyModelApi) CreateProject(name string, projectRoleName st
 	return nil
 }
 
-func (modelApi *AuthproxyModelApi) CreateProjectRole(name string) error {
-	db, dbErr := gorm.Open("mysql", modelApi.Conf.Authproxy.Database.Connection)
-	defer db.Close()
-	if dbErr != nil {
-		return dbErr
+func (modelApi *AuthproxyModelApi) CreateProjectRole(tctx *logger.TraceContext, name string) error {
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	var db *gorm.DB
+	db, err = modelApi.open(tctx)
+	if err != nil {
+		return err
 	}
-	db.LogMode(modelApi.Conf.Default.EnableDatabaseLog)
+	defer func() { err = db.Close() }()
 
 	var projectRole authproxy_model.ProjectRole
 
@@ -157,13 +178,17 @@ func (modelApi *AuthproxyModelApi) CreateProjectRole(name string) error {
 
 }
 
-func (modelApi *AuthproxyModelApi) AssignProjectRole(projectName string, projectRoleName string) error {
-	db, dbErr := gorm.Open("mysql", modelApi.Conf.Authproxy.Database.Connection)
-	defer db.Close()
-	if dbErr != nil {
-		return dbErr
+func (modelApi *AuthproxyModelApi) AssignProjectRole(tctx *logger.TraceContext, projectName string, projectRoleName string) error {
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	var db *gorm.DB
+	db, err = modelApi.open(tctx)
+	if err != nil {
+		return err
 	}
-	db.LogMode(modelApi.Conf.Default.EnableDatabaseLog)
+	defer func() { err = db.Close() }()
 
 	var project authproxy_model.Project
 	var projectRole authproxy_model.ProjectRole
@@ -175,13 +200,17 @@ func (modelApi *AuthproxyModelApi) AssignProjectRole(projectName string, project
 	return nil
 }
 
-func (modelApi *AuthproxyModelApi) CreateService(name string, scope string) error {
-	db, dbErr := gorm.Open("mysql", modelApi.Conf.Authproxy.Database.Connection)
-	defer db.Close()
-	if dbErr != nil {
-		return dbErr
+func (modelApi *AuthproxyModelApi) CreateService(tctx *logger.TraceContext, name string, scope string) error {
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	var db *gorm.DB
+	db, err = modelApi.open(tctx)
+	if err != nil {
+		return err
 	}
-	db.LogMode(modelApi.Conf.Default.EnableDatabaseLog)
+	defer func() { err = db.Close() }()
 
 	var service authproxy_model.Service
 
@@ -202,13 +231,17 @@ func (modelApi *AuthproxyModelApi) CreateService(name string, scope string) erro
 	return nil
 }
 
-func (modelApi *AuthproxyModelApi) AssignService(projectRoleName string, serviceName string) error {
-	db, dbErr := gorm.Open("mysql", modelApi.Conf.Authproxy.Database.Connection)
-	defer db.Close()
-	if dbErr != nil {
-		return dbErr
+func (modelApi *AuthproxyModelApi) AssignService(tctx *logger.TraceContext, projectRoleName string, serviceName string) error {
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	var db *gorm.DB
+	db, err = modelApi.open(tctx)
+	if err != nil {
+		return err
 	}
-	db.LogMode(modelApi.Conf.Default.EnableDatabaseLog)
+	defer func() { err = db.Close() }()
 
 	var projectRole authproxy_model.ProjectRole
 	var service authproxy_model.Service
@@ -221,13 +254,17 @@ func (modelApi *AuthproxyModelApi) AssignService(projectRoleName string, service
 	return nil
 }
 
-func (modelApi *AuthproxyModelApi) AssignAction(serviceName string, projectRoleName string, roleName string, actionName string) error {
-	db, dbErr := gorm.Open("mysql", modelApi.Conf.Authproxy.Database.Connection)
-	defer db.Close()
-	if dbErr != nil {
-		return dbErr
+func (modelApi *AuthproxyModelApi) AssignAction(tctx *logger.TraceContext, serviceName string, projectRoleName string, roleName string, actionName string) error {
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	var db *gorm.DB
+	db, err = modelApi.open(tctx)
+	if err != nil {
+		return err
 	}
-	db.LogMode(modelApi.Conf.Default.EnableDatabaseLog)
+	defer func() { err = db.Close() }()
 
 	var action authproxy_model.Action
 	var service authproxy_model.Service
@@ -265,13 +302,17 @@ func (modelApi *AuthproxyModelApi) AssignAction(serviceName string, projectRoleN
 	return nil
 }
 
-func (modelApi *AuthproxyModelApi) GetAuthUser(authRequest *authproxy_model.AuthRequest) (*authproxy_model.User, error) {
-	db, dbErr := gorm.Open("mysql", modelApi.Conf.Authproxy.Database.Connection)
-	defer db.Close()
-	if dbErr != nil {
-		return nil, dbErr
+func (modelApi *AuthproxyModelApi) GetAuthUser(tctx *logger.TraceContext, authRequest *authproxy_model.AuthRequest) (*authproxy_model.User, error) {
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	var db *gorm.DB
+	db, err = modelApi.open(tctx)
+	if err != nil {
+		return nil, err
 	}
-	db.LogMode(modelApi.Conf.Default.EnableDatabaseLog)
+	defer func() { err = db.Close() }()
 
 	var users []authproxy_model.User
 	if err := db.Where("name = ?", authRequest.Username).Find(&users).Error; err != nil {
@@ -296,7 +337,7 @@ func (modelApi *AuthproxyModelApi) GetAuthUser(authRequest *authproxy_model.Auth
 }
 
 func (modelApi *AuthproxyModelApi) GenerateHashFromPassword(username string, password string) (string, error) {
-	converted, err := scrypt.Key([]byte(password), []byte(modelApi.Conf.Admin.Secret+username), 16384, 8, 1, 32)
+	converted, err := scrypt.Key([]byte(password), []byte(modelApi.conf.Admin.Secret+username), 16384, 8, 1, 32)
 	if err != nil {
 		return "", err
 	}
@@ -304,13 +345,17 @@ func (modelApi *AuthproxyModelApi) GenerateHashFromPassword(username string, pas
 	return hex.EncodeToString(converted[:]), nil
 }
 
-func (modelApi *AuthproxyModelApi) GetUserAuthority(username string, actionRequest *authproxy_model.ActionRequest) (*authproxy_model.UserAuthority, error) {
-	db, dbErr := gorm.Open("mysql", modelApi.Conf.Authproxy.Database.Connection)
-	defer db.Close()
-	if dbErr != nil {
-		return nil, dbErr
+func (modelApi *AuthproxyModelApi) GetUserAuthority(tctx *logger.TraceContext, username string, actionRequest *authproxy_model.ActionRequest) (*authproxy_model.UserAuthority, error) {
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	var db *gorm.DB
+	db, err = modelApi.open(tctx)
+	if err != nil {
+		return nil, err
 	}
-	db.LogMode(modelApi.Conf.Default.EnableDatabaseLog)
+	defer func() { err = db.Close() }()
 
 	var users []authproxy_model.CustomUser
 	if err := db.Raw(sqlSelectUser+"WHERE u.name = ?", username).Scan(&users).Error; err != nil {
@@ -363,8 +408,8 @@ func (modelApi *AuthproxyModelApi) GetUserAuthority(username string, actionReque
 		}
 
 		if action.RoleID != 0 && action.RoleID != projectService.RoleID {
-			return nil, errors.New(fmt.Sprintf("action.RoleID(%v) != projectService.RoleID(%v)",
-				action.RoleID, projectService.RoleID))
+			return nil, fmt.Errorf("action.RoleID(%v) != projectService.RoleID(%v)",
+				action.RoleID, projectService.RoleID)
 		}
 
 		userAuthority.ActionProjectService = projectService

@@ -7,6 +7,8 @@ import (
 )
 
 type Dashboard struct {
+	host              string
+	name              string
 	Conf              *config.Config
 	Token             *auth.Token
 	AuthproxyModelApi *authproxy_model_api.AuthproxyModelApi
@@ -14,6 +16,8 @@ type Dashboard struct {
 
 func NewDashboard(conf *config.Config, authproxyModelApi *authproxy_model_api.AuthproxyModelApi, token *auth.Token) *Dashboard {
 	dashboard := Dashboard{
+		host:              conf.Default.Host,
+		name:              "dashboard",
 		Conf:              conf,
 		Token:             token,
 		AuthproxyModelApi: authproxyModelApi,

@@ -115,7 +115,7 @@ func (monitor *Monitor) CtlGetHost(token string, index string) (*ResponseGetHost
 		if err != nil {
 			return nil, fmt.Errorf("Err: %v", err)
 		}
-		defer httpResp.Body.Close()
+		defer func() { err = httpResp.Body.Close() }()
 		body, err = ioutil.ReadAll(httpResp.Body)
 		if err != nil {
 			return nil, fmt.Errorf("Err: %v", err)

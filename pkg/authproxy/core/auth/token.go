@@ -1,7 +1,6 @@
 package auth
 
 import (
-	"errors"
 	"fmt"
 	"time"
 
@@ -10,6 +9,7 @@ import (
 	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_model"
 	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_model/authproxy_model_api"
 	"github.com/syunkitada/goapp/pkg/config"
+	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
 
 type CustomClaims struct {
@@ -30,18 +30,24 @@ func NewToken(conf *config.Config, authproxyModelApi *authproxy_model_api.Authpr
 	return &token
 }
 
-func (token *Token) AuthAndIssueToken(authRequest *authproxy_model.AuthRequest) (string, error) {
-	user, userErr := token.authproxyModelApi.GetAuthUser(authRequest)
-	if userErr != nil {
-		return "", errors.New("Failed GetAuthUser")
+func (token *Token) AuthAndIssueToken(tctx *logger.TraceContext, authRequest *authproxy_model.AuthRequest) (string, error) {
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	var user *authproxy_model.User
+	user, err = token.authproxyModelApi.GetAuthUser(tctx, authRequest)
+	if err != nil {
+		return "", err
 	}
 
-	if token, err := token.Generate(user); err != nil {
+	var tokenStr string
+	if tokenStr, err = token.Generate(user); err != nil {
 		return "", err
-	} else if token == "" {
-		return "", errors.New("Failed GenerateToken")
+	} else if tokenStr == "" {
+		return "", fmt.Errorf("Failed GenerateToken")
 	} else {
-		return token, nil
+		return tokenStr, nil
 	}
 }
 

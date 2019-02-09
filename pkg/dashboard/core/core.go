@@ -10,7 +10,6 @@ import (
 	"github.com/golang/glog"
 
 	"github.com/syunkitada/goapp/pkg/config"
-	"github.com/syunkitada/goapp/pkg/health/grpc_client"
 )
 
 var (
@@ -22,20 +21,13 @@ type Dashboard struct {
 	AllowedHosts    []string
 	CertFile        string
 	KeyFile         string
-	HealthClient    *grpc_client.HealthClient
 	GracefulTimeout time.Duration
 	BuildDir        string
 }
 
 func NewDashboard() *Dashboard {
-	dashboard := &Dashboard{
-		Listen:          Conf.Dashboard.Listen,
-		AllowedHosts:    Conf.Dashboard.AllowedHosts,
-		CertFile:        Conf.Dashboard.CertFile,
-		KeyFile:         Conf.Dashboard.KeyFile,
-		GracefulTimeout: time.Duration(Conf.Dashboard.GracefulTimeout) * time.Second,
-		BuildDir:        Conf.Dashboard.BuildDir,
-	}
+	// TODO
+	dashboard := &Dashboard{}
 	return dashboard
 }
 

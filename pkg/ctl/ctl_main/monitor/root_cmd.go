@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	appName string = "ctl-monitor"
+	appName = "ctl-monitor"
 )
 
 var RootCmd = &cobra.Command{

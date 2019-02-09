@@ -100,7 +100,7 @@ func (monitor *Monitor) CtlGetUserState(token string, index string) (*ResponseGe
 		if err != nil {
 			return nil, fmt.Errorf("Err: %v", err)
 		}
-		defer httpResp.Body.Close()
+		defer func() { err = httpResp.Body.Close() }()
 		body, err = ioutil.ReadAll(httpResp.Body)
 		if err != nil {
 			return nil, fmt.Errorf("Err: %v", err)
@@ -211,7 +211,7 @@ func (monitor *Monitor) CtlGetIndexState(token string, index string) (*ResponseG
 		if err != nil {
 			return nil, fmt.Errorf("Err: %v", err)
 		}
-		defer httpResp.Body.Close()
+		defer func() { err = httpResp.Body.Close() }()
 		body, err = ioutil.ReadAll(httpResp.Body)
 		if err != nil {
 			return nil, fmt.Errorf("Err: %v", err)

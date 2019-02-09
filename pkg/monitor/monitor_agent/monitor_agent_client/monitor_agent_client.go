@@ -2,14 +2,12 @@ package monitor_controller_client
 
 import (
 	"errors"
-	"time"
 
-	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 
 	"github.com/syunkitada/goapp/pkg/config"
-	"github.com/syunkitada/goapp/pkg/monitor/monitor_controller/monitor_controller_grpc_pb"
+	"github.com/syunkitada/goapp/pkg/monitor/monitor_agent/monitor_agent_grpc_pb"
 )
 
 type MonitorClient struct {
@@ -22,9 +20,9 @@ type MonitorClient struct {
 func NewMonitorClient(conf *config.Config) *MonitorClient {
 	monitorClient := MonitorClient{
 		Conf:               conf,
-		CaFilePath:         conf.Path(conf.Monitor.Grpc.CaFile),
-		ServerHostOverride: conf.Monitor.Grpc.ServerHostOverride,
-		Targets:            conf.Monitor.Grpc.Targets,
+		CaFilePath:         conf.Path(conf.Monitor.ApiApp.CaFile),
+		ServerHostOverride: conf.Monitor.ApiApp.ServerHostOverride,
+		Targets:            conf.Monitor.ApiApp.Targets,
 	}
 	return &monitorClient
 }
@@ -50,22 +48,6 @@ func (monitorClient *MonitorClient) NewClientConnection() (*grpc.ClientConn, err
 	return nil, errors.New("Failed NewGrpcConnection")
 }
 
-func (monitorClient *MonitorClient) Status() (*monitor_controller_grpc_pb.StatusReply, error) {
-	conn, connErr := monitorClient.NewClientConnection()
-	defer conn.Close()
-	if connErr != nil {
-		return nil, connErr
-	}
-
-	client := monitor_controller_grpc_pb.NewMonitorClient(conn)
-
-	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Second)
-	defer cancel()
-
-	statusResponse, err := client.Status(ctx, &monitor_controller_grpc_pb.StatusRequest{})
-	if err != nil {
-		return nil, err
-	}
-
-	return statusResponse, nil
+func (monitorClient *MonitorClient) Status() (*monitor_agent_grpc_pb.StatusReply, error) {
+	return nil, nil
 }

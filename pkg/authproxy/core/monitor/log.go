@@ -40,7 +40,7 @@ func (monitor *Monitor) CtlGetLog(token string) {
 	if err != nil {
 		log.Fatal("dial:", err)
 	}
-	defer c.Close()
+	defer func() { err = c.Close() }()
 
 	done := make(chan struct{})
 

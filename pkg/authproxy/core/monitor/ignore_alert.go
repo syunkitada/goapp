@@ -245,7 +245,7 @@ func (monitor *Monitor) CtlGetIgnoreAlert(token string, index string) (*Response
 		if err != nil {
 			return nil, fmt.Errorf("Err: %v", err)
 		}
-		defer httpResp.Body.Close()
+		defer func() { err = httpResp.Body.Close() }()
 		body, err = ioutil.ReadAll(httpResp.Body)
 		if err != nil {
 			return nil, fmt.Errorf("Err: %v", err)
@@ -313,7 +313,7 @@ func (monitor *Monitor) CtlCreateIgnoreAlert(token string, spec string) (*Respon
 		if err != nil {
 			return nil, fmt.Errorf("Err: %v", err)
 		}
-		defer httpResp.Body.Close()
+		defer func() { err = httpResp.Body.Close() }()
 		body, err = ioutil.ReadAll(httpResp.Body)
 		if err != nil {
 			return nil, fmt.Errorf("Err: %v", err)
@@ -381,7 +381,7 @@ func (monitor *Monitor) CtlUpdateIgnoreAlert(token string, spec string) (*Respon
 		if err != nil {
 			return nil, fmt.Errorf("Err: %v", err)
 		}
-		defer httpResp.Body.Close()
+		defer func() { err = httpResp.Body.Close() }()
 		body, err = ioutil.ReadAll(httpResp.Body)
 		if err != nil {
 			return nil, fmt.Errorf("Err: %v", err)
@@ -449,7 +449,7 @@ func (monitor *Monitor) CtlDeleteIgnoreAlert(token string, id uint64) (*Response
 		if err != nil {
 			return nil, fmt.Errorf("Err: %v", err)
 		}
-		defer httpResp.Body.Close()
+		defer func() { err = httpResp.Body.Close() }()
 		body, err = ioutil.ReadAll(httpResp.Body)
 		if err != nil {
 			return nil, fmt.Errorf("Err: %v", err)

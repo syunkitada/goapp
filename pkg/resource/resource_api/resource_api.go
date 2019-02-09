@@ -56,7 +56,7 @@ func (srv *ResourceApiServer) GetCluster(ctx context.Context, req *resource_api_
 func (srv *ResourceApiServer) GetNode(ctx context.Context, req *resource_api_grpc_pb.GetNodeRequest) (*resource_api_grpc_pb.GetNodeReply, error) {
 	tctx := logger.NewGrpcTraceContext(srv.Host, srv.Name, ctx)
 	startTime := logger.StartTrace(tctx)
-	rep := srv.resourceModelApi.GetNode(req)
+	rep := srv.resourceModelApi.GetNode(tctx, req)
 	logger.EndGrpcTrace(tctx, startTime, rep.StatusCode, rep.Err)
 	return rep, nil
 }
@@ -64,7 +64,7 @@ func (srv *ResourceApiServer) GetNode(ctx context.Context, req *resource_api_grp
 func (srv *ResourceApiServer) UpdateNode(ctx context.Context, req *resource_api_grpc_pb.UpdateNodeRequest) (*resource_api_grpc_pb.UpdateNodeReply, error) {
 	tctx := logger.NewGrpcTraceContext(srv.Host, srv.Name, ctx)
 	startTime := logger.StartTrace(tctx)
-	rep := srv.resourceModelApi.UpdateNode(req)
+	rep := srv.resourceModelApi.UpdateNode(tctx, req)
 	logger.EndGrpcTrace(tctx, startTime, rep.StatusCode, rep.Err)
 	return rep, nil
 }

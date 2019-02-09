@@ -2,16 +2,18 @@ package core
 
 import (
 	"fmt"
-	"github.com/dgrijalva/jwt-go"
 	"net/http"
 	"strings"
+
+	"github.com/dgrijalva/jwt-go"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang/glog"
 
-	"github.com/syunkitada/goapp/pkg/authproxy/model"
+	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_model"
 )
 
+// ValidateHeaders validate http headers
 // SecureHeaders adds secure headers to the API
 // func (a *API) SecureHeaders(next http.Handler) http.Handler {
 // return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -63,8 +65,14 @@ func (dashboard *Dashboard) ValidateHeaders() gin.HandlerFunc {
 
 func (dashboard *Dashboard) AuthRequired() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var tokenAuthRequest model.TokenAuthRequest
-		c.Bind(&tokenAuthRequest)
+		var tokenAuthRequest authproxy_model.TokenAuthRequest
+		if err := c.Bind(&tokenAuthRequest); err != nil {
+			glog.Warning("Invalid AuthRequest: Failed ParseToken")
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"error": "Invalid AuthRequest",
+			})
+			c.Abort()
+		}
 
 		claims, err := dashboard.ParseToken(tokenAuthRequest)
 		if err != nil {
@@ -82,13 +90,13 @@ func (dashboard *Dashboard) AuthRequired() gin.HandlerFunc {
 	}
 }
 
-func (dashboard *Dashboard) ParseToken(request model.TokenAuthRequest) (jwt.MapClaims, error) {
+func (dashboard *Dashboard) ParseToken(request authproxy_model.TokenAuthRequest) (jwt.MapClaims, error) {
 	token, err := jwt.Parse(request.Token, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			msg := fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
 			return nil, msg
 		}
-		return []byte(Conf.Admin.TokenSecret + request.Username), nil
+		return []byte(Conf.Admin.TokenSecret), nil
 	})
 
 	if err != nil {

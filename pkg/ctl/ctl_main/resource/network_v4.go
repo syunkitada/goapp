@@ -46,7 +46,7 @@ func GetNetworkV4() error {
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
 	authproxy := core.NewAuthproxy(&config.Conf)
-	token, err := authproxy.Auth.CtlIssueToken()
+	token, err := authproxy.Auth.CtlIssueToken(tctx)
 	if err != nil {
 		return err
 	}
@@ -133,7 +133,7 @@ func DeleteNetworkV4(networkName string) error {
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
 	authproxy := core.NewAuthproxy(&config.Conf)
-	token, err := authproxy.Auth.CtlIssueToken()
+	token, err := authproxy.Auth.CtlIssueToken(tctx)
 	if err != nil {
 		return err
 	}

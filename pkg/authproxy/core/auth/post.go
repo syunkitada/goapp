@@ -36,7 +36,7 @@ func (auth *Auth) IssueToken(c *gin.Context) {
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
 	var token string
-	token, err = auth.token.AuthAndIssueToken(&authRequest)
+	token, err = auth.token.AuthAndIssueToken(tctx, &authRequest)
 	if err != nil {
 		glog.Errorf("Failed IssueToken for user=%v: Failed AuthAndIssueToken: %v", authRequest.Username, err)
 		c.JSON(http.StatusUnauthorized, gin.H{

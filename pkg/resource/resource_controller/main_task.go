@@ -22,7 +22,7 @@ func (srv *ResourceControllerServer) MainTask(tctx *logger.TraceContext) error {
 		return nil
 	}
 
-	if err := srv.resourceModelApi.CheckNodes(); err != nil {
+	if err := srv.resourceModelApi.CheckNodes(tctx); err != nil {
 		return err
 	}
 
@@ -57,7 +57,7 @@ func (srv *ResourceControllerServer) UpdateNode(tctx *logger.TraceContext) error
 		StateReason:  "UpdateNode",
 	}
 
-	rep := srv.resourceModelApi.UpdateNode(req)
+	rep := srv.resourceModelApi.UpdateNode(tctx, req)
 	if rep.Err != "" {
 		err = fmt.Errorf(rep.Err)
 		return err
@@ -71,7 +71,7 @@ func (srv *ResourceControllerServer) SyncRole(tctx *logger.TraceContext) error {
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
-	nodes, err := srv.resourceModelApi.SyncRole(resource_model.KindResourceController)
+	nodes, err := srv.resourceModelApi.SyncRole(tctx, resource_model.KindResourceController)
 	if err != nil {
 		return err
 	}

@@ -126,7 +126,7 @@ func (monitor *Monitor) CtlGetNode(token string, target string) (*ResponseGetNod
 		if err != nil {
 			return nil, fmt.Errorf("Err: %v", err)
 		}
-		defer httpResp.Body.Close()
+		defer func() { err = httpResp.Body.Close() }()
 		body, err = ioutil.ReadAll(httpResp.Body)
 		if err != nil {
 			return nil, fmt.Errorf("Err: %v", err)

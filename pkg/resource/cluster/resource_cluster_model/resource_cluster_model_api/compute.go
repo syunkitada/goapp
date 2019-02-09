@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 
-	_ "github.com/go-sql-driver/mysql"
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/jinzhu/gorm"
@@ -72,7 +71,7 @@ func (modelApi *ResourceClusterModelApi) CreateCompute(req *resource_cluster_api
 			return rep, err
 		}
 	} else {
-		return rep, fmt.Errorf("Already Exists: cluster=%v, name=%v",
+		return rep, fmt.Errorf("Already Exists: cluster=%v, kind=%v, name=%v",
 			spec.Cluster, spec.Kind, spec.Name)
 	}
 

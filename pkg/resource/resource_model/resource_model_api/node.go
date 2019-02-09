@@ -9,22 +9,25 @@ import (
 	"github.com/jinzhu/gorm"
 
 	"github.com/syunkitada/goapp/pkg/lib/codes"
+	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_api/resource_cluster_api_grpc_pb"
 	"github.com/syunkitada/goapp/pkg/resource/resource_api/resource_api_grpc_pb"
 	"github.com/syunkitada/goapp/pkg/resource/resource_model"
 )
 
-func (modelApi *ResourceModelApi) GetNode(req *resource_api_grpc_pb.GetNodeRequest) *resource_api_grpc_pb.GetNodeReply {
+func (modelApi *ResourceModelApi) GetNode(tctx *logger.TraceContext, req *resource_api_grpc_pb.GetNodeRequest) *resource_api_grpc_pb.GetNodeReply {
 	rep := &resource_api_grpc_pb.GetNodeReply{}
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
-	db, err := gorm.Open("mysql", modelApi.conf.Resource.Database.Connection)
-	defer db.Close()
-	if err != nil {
+	var db *gorm.DB
+	if db, err = modelApi.open(tctx); err != nil {
 		rep.Err = err.Error()
 		rep.StatusCode = codes.RemoteDbError
 		return rep
 	}
-	db.LogMode(modelApi.conf.Default.EnableDatabaseLog)
+	defer func() { err = db.Close() }()
 
 	clusterNodesMap := map[string]*resource_api_grpc_pb.Nodes{}
 	if req.Cluster == "" {
@@ -54,7 +57,7 @@ func (modelApi *ResourceModelApi) GetNode(req *resource_api_grpc_pb.GetNodeReque
 	} else {
 		clusterClient, ok := modelApi.clusterClientMap[req.Cluster]
 		if !ok {
-			rep.Err = fmt.Sprintf("NotFound cluster: ", req.Cluster)
+			rep.Err = fmt.Sprintf("NotFound cluster: %v", req.Cluster)
 			rep.StatusCode = codes.ClientNotFound
 			return rep
 		}
@@ -76,17 +79,19 @@ func (modelApi *ResourceModelApi) GetNode(req *resource_api_grpc_pb.GetNodeReque
 	return rep
 }
 
-func (modelApi *ResourceModelApi) UpdateNode(req *resource_api_grpc_pb.UpdateNodeRequest) *resource_api_grpc_pb.UpdateNodeReply {
+func (modelApi *ResourceModelApi) UpdateNode(tctx *logger.TraceContext, req *resource_api_grpc_pb.UpdateNodeRequest) *resource_api_grpc_pb.UpdateNodeReply {
 	rep := &resource_api_grpc_pb.UpdateNodeReply{}
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
-	db, err := gorm.Open("mysql", modelApi.conf.Resource.Database.Connection)
-	defer db.Close()
-	if err != nil {
+	var db *gorm.DB
+	if db, err = modelApi.open(tctx); err != nil {
 		rep.Err = err.Error()
 		rep.StatusCode = codes.RemoteDbError
 		return rep
 	}
-	db.LogMode(modelApi.conf.Default.EnableDatabaseLog)
+	defer func() { err = db.Close() }()
 
 	var node resource_model.Node
 	if err = db.Where("name = ? and kind = ?", req.Name, req.Kind).First(&node).Error; err != nil {
@@ -124,16 +129,17 @@ func (modelApi *ResourceModelApi) UpdateNode(req *resource_api_grpc_pb.UpdateNod
 	return rep
 }
 
-func (modelApi *ResourceModelApi) SyncRole(kind string) ([]resource_model.Node, error) {
+func (modelApi *ResourceModelApi) SyncRole(tctx *logger.TraceContext, kind string) ([]resource_model.Node, error) {
 	var nodes []resource_model.Node
 	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
-	db, err := gorm.Open("mysql", modelApi.conf.Resource.Database.Connection)
-	defer db.Close()
-	if err != nil {
+	var db *gorm.DB
+	if db, err = modelApi.open(tctx); err != nil {
 		return nodes, err
 	}
-	db.LogMode(modelApi.conf.Default.EnableDatabaseLog)
+	defer func() { err = db.Close() }()
 
 	tx := db.Begin()
 	defer tx.Rollback()
@@ -238,15 +244,16 @@ func (modelApi *ResourceModelApi) convertClusterNodes(nodes []*resource_cluster_
 	}
 }
 
-func (modelApi *ResourceModelApi) CheckNodes() error {
+func (modelApi *ResourceModelApi) CheckNodes(tctx *logger.TraceContext) error {
 	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
-	db, err := gorm.Open("mysql", modelApi.conf.Resource.Database.Connection)
-	defer db.Close()
-	if err != nil {
+	var db *gorm.DB
+	if db, err = modelApi.open(tctx); err != nil {
 		return err
 	}
-	db.LogMode(modelApi.conf.Default.EnableDatabaseLog)
+	defer func() { err = db.Close() }()
 
 	tx := db.Begin()
 	defer tx.Rollback()
@@ -268,6 +275,5 @@ func (modelApi *ResourceModelApi) CheckNodes() error {
 	}
 	tx.Commit()
 
-	glog.Info("Completed CheckNodes")
 	return nil
 }

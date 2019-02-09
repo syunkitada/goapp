@@ -8,10 +8,12 @@ import (
 	"github.com/golang/glog"
 
 	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_model"
+	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
 
 func (dashboard *Dashboard) Login(c *gin.Context) {
 	var authRequest authproxy_model.AuthRequest
+	traceId := c.GetString("TraceId")
 
 	if err := c.ShouldBindWith(&authRequest, binding.JSON); err != nil {
 		glog.Warningf("Invalid AuthRequest: Failed ShouldBindJSON: %v", err)
@@ -22,7 +24,8 @@ func (dashboard *Dashboard) Login(c *gin.Context) {
 		return
 	}
 
-	token, err := dashboard.Token.AuthAndIssueToken(&authRequest)
+	tctx := logger.NewTraceContextWithTraceId(traceId, dashboard.host, dashboard.name)
+	token, err := dashboard.Token.AuthAndIssueToken(tctx, &authRequest)
 	if err != nil {
 		glog.Error("Failed AuthAndIssueToken", err)
 		c.JSON(http.StatusUnauthorized, gin.H{
@@ -32,7 +35,8 @@ func (dashboard *Dashboard) Login(c *gin.Context) {
 		return
 	}
 
-	userAuthority, getUserAuthorityErr := dashboard.AuthproxyModelApi.GetUserAuthority(authRequest.Username, &authRequest.Action)
+	userAuthority, getUserAuthorityErr := dashboard.AuthproxyModelApi.GetUserAuthority(
+		tctx, authRequest.Username, &authRequest.Action)
 	if getUserAuthorityErr != nil {
 		glog.Error(getUserAuthorityErr)
 		c.JSON(http.StatusUnauthorized, gin.H{

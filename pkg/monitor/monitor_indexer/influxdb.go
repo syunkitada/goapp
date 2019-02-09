@@ -188,10 +188,10 @@ func (indexer *InfluxdbIndexer) GetIndex(tctx *logger.TraceContext, projectName 
 	// hosts
 	// query := "show tag values from \"agent\" with key = \"Host\""
 	query := "select count(State), sum(State) as states, sum(Warnings) as warnings, sum(Errors) as errors from agent where Project = 'admin' group by Host,Kind"
-	var count float64 = 0
-	var states float64 = 0
-	var warnings float64 = 0
-	var errors float64 = 0
+	var count float64
+	var states float64
+	var warnings float64
+	var errors float64
 	for _, client := range indexer.percistentClients {
 		result, err := client.Query(query)
 		if err != nil {
@@ -310,7 +310,7 @@ func (c *Client) Query(data string) (*QueryResult, error) {
 		return nil, err
 	}
 
-	defer resp.Body.Close()
+	defer func() { err = resp.Body.Close() }()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err

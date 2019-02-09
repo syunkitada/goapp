@@ -22,7 +22,7 @@ type DatabaseConnection struct {
 }
 
 var (
-	reDatabaseConnection *regexp.Regexp = regexp.MustCompile(`^(\S+):(\S+)@.*\((\S+):(\S+)\)/(\S+)\?.*$`)
+	reDatabaseConnection = regexp.MustCompile(`^(\S+):(\S+)@.*\((\S+):(\S+)\)/(\S+)\?.*$`)
 )
 
 func init() {
@@ -63,7 +63,7 @@ func (ctl *Ctl) Bootstrap(isRecreate bool) error {
 		return err
 	}
 
-	if err := ctl.AuthproxyModelApi.Bootstrap(); err != nil {
+	if err := ctl.AuthproxyModelApi.Bootstrap(tctx); err != nil {
 		return err
 	}
 
@@ -71,11 +71,11 @@ func (ctl *Ctl) Bootstrap(isRecreate bool) error {
 		return err
 	}
 
-	if err := ctl.ResourceModelApi.Bootstrap(); err != nil {
+	if err := ctl.ResourceModelApi.Bootstrap(tctx); err != nil {
 		return err
 	}
 
-	for clusterName, _ := range ctl.Conf.Resource.ClusterMap {
+	for clusterName := range ctl.Conf.Resource.ClusterMap {
 		clusterConf := *ctl.Conf
 		clusterConf.Resource.Node.ClusterName = clusterName
 		resourceClusterModelApi := resource_cluster_model_api.NewResourceClusterModelApi(&clusterConf)
@@ -142,17 +142,21 @@ func (ctl *Ctl) ParseDatabaseConnection(connection string) (*DatabaseConnection,
 }
 
 func (ctl *Ctl) ExecMysql(conn *DatabaseConnection, sql string) error {
+	var err error
+
 	if ctl.Conf.Default.EnableDatabaseLog {
 		glog.Infof("Exec mysql -u%v -pxxx -h%v -P%v -e '%v'", conn.user, conn.host, conn.port, sql)
 	}
-	if out, err := exec.Command(
+
+	var out []byte
+	if out, err = exec.Command(
 		"mysql", "-u"+conn.user, "-p"+conn.password, "-h"+conn.host, "-P"+conn.port,
 		"-e", sql).Output(); err != nil {
 		return err
-	} else {
-		if ctl.Conf.Default.EnableDatabaseLog {
-			glog.Infof("Exec mysql success: stdout=%v", out)
-		}
+	}
+
+	if ctl.Conf.Default.EnableDatabaseLog {
+		glog.Infof("Exec mysql success: stdout=%v", string(out))
 	}
 
 	return nil

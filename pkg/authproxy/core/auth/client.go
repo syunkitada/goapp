@@ -10,13 +10,18 @@ import (
 	"net/http/httptest"
 
 	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_model"
+	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
 
 type ResponseIssueToken struct {
 	Token string
 }
 
-func (auth *Auth) CtlIssueToken() (*ResponseIssueToken, error) {
+func (auth *Auth) CtlIssueToken(tctx *logger.TraceContext) (*ResponseIssueToken, error) {
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
 	authRequest := authproxy_model.AuthRequest{
 		Username: auth.conf.Ctl.Username,
 		Password: auth.conf.Ctl.Password,
@@ -51,7 +56,7 @@ func (auth *Auth) CtlIssueToken() (*ResponseIssueToken, error) {
 		if err != nil {
 			return nil, err
 		}
-		defer resp.Body.Close()
+		defer func() { err = resp.Body.Close() }()
 		var readAllErr error
 		body, readAllErr = ioutil.ReadAll(resp.Body)
 		if readAllErr != nil {

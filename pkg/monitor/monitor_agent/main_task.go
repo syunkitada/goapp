@@ -39,7 +39,7 @@ func (srv *MonitorAgentServer) MainTask(tctx *logger.TraceContext) error {
 	if srv.logReaderRefreshCount >= srv.logReaderRefreshSpan {
 		srv.logReaderRefreshCount = 0
 	} else {
-		srv.logReaderRefreshCount += 1
+		srv.logReaderRefreshCount++
 	}
 
 	for logName, logReader := range srv.logReaderMap {
@@ -50,13 +50,15 @@ func (srv *MonitorAgentServer) MainTask(tctx *logger.TraceContext) error {
 	}
 
 	if srv.reportCount == 0 {
-		srv.Report(tctx)
+		if err = srv.Report(tctx); err != nil {
+			return err
+		}
 	}
 
 	if srv.reportCount >= srv.reportSpan {
 		srv.reportCount = 0
 	} else {
-		srv.reportCount += 1
+		srv.reportCount++
 	}
 
 	return nil

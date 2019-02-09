@@ -45,7 +45,7 @@ func CreateResource() error {
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
 	authproxy := core.NewAuthproxy(&config.Conf)
-	token, err := authproxy.Auth.CtlIssueToken()
+	token, err := authproxy.Auth.CtlIssueToken(tctx)
 	if err != nil {
 		return fmt.Errorf("Failed issue token: %v", err)
 	}

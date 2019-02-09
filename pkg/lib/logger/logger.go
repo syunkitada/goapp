@@ -52,6 +52,15 @@ func NewTraceContext(host string, app string) *TraceContext {
 	}
 }
 
+func NewTraceContextWithTraceId(traceId string, host string, app string) *TraceContext {
+	return &TraceContext{
+		TraceId:  traceId,
+		Host:     host,
+		App:      app,
+		Metadata: map[string]string{},
+	}
+}
+
 func NewCtlTraceContext(app string) *TraceContext {
 	return &TraceContext{
 		TraceId: xid.New().String(),

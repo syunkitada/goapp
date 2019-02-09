@@ -78,8 +78,6 @@ func (app *BaseApp) mainLoop() {
 
 		time.Sleep(app.loopInterval)
 	}
-
-	logger.StdoutInfof("Completed mainLoop")
 }
 
 func (app *BaseApp) Serve() error {

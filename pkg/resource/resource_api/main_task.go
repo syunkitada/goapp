@@ -33,7 +33,7 @@ func (srv *ResourceApiServer) UpdateNodeTask(tctx *logger.TraceContext) error {
 		StateReason:  "UpdateNode",
 	}
 
-	rep := srv.resourceModelApi.UpdateNode(req)
+	rep := srv.resourceModelApi.UpdateNode(tctx, req)
 	if rep.Err != "" {
 		err = fmt.Errorf(rep.Err)
 		return err

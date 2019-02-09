@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	appName string = "ctl-resource"
+	appName = "ctl-resource"
 )
 
 var RootCmd = &cobra.Command{

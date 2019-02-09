@@ -1,33 +1,36 @@
 package authproxy_model_api
 
 import (
-	_ "github.com/go-sql-driver/mysql"
-	"github.com/golang/glog"
 	"github.com/jinzhu/gorm"
 
 	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_model"
 	"github.com/syunkitada/goapp/pkg/config"
+	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
 
 type AuthproxyModelApi struct {
-	Conf *config.Config
+	conf *config.Config
 }
 
 func NewAuthproxyModelApi(conf *config.Config) *AuthproxyModelApi {
 	modelApi := AuthproxyModelApi{
-		Conf: conf,
+		conf: conf,
 	}
 
 	return &modelApi
 }
 
-func (modelApi *AuthproxyModelApi) Bootstrap() error {
-	db, dbErr := gorm.Open("mysql", modelApi.Conf.Authproxy.Database.Connection)
-	defer db.Close()
-	if dbErr != nil {
-		return dbErr
+func (modelApi *AuthproxyModelApi) Bootstrap(tctx *logger.TraceContext) error {
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	var db *gorm.DB
+	db, err = modelApi.open(tctx)
+	if err != nil {
+		return err
 	}
-	db.LogMode(modelApi.Conf.Default.EnableDatabaseLog)
+	defer func() { err = db.Close() }()
 
 	db.AutoMigrate(&authproxy_model.User{})
 	db.AutoMigrate(&authproxy_model.Role{})
@@ -36,33 +39,27 @@ func (modelApi *AuthproxyModelApi) Bootstrap() error {
 	db.AutoMigrate(&authproxy_model.Service{})
 	db.AutoMigrate(&authproxy_model.Action{})
 
-	if err := modelApi.CreateUser(modelApi.Conf.Admin.Username, modelApi.Conf.Admin.Password); err != nil {
-		glog.Error(err)
+	if err = modelApi.CreateUser(tctx, modelApi.conf.Admin.Username, modelApi.conf.Admin.Password); err != nil {
 		return err
 	}
 
-	if err := modelApi.CreateProjectRole("admin"); err != nil {
-		glog.Error(err)
+	if err = modelApi.CreateProjectRole(tctx, "admin"); err != nil {
 		return err
 	}
 
-	if err := modelApi.CreateProjectRole("tenant"); err != nil {
-		glog.Error(err)
+	if err = modelApi.CreateProjectRole(tctx, "tenant"); err != nil {
 		return err
 	}
 
-	if err := modelApi.CreateProject("admin", "admin"); err != nil {
-		glog.Error(err)
+	if err = modelApi.CreateProject(tctx, "admin", "admin"); err != nil {
 		return err
 	}
 
-	if err := modelApi.CreateRole("admin", "admin"); err != nil {
-		glog.Error(err)
+	if err = modelApi.CreateRole(tctx, "admin", "admin"); err != nil {
 		return err
 	}
 
-	if err := modelApi.AssignRole("admin", "admin"); err != nil {
-		glog.Error(err)
+	if err = modelApi.AssignRole(tctx, "admin", "admin"); err != nil {
 		return err
 	}
 
@@ -86,64 +83,69 @@ func (modelApi *AuthproxyModelApi) Bootstrap() error {
 	}
 
 	for _, userTenantService := range userTenantServices {
-		if err := modelApi.CreateService(userTenantService, "user"); err != nil {
-			glog.Error(err)
+		if err = modelApi.CreateService(tctx, userTenantService, "user"); err != nil {
 			return err
 		}
 
-		if err := modelApi.AssignService("tenant", userTenantService); err != nil {
-			glog.Error(err)
+		if err = modelApi.AssignService(tctx, "tenant", userTenantService); err != nil {
 			return err
 		}
 
-		if err := modelApi.AssignService("admin", userTenantService); err != nil {
-			glog.Error(err)
+		if err = modelApi.AssignService(tctx, "admin", userTenantService); err != nil {
 			return err
 		}
 	}
 
 	for _, userAdminService := range userAdminServices {
-		if err := modelApi.CreateService(userAdminService, "user"); err != nil {
-			glog.Error(err)
+		if err = modelApi.CreateService(tctx, userAdminService, "user"); err != nil {
 			return err
 		}
 
-		if err := modelApi.AssignService("admin", userAdminService); err != nil {
-			glog.Error(err)
+		if err = modelApi.AssignService(tctx, "admin", userAdminService); err != nil {
 			return err
 		}
 	}
 
 	for _, projectTenantService := range projectTenantServices {
-		if err := modelApi.CreateService(projectTenantService, "project"); err != nil {
-			glog.Error(err)
+		if err = modelApi.CreateService(tctx, projectTenantService, "project"); err != nil {
 			return err
 		}
 
-		if err := modelApi.AssignService("tenant", projectTenantService); err != nil {
-			glog.Error(err)
+		if err = modelApi.AssignService(tctx, "tenant", projectTenantService); err != nil {
 			return err
 		}
 
-		if err := modelApi.AssignService("admin", projectTenantService); err != nil {
-			glog.Error(err)
+		if err = modelApi.AssignService(tctx, "admin", projectTenantService); err != nil {
 			return err
 		}
 	}
 
 	for serviceName, actions := range actionMap {
 		for _, actionName := range actions {
-			if err := modelApi.AssignAction(serviceName, "admin", "", actionName); err != nil {
-				glog.Error(err)
+			if err = modelApi.AssignAction(tctx, serviceName, "admin", "", actionName); err != nil {
 				return err
 			}
 
-			if err := modelApi.AssignAction(serviceName, "tenant", "", actionName); err != nil {
-				glog.Error(err)
+			if err = modelApi.AssignAction(tctx, serviceName, "tenant", "", actionName); err != nil {
 				return err
 			}
 		}
 	}
 
 	return nil
+}
+
+func (modelApi *AuthproxyModelApi) open(tctx *logger.TraceContext) (*gorm.DB, error) {
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	var db *gorm.DB
+	db, err = gorm.Open("mysql", modelApi.conf.Authproxy.Database.Connection)
+	if err != nil {
+		return nil, err
+	}
+	db.LogMode(modelApi.conf.Default.EnableDatabaseLog)
+
+	return db, nil
 }
