@@ -1,4 +1,4 @@
-package resource
+package resource_ctl
 
 import (
 	"encoding/json"
@@ -8,7 +8,7 @@ import (
 	"github.com/golang/glog"
 	"github.com/spf13/cobra"
 
-	"github.com/syunkitada/goapp/pkg/authproxy/core"
+	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_client"
 	"github.com/syunkitada/goapp/pkg/config"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/resource/resource_model"
@@ -24,7 +24,8 @@ var createCmd = &cobra.Command{
 	Long: `create resource
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
-		if err := CreateResource(); err != nil {
+		ctl := New(&config.Conf, nil)
+		if err := ctl.CreateResource(createCmdFileFlag); err != nil {
 			fmt.Println("Failed by following error")
 			fmt.Println(err.Error())
 		}
@@ -33,24 +34,20 @@ var createCmd = &cobra.Command{
 
 func init() {
 	createCmd.Flags().StringVarP(&createCmdFileFlag, "file", "f", "", "file (required)")
-	createCmd.MarkFlagRequired("file")
+	if err := createCmd.MarkFlagRequired("file"); err != nil {
+		logger.StdoutFatal(err)
+	}
 
 	RootCmd.AddCommand(createCmd)
 }
 
-func CreateResource() error {
+func (ctl *ResourceCtl) CreateResource(filePath string) error {
 	var err error
 	tctx := logger.NewCtlTraceContext(appName)
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
-	authproxy := core.NewAuthproxy(&config.Conf)
-	token, err := authproxy.Auth.CtlIssueToken(tctx)
-	if err != nil {
-		return fmt.Errorf("Failed issue token: %v", err)
-	}
-
-	bytes, err := ioutil.ReadFile(createCmdFileFlag)
+	bytes, err := ioutil.ReadFile(filePath)
 	if err != nil {
 		return fmt.Errorf("Failed read file: %v", err)
 	}
@@ -60,17 +57,22 @@ func CreateResource() error {
 		return fmt.Errorf("Failed unmarshal file: %v", err)
 	}
 
+	var token *authproxy_client.ResponseIssueToken
+	if token, err = ctl.client.IssueToken(tctx); err != nil {
+		return err
+	}
+
 	switch resourceSpec.Kind {
 	case resource_model.SpecNetworkV4:
-		err = CreateNetworkV4(token.Token, string(bytes))
+		err = ctl.CreateNetwork(tctx, token, string(bytes))
 		return err
 	case resource_model.SpecCompute:
-		err = CreateCompute(token.Token, string(bytes))
+		err = ctl.CreateCompute(tctx, token, string(bytes))
 		return err
 	case resource_model.SpecContainer:
 		glog.Info("Container")
 	case resource_model.SpecImage:
-		err = CreateImage(token.Token, string(bytes))
+		err = ctl.CreateImage(tctx, token, string(bytes))
 		return err
 	case resource_model.SpecVolume:
 		glog.Info("Volume")

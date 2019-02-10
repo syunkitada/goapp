@@ -10,11 +10,14 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/rs/xid"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/peer"
 
+	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_model"
 	"github.com/syunkitada/goapp/pkg/config"
+	"github.com/syunkitada/goapp/pkg/lib/error_utils"
 )
 
 var (
@@ -41,6 +44,16 @@ type TraceContext struct {
 	Func     string
 	TraceId  string
 	Metadata map[string]string
+}
+
+type ActionTraceContext struct {
+	TraceContext
+	UserName        string
+	RoleName        string
+	ProjectName     string
+	ProjectRoleName string
+	ActionName      string
+	ActionData      string
 }
 
 func NewTraceContext(host string, app string) *TraceContext {
@@ -74,15 +87,38 @@ func NewCtlTraceContext(app string) *TraceContext {
 	}
 }
 
-func NewAuthproxyActionTraceContext(host string, app string, traceId string, user string) *TraceContext {
-	return &TraceContext{
-		TraceId: xid.New().String(),
-		Host:    host,
-		App:     app,
-		Metadata: map[string]string{
-			"AuthUser": user,
-		},
+func NewAuthproxyActionTraceContext(host string, app string, c *gin.Context) (*ActionTraceContext, error) {
+	traceId, traceIdOk := c.Get("TraceId")
+	username, usernameOk := c.Get("Username")
+	userAuthority, userAuthorityOk := c.Get("UserAuthority")
+	action, actionOk := c.Get("Action")
+
+	if !traceIdOk || !usernameOk || !userAuthorityOk || !actionOk {
+		return nil, error_utils.NewInvalidRequestError(map[string]bool{
+			"TraceId":       traceIdOk,
+			"Username":      usernameOk,
+			"UserAuthority": userAuthorityOk,
+			"Action":        actionOk,
+		})
 	}
+	tmpAuthority := userAuthority.(authproxy_model.UserAuthority)
+	tmpAction := action.(authproxy_model.ActionRequest)
+	return &ActionTraceContext{
+		TraceContext: TraceContext{
+			TraceId: traceId.(string),
+			Host:    host,
+			App:     app,
+			Metadata: map[string]string{
+				"AuthUser": username.(string),
+			},
+		},
+		UserName:        username.(string),
+		RoleName:        tmpAuthority.ActionProjectService.RoleName,
+		ProjectName:     tmpAuthority.ActionProjectService.ProjectName,
+		ProjectRoleName: tmpAuthority.ActionProjectService.ProjectRoleName,
+		ActionName:      tmpAction.Name,
+		ActionData:      tmpAction.Data,
+	}, nil
 }
 
 func NewGrpcTraceContext(host string, app string, ctx context.Context) *TraceContext {

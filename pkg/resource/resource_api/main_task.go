@@ -34,8 +34,8 @@ func (srv *ResourceApiServer) UpdateNodeTask(tctx *logger.TraceContext) error {
 	}
 
 	rep := srv.resourceModelApi.UpdateNode(tctx, req)
-	if rep.Err != "" {
-		err = fmt.Errorf(rep.Err)
+	if rep.Tctx.Err != "" {
+		err = fmt.Errorf(rep.Tctx.Err)
 		return err
 	}
 	return nil

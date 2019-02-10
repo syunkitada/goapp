@@ -1,4 +1,4 @@
-package resource
+package resource_authproxy
 
 import (
 	"github.com/syunkitada/goapp/pkg/config"
@@ -8,16 +8,22 @@ import (
 type Resource struct {
 	host              string
 	name              string
+	path              string
 	conf              *config.Config
 	resourceApiClient *resource_api_client.ResourceApiClient
 }
 
-func NewResource(conf *config.Config) *Resource {
+func New(conf *config.Config) *Resource {
 	resource := Resource{
 		host:              conf.Default.Host,
 		name:              "authproxy:resource",
+		path:              "/Resource",
 		conf:              conf,
 		resourceApiClient: resource_api_client.NewResourceApiClient(conf),
 	}
 	return &resource
+}
+
+func (resource *Resource) GetPath() string {
+	return resource.path
 }

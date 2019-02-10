@@ -1,4 +1,4 @@
-package resource
+package resource_ctl
 
 import (
 	"github.com/spf13/cobra"
@@ -9,10 +9,10 @@ var (
 )
 
 func init() {
-	deleteNetworkV4Cmd.Flags().StringVarP(&deleteCmdClusterFlag, "cluster", "c", "", "Filtering by cluster")
-	deleteNetworkV4Cmd.MarkFlagRequired("cluster")
+	deleteNetworkCmd.Flags().StringVarP(&deleteCmdClusterFlag, "cluster", "c", "", "Filtering by cluster")
+	deleteNetworkCmd.MarkFlagRequired("cluster")
 
-	DeleteCmd.AddCommand(deleteNetworkV4Cmd)
+	DeleteCmd.AddCommand(deleteNetworkCmd)
 	RootCmd.AddCommand(DeleteCmd)
 }
 

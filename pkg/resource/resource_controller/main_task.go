@@ -47,7 +47,9 @@ func (srv *ResourceControllerServer) UpdateNode(tctx *logger.TraceContext) error
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
 	req := &resource_api_grpc_pb.UpdateNodeRequest{
-		TraceId:      tctx.TraceId,
+		Tctx: &resource_api_grpc_pb.TraceContext{
+			TraceId: tctx.TraceId,
+		},
 		Name:         srv.Host,
 		Kind:         resource_model.KindResourceController,
 		Role:         resource_model.RoleMember,
@@ -58,8 +60,8 @@ func (srv *ResourceControllerServer) UpdateNode(tctx *logger.TraceContext) error
 	}
 
 	rep := srv.resourceModelApi.UpdateNode(tctx, req)
-	if rep.Err != "" {
-		err = fmt.Errorf(rep.Err)
+	if rep.Tctx.Err != "" {
+		err = fmt.Errorf(rep.Tctx.Err)
 		return err
 	}
 

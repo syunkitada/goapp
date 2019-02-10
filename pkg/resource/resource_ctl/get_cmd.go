@@ -1,4 +1,4 @@
-package resource
+package resource_ctl
 
 import (
 	"github.com/spf13/cobra"
@@ -14,7 +14,7 @@ func init() {
 	GetCmd.AddCommand(getComputeCmd)
 	GetCmd.AddCommand(getClusterCmd)
 	GetCmd.AddCommand(getImageCmd)
-	GetCmd.AddCommand(getNetworkV4Cmd)
+	GetCmd.AddCommand(getNetworkCmd)
 	GetCmd.AddCommand(getNodeCmd)
 	RootCmd.AddCommand(GetCmd)
 }
