@@ -68,6 +68,14 @@ func (ctl *ResourceCtl) UpdateResource(filePath string) error {
 	case resource_model.SpecNetworkV4:
 		err = ctl.UpdateNetwork(tctx, token, string(bytes))
 		return err
+	case resource_model.SpecCompute:
+		err = ctl.UpdateCompute(tctx, token, string(bytes))
+		return err
+	case resource_model.SpecImage:
+		err = ctl.UpdateImage(tctx, token, string(bytes))
+		return err
+	default:
+		fmt.Printf("InvalidKind: %v\n", resourceSpec.Kind)
 	}
 
 	return nil

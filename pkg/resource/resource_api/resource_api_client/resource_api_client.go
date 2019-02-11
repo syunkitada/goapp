@@ -68,6 +68,7 @@ func (cli *ResourceApiClient) Action(tctx *logger.ActionTraceContext) (*resource
 	if err = json.Unmarshal([]byte(tctx.ActionData), &req); err != nil {
 		return nil, err
 	}
+	req.Tctx = cli.convertTraceContext(tctx)
 
 	conn, err := cli.NewClientConnection()
 	if err != nil {

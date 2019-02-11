@@ -31,7 +31,7 @@ func (modelApi *ResourceModelApi) GetNode(tctx *logger.TraceContext, req *resour
 	pbNodes := []*resource_api_grpc_pb.Node{}
 	if req.Cluster == "" {
 		var nodes []resource_model.Node
-		if err = db.Where("name like ?", req.Target).Find(&nodes).Error; err != nil {
+		if err = db.Find(&nodes).Error; err != nil {
 			rep.Tctx.Err = err.Error()
 			rep.Tctx.StatusCode = codes.RemoteDbError
 			return
@@ -79,7 +79,9 @@ func (modelApi *ResourceModelApi) GetNode(tctx *logger.TraceContext, req *resour
 }
 
 func (modelApi *ResourceModelApi) UpdateNode(tctx *logger.TraceContext, req *resource_api_grpc_pb.UpdateNodeRequest) *resource_api_grpc_pb.UpdateNodeReply {
-	rep := &resource_api_grpc_pb.UpdateNodeReply{}
+	rep := &resource_api_grpc_pb.UpdateNodeReply{
+		Tctx: &resource_api_grpc_pb.TraceContext{},
+	}
 	var err error
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()

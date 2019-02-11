@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	"github.com/golang/glog"
 	"github.com/spf13/cobra"
 
 	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_client"
@@ -69,15 +68,11 @@ func (ctl *ResourceCtl) CreateResource(filePath string) error {
 	case resource_model.SpecCompute:
 		err = ctl.CreateCompute(tctx, token, string(bytes))
 		return err
-	case resource_model.SpecContainer:
-		glog.Info("Container")
 	case resource_model.SpecImage:
 		err = ctl.CreateImage(tctx, token, string(bytes))
 		return err
-	case resource_model.SpecVolume:
-		glog.Info("Volume")
-	case resource_model.SpecLoadbalancer:
-		glog.Info("Loadbalancer")
+	default:
+		fmt.Printf("InvalidKind: %v\n", resourceSpec.Kind)
 	}
 
 	return nil

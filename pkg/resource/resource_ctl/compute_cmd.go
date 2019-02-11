@@ -11,31 +11,14 @@ import (
 	"github.com/olekukonko/tablewriter"
 	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_client"
 	"github.com/syunkitada/goapp/pkg/config"
+	"github.com/syunkitada/goapp/pkg/lib/codes"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/resource/resource_api/resource_api_grpc_pb"
 )
 
-type ResponseGetCompute struct {
+type ResponseCompute struct {
 	Computes []resource_api_grpc_pb.Compute
-	TraceId  string
-	Err      string
-}
-
-type ResponseCreateCompute struct {
-	Compute resource_api_grpc_pb.Compute
-	TraceId string
-	Err     string
-}
-
-type ResponseUpdateCompute struct {
-	Compute resource_api_grpc_pb.Compute
-	TraceId string
-	Err     string
-}
-
-type ResponseDeleteCompute struct {
-	TraceId string
-	Err     string
+	Tctx     resource_api_grpc_pb.TraceContext
 }
 
 var getComputeCmd = &cobra.Command{
@@ -60,8 +43,8 @@ var getComputeCmd = &cobra.Command{
 
 var deleteComputeCmd = &cobra.Command{
 	Use:   "compute [compute-name]",
-	Short: "Show computes",
-	Long: `Show computes
+	Short: "Delete compute",
+	Long: `Delete compute
 	`,
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
@@ -87,24 +70,12 @@ func (ctl *ResourceCtl) GetCompute(cluster string, target string) error {
 		Cluster: cluster,
 		Target:  target,
 	}
-	var resp ResponseGetCompute
+	var resp ResponseCompute
 	if err = ctl.client.Request(tctx, token, "GetCompute", &req, &resp); err != nil {
 		return err
 	}
 
-	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"Cluster", "Name", "Status", "Status Reason", "Updated At", "Created At"})
-	for _, compute := range resp.Computes {
-		table.Append([]string{
-			compute.Cluster,
-			compute.Name,
-			compute.Status,
-			compute.StatusReason,
-			fmt.Sprint(time.Unix(compute.UpdatedAt.Seconds, 0)),
-			fmt.Sprint(time.Unix(compute.CreatedAt.Seconds, 0)),
-		})
-	}
-	table.Render()
+	ctl.outputCompute(&resp)
 
 	return nil
 }
@@ -117,22 +88,12 @@ func (ctl *ResourceCtl) CreateCompute(tctx *logger.TraceContext, token *authprox
 	req := resource_api_grpc_pb.ActionRequest{
 		Spec: spec,
 	}
-	var resp ResponseCreateCompute
+	var resp ResponseCompute
 	if err = ctl.client.Request(tctx, token, "CreateCompute", &req, &resp); err != nil {
 		return err
 	}
 
-	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"Cluster", "Name", "Status", "Status Reason", "Updated At", "Created At"})
-	table.Append([]string{
-		resp.Compute.Cluster,
-		resp.Compute.Name,
-		resp.Compute.Status,
-		resp.Compute.StatusReason,
-		fmt.Sprint(time.Unix(resp.Compute.UpdatedAt.Seconds, 0)),
-		fmt.Sprint(time.Unix(resp.Compute.CreatedAt.Seconds, 0)),
-	})
-	table.Render()
+	ctl.outputCompute(&resp)
 
 	return nil
 }
@@ -145,23 +106,12 @@ func (ctl *ResourceCtl) UpdateCompute(tctx *logger.TraceContext, token *authprox
 	req := resource_api_grpc_pb.ActionRequest{
 		Spec: spec,
 	}
-	var resp ResponseUpdateCompute
+	var resp ResponseCompute
 	if err = ctl.client.Request(tctx, token, "UpdateCompute", &req, &resp); err != nil {
 		return err
 	}
 
-	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"Cluster", "Name", "Status", "Status Reason", "Updated At", "Created At"})
-	table.Append([]string{
-		resp.Compute.Cluster,
-		resp.Compute.Name,
-		resp.Compute.Status,
-		resp.Compute.StatusReason,
-		fmt.Sprint(time.Unix(resp.Compute.UpdatedAt.Seconds, 0)),
-		fmt.Sprint(time.Unix(resp.Compute.CreatedAt.Seconds, 0)),
-	})
-	table.Render()
-
+	ctl.outputCompute(&resp)
 	return nil
 }
 
@@ -180,11 +130,32 @@ func (ctl *ResourceCtl) DeleteCompute(cluster string, target string) error {
 		Cluster: cluster,
 		Target:  target,
 	}
-	var resp ResponseDeleteCompute
+	var resp ResponseCompute
 	if err = ctl.client.Request(tctx, token, "DeleteCompute", &req, &resp); err != nil {
 		return err
 	}
 
-	fmt.Println(resp)
+	ctl.outputCompute(&resp)
 	return nil
+}
+
+func (ctl *ResourceCtl) outputCompute(resp *ResponseCompute) {
+	if resp.Tctx.StatusCode != codes.Ok {
+		fmt.Printf("Failed %s: %s\n", resp.Tctx.ActionName, resp.Tctx.Err)
+		return
+	}
+
+	table := tablewriter.NewWriter(os.Stdout)
+	table.SetHeader([]string{"Cluster", "Name", "Status", "Status Reason", "Updated At", "Created At"})
+	for _, compute := range resp.Computes {
+		table.Append([]string{
+			compute.Cluster,
+			compute.Name,
+			compute.Status,
+			compute.StatusReason,
+			fmt.Sprint(time.Unix(compute.UpdatedAt.Seconds, 0)),
+			fmt.Sprint(time.Unix(compute.CreatedAt.Seconds, 0)),
+		})
+	}
+	table.Render()
 }

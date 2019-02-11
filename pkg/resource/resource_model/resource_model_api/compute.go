@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/golang/protobuf/ptypes"
 	"github.com/jinzhu/gorm"
@@ -29,7 +30,12 @@ func (modelApi *ResourceModelApi) GetCompute(tctx *logger.TraceContext, req *res
 	defer func() { err = db.Close() }()
 
 	var computes []resource_model.Compute
-	if err = db.Where("name like ?", req.Target).Find(&computes).Error; err != nil {
+	if req.Target == "" {
+		err = db.Find(&computes).Error
+	} else {
+		err = db.Where("name like ?", req.Target).Find(&computes).Error
+	}
+	if err != nil {
 		rep.Tctx.Err = err.Error()
 		rep.Tctx.StatusCode = codes.RemoteDbError
 		return
@@ -125,17 +131,18 @@ func (modelApi *ResourceModelApi) UpdateCompute(tctx *logger.TraceContext, req *
 	tx := db.Begin()
 	defer tx.Rollback()
 	var compute resource_model.Compute
-	if err = tx.Where("name = ? and cluster = ?", spec.Name, spec.Cluster).First(&compute).Error; err != nil {
+	if err = tx.Model(&compute).Where(resource_model.Compute{
+		Name:    spec.Name,
+		Cluster: spec.Cluster,
+	}).Updates(resource_model.Compute{
+		Spec:         req.Spec,
+		Status:       resource_model.StatusActive,
+		StatusReason: fmt.Sprintf("UpdateCompute: user=%v, project=%v", req.Tctx.UserName, req.Tctx.ProjectName),
+	}).Error; err != nil {
 		rep.Tctx.Err = err.Error()
 		rep.Tctx.StatusCode = codes.RemoteDbError
 		return
 	}
-
-	compute.Spec = req.Spec
-	compute.Status = resource_model.StatusActive
-	compute.StatusReason = fmt.Sprintf("UpdateCompute: user=%v, project=%v", req.Tctx.UserName, req.Tctx.ProjectName)
-	tx.Save(compute)
-	tx.Commit()
 
 	computePb, err := modelApi.convertCompute(&compute)
 	if err != nil {
@@ -143,6 +150,8 @@ func (modelApi *ResourceModelApi) UpdateCompute(tctx *logger.TraceContext, req *
 		rep.Tctx.StatusCode = codes.ServerInternalError
 		return
 	}
+	computePb.Name = spec.Name
+	computePb.Cluster = spec.Cluster
 
 	rep.Computes = []*resource_api_grpc_pb.Compute{computePb}
 	rep.Tctx.StatusCode = codes.Ok
@@ -164,13 +173,33 @@ func (modelApi *ResourceModelApi) DeleteCompute(tctx *logger.TraceContext, req *
 	tx := db.Begin()
 	defer tx.Rollback()
 	var compute resource_model.Compute
-	if err = tx.Where("name = ?", req.Target).Delete(&compute).Error; err != nil {
+	now := time.Now()
+	if err = tx.Model(&compute).Where(resource_model.Compute{
+		Name:    req.Target,
+		Cluster: req.Cluster,
+	}).Updates(resource_model.Compute{
+		Model: gorm.Model{
+			DeletedAt: &now,
+		},
+		Status:       resource_model.StatusDeleted,
+		StatusReason: fmt.Sprintf("DeleteCompute: user=%v, project=%v", req.Tctx.UserName, req.Tctx.ProjectName),
+	}).Error; err != nil {
 		rep.Tctx.Err = err.Error()
 		rep.Tctx.StatusCode = codes.RemoteDbError
 		return
 	}
 	tx.Commit()
 
+	computePb, err := modelApi.convertCompute(&compute)
+	if err != nil {
+		rep.Tctx.Err = err.Error()
+		rep.Tctx.StatusCode = codes.ServerInternalError
+		return
+	}
+
+	computePb.Name = req.Target
+	computePb.Cluster = req.Cluster
+	rep.Computes = []*resource_api_grpc_pb.Compute{computePb}
 	rep.Tctx.StatusCode = codes.Ok
 }
 

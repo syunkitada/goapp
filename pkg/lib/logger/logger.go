@@ -101,7 +101,7 @@ func NewAuthproxyActionTraceContext(host string, app string, c *gin.Context) (*A
 			"Action":        actionOk,
 		})
 	}
-	tmpAuthority := userAuthority.(authproxy_model.UserAuthority)
+	tmpAuthority := userAuthority.(*authproxy_model.UserAuthority)
 	tmpAction := action.(authproxy_model.ActionRequest)
 	return &ActionTraceContext{
 		TraceContext: TraceContext{

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"strings"
+	"time"
 
 	"github.com/golang/protobuf/ptypes"
 	"github.com/jinzhu/gorm"
@@ -26,10 +27,15 @@ func (modelApi *ResourceModelApi) GetNetworkV4(tctx *logger.TraceContext, req *r
 		rep.Tctx.StatusCode = codes.RemoteDbError
 		return
 	}
-	defer db.Close()
+	defer func() { err = db.Close() }()
 
 	var networkv4s []resource_model.NetworkV4
-	if err = db.Where("name like ?", req.Target).Find(&networkv4s).Error; err != nil {
+	if req.Target == "" {
+		err = db.Find(&networkv4s).Error
+	} else {
+		err = db.Where("name like ?", req.Target).Find(&networkv4s).Error
+	}
+	if err != nil {
 		rep.Tctx.Err = err.Error()
 		rep.Tctx.StatusCode = codes.RemoteDbError
 		return
@@ -51,7 +57,7 @@ func (modelApi *ResourceModelApi) CreateNetworkV4(tctx *logger.TraceContext, req
 		rep.Tctx.StatusCode = codes.RemoteDbError
 		return
 	}
-	defer db.Close()
+	defer func() { err = db.Close() }()
 
 	spec, statusCode, err := modelApi.validateNetworkV4Spec(db, req.Spec)
 	if err != nil {
@@ -116,7 +122,7 @@ func (modelApi *ResourceModelApi) UpdateNetworkV4(tctx *logger.TraceContext, req
 		rep.Tctx.StatusCode = codes.RemoteDbError
 		return
 	}
-	defer db.Close()
+	defer func() { err = db.Close() }()
 
 	spec, statusCode, err := modelApi.validateNetworkV4Spec(db, req.Spec)
 	if err != nil {
@@ -128,19 +134,21 @@ func (modelApi *ResourceModelApi) UpdateNetworkV4(tctx *logger.TraceContext, req
 	tx := db.Begin()
 	defer tx.Rollback()
 	var network resource_model.NetworkV4
-	if err = tx.Where("name = ? and cluster = ?", spec.Name, spec.Cluster).First(&network).Error; err != nil {
+	if err = tx.Model(&network).Where(resource_model.NetworkV4{
+		Name:    spec.Name,
+		Cluster: spec.Cluster,
+	}).Updates(resource_model.NetworkV4{
+		Spec:         req.Spec,
+		StartIp:      spec.Spec.StartIp,
+		EndIp:        spec.Spec.EndIp,
+		Gateway:      spec.Spec.Gateway,
+		Status:       resource_model.StatusActive,
+		StatusReason: fmt.Sprintf("UpdateNetworkV4: user=%v, project=%v", req.Tctx.UserName, req.Tctx.ProjectName),
+	}).Error; err != nil {
 		rep.Tctx.Err = err.Error()
 		rep.Tctx.StatusCode = codes.RemoteDbError
 		return
 	}
-
-	network.Spec = req.Spec
-	network.Status = resource_model.StatusActive
-	network.StatusReason = fmt.Sprintf("UpdateNetworkV4: user=%v, project=%v", req.Tctx.UserName, req.Tctx.ProjectName)
-	network.StartIp = spec.Spec.StartIp
-	network.EndIp = spec.Spec.EndIp
-	network.Gateway = spec.Spec.Gateway
-	tx.Save(network)
 	tx.Commit()
 
 	networkPb, err := modelApi.convertNetworkV4(&network)
@@ -149,6 +157,8 @@ func (modelApi *ResourceModelApi) UpdateNetworkV4(tctx *logger.TraceContext, req
 		rep.Tctx.StatusCode = codes.ServerInternalError
 		return
 	}
+	networkPb.Name = spec.Name
+	networkPb.Cluster = spec.Cluster
 
 	rep.Networks = []*resource_api_grpc_pb.Network{networkPb}
 	rep.Tctx.StatusCode = codes.Ok
@@ -165,18 +175,38 @@ func (modelApi *ResourceModelApi) DeleteNetworkV4(tctx *logger.TraceContext, req
 		rep.Tctx.StatusCode = codes.RemoteDbError
 		return
 	}
-	defer db.Close()
+	defer func() { err = db.Close() }()
 
 	tx := db.Begin()
 	defer tx.Rollback()
-	var networkv4 resource_model.NetworkV4
-	if err = tx.Where("name = ?", req.Target).Delete(&networkv4).Error; err != nil {
+	var network resource_model.NetworkV4
+	now := time.Now()
+	if err = tx.Model(&network).Where(resource_model.NetworkV4{
+		Name:    req.Target,
+		Cluster: req.Cluster,
+	}).Updates(resource_model.NetworkV4{
+		Model: gorm.Model{
+			DeletedAt: &now,
+		},
+		Status:       resource_model.StatusDeleted,
+		StatusReason: fmt.Sprintf("DeleteNetworkV4: user=%v, project=%v", req.Tctx.UserName, req.Tctx.ProjectName),
+	}).Error; err != nil {
 		rep.Tctx.Err = err.Error()
 		rep.Tctx.StatusCode = codes.RemoteDbError
 		return
 	}
 	tx.Commit()
 
+	networkPb, err := modelApi.convertNetworkV4(&network)
+	if err != nil {
+		rep.Tctx.Err = err.Error()
+		rep.Tctx.StatusCode = codes.ServerInternalError
+		return
+	}
+
+	networkPb.Name = req.Target
+	networkPb.Cluster = req.Cluster
+	rep.Networks = []*resource_api_grpc_pb.Network{networkPb}
 	rep.Tctx.StatusCode = codes.Ok
 }
 

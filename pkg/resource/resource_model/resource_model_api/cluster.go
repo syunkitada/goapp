@@ -21,10 +21,15 @@ func (modelApi *ResourceModelApi) GetCluster(tctx *logger.TraceContext, req *res
 		rep.Tctx.StatusCode = codes.RemoteDbError
 		return
 	}
-	defer db.Close()
+	defer func() { err = db.Close() }()
 
 	var clusters []resource_model.Cluster
-	if err = db.Where("name like ?", req.Target).Find(&clusters).Error; err != nil {
+	if req.Target == "" {
+		err = db.Find(&clusters).Error
+	} else {
+		err = db.Where("name like ?", req.Target).Find(&clusters).Error
+	}
+	if err != nil {
 		rep.Tctx.Err = err.Error()
 		rep.Tctx.StatusCode = codes.RemoteDbError
 		return

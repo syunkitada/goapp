@@ -19,6 +19,7 @@ const (
 	StatusUpdatingScheduled   = "Updating:Scheduled"
 	StatusDeleting            = "Deleting"
 	StatusDeletingScheduled   = "Deleting:Scheduled"
+	StatusDeleted             = "Deleted"
 )
 
 const (

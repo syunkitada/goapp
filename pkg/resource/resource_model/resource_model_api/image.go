@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"net/url"
 	"strings"
+	"time"
 
-	_ "github.com/go-sql-driver/mysql"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/jinzhu/gorm"
 
@@ -27,10 +27,15 @@ func (modelApi *ResourceModelApi) GetImage(tctx *logger.TraceContext, req *resou
 		rep.Tctx.StatusCode = codes.RemoteDbError
 		return
 	}
-	defer db.Close()
+	defer func() { err = db.Close() }()
 
 	var images []resource_model.Image
-	if err = db.Where("name like ?", req.Target).Find(&images).Error; err != nil {
+	if req.Target == "" {
+		err = db.Find(&images).Error
+	} else {
+		err = db.Where("name like ?", req.Target).Find(&images).Error
+	}
+	if err != nil {
 		rep.Tctx.Err = err.Error()
 		rep.Tctx.StatusCode = codes.RemoteDbError
 		return
@@ -52,7 +57,7 @@ func (modelApi *ResourceModelApi) CreateImage(tctx *logger.TraceContext, req *re
 		rep.Tctx.StatusCode = codes.RemoteDbError
 		return
 	}
-	defer db.Close()
+	defer func() { err = db.Close() }()
 
 	spec, statusCode, err := modelApi.validateImageSpec(db, req.Spec)
 	if err != nil {
@@ -114,7 +119,7 @@ func (modelApi *ResourceModelApi) UpdateImage(tctx *logger.TraceContext, req *re
 		rep.Tctx.StatusCode = codes.RemoteDbError
 		return
 	}
-	defer db.Close()
+	defer func() { err = db.Close() }()
 
 	spec, statusCode, err := modelApi.validateImageSpec(db, req.Spec)
 	if err != nil {
@@ -126,17 +131,18 @@ func (modelApi *ResourceModelApi) UpdateImage(tctx *logger.TraceContext, req *re
 	tx := db.Begin()
 	defer tx.Rollback()
 	var image resource_model.Image
-	if err = tx.Where("name = ? and cluster = ?", spec.Name, spec.Cluster).First(&image).Error; err != nil {
+	if err = tx.Model(&image).Where(resource_model.Image{
+		Name:    spec.Name,
+		Cluster: spec.Cluster,
+	}).Updates(resource_model.Image{
+		Spec:         req.Spec,
+		Status:       resource_model.StatusActive,
+		StatusReason: fmt.Sprintf("UpdateImage: user=%v, project=%v", req.Tctx.UserName, req.Tctx.ProjectName),
+	}).Error; err != nil {
 		rep.Tctx.Err = err.Error()
 		rep.Tctx.StatusCode = codes.RemoteDbError
 		return
 	}
-
-	image.Spec = req.Spec
-	image.Status = resource_model.StatusActive
-	image.StatusReason = fmt.Sprintf("UpdateImage: user=%v, project=%v", req.Tctx.UserName, req.Tctx.ProjectName)
-	tx.Save(image)
-	tx.Commit()
 
 	imagePb, err := modelApi.convertImage(&image)
 	if err != nil {
@@ -145,6 +151,8 @@ func (modelApi *ResourceModelApi) UpdateImage(tctx *logger.TraceContext, req *re
 		return
 	}
 
+	imagePb.Name = spec.Name
+	imagePb.Cluster = spec.Cluster
 	rep.Images = []*resource_api_grpc_pb.Image{imagePb}
 	rep.Tctx.StatusCode = codes.Ok
 }
@@ -160,18 +168,38 @@ func (modelApi *ResourceModelApi) DeleteImage(tctx *logger.TraceContext, req *re
 		rep.Tctx.StatusCode = codes.RemoteDbError
 		return
 	}
-	defer db.Close()
+	defer func() { err = db.Close() }()
 
 	tx := db.Begin()
 	defer tx.Rollback()
 	var image resource_model.Image
-	if err = tx.Where("name = ?", req.Target).Delete(&image).Error; err != nil {
+	now := time.Now()
+	if err = tx.Model(&image).Where(resource_model.Image{
+		Name:    req.Target,
+		Cluster: req.Cluster,
+	}).Updates(resource_model.Image{
+		Model: gorm.Model{
+			DeletedAt: &now,
+		},
+		Status:       resource_model.StatusDeleted,
+		StatusReason: fmt.Sprintf("DeleteImage: user=%v, project=%v", req.Tctx.UserName, req.Tctx.ProjectName),
+	}).Error; err != nil {
 		rep.Tctx.Err = err.Error()
 		rep.Tctx.StatusCode = codes.RemoteDbError
 		return
 	}
 	tx.Commit()
 
+	imagePb, err := modelApi.convertImage(&image)
+	if err != nil {
+		rep.Tctx.Err = err.Error()
+		rep.Tctx.StatusCode = codes.ServerInternalError
+		return
+	}
+
+	imagePb.Name = req.Target
+	imagePb.Cluster = req.Cluster
+	rep.Images = []*resource_api_grpc_pb.Image{imagePb}
 	rep.Tctx.StatusCode = codes.Ok
 }
 
