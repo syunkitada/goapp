@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package authproxy_grpc_pb;
+
+option go_package = "github.com/syunkitada/goapp/pkg/authproxy/authproxy_grpc_pb";
+option java_multiple_files = true;
+option java_package = "io.grpc.examples.routeguide";
+option java_outer_classname = "RouteGuideProto";
+
+message TraceContext {
+    string TraceId = 1;
+    string ActionName = 2;
+    string UserName = 3;
+    string RoleName = 4;
+    string ProjectName = 5;
+    string ProjectRoleName = 6;
+    int64  StatusCode = 7;
+    string Err = 8;
+}

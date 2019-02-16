@@ -81,7 +81,7 @@ func (modelApi *ResourceModelApi) CreateCompute(tctx *logger.TraceContext, req *
 			Kind:         spec.Kind,
 			Name:         spec.Name,
 			Spec:         req.Spec,
-			Status:       resource_model.StatusActive,
+			Status:       resource_model.StatusInitializing,
 			StatusReason: fmt.Sprintf("CreateCompute: user=%v, project=%v", req.Tctx.UserName, req.Tctx.ProjectName),
 		}
 		if err = tx.Create(&compute).Error; err != nil {

@@ -11,6 +11,7 @@ const (
 	StatusDisabled  = "Disabled"
 	StatusDisabling = "Disabling"
 
+	StatusInitializing        = "Initializing"
 	StatusActive              = "Active"
 	StatusCreating            = "Creating"
 	StatusCreatingInitialized = "Creating:Initialized"

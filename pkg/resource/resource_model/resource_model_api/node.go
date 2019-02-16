@@ -8,6 +8,7 @@ import (
 	"github.com/golang/protobuf/ptypes"
 	"github.com/jinzhu/gorm"
 
+	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_grpc_pb"
 	"github.com/syunkitada/goapp/pkg/lib/codes"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_api/resource_cluster_api_grpc_pb"
@@ -80,7 +81,7 @@ func (modelApi *ResourceModelApi) GetNode(tctx *logger.TraceContext, req *resour
 
 func (modelApi *ResourceModelApi) UpdateNode(tctx *logger.TraceContext, req *resource_api_grpc_pb.UpdateNodeRequest) *resource_api_grpc_pb.UpdateNodeReply {
 	rep := &resource_api_grpc_pb.UpdateNodeReply{
-		Tctx: &resource_api_grpc_pb.TraceContext{},
+		Tctx: &authproxy_grpc_pb.TraceContext{},
 	}
 	var err error
 	startTime := logger.StartTrace(tctx)

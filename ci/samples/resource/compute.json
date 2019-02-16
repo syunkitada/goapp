@@ -3,6 +3,7 @@
   "Name": "testvm01",
   "Cluster": "cluster1",
   "Spec": {
+    "Domain": "testvm01.example.com",
     "Kind": "Libvirt",
     "Vcpus": 1,
     "MemorySize": 1024,

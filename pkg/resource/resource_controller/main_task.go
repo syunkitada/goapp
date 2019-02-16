@@ -6,6 +6,7 @@ import (
 
 	"golang.org/x/net/context"
 
+	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_grpc_pb"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/resource/resource_api/resource_api_grpc_pb"
 	"github.com/syunkitada/goapp/pkg/resource/resource_model"
@@ -47,7 +48,7 @@ func (srv *ResourceControllerServer) UpdateNode(tctx *logger.TraceContext) error
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
 	req := &resource_api_grpc_pb.UpdateNodeRequest{
-		Tctx: &resource_api_grpc_pb.TraceContext{
+		Tctx: &authproxy_grpc_pb.TraceContext{
 			TraceId: tctx.TraceId,
 		},
 		Name:         srv.Host,

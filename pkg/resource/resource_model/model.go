@@ -77,12 +77,12 @@ type Compute struct {
 	gorm.Model
 	Cluster      string `gorm:"not null;size:50;"`
 	Name         string `gorm:"not null;size:200;"`
-	FullName     string `gorm:"not null;size:255;"` // used by fqdn
 	Kind         string `gorm:"not null;size:25;"`
 	Labels       string `gorm:"not null;size:255;"`
 	Status       string `gorm:"not null;size:25;"`
 	StatusReason string `gorm:"not null;size:50;"`
 	Spec         string `gorm:"not null;size:5000;"`
+	Domain       string `gorm:"not null;size:255;"`
 }
 
 type Container struct {

@@ -217,12 +217,14 @@ func StdoutInfof(format string, args ...interface{}) {
 }
 
 func StdoutFatal(args ...interface{}) {
-	stdoutLogger.Print(fatalLog + " " + fmt.Sprint(args...))
+	l := log.New(os.Stdout, "", log.Ldate|log.Ltime)
+	l.Print(fatalLog + " " + fmt.Sprint(args...))
 	os.Exit(1)
 }
 
 func StdoutFatalf(format string, args ...interface{}) {
-	stdoutLogger.Print(fatalLog + " " + fmt.Sprintf(format, args...))
+	l := log.New(os.Stdout, "", log.Ldate|log.Ltime)
+	l.Print(fatalLog + " " + fmt.Sprintf(format, args...))
 	os.Exit(1)
 }
 

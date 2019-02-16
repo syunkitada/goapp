@@ -1,12 +1,14 @@
 syntax = "proto3";
 
-import "google/protobuf/timestamp.proto";
+package resource_api_grpc_pb;
 
+option go_package = "github.com/syunkitada/goapp/pkg/resource/resource_api/resource_api_grpc_pb";
 option java_multiple_files = true;
 option java_package = "io.grpc.examples.routeguide";
 option java_outer_classname = "RouteGuideProto";
 
-package resource_api_grpc_pb;
+import "google/protobuf/timestamp.proto";
+import "authproxy/authproxy_grpc_pb/authproxy_grpc_pb.proto";
 
 
 service ResourceApi {
@@ -15,36 +17,6 @@ service ResourceApi {
   rpc Action(ActionRequest) returns (ActionReply) {}
 
   rpc UpdateNode(UpdateNodeRequest) returns (UpdateNodeReply) {}
-
-  // rpc GetNetworkV4(GetNetworkV4Request) returns (GetNetworkV4Reply) {}
-  // rpc CreateNetworkV4(CreateNetworkV4Request) returns (CreateNetworkV4Reply) {}
-  // rpc UpdateNetworkV4(UpdateNetworkV4Request) returns (UpdateNetworkV4Reply) {}
-  // rpc DeleteNetworkV4(DeleteNetworkV4Request) returns (DeleteNetworkV4Reply) {}
-
-  // rpc GetCompute(GetComputeRequest) returns (GetComputeReply) {}
-  // rpc CreateCompute(CreateComputeRequest) returns (CreateComputeReply) {}
-  // rpc UpdateCompute(UpdateComputeRequest) returns (UpdateComputeReply) {}
-  // rpc DeleteCompute(DeleteComputeRequest) returns (DeleteComputeReply) {}
-
-  // rpc GetImage(GetImageRequest) returns (GetImageReply) {}
-  // rpc CreateImage(CreateImageRequest) returns (CreateImageReply) {}
-  // rpc UpdateImage(UpdateImageRequest) returns (UpdateImageReply) {}
-  // rpc DeleteImage(DeleteImageRequest) returns (DeleteImageReply) {}
-
-  // rpc GetContainer(GetContainerRequest) returns (GetContainerReply) {}
-  // rpc CreateContainer(CreateContainerRequest) returns (CreateContainerReply) {}
-  // rpc UpdateContainer(UpdateContainerRequest) returns (UpdateContainerReply) {}
-  // rpc DeleteContainer(DeleteContainerRequest) returns (DeleteContainerReply) {}
-
-  // rpc GetVolume(GetVolumeRequest) returns (GetVolumeReply) {}
-  // rpc CreateVolume(CreateVolumeRequest) returns (CreateVolumeReply) {}
-  // rpc UpdateVolume(UpdateVolumeRequest) returns (UpdateVolumeReply) {}
-  // rpc DeleteVolume(DeleteVolumeRequest) returns (DeleteVolumeReply) {}
-
-  // rpc GetLoadbalancer(GetLoadbalancerRequest) returns (GetLoadbalancerReply) {}
-  // rpc CreateLoadbalancer(CreateLoadbalancerRequest) returns (CreateLoadbalancerReply) {}
-  // rpc UpdateLoadbalancer(UpdateLoadbalancerRequest) returns (UpdateLoadbalancerReply) {}
-  // rpc DeleteLoadbalancer(DeleteLoadbalancerRequest) returns (DeleteLoadbalancerReply) {}
 }
 
 message StatusRequest {}
@@ -53,29 +25,18 @@ message StatusReply {
     string Msg = 1;
 }
 
-message TraceContext {
-    string TraceId = 1;
-    string ActionName = 2;
-    string UserName = 3;
-    string RoleName = 4;
-    string ProjectName = 5;
-    string ProjectRoleName = 6;
-    int64  StatusCode = 7;
-    string Err = 8;
-}
-
 //
 // Action
 //
 message ActionRequest {
-    TraceContext Tctx = 1;
+    authproxy_grpc_pb.TraceContext Tctx = 1;
     string Target = 2;
     string Cluster = 3;
     string Spec = 4;
 }
 
 message ActionReply {
-    TraceContext Tctx = 1;
+    authproxy_grpc_pb.TraceContext Tctx = 1;
     repeated Cluster Clusters = 2;
     repeated Node Nodes = 3;
     repeated Compute Computes = 4;
@@ -87,7 +48,7 @@ message ActionReply {
 // Node
 //
 message UpdateNodeRequest {
-    TraceContext Tctx = 1;
+    authproxy_grpc_pb.TraceContext Tctx = 1;
     string Name = 2;
     string Kind = 3;
     string Role = 4;
@@ -98,7 +59,7 @@ message UpdateNodeRequest {
 }
 
 message UpdateNodeReply {
-    TraceContext Tctx = 1;
+    authproxy_grpc_pb.TraceContext Tctx = 1;
 }
 
 message Cluster {

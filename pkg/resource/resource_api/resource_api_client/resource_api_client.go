@@ -3,6 +3,7 @@ package resource_api_client
 import (
 	"encoding/json"
 
+	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_grpc_pb"
 	"github.com/syunkitada/goapp/pkg/base"
 	"github.com/syunkitada/goapp/pkg/config"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
@@ -25,8 +26,8 @@ func NewResourceApiClient(conf *config.Config) *ResourceApiClient {
 	return &resourceClient
 }
 
-func (cli *ResourceApiClient) convertTraceContext(tctx *logger.ActionTraceContext) *resource_api_grpc_pb.TraceContext {
-	return &resource_api_grpc_pb.TraceContext{
+func (cli *ResourceApiClient) convertTraceContext(tctx *logger.ActionTraceContext) *authproxy_grpc_pb.TraceContext {
+	return &authproxy_grpc_pb.TraceContext{
 		TraceId:         tctx.TraceId,
 		ActionName:      tctx.ActionName,
 		UserName:        tctx.UserName,

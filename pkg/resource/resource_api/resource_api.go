@@ -7,6 +7,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/peer"
 
+	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_grpc_pb"
 	"github.com/syunkitada/goapp/pkg/base"
 	"github.com/syunkitada/goapp/pkg/config"
 	"github.com/syunkitada/goapp/pkg/lib/codes"
@@ -34,7 +35,7 @@ func NewResourceApiServer(conf *config.Config) *ResourceApiServer {
 	return &server
 }
 
-func (cli *ResourceApiServer) newTraceContext(host string, app string, ctx context.Context, tctx *resource_api_grpc_pb.TraceContext) *logger.TraceContext {
+func (cli *ResourceApiServer) newTraceContext(host string, app string, ctx context.Context, tctx *authproxy_grpc_pb.TraceContext) *logger.TraceContext {
 	var client string
 	if pr, ok := peer.FromContext(ctx); ok {
 		client = pr.Addr.String()

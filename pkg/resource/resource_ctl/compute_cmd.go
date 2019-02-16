@@ -10,6 +10,7 @@ import (
 
 	"github.com/olekukonko/tablewriter"
 	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_client"
+	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_grpc_pb"
 	"github.com/syunkitada/goapp/pkg/config"
 	"github.com/syunkitada/goapp/pkg/lib/codes"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
@@ -18,7 +19,7 @@ import (
 
 type ResponseCompute struct {
 	Computes []resource_api_grpc_pb.Compute
-	Tctx     resource_api_grpc_pb.TraceContext
+	Tctx     authproxy_grpc_pb.TraceContext
 }
 
 var getComputeCmd = &cobra.Command{
