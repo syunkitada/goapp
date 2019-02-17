@@ -1,7 +1,6 @@
-package resource_model_api
+package resource_cluster_model_api
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/golang/protobuf/ptypes"
@@ -10,11 +9,11 @@ import (
 	"github.com/syunkitada/goapp/pkg/lib/codes"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_api/resource_cluster_api_grpc_pb"
+	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_model"
 	"github.com/syunkitada/goapp/pkg/resource/resource_api/resource_api_grpc_pb"
-	"github.com/syunkitada/goapp/pkg/resource/resource_model"
 )
 
-func (modelApi *ResourceModelApi) GetNode(tctx *logger.TraceContext, req *resource_api_grpc_pb.ActionRequest, rep *resource_api_grpc_pb.ActionReply) {
+func (modelApi *ResourceClusterModelApi) GetNode(tctx *logger.TraceContext, req *resource_cluster_api_grpc_pb.ActionRequest, rep *resource_cluster_api_grpc_pb.ActionReply) {
 	var err error
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
@@ -27,51 +26,22 @@ func (modelApi *ResourceModelApi) GetNode(tctx *logger.TraceContext, req *resour
 	}
 	defer func() { err = db.Close() }()
 
-	pbNodes := []*resource_api_grpc_pb.Node{}
-	if req.Cluster == "" {
-		var nodes []resource_model.Node
-		if err = db.Find(&nodes).Error; err != nil {
-			rep.Tctx.Err = err.Error()
-			rep.Tctx.StatusCode = codes.RemoteDbError
-			return
-		}
-		rootNodes := modelApi.convertNodes(tctx, "root", nodes)
-		pbNodes = append(pbNodes, rootNodes...)
-		rep.Tctx.StatusCode = codes.Ok
+	pbNodes := []*resource_cluster_api_grpc_pb.Node{}
 
-		for clusterName, clusterClient := range modelApi.clusterClientMap {
-			remoteRep, err := clusterClient.GetNode(tctx, req.Target)
-			if err != nil {
-				rep.Tctx.Err += fmt.Sprintf("Failed get node from cluster(%v) by error(%v), ",
-					clusterName, err.Error())
-				rep.Tctx.StatusCode = codes.RemoteClusterError
-			}
-			clusterNodes := modelApi.convertClusterNodes(clusterName, remoteRep.Nodes)
-			pbNodes = append(pbNodes, clusterNodes...)
-		}
-
-	} else {
-		clusterClient, ok := modelApi.clusterClientMap[req.Cluster]
-		if !ok {
-			rep.Tctx.Err = fmt.Sprintf("NotFound cluster: %v", req.Cluster)
-			rep.Tctx.StatusCode = codes.ClientNotFound
-			return
-		}
-
-		remoteRep, err := clusterClient.GetNode(tctx, req.Target)
-		if err != nil {
-			rep.Tctx.Err = err.Error()
-			rep.Tctx.StatusCode = codes.RemoteClusterError
-			return
-		}
-		clusterNodes := modelApi.convertClusterNodes(req.Cluster, remoteRep.Nodes)
-		pbNodes = append(pbNodes, clusterNodes...)
+	var nodes []resource_cluster_model.Node
+	if err = db.Find(&nodes).Error; err != nil {
+		rep.Tctx.Err = err.Error()
+		rep.Tctx.StatusCode = codes.RemoteDbError
+		return
 	}
+	rootNodes := modelApi.convertNodes(tctx, nodes)
+	pbNodes = append(pbNodes, rootNodes...)
+	rep.Tctx.StatusCode = codes.Ok
 
 	rep.Nodes = pbNodes
 }
 
-func (modelApi *ResourceModelApi) UpdateNode(tctx *logger.TraceContext, req *resource_api_grpc_pb.UpdateNodeRequest, rep *resource_api_grpc_pb.UpdateNodeReply) {
+func (modelApi *ResourceClusterModelApi) UpdateNode(tctx *logger.TraceContext, req *resource_cluster_api_grpc_pb.UpdateNodeRequest, rep *resource_cluster_api_grpc_pb.UpdateNodeReply) {
 	var err error
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
@@ -84,8 +54,8 @@ func (modelApi *ResourceModelApi) UpdateNode(tctx *logger.TraceContext, req *res
 	}
 	defer func() { err = db.Close() }()
 
-	var node resource_model.Node
-	reqNode := req.Node
+	var node resource_cluster_model.Node
+	reqNode := req.Node.Node
 	if err = db.Where("name = ? and kind = ?", reqNode.Name, reqNode.Kind).First(&node).Error; err != nil {
 		if !gorm.IsRecordNotFoundError(err) {
 			rep.Tctx.Err = err.Error()
@@ -93,7 +63,7 @@ func (modelApi *ResourceModelApi) UpdateNode(tctx *logger.TraceContext, req *res
 			return
 		}
 
-		node = resource_model.Node{
+		node = resource_cluster_model.Node{
 			Name:         reqNode.Name,
 			Kind:         reqNode.Kind,
 			Role:         reqNode.Role,
@@ -118,10 +88,11 @@ func (modelApi *ResourceModelApi) UpdateNode(tctx *logger.TraceContext, req *res
 	}
 
 	rep.Tctx.StatusCode = codes.Ok
+	return
 }
 
-func (modelApi *ResourceModelApi) SyncRole(tctx *logger.TraceContext, kind string) ([]resource_model.Node, error) {
-	var nodes []resource_model.Node
+func (modelApi *ResourceClusterModelApi) SyncRole(tctx *logger.TraceContext, kind string) ([]resource_cluster_model.Node, error) {
+	var nodes []resource_cluster_model.Node
 	var err error
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
@@ -141,8 +112,8 @@ func (modelApi *ResourceModelApi) SyncRole(tctx *logger.TraceContext, kind strin
 	downTime := time.Now().Add(modelApi.downTimeDuration)
 	existsActiveLeader := false
 	for _, node := range nodes {
-		if node.Role == resource_model.RoleLeader {
-			if node.Status == resource_model.StatusEnabled && node.State == resource_model.StateUp && node.UpdatedAt.After(downTime) {
+		if node.Role == resource_cluster_model.RoleLeader {
+			if node.Status == resource_cluster_model.StatusEnabled && node.State == resource_cluster_model.StateUp && node.UpdatedAt.After(downTime) {
 				existsActiveLeader = true
 			}
 			break
@@ -154,25 +125,25 @@ func (modelApi *ResourceModelApi) SyncRole(tctx *logger.TraceContext, kind strin
 	logger.Info(tctx, "Active Leader is not exists, Leader will be assigned.")
 
 	isReassignLeader := false
-	newNodes := []resource_model.Node{}
+	newNodes := []resource_cluster_model.Node{}
 	for _, node := range nodes {
 		if isReassignLeader {
-			node.Role = resource_model.RoleMember
+			node.Role = resource_cluster_model.RoleMember
 			if err = tx.Save(&node).Error; err != nil {
 				return nil, err
 			}
-		} else if node.Status == resource_model.StatusEnabled &&
-			node.State == resource_model.StateUp &&
+		} else if node.Status == resource_cluster_model.StatusEnabled &&
+			node.State == resource_cluster_model.StateUp &&
 			node.UpdatedAt.After(downTime) {
 
-			node.Role = resource_model.RoleLeader
+			node.Role = resource_cluster_model.RoleLeader
 			if err = tx.Save(&node).Error; err != nil {
 				return nil, err
 			}
 			isReassignLeader = true
 			logger.Infof(tctx, "Leader is assigned: %v", node.Name)
 		} else {
-			node.Role = resource_model.RoleMember
+			node.Role = resource_cluster_model.RoleMember
 			if err = tx.Save(&node).Error; err != nil {
 				return nil, err
 			}
@@ -184,8 +155,8 @@ func (modelApi *ResourceModelApi) SyncRole(tctx *logger.TraceContext, kind strin
 	return newNodes, nil
 }
 
-func (modelApi *ResourceModelApi) convertNodes(tctx *logger.TraceContext, clusterName string, nodes []resource_model.Node) []*resource_api_grpc_pb.Node {
-	pbNodes := make([]*resource_api_grpc_pb.Node, len(nodes))
+func (modelApi *ResourceClusterModelApi) convertNodes(tctx *logger.TraceContext, nodes []resource_cluster_model.Node) []*resource_cluster_api_grpc_pb.Node {
+	pbNodes := make([]*resource_cluster_api_grpc_pb.Node, len(nodes))
 	for i, node := range nodes {
 		updatedAt, err := ptypes.TimestampProto(node.Model.UpdatedAt)
 		createdAt, err := ptypes.TimestampProto(node.Model.CreatedAt)
@@ -194,44 +165,25 @@ func (modelApi *ResourceModelApi) convertNodes(tctx *logger.TraceContext, cluste
 			continue
 		}
 
-		pbNodes[i] = &resource_api_grpc_pb.Node{
-			Cluster:      clusterName,
-			Name:         node.Name,
-			Kind:         node.Kind,
-			Role:         node.Role,
-			Status:       node.Status,
-			StatusReason: node.StatusReason,
-			State:        node.State,
-			StateReason:  node.StateReason,
-			UpdatedAt:    updatedAt,
-			CreatedAt:    createdAt,
+		pbNodes[i] = &resource_cluster_api_grpc_pb.Node{
+			Node: &resource_api_grpc_pb.Node{
+				Name:         node.Name,
+				Kind:         node.Kind,
+				Role:         node.Role,
+				Status:       node.Status,
+				StatusReason: node.StatusReason,
+				State:        node.State,
+				StateReason:  node.StateReason,
+				UpdatedAt:    updatedAt,
+				CreatedAt:    createdAt,
+			},
 		}
 	}
 
 	return pbNodes
 }
 
-func (modelApi *ResourceModelApi) convertClusterNodes(clusterName string, nodes []*resource_cluster_api_grpc_pb.Node) []*resource_api_grpc_pb.Node {
-	pbNodes := make([]*resource_api_grpc_pb.Node, len(nodes))
-	for i, node := range nodes {
-		pbNodes[i] = &resource_api_grpc_pb.Node{
-			Cluster:      clusterName,
-			Name:         node.Node.Name,
-			Kind:         node.Node.Kind,
-			Role:         node.Node.Role,
-			Status:       node.Node.Status,
-			StatusReason: node.Node.StatusReason,
-			State:        node.Node.State,
-			StateReason:  node.Node.StateReason,
-			UpdatedAt:    node.Node.UpdatedAt,
-			CreatedAt:    node.Node.CreatedAt,
-		}
-	}
-
-	return pbNodes
-}
-
-func (modelApi *ResourceModelApi) CheckNodes(tctx *logger.TraceContext) error {
+func (modelApi *ResourceClusterModelApi) CheckNodes(tctx *logger.TraceContext) error {
 	var err error
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
@@ -244,7 +196,7 @@ func (modelApi *ResourceModelApi) CheckNodes(tctx *logger.TraceContext) error {
 
 	tx := db.Begin()
 	defer tx.Rollback()
-	var nodes []resource_model.Node
+	var nodes []resource_cluster_model.Node
 	if err = tx.Find(&nodes).Error; err != nil {
 		return err
 	}
@@ -254,7 +206,7 @@ func (modelApi *ResourceModelApi) CheckNodes(tctx *logger.TraceContext) error {
 
 	for _, node := range nodes {
 		if node.UpdatedAt.Before(downTime) {
-			node.State = resource_model.StateDown
+			node.State = resource_cluster_model.StateDown
 			if err = tx.Save(&node).Error; err != nil {
 				return err
 			}

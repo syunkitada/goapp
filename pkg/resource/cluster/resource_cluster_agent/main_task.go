@@ -1,37 +1,36 @@
 package resource_cluster_agent
 
 import (
-	"github.com/golang/glog"
-
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_api/resource_cluster_api_grpc_pb"
 	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_model"
+	"github.com/syunkitada/goapp/pkg/resource/resource_api/resource_api_grpc_pb"
 )
 
 func (srv *ResourceClusterAgentServer) MainTask(tctx *logger.TraceContext) error {
-	glog.Info("Run MainTask")
-	if err := srv.UpdateNode(); err != nil {
+	if err := srv.UpdateNode(tctx); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (srv *ResourceClusterAgentServer) UpdateNode() error {
-	req := resource_cluster_api_grpc_pb.UpdateNodeRequest{
-		Name:          srv.conf.Default.Host,
-		Kind:          resource_cluster_model.KindResourceClusterAgent,
-		Role:          resource_cluster_model.RoleMember,
-		Status:        resource_cluster_model.StatusEnabled,
-		StatusReason:  "Default",
-		State:         resource_cluster_model.StateUp,
-		StateReason:   "UpdateNode",
-		ComputeDriver: srv.conf.Resource.Node.Compute.Driver,
+func (srv *ResourceClusterAgentServer) UpdateNode(tctx *logger.TraceContext) error {
+	node := &resource_cluster_api_grpc_pb.Node{
+		Node: &resource_api_grpc_pb.Node{
+			Name:         srv.conf.Default.Host,
+			Kind:         resource_cluster_model.KindResourceClusterApi,
+			Role:         resource_cluster_model.RoleMember,
+			Status:       resource_cluster_model.StatusEnabled,
+			StatusReason: "Default",
+			State:        resource_cluster_model.StateUp,
+			StateReason:  "UpdateNode",
+		},
 	}
-	if _, err := srv.resourceClusterApiClient.UpdateNode(&req); err != nil {
+
+	if _, err := srv.resourceClusterApiClient.UpdateNode(tctx, node); err != nil {
 		return err
 	}
 
-	glog.Info("UpdatedNode")
 	return nil
 }

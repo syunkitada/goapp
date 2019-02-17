@@ -5,9 +5,7 @@ import (
 
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/peer"
 
-	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_grpc_pb"
 	"github.com/syunkitada/goapp/pkg/base"
 	"github.com/syunkitada/goapp/pkg/config"
 	"github.com/syunkitada/goapp/pkg/lib/codes"
@@ -35,29 +33,6 @@ func NewResourceApiServer(conf *config.Config) *ResourceApiServer {
 	return &server
 }
 
-func (cli *ResourceApiServer) newTraceContext(host string, app string, ctx context.Context, tctx *authproxy_grpc_pb.TraceContext) *logger.TraceContext {
-	var client string
-	if pr, ok := peer.FromContext(ctx); ok {
-		client = pr.Addr.String()
-	} else {
-		client = ""
-	}
-
-	return &logger.TraceContext{
-		TraceId: tctx.TraceId,
-		Host:    host,
-		App:     app,
-		Metadata: map[string]string{
-			"Client":          client,
-			"ActionName":      tctx.ActionName,
-			"UserName":        tctx.UserName,
-			"RoleName":        tctx.RoleName,
-			"ProjectName":     tctx.ProjectName,
-			"ProjectRoleName": tctx.ProjectRoleName,
-		},
-	}
-}
-
 func (srv *ResourceApiServer) RegisterGrpcServer(grpcServer *grpc.Server) error {
 	resource_api_grpc_pb.RegisterResourceApiServer(grpcServer, srv)
 	return nil
@@ -73,7 +48,7 @@ func (srv *ResourceApiServer) Status(ctx context.Context, statusRequest *resourc
 func (srv *ResourceApiServer) Action(ctx context.Context, req *resource_api_grpc_pb.ActionRequest) (*resource_api_grpc_pb.ActionReply, error) {
 	var err error
 	rep := &resource_api_grpc_pb.ActionReply{Tctx: req.Tctx}
-	tctx := srv.newTraceContext(srv.Host, srv.Name, ctx, req.Tctx)
+	tctx := logger.NewGrpcAuthproxyTraceContext(srv.Host, srv.Name, ctx, req.Tctx)
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
@@ -118,10 +93,12 @@ func (srv *ResourceApiServer) Action(ctx context.Context, req *resource_api_grpc
 // Node
 //
 func (srv *ResourceApiServer) UpdateNode(ctx context.Context, req *resource_api_grpc_pb.UpdateNodeRequest) (*resource_api_grpc_pb.UpdateNodeReply, error) {
-	// TODO
-	tctx := logger.NewGrpcTraceContext(srv.Host, srv.Name, ctx)
-	// startTime := logger.StartTrace(tctx)
-	rep := srv.resourceModelApi.UpdateNode(tctx, req)
-	// logger.EndGrpcTrace(tctx, startTime, rep.StatusCode, rep.Err)
+	var err error
+	rep := &resource_api_grpc_pb.UpdateNodeReply{Tctx: req.Tctx}
+	tctx := logger.NewGrpcAuthproxyTraceContext(srv.Host, srv.Name, ctx, req.Tctx)
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	srv.resourceModelApi.UpdateNode(tctx, req, rep)
 	return rep, nil
 }

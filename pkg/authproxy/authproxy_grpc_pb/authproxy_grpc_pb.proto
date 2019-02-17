@@ -9,11 +9,13 @@ option java_outer_classname = "RouteGuideProto";
 
 message TraceContext {
     string TraceId = 1;
-    string ActionName = 2;
-    string UserName = 3;
-    string RoleName = 4;
-    string ProjectName = 5;
-    string ProjectRoleName = 6;
-    int64  StatusCode = 7;
-    string Err = 8;
+    string App = 2;
+    string Host = 3;
+    string ActionName = 4;
+    string UserName = 5;
+    string RoleName = 6;
+    string ProjectName = 7;
+    string ProjectRoleName = 8;
+    int64  StatusCode = 9;
+    string Err = 10;
 }

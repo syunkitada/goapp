@@ -12,6 +12,10 @@ const (
 	StatusDisabling = "Disabling"
 	StateUp         = "Up"
 	StateDown       = "Down"
+
+	StatusCreating = "Creating"
+	StatusUpdating = "Updating"
+	StatusDeleting = "Deleting"
 )
 
 const (

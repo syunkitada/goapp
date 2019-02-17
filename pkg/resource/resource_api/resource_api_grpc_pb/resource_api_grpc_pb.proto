@@ -49,19 +49,17 @@ message ActionReply {
 //
 message UpdateNodeRequest {
     authproxy_grpc_pb.TraceContext Tctx = 1;
-    string Name = 2;
-    string Kind = 3;
-    string Role = 4;
-    string Status = 5;
-    string StatusReason = 6;
-    string State = 7;
-    string StateReason = 8;
+    Node node = 2;
 }
 
 message UpdateNodeReply {
     authproxy_grpc_pb.TraceContext Tctx = 1;
 }
 
+
+//
+// Resources
+//
 message Cluster {
     google.protobuf.Timestamp UpdatedAt = 1;
     google.protobuf.Timestamp CreatedAt = 2;
@@ -71,51 +69,55 @@ message Cluster {
 message Node {
     google.protobuf.Timestamp UpdatedAt = 1;
     google.protobuf.Timestamp CreatedAt = 2;
-    string Cluster = 3;
-    string Name = 4;
+    uint64 Id = 3;
+    string Cluster = 4;
     string Kind = 5;
-    string Role = 6;
-    string Status = 7;
-    string StatusReason = 8;
-    string State = 9;
-    string StateReason = 10;
+    string Name = 6;
+    string Role = 7;
+    string Status = 8;
+    string StatusReason = 9;
+    string State = 10;
+    string StateReason = 11;
 }
 
 message Compute {
     google.protobuf.Timestamp UpdatedAt = 1;
     google.protobuf.Timestamp CreatedAt = 2;
-    string Cluster = 3;
-    string Kind = 4;
-    string Name = 5;
-    string FullName = 6;
-    string Labels = 7;
-    string Status = 8;
-    string StatusReason = 9;
-    string Spec = 10;
+    uint64 Id = 3;
+    string Cluster = 4;
+    string Kind = 5;
+    string Name = 6;
+    string FullName = 7;
+    string Labels = 8;
+    string Status = 9;
+    string StatusReason = 10;
+    string Spec = 11;
 }
 
 message Network {
     google.protobuf.Timestamp UpdatedAt = 1;
     google.protobuf.Timestamp CreatedAt = 2;
-    string Cluster = 3;
-    string Kind = 4;
-    string Name = 5;
-    string FullName = 6;
-    string Labels = 7;
-    string Status = 8;
-    string StatusReason = 9;
-    string Spec = 10;
+    uint64 Id = 3;
+    string Cluster = 4;
+    string Kind = 5;
+    string Name = 6;
+    string FullName = 7;
+    string Labels = 8;
+    string Status = 9;
+    string StatusReason = 10;
+    string Spec = 11;
 }
 
 message Image {
     google.protobuf.Timestamp UpdatedAt = 1;
     google.protobuf.Timestamp CreatedAt = 2;
-    string Cluster = 3;
-    string Kind = 4;
-    string Name = 5;
-    string FullName = 6;
-    string Labels = 7;
-    string Status = 8;
-    string StatusReason = 9;
-    string Spec = 10;
+    uint64 Id = 3;
+    string Cluster = 4;
+    string Kind = 5;
+    string Name = 6;
+    string FullName = 7;
+    string Labels = 8;
+    string Status = 9;
+    string StatusReason = 10;
+    string Spec = 11;
 }

@@ -292,27 +292,28 @@ func (modelApi *ResourceModelApi) validateComputeSpec(db *gorm.DB, specStr strin
 
 func (modelApi *ResourceModelApi) SyncCompute(tctx *logger.TraceContext) error {
 	var err error
-	db, err := gorm.Open("mysql", modelApi.conf.Resource.Database.Connection)
-	defer func() { err = db.Close() }()
-	if err != nil {
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	var db *gorm.DB
+	if db, err = modelApi.open(tctx); err != nil {
 		return err
 	}
-	db.LogMode(modelApi.conf.Default.EnableDatabaseLog)
+	defer func() { err = db.Close() }()
 
 	var computes []resource_model.Compute
 	if err = db.Find(&computes).Error; err != nil {
 		return err
 	}
 
-	computeMap := map[string]resource_cluster_api_grpc_pb.Compute{}
-	req := resource_cluster_api_grpc_pb.GetComputeRequest{Target: "%"}
+	computeMap := map[uint64]resource_cluster_api_grpc_pb.Compute{}
 	for clusterName, clusterClient := range modelApi.clusterClientMap {
-		result, err := clusterClient.GetCompute(&req)
+		result, err := clusterClient.GetCompute(tctx, "")
 		if err != nil {
 			logger.Errorf(tctx, err, "Failed GetCompute from %v", clusterName)
 		}
 		for _, compute := range result.Computes {
-			computeMap[compute.FullName] = *compute
+			computeMap[compute.Compute.Id] = *compute
 		}
 	}
 
@@ -339,7 +340,7 @@ func (modelApi *ResourceModelApi) SyncCompute(tctx *logger.TraceContext) error {
 	return nil
 }
 
-func (modelApi *ResourceModelApi) InitializeCompute(db *gorm.DB, compute *resource_model.Compute, computeMap map[string]resource_cluster_api_grpc_pb.Compute) {
+func (modelApi *ResourceModelApi) InitializeCompute(db *gorm.DB, compute *resource_model.Compute, computeMap map[uint64]resource_cluster_api_grpc_pb.Compute) {
 	// TODO
 	// Assgin IP address
 	return

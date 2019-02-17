@@ -1,113 +1,68 @@
 syntax = "proto3";
 
-import "google/protobuf/timestamp.proto";
+package resource_cluster_api_grpc_pb;
 
+option go_package = "github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_api/resource_cluster_api_grpc_pb";
 option java_multiple_files = true;
 option java_package = "io.grpc.examples.routeguide";
 option java_outer_classname = "RouteGuideProto";
 
-package resource_cluster_api_grpc_pb;
+import "authproxy/authproxy_grpc_pb/authproxy_grpc_pb.proto";
+import "resource/resource_api/resource_api_grpc_pb/resource_api_grpc_pb.proto";
 
 
 service ResourceClusterApi {
   rpc Status(StatusRequest) returns (StatusReply) {}
 
-  rpc GetNode(GetNodeRequest) returns (GetNodeReply) {}
-  rpc UpdateNode(UpdateNodeRequest) returns (UpdateNodeReply) {}
+  rpc Action(ActionRequest) returns (ActionReply) {}
 
-  rpc GetCompute(GetComputeRequest) returns (GetComputeReply) {}
-  rpc CreateCompute(CreateComputeRequest) returns (CreateComputeReply) {}
-  rpc UpdateCompute(UpdateComputeRequest) returns (UpdateComputeReply) {}
-  rpc DeleteCompute(DeleteComputeRequest) returns (DeleteComputeReply) {}
+  rpc UpdateNode(UpdateNodeRequest) returns (UpdateNodeReply) {}
 }
 
 message StatusRequest {}
 
 message StatusReply {
-    string msg = 1;
+    string Msg = 1;
 }
 
-message GetNodeRequest {
-    string target = 1;
+//
+// Action
+//
+message ActionRequest {
+    authproxy_grpc_pb.TraceContext Tctx = 1;
+    string Target = 2;
+    string Cluster = 3;
+    string Spec = 4;
 }
 
-message GetNodeReply {
-    repeated Node nodes = 1;
+message ActionReply {
+    authproxy_grpc_pb.TraceContext Tctx = 1;
+    repeated Node Nodes = 3;
+    repeated Compute Computes = 4;
 }
 
+//
+// Node
+//
 message UpdateNodeRequest {
-    string name = 1;
-    string kind = 2;
-    string role = 3;
-    string status = 4;
-    string status_reason = 5;
-    string state = 6;
-    string state_reason = 7;
-    string compute_driver = 8;
-    string container_driver = 9;
-    string loadbalancer_driver = 10;
+    authproxy_grpc_pb.TraceContext Tctx = 1;
+    Node Node = 2;
 }
 
-message UpdateNodeReply {}
+message UpdateNodeReply {
+    authproxy_grpc_pb.TraceContext Tctx = 1;
+}
 
+
+//
+// Resources
+//
 message Node {
-    string name = 1;
-    string kind = 2;
-    string role = 3;
-    string status = 4;
-    string status_reason = 5;
-    string state = 6;
-    string state_reason = 7;
-    google.protobuf.Timestamp updated_at = 8;
-    google.protobuf.Timestamp created_at = 9;
-}
-
-
-//
-// Compute
-//
-message GetComputeRequest {
-    string target = 1;
-}
-
-message GetComputeReply {
-    repeated Compute computes = 1;
-}
-
-message CreateComputeRequest {
-    string spec = 1;
-    string status_reason = 2;
-}
-
-message CreateComputeReply {
-    Compute compute = 1;
-}
-
-message UpdateComputeRequest {
-    string spec = 1;
-    string status_reason = 2;
-}
-
-message UpdateComputeReply {
-    Compute compute = 1;
-}
-
-message DeleteComputeRequest {
-    string target = 1;
-}
-
-message DeleteComputeReply {
-    Compute compute = 1;
+    resource_api_grpc_pb.Node node = 1;
+    string Labels = 2;
+    string DriverLabels = 3;
 }
 
 message Compute {
-    google.protobuf.Timestamp updated_at = 1;
-    google.protobuf.Timestamp created_at = 2;
-    string kind = 3;
-    string name = 4;
-    string full_name = 5;
-    string labels = 6;
-    string status = 7;
-    string status_reason = 8;
-    string spec = 9;
+    resource_api_grpc_pb.Compute compute = 1;
 }
