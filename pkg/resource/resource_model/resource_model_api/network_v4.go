@@ -338,3 +338,20 @@ func (modelApi *ResourceModelApi) validateNetworkV4Spec(db *gorm.DB, specStr str
 
 	return spec, codes.Ok, nil
 }
+
+func (modelApi *ResourceModelApi) AssignPort(tctx *logger.TraceContext, db *gorm.DB, compute *resource_model.Compute) error {
+	// TODO
+	// assign port(ip and mac)
+
+	// TODO support multi network
+
+	return nil
+}
+
+func (modelApi *ResourceModelApi) RegisterRecord(tctx *logger.TraceContext, db *gorm.DB, compute *resource_model.Compute) error {
+	// TODO
+	// register a record
+	// implrment dns service
+
+	return nil
+}

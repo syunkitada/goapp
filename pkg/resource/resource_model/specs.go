@@ -25,12 +25,14 @@ type ComputeSpec struct {
 }
 
 type ComputeSpecData struct {
+	Domain     string `validate:"required"`
 	Kind       string `validate:"required"`
 	Vcpus      int    `validate:"required"`
 	MemorySize int    `validate:"required"`
 	DiskSize   int    `validate:"required"`
 	Image      string `validate:"required"`
 	Network    string `validate:"required"`
+	Networks   []string
 }
 
 type ContainerSpec struct {

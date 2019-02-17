@@ -71,6 +71,7 @@ type NetworkV4Port struct {
 	NetworkV4   NetworkV4 `gorm:"foreignkey:NetworkV4ID;association_foreignkey:Refer;"`
 	NetworkV4ID uint      `gorm:"not null;"`
 	IP          string    `gorm:"not null;"`
+	Mac         string    `gorm:"not null;"`
 }
 
 type Compute struct {

@@ -3,6 +3,7 @@ package resource_model_api
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -80,8 +81,9 @@ func (modelApi *ResourceModelApi) CreateCompute(tctx *logger.TraceContext, req *
 			Cluster:      spec.Cluster,
 			Kind:         spec.Kind,
 			Name:         spec.Name,
+			Domain:       spec.Spec.Domain,
 			Spec:         req.Spec,
-			Status:       resource_model.StatusInitializing,
+			Status:       resource_model.StatusCreating,
 			StatusReason: fmt.Sprintf("CreateCompute: user=%v, project=%v", req.Tctx.UserName, req.Tctx.ProjectName),
 		}
 		if err = tx.Create(&compute).Error; err != nil {
@@ -318,10 +320,10 @@ func (modelApi *ResourceModelApi) SyncCompute(tctx *logger.TraceContext) error {
 	}
 
 	for _, compute := range computes {
+		tctx.Metadata["ComputeId"] = strconv.FormatUint(uint64(compute.ID), 10)
 		switch compute.Status {
 		case resource_model.StatusCreating:
-			logger.Infof(tctx, "Found %v resource: %v", compute.Status, compute.Name)
-			modelApi.InitializeCompute(db, &compute, computeMap)
+			modelApi.InitializeCompute(tctx, db, &compute)
 		case resource_model.StatusCreatingInitialized:
 			logger.Infof(tctx, "Found %v resource: %v", compute.Status, compute.Name)
 		case resource_model.StatusCreatingScheduled:
@@ -335,13 +337,26 @@ func (modelApi *ResourceModelApi) SyncCompute(tctx *logger.TraceContext) error {
 		case resource_model.StatusDeletingScheduled:
 			logger.Infof(tctx, "Found %v resource: %v", compute.Status, compute.Name)
 		}
+		tctx.Metadata = map[string]string{}
 	}
 
 	return nil
 }
 
-func (modelApi *ResourceModelApi) InitializeCompute(db *gorm.DB, compute *resource_model.Compute, computeMap map[uint64]resource_cluster_api_grpc_pb.Compute) {
-	// TODO
-	// Assgin IP address
+func (modelApi *ResourceModelApi) InitializeCompute(tctx *logger.TraceContext, db *gorm.DB, compute *resource_model.Compute) {
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	if err = modelApi.AssignPort(tctx, db, compute); err != nil {
+		return
+	}
+
+	if err = modelApi.RegisterRecord(tctx, db, compute); err != nil {
+		return
+	}
+
+	// Update Creating Initialized
+
 	return
 }
