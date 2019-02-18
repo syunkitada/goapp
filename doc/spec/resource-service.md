@@ -167,12 +167,14 @@
     * 最上位レイヤー
     * ここにAPIがありユーザのリクエストはすべてここに集約される
     * Controllerにより、各リクエストが非同期に処理される
-* Datacenter
-    * 複数のClusterが所属している
-    * データとしてのあるのみ、Datacenterごとのサービス(APIなど)はない
+* Datacenter・Floor・Rack
+    * Datacenterは複数のFloorから構成され、Floorには複数のRackが収容される
+    * PhysicalResourceの収容場所を管理するために利用される
+    * 管理データとして存在するのみで、Datacenterごとに特別なAPIなどはない
 * Cluster
-    * ClusterごとにAPIがあり、Cluster内リクエストはすべてこのAPIをとおして処理される
-    * Controllerにより、各リクエストが非同期に処理される
+    * Clusterは仮想リソースの所属単位でDatacenterに所属する
+    * ClusterごとにAPIがあり、そのクラスタに所属するリソースを操作するために利用される
+    * ClusterごとのControllerにより、各リクエストが非同期に処理される
 * NetworkAvailabilityZone
     * Clusterのネットワーク冗長を考慮し、L3管理レイヤ(コアルータ、アグリゲートルータなど)ごとに分割する
 * NodeAvailabilityZone
@@ -232,3 +234,76 @@
     * 物理マシンをそのまま提供するようなことはしないが、1物理マシンを1VM or 2VMセット(NUMAごと)で占有して提供
         * ノイジーネイバの影響がないため、制限はつけない
     * 物理マシン自体に課金額を設定できるようにする
+
+
+## ユーザサービスの冗長性について
+* 障害範囲とリソース配置
+    * 物理的やオペミスなどでダウンするのはPhysicalResourceのみ
+    * すべての仮想リソースはPhysicalResourceに紐好くので、PhysicalResourceから障害箇所が特定できる
+        * ユーザが利用するのはすべて仮想リソース
+        * ユーザが物理リソースを利用する場合も透過的に見せるだけで仮想リソースとして利用してもらう
+    * PhysicalResourceのダウンパターンとリソース配置
+        * パターン1: 災害などによりDatacenterごと落ちる
+            * DatacenterごとにVIPを持ち、GSLBにより拠点間冗長するようにリソース配置する
+            * ユーザの裁量で各Datacenterに所属するClusterでリソース作成を行い、各VIPをGSLBに紐図ける
+        * パターン2: Datacenterの電力供給元やUPSなどのトラブルにより、その電源系統のPDUがすべて落ちる
+            * PowerAvailabilityZoneが分散するようにリソース配置する(AntiAffinityPowerAZ)
+            * PowerAvailabilityZoneが集中するようにリソース配置する(Affinity)
+                * オプションでPower名を指定できる
+                * GSLBにより冗長担保する
+            * どちらかのPolicyを必ず選択する
+            * Policyによりクラスタ単位で、PowerAZを考慮してリソース配置する
+        * パターン3: PDUなどのトラブルにより、Rackごと落ちる
+            * RackAvailabilityZoneが分散するようにリソース配置する(AntiAffinity)
+            * RackAvailabilityZoneが同じになるようにリソース配置する(Affinity)
+                * オプションでRack名を指定できる
+                * 同セグ通信の場合は、エッジスイッチでの折り返しとなり低レイテンシが期待できる
+        * パターン4: ネットワーク機器のトラブルによりその機器配下がすべてダウンする
+            * ネットワーク機器側で基本的に冗長が取れてるものだが、そのトラブル時は基本的にわりとどうしようもない
+            * どうしようもないケース
+                * オペミスにより一部設定が消されたり、上書きされる
+                * アクティブ・スタンバイで機器のフェイルオーバーに失敗し全断
+                * アクティブ・スタンバイでフェイルオーバーしたがペアとなってる機器に設定が漏れており、一部断
+                * 一部ポート不良で、通信が不安定となるがアクティブのままとなる
+            * ダウンする範囲は、Datacenterごと落ちる、複数のNetworkAZごと落ちる、単一NetworkAZが落ちる場合がある
+                * Datacenterごと落ちる場合は、パターン1に当てはまるのでここでは考慮しない
+                * NetworkAZが分散するようにリソースを配置する(AntiAffinity)
+                    * ポリシー名: AntiAffinityNetworkAZ
+                * NetworkAZが集中するようにリソースを配置する(Affinity)
+                    * オプションでNetworkAZ名を指定できる
+                    * GSLBにより冗長担保する
+* サービスの冗長性管理
+    * サービスのSLAに応じて、Datacenter、Power、Rack、Networkの観点で冗長を考慮する必要がある
+    * GlobalService
+        * GSLBの設定管理に利用
+            * GSLBを有効にしなくてもよい
+        * ClusterServieをGSLBのメンバとして設定する
+    * RegionService
+        * GlobalServiceに紐ずく
+            * GSLBを利用しない場合は紐図けなくてもよい
+        * VIPの管理に利用
+            * VIPを有効にしなくてもよい
+        * 各種Policyを設定する
+            * Cluster: AntiAffinity
+            * PowerAZ: AntiAffinity
+            * RackAZ: AntiAffinity
+            * NetworkAZ: AntiAffinity
+    * 仮想リソースを作成する際は、RegionとRegionServiceを指定して作成する
+        * オプションでCluster、PowerAZ、RackAZ、NetworkAZを指定する
+        * RegionServiceのPolicyによってリソースを配置する
+
+
+## ダッシュボードにおけるラック図、ネットワーク図の見せ方
+* ラック図
+    * DatacenterごとのFloor、Clusterを表示する
+    * Floorを選択することで、そのFloor単位の物理ラック図を表示
+        * Floor情報からRack、PhysicalResource をJoinして表示
+    * Clusterを選択することで、そのクラスタ単位の仮想ラック図を表示
+        * Cluster情報から、PhysicalResource、仮想リソースをJoinして表示
+* ネットワーク図
+    * PhysicalResource、一部仮想リソースは複数のリンク情報を持つ
+    * リンク情報はPortの組み合わせで表現される
+        * 一つのPortはNetwork、IP、Macの情報を持つ
+    * あるノードを起点としてそのノードの所属するネットワーク図を表示する
+        * NetworkにPortが紐ずいてるので、Network指定で、Portとそれに紐ずくリソース一覧を取得しNetwork図を作成する
+    * 指定されたノードがL3スイッチであった場合は、複数Networkが含まれるので複数のNetworkを表示する

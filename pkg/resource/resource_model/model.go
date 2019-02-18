@@ -15,9 +15,20 @@ type Node struct {
 	StateReason  string `gorm:"not null;size:50;"`
 }
 
+type Region struct {
+	gorm.Model
+	Name string `gorm:"not null;size:50;"`
+}
+
 type Datacenter struct {
 	gorm.Model
 	Name string `gorm:"not null;size:50;"`
+}
+
+type Floor struct {
+	gorm.Model
+	Datacenter string `gorm:"not null;size:50;"`
+	Name       string `gorm:"not null;"`
 }
 
 type Cluster struct {
@@ -28,7 +39,7 @@ type Cluster struct {
 
 type Rack struct {
 	gorm.Model
-	Cluster      string `gorm:"not null;size:50;"`
+	Floor        string `gorm:"not null;size:50;"`
 	Name         string `gorm:"not null;size:200;"`
 	Kind         string `gorm:"not null;size:25;"`
 	Labels       string `gorm:"not null;size:255;"`
@@ -40,10 +51,11 @@ type Rack struct {
 type PhysicalResource struct {
 	gorm.Model
 	Rack         string `gorm:"not null;size:50;"`
+	Power        string `gorm:"not null;size:50;"`
 	Cluster      string `gorm:"not null;size:50;"`
 	Name         string `gorm:"not null;size:200;"`
 	FullName     string `gorm:"not null;size:255;unique_index;"` // used by fqdn
-	Kind         string `gorm:"not null;size:25;"`               // Server, L2Switch, L3Switch
+	Kind         string `gorm:"not null;size:25;"`               // Server, Pdu, L2Switch, L3Switch, RootSwitch
 	Labels       string `gorm:"not null;size:255;"`
 	Status       string `gorm:"not null;size:25;"`
 	StatusReason string `gorm:"not null;size:50;"`
@@ -53,17 +65,19 @@ type PhysicalResource struct {
 
 type NetworkV4 struct {
 	gorm.Model
-	Cluster      string `gorm:"not null;size:50;"`
-	Name         string `gorm:"not null;size:200;"`
-	Kind         string `gorm:"not null;size:25;"`
-	Labels       string `gorm:"not null;size:255;"`
-	Status       string `gorm:"not null;size:25;"`
-	StatusReason string `gorm:"not null;size:50;"`
-	Spec         string `gorm:"not null;size:1000;"`
-	Subnet       string `gorm:"not null;"`
-	StartIp      string `gorm:"not null;"`
-	EndIp        string `gorm:"not null;"`
-	Gateway      string `gorm:"not null;"`
+	Cluster            string           `gorm:"not null;size:50;"`
+	PhysicalResource   PhysicalResource `gorm:"foreignkey:PhysicalResourceID;association_foreignkey:Refer;"`
+	PhysicalResourceID uint             `gorm:"not null;"`
+	Name               string           `gorm:"not null;size:200;"`
+	Kind               string           `gorm:"not null;size:25;"`
+	Labels             string           `gorm:"not null;size:255;"`
+	Status             string           `gorm:"not null;size:25;"`
+	StatusReason       string           `gorm:"not null;size:50;"`
+	Spec               string           `gorm:"not null;size:1000;"`
+	Subnet             string           `gorm:"not null;"`
+	StartIp            string           `gorm:"not null;"`
+	EndIp              string           `gorm:"not null;"`
+	Gateway            string           `gorm:"not null;"`
 }
 
 type NetworkV4Port struct {
@@ -74,16 +88,28 @@ type NetworkV4Port struct {
 	Mac         string    `gorm:"not null;"`
 }
 
+type GlobalService struct {
+	Domain string `gorm:"not null;"` // GSLB Domain
+}
+
+type RegionService struct {
+	Region string `gorm:"not null;size:50;"`
+	Domain string `gorm:"not null;"` // Vip Domain
+}
+
 type Compute struct {
 	gorm.Model
-	Cluster      string `gorm:"not null;size:50;"`
-	Name         string `gorm:"not null;size:200;"`
-	Kind         string `gorm:"not null;size:25;"`
-	Labels       string `gorm:"not null;size:255;"`
-	Status       string `gorm:"not null;size:25;"`
-	StatusReason string `gorm:"not null;size:50;"`
-	Spec         string `gorm:"not null;size:5000;"`
-	Domain       string `gorm:"not null;size:255;"`
+	PhysicalResource   PhysicalResource `gorm:"foreignkey:PhysicalResourceID;association_foreignkey:Refer;"`
+	PhysicalResourceID uint             `gorm:"not null;"`
+	Cluster            string           `gorm:"not null;size:50;"`
+	Name               string           `gorm:"not null;size:200;"`
+	Kind               string           `gorm:"not null;size:25;"`
+	Labels             string           `gorm:"not null;size:255;"`
+	Status             string           `gorm:"not null;size:25;"`
+	StatusReason       string           `gorm:"not null;size:50;"`
+	Spec               string           `gorm:"not null;size:5000;"`
+	Domain             string           `gorm:"not null;size:255;"`
+	LinkSpec           string           `gorm:"not null;size:2500;"`
 }
 
 type Container struct {

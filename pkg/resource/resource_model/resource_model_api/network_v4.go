@@ -340,6 +340,10 @@ func (modelApi *ResourceModelApi) validateNetworkV4Spec(db *gorm.DB, specStr str
 }
 
 func (modelApi *ResourceModelApi) AssignPort(tctx *logger.TraceContext, db *gorm.DB, compute *resource_model.Compute) error {
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
 	// TODO
 	// assign port(ip and mac)
 
@@ -349,6 +353,10 @@ func (modelApi *ResourceModelApi) AssignPort(tctx *logger.TraceContext, db *gorm
 }
 
 func (modelApi *ResourceModelApi) RegisterRecord(tctx *logger.TraceContext, db *gorm.DB, compute *resource_model.Compute) error {
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
 	// TODO
 	// register a record
 	// implrment dns service
