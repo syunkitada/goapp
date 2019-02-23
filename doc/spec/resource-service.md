@@ -307,3 +307,95 @@
     * あるノードを起点としてそのノードの所属するネットワーク図を表示する
         * NetworkにPortが紐ずいてるので、Network指定で、Portとそれに紐ずくリソース一覧を取得しNetwork図を作成する
     * 指定されたノードがL3スイッチであった場合は、複数Networkが含まれるので複数のNetworkを表示する
+
+
+
+## データセンタ内のネットワークイメージ
+* 各インターネットプロバイダから回線を借りてゲートウェイルータ(gateway-router)を接続する
+* ゲートウェイルータに各フロアへ接続するためのルータ(floor-spine-router)を接続する
+
+```
+ provider1                          --- root-1-floor-spine-router01
+----------- root-1-gateway-router01 --- root-1-floor-spine-router02
+----------- root-1-gateway-router02 --- root-1-floor-spine-router03
+                                    --- root-1-floor-spine-router04
+                                    ...
+
+ provider2                          --- root-2-floor-spine-router01
+----------- root-2-gateway-router01 --- root-2-floor-spine-router02
+----------- root-2-gateway-router02 --- root-2-floor-spine-router03
+                                    --- root-2-floor-spine-router04
+                                    ...
+```
+
+* floor-spine-routerからは、各フロアを束ねているルータ(floor-leaf-router)に接続する
+* フロア名は、棟、階、フロア番号からなり、データセンタ内でユニーク
+    * 1棟目-1階-1フロアなら、floor-1-1-1
+
+```
+                            --- floor-1-1-1-floor-leaf-router01
+                            --- floor-1-1-1-floor-leaf-router02
+root-1-floor-spine-router01 --- floor-1-1-1-floor-leaf-router03
+root-1-floor-spine-router02 --- floor-1-1-1-floor-leaf-router04
+root-1-floor-spine-router03 --- floor-1-1-2-floor-leaf-router01
+root-1-floor-spine-router04 --- floor-1-1-2-floor-leaf-router02
+                            --- floor-1-1-2-floor-leaf-router03
+                            --- floor-1-1-2-floor-leaf-router04
+                            --- floor-1-2-1-floor-leaf-router01
+                            --- floor-1-2-1-floor-leaf-router02
+root-2-floor-spine-router01 --- floor-1-2-1-floor-leaf-router03
+root-2-floor-spine-router02 --- floor-1-2-1-floor-leaf-router04
+root-2-floor-spine-router03 --- floor-1-2-2-floor-leaf-router01
+root-2-floor-spine-router04 --- floor-1-2-2-floor-leaf-router02
+                            --- floor-1-2-2-floor-leaf-router03
+                            --- floor-1-2-2-floor-leaf-router04
+                            ...
+```
+
+* floor-leaf-routerには、各ラックへ接続するためのルータ(rack-spine-router)を接続する
+
+```
+                                --- floor-1-1-1-rack-spine-router01
+                                --- floor-1-1-1-rack-spine-router02
+floor-1-1-1-floor-leaf-router01 --- floor-1-1-1-rack-spine-router03
+floor-1-1-1-floor-leaf-router02 --- floor-1-1-1-rack-spine-router04
+floor-1-1-1-floor-leaf-router03 --- floor-1-1-1-rack-spine-router05
+floor-1-1-1-floor-leaf-router04 --- floor-1-1-1-rack-spine-router06
+                                --- floor-1-1-1-rack-spine-router07
+                                --- floor-1-1-1-rack-spine-router08
+                                ...
+```
+
+* rack-spine-routerからは、各ラックを束ねているルータ(rack-leaf-router)に接続する
+
+```
+                                --- floor-1-1-1-rack-1-1-rack-leaf-router01
+                                --- floor-1-1-1-rack-1-1-rack-leaf-router02
+floor-1-1-1-rack-spine-router01 --- floor-1-1-1-rack-1-2-rack-leaf-router01
+floor-1-1-1-rack-spine-router02 --- floor-1-1-1-rack-1-2-rack-leaf-router02
+floor-1-1-1-rack-spine-router03 --- floor-1-1-1-rack-1-3-rack-leaf-router01
+floor-1-1-1-rack-spine-router04 --- floor-1-1-1-rack-1-3-rack-leaf-router02
+floor-1-1-1-rack-spine-router05 --- floor-1-1-1-rack-2-1-rack-leaf-router01
+floor-1-1-1-rack-spine-router06 --- floor-1-1-1-rack-2-1-rack-leaf-router01
+floor-1-1-1-rack-spine-router07 --- floor-1-1-1-rack-2-2-rack-leaf-router02
+floor-1-1-1-rack-spine-router08 --- floor-1-1-1-rack-2-2-rack-leaf-router02
+                                --- floor-1-1-1-rack-2-3-rack-leaf-router03
+                                --- floor-1-1-1-rack-2-3-rack-leaf-router03
+                                ...
+```
+
+* 各ラックには、rack-leaf-routerが2台あり、自身のラック配下のサーバと、ペアとなるラック配下のサーバにそれぞれ配線し冗長化する
+
+```
+floor-1-1-1-rack-1-1-rack-reaf-router01 --- rack-1-1-server1
+floor-1-1-1-rack-1-1-rack-reaf-router02 --- rack-1-2-server2
+floor-1-1-1-rack-1-2-rack-reaf-router01 --- rack-1-1-server1
+floor-1-1-1-rack-1-2-rack-reaf-router02 --- rack-1-2-server2
+                                        ...
+```
+
+* まとめて一本にすると
+
+```
+internet --- gateway-router --- floor-spine-router --- floor-leaf-router --- rack-spine-router --- rack-leaf-router --- server
+```
