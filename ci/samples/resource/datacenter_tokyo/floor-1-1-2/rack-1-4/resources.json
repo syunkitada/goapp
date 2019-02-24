@@ -1,0 +1,45 @@
+{
+  "Kind": "Pdu",
+  "Name": "floor-1-1-2-rack-1-4-pdu01",
+  "Datacenter": "tokyo",
+  "Rack": "floor-1-1-2-rack-1-4",
+  "Spec": {
+    "Kind": "Pdu",
+    "Model": "Unknown-pdu1",
+    "RackPosition": 1,
+    "PowerLinks": [
+      "floor-1-1-2-floor-rack-spine-router01",
+      "floor-1-1-2-floor-rack-spine-router02",
+      "floor-1-1-2-floor-rack-spine-router03",
+      "floor-1-1-2-floor-rack-spine-router04"
+    ]
+  }
+}
+
+---
+
+{
+  "Kind": "PhysicalResource",
+  "Name": "floor-1-1-2-rack-spine-router03",
+  "Datacenter": "tokyo",
+  "Rack": "floor-1-1-2-rack-1-4",
+  "Spec": {
+    "Kind": "RackSpineRouter",
+    "Model": "Arista-7280CR-48",
+    "RackPosition": 4
+  }
+}
+
+---
+
+{
+  "Kind": "PhysicalResource",
+  "Name": "floor-1-1-2-rack-spine-router04",
+  "Datacenter": "tokyo",
+  "Rack": "floor-1-1-2-rack-1-4",
+  "Spec": {
+    "Kind": "RackSpineRouter",
+    "Model": "Arista-7280CR-48",
+    "RackPosition": 6
+  }
+}

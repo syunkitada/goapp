@@ -1,0 +1,47 @@
+{
+  "Kind": "PhysicalResource",
+  "Name": "floor-1-1-1-rack-1-1-pdu01",
+  "Datacenter": "tokyo",
+  "Rack": "floor-1-1-1-rack-1-1",
+  "Spec": {
+    "Kind": "Pdu",
+    "Model": "Unknown-pdu1",
+    "RackPosition": 1,
+    "PowerLinks": [
+      "root-1-gateway-router01",
+      "root-2-gateway-router01"
+    ]
+  }
+}
+
+---
+
+{
+  "Kind": "PhysicalResource",
+  "Name": "floor-1-1-1-rack-1-1-pdu02",
+  "Datacenter": "tokyo",
+  "Rack": "floor-1-1-1-rack-1-1",
+  "Spec": {
+    "Kind": "Pdu",
+    "Model": "Unknown-pdu1",
+    "RackPosition": 2,
+    "PowerLinks": [
+      "root-1-gateway-router01",
+      "root-2-gateway-router01"
+    ]
+  }
+}
+
+---
+
+{
+  "Kind": "PhysicalResource",
+  "Name": "root-1-gateway-router01",
+  "Datacenter": "tokyo",
+  "Rack": "floor-1-1-1-rack-1-1",
+  "Spec": {
+    "Kind": "GatewayRouter",
+    "Model": "Arista-7516R",
+    "RackPosition": 4
+  }
+}

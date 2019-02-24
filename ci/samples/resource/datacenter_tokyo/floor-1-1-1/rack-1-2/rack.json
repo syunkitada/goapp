@@ -1,0 +1,9 @@
+{
+  "Kind": "Rack",
+  "Name": "floor-1-1-1-rack-1-2",
+  "Floor": "floor-1-1-1",
+  "Spec": {
+    "Kind": "Rack",
+    "Unit": 40
+  }
+}

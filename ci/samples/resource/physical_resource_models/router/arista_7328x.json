@@ -1,0 +1,8 @@
+{
+  "Model": "Arista-7328X",
+  "Description": "https://www.arista.com/jp/products/platforms",
+  "Throuput": "50Tbps",
+  "Port": "100GbE 256ポート, 25GbE 1024ポート",
+  "Unit": 13,
+  "Kind": "FloorSpineRouter"
+}

@@ -1,0 +1,21 @@
+{
+  "Kind": "Cluster",
+  "Name": "tokyo-1",
+  "Datacenter": "tokyo",
+  "VirtualResourceDomainSuffix": ".tky.vir.example.com",
+  "Spec": {
+    "Kind": "Cluster"
+  }
+}
+
+---
+
+{
+  "Kind": "Cluster",
+  "Name": "tokyo-2",
+  "Datacenter": "tokyo",
+  "VirtualResourceDomainSuffix": ".tky.vir.example.com",
+  "Spec": {
+    "Kind": "Cluster"
+  }
+}

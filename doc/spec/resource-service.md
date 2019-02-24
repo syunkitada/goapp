@@ -317,13 +317,13 @@
 ```
  provider1                          --- root-1-floor-spine-router01
 ----------- root-1-gateway-router01 --- root-1-floor-spine-router02
------------ root-1-gateway-router02 --- root-1-floor-spine-router03
+                                    --- root-1-floor-spine-router03
                                     --- root-1-floor-spine-router04
                                     ...
 
  provider2                          --- root-2-floor-spine-router01
 ----------- root-2-gateway-router01 --- root-2-floor-spine-router02
------------ root-2-gateway-router02 --- root-2-floor-spine-router03
+                                    --- root-2-floor-spine-router03
                                     --- root-2-floor-spine-router04
                                     ...
 ```

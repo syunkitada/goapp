@@ -1,0 +1,8 @@
+{
+  "Model": "Arista-7280CR-48",
+  "Description": "https://www.arista.com/jp/products/platforms",
+  "Throuput": "12Tbps",
+  "Port": "QSFP100 8ポート,QSFP100 48ポート",
+  "Unit": 2,
+  "Kind": "RackSpineRouter"
+}

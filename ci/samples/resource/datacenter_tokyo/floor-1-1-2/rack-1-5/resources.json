@@ -1,0 +1,59 @@
+{
+  "Kind": "Pdu",
+  "Name": "floor-1-1-2-rack-1-5-pdu01",
+  "Datacenter": "tokyo",
+  "Rack": "floor-1-1-2-rack-1-5",
+  "Spec": {
+    "Kind": "Pdu",
+    "Model": "Unknown-pdu1",
+    "RackPosition": 1,
+    "PowerLinks": [
+      "floor-1-1-2-floor-rack-spine-router01",
+      "floor-1-1-2-floor-rack-spine-router02",
+      "floor-1-1-2-floor-rack-spine-router03",
+      "floor-1-1-2-floor-rack-spine-router04"
+    ]
+  }
+}
+
+---
+
+{
+  "Kind": "PhysicalResource",
+  "Name": "floor-1-1-2-rack-leaf-router01",
+  "Datacenter": "tokyo",
+  "Rack": "floor-1-1-2-rack-1-5",
+  "Spec": {
+    "Kind": "RackSpineRouter",
+    "Model": "Arista-7280TR",
+    "RackPosition": 4
+  }
+}
+
+---
+
+{
+  "Kind": "PhysicalResource",
+  "Name": "floor-1-1-2-rack-spine-router02",
+  "Datacenter": "tokyo",
+  "Rack": "floor-1-1-2-rack-1-5",
+  "Spec": {
+    "Kind": "Server",
+    "Model": "Unknown-server1",
+    "RackPosition": 6
+  }
+}
+
+---
+
+{
+  "Kind": "PhysicalResource",
+  "Name": "floor-1-1-2-rack-spine-router02",
+  "Datacenter": "tokyo",
+  "Rack": "floor-1-1-2-rack-1-5",
+  "Spec": {
+    "Kind": "Server",
+    "Model": "Unknown-server1",
+    "RackPosition": 7
+  }
+}
