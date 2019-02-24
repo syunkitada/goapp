@@ -3,7 +3,6 @@ package resource_model_api
 import (
 	"time"
 
-	_ "github.com/go-sql-driver/mysql"
 	"github.com/golang/glog"
 	"github.com/jinzhu/gorm"
 	"gopkg.in/go-playground/validator.v9"

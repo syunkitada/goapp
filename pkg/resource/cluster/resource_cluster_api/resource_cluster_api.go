@@ -9,6 +9,8 @@ import (
 
 	"github.com/syunkitada/goapp/pkg/base"
 	"github.com/syunkitada/goapp/pkg/config"
+	"github.com/syunkitada/goapp/pkg/lib/codes"
+	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_api/resource_cluster_api_grpc_pb"
 	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_model/resource_cluster_model_api"
 )
@@ -48,55 +50,36 @@ func (srv *ResourceClusterApiServer) Status(ctx context.Context, statusRequest *
 	return &resource_cluster_api_grpc_pb.StatusReply{Msg: "Status"}, nil
 }
 
-func (srv *ResourceClusterApiServer) GetNode(ctx context.Context, req *resource_cluster_api_grpc_pb.GetNodeRequest) (*resource_cluster_api_grpc_pb.GetNodeReply, error) {
+//
+// Action
+//
+func (srv *ResourceClusterApiServer) Action(ctx context.Context, req *resource_cluster_api_grpc_pb.ActionRequest) (*resource_cluster_api_grpc_pb.ActionReply, error) {
 	var err error
-	var rep *resource_cluster_api_grpc_pb.GetNodeReply
-	glog.Info("DEBUGlalala")
-	if rep, err = srv.resourceClusterModelApi.GetNode(req); err != nil {
-		glog.Error(err)
+	rep := &resource_cluster_api_grpc_pb.ActionReply{Tctx: req.Tctx}
+	tctx := logger.NewGrpcAuthproxyTraceContext(srv.Host, srv.Name, ctx, req.Tctx)
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	switch req.Tctx.ActionName {
+	case "GetNode":
+		srv.resourceClusterModelApi.GetNode(tctx, req, rep)
+	case "GetCompute":
+		srv.resourceClusterModelApi.GetCompute(tctx, req, rep)
+	default:
+		rep.Tctx.Err = fmt.Sprintf("InvalidAction: %v", req.Tctx.ActionName)
+		rep.Tctx.StatusCode = codes.ClientNotFound
 	}
-	return rep, err
+
+	return rep, nil
 }
 
 func (srv *ResourceClusterApiServer) UpdateNode(ctx context.Context, req *resource_cluster_api_grpc_pb.UpdateNodeRequest) (*resource_cluster_api_grpc_pb.UpdateNodeReply, error) {
-	var rep *resource_cluster_api_grpc_pb.UpdateNodeReply
 	var err error
-	glog.Infof("UpdateNode: %v, %v", req.Name, req.Kind)
-	rep, err = srv.resourceClusterModelApi.UpdateNode(req)
-	return rep, err
-}
+	rep := &resource_cluster_api_grpc_pb.UpdateNodeReply{Tctx: req.Tctx}
+	tctx := logger.NewGrpcAuthproxyTraceContext(srv.Host, srv.Name, ctx, req.Tctx)
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
-//
-// Compute
-//
-func (srv *ResourceClusterApiServer) GetCompute(ctx context.Context, req *resource_cluster_api_grpc_pb.GetComputeRequest) (*resource_cluster_api_grpc_pb.GetComputeReply, error) {
-	var rep *resource_cluster_api_grpc_pb.GetComputeReply
-	var err error
-	rep, err = srv.resourceClusterModelApi.GetCompute(req)
-	glog.Infof("Completed GetCompute: %v", err)
-	return rep, err
-}
-
-func (srv *ResourceClusterApiServer) CreateCompute(ctx context.Context, req *resource_cluster_api_grpc_pb.CreateComputeRequest) (*resource_cluster_api_grpc_pb.CreateComputeReply, error) {
-	var rep *resource_cluster_api_grpc_pb.CreateComputeReply
-	var err error
-	rep, err = srv.resourceClusterModelApi.CreateCompute(req)
-	glog.Infof("Completed CreateCompute: %v", err)
-	return rep, err
-}
-
-func (srv *ResourceClusterApiServer) UpdateCompute(ctx context.Context, req *resource_cluster_api_grpc_pb.UpdateComputeRequest) (*resource_cluster_api_grpc_pb.UpdateComputeReply, error) {
-	var rep *resource_cluster_api_grpc_pb.UpdateComputeReply
-	var err error
-	rep, err = srv.resourceClusterModelApi.UpdateCompute(req)
-	glog.Infof("Completed UpdateCompute: %v", err)
-	return rep, err
-}
-
-func (srv *ResourceClusterApiServer) DeleteCompute(ctx context.Context, req *resource_cluster_api_grpc_pb.DeleteComputeRequest) (*resource_cluster_api_grpc_pb.DeleteComputeReply, error) {
-	var rep *resource_cluster_api_grpc_pb.DeleteComputeReply
-	var err error
-	rep, err = srv.resourceClusterModelApi.DeleteCompute(req)
-	glog.Infof("Completed DeleteCompute: %v", err)
-	return rep, err
+	srv.resourceClusterModelApi.UpdateNode(tctx, req, rep)
+	return rep, nil
 }

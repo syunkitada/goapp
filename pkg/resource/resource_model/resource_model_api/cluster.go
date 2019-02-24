@@ -1,7 +1,6 @@
 package resource_model_api
 
 import (
-	_ "github.com/go-sql-driver/mysql"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/jinzhu/gorm"
 
@@ -11,28 +10,33 @@ import (
 	"github.com/syunkitada/goapp/pkg/resource/resource_model"
 )
 
-func (modelApi *ResourceModelApi) GetCluster(tctx *logger.TraceContext, req *resource_api_grpc_pb.GetClusterRequest) *resource_api_grpc_pb.GetClusterReply {
-	rep := &resource_api_grpc_pb.GetClusterReply{}
+func (modelApi *ResourceModelApi) GetCluster(tctx *logger.TraceContext, req *resource_api_grpc_pb.ActionRequest, rep *resource_api_grpc_pb.ActionReply) {
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
-	db, err := gorm.Open("mysql", modelApi.conf.Resource.Database.Connection)
-	defer db.Close()
-	if err != nil {
-		rep.Err = err.Error()
-		rep.StatusCode = codes.RemoteDbError
-		return rep
+	var db *gorm.DB
+	if db, err = modelApi.open(tctx); err != nil {
+		rep.Tctx.Err = err.Error()
+		rep.Tctx.StatusCode = codes.RemoteDbError
+		return
 	}
-	db.LogMode(modelApi.conf.Default.EnableDatabaseLog)
+	defer func() { err = db.Close() }()
 
 	var clusters []resource_model.Cluster
-	if err = db.Where("name like ?", req.Target).Find(&clusters).Error; err != nil {
-		rep.Err = err.Error()
-		rep.StatusCode = codes.RemoteDbError
-		return rep
+	if req.Target == "" {
+		err = db.Find(&clusters).Error
+	} else {
+		err = db.Where("name like ?", req.Target).Find(&clusters).Error
+	}
+	if err != nil {
+		rep.Tctx.Err = err.Error()
+		rep.Tctx.StatusCode = codes.RemoteDbError
+		return
 	}
 
 	rep.Clusters = modelApi.convertClusters(tctx, clusters)
-	rep.StatusCode = codes.Ok
-	return rep
+	rep.Tctx.StatusCode = codes.Ok
 }
 
 func (modelApi *ResourceModelApi) ValidateClusterName(db *gorm.DB, name string) (bool, error) {

@@ -10,11 +10,15 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/rs/xid"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/peer"
 
+	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_grpc_pb"
+	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_model"
 	"github.com/syunkitada/goapp/pkg/config"
+	"github.com/syunkitada/goapp/pkg/lib/error_utils"
 )
 
 var (
@@ -41,6 +45,16 @@ type TraceContext struct {
 	Func     string
 	TraceId  string
 	Metadata map[string]string
+}
+
+type ActionTraceContext struct {
+	TraceContext
+	UserName        string
+	RoleName        string
+	ProjectName     string
+	ProjectRoleName string
+	ActionName      string
+	ActionData      string
 }
 
 func NewTraceContext(host string, app string) *TraceContext {
@@ -74,15 +88,38 @@ func NewCtlTraceContext(app string) *TraceContext {
 	}
 }
 
-func NewAuthproxyActionTraceContext(host string, app string, traceId string, user string) *TraceContext {
-	return &TraceContext{
-		TraceId: xid.New().String(),
-		Host:    host,
-		App:     app,
-		Metadata: map[string]string{
-			"AuthUser": user,
-		},
+func NewAuthproxyActionTraceContext(host string, app string, c *gin.Context) (*ActionTraceContext, error) {
+	traceId, traceIdOk := c.Get("TraceId")
+	username, usernameOk := c.Get("Username")
+	userAuthority, userAuthorityOk := c.Get("UserAuthority")
+	action, actionOk := c.Get("Action")
+
+	if !traceIdOk || !usernameOk || !userAuthorityOk || !actionOk {
+		return nil, error_utils.NewInvalidRequestError(map[string]bool{
+			"TraceId":       traceIdOk,
+			"Username":      usernameOk,
+			"UserAuthority": userAuthorityOk,
+			"Action":        actionOk,
+		})
 	}
+	tmpAuthority := userAuthority.(*authproxy_model.UserAuthority)
+	tmpAction := action.(authproxy_model.ActionRequest)
+	return &ActionTraceContext{
+		TraceContext: TraceContext{
+			TraceId: traceId.(string),
+			Host:    host,
+			App:     app,
+			Metadata: map[string]string{
+				"AuthUser": username.(string),
+			},
+		},
+		UserName:        username.(string),
+		RoleName:        tmpAuthority.ActionProjectService.RoleName,
+		ProjectName:     tmpAuthority.ActionProjectService.ProjectName,
+		ProjectRoleName: tmpAuthority.ActionProjectService.ProjectRoleName,
+		ActionName:      tmpAction.Name,
+		ActionData:      tmpAction.Data,
+	}, nil
 }
 
 func NewGrpcTraceContext(host string, app string, ctx context.Context) *TraceContext {
@@ -101,6 +138,59 @@ func NewGrpcTraceContext(host string, app string, ctx context.Context) *TraceCon
 			"Client": client,
 		},
 	}
+}
+
+func NewAuthproxyTraceContext(tctx *TraceContext, atctx *ActionTraceContext) *authproxy_grpc_pb.TraceContext {
+	if tctx != nil {
+		return &authproxy_grpc_pb.TraceContext{
+			TraceId: tctx.TraceId,
+			App:     tctx.App,
+			Host:    tctx.Host,
+		}
+	}
+	if atctx != nil {
+		return &authproxy_grpc_pb.TraceContext{
+			TraceId:         atctx.TraceId,
+			ActionName:      atctx.ActionName,
+			UserName:        atctx.UserName,
+			RoleName:        atctx.RoleName,
+			ProjectName:     atctx.ProjectName,
+			ProjectRoleName: atctx.ProjectRoleName,
+		}
+	}
+	return nil
+}
+
+func NewGrpcAuthproxyTraceContext(host string, app string, ctx context.Context, atctx *authproxy_grpc_pb.TraceContext) *TraceContext {
+	var client string
+	if pr, ok := peer.FromContext(ctx); ok {
+		client = pr.Addr.String()
+	} else {
+		client = ""
+	}
+
+	tctx := &TraceContext{
+		TraceId: atctx.TraceId,
+		Host:    host,
+		App:     app,
+		Metadata: map[string]string{
+			"Client":     client,
+			"ClientHost": atctx.Host,
+			"ClientApp":  atctx.App,
+		},
+	}
+
+	if atctx.ActionName != "" {
+		tctx.Metadata["ActionName"] = atctx.ActionName
+	}
+	if atctx.UserName != "" {
+		tctx.Metadata["UserName"] = atctx.UserName
+		tctx.Metadata["RoleName"] = atctx.RoleName
+		tctx.Metadata["ProjectName"] = atctx.ProjectName
+		tctx.Metadata["ProjectRoleName"] = atctx.ProjectRoleName
+	}
+
+	return tctx
 }
 
 func Init() {
@@ -181,49 +271,58 @@ func StdoutInfof(format string, args ...interface{}) {
 }
 
 func StdoutFatal(args ...interface{}) {
-	stdoutLogger.Print(fatalLog + " " + fmt.Sprint(args...))
+	l := log.New(os.Stdout, "", log.Ldate|log.Ltime)
+	l.Print(fatalLog + " " + fmt.Sprint(args...))
 	os.Exit(1)
 }
 
 func StdoutFatalf(format string, args ...interface{}) {
-	stdoutLogger.Print(fatalLog + " " + fmt.Sprintf(format, args...))
+	l := log.New(os.Stdout, "", log.Ldate|log.Ltime)
+	l.Print(fatalLog + " " + fmt.Sprintf(format, args...))
 	os.Exit(1)
 }
 
-func Info(ctx *TraceContext, args ...interface{}) {
+func Info(tctx *TraceContext, args ...interface{}) {
+	tctx.Func = getFunc(0)
 	Logger.Print(timePrefix() + " Level=\"" + infoLog +
-		"\" Msg=\"" + fmt.Sprint(args...) + "\"" + convertTags(ctx))
+		"\" Msg=\"" + fmt.Sprint(args...) + "\"" + convertTags(tctx))
 }
 
-func Infof(ctx *TraceContext, format string, args ...interface{}) {
+func Infof(tctx *TraceContext, format string, args ...interface{}) {
+	tctx.Func = getFunc(0)
 	Logger.Print(timePrefix() + " Level=\"" + infoLog +
-		"\" Msg=\"" + fmt.Sprintf(format, args...) + "\"" + convertTags(ctx))
+		"\" Msg=\"" + fmt.Sprintf(format, args...) + "\"" + convertTags(tctx))
 }
 
-func Warning(ctx *TraceContext, err error, args ...interface{}) {
+func Warning(tctx *TraceContext, err error, args ...interface{}) {
+	tctx.Func = getFunc(0)
 	Logger.Print(timePrefix() + " Level=\"" + warningLog +
-		"\" Err=\"" + err.Error() + "\" Msg=\"" + fmt.Sprint(args...) + "\"" + convertTags(ctx))
+		"\" Err=\"" + err.Error() + "\" Msg=\"" + fmt.Sprint(args...) + "\"" + convertTags(tctx))
 }
 
-func Warningf(ctx *TraceContext, err error, format string, args ...interface{}) {
+func Warningf(tctx *TraceContext, err error, format string, args ...interface{}) {
+	tctx.Func = getFunc(0)
 	Logger.Print(timePrefix() + " Level=\"" + warningLog +
-		"\" Err=\"" + err.Error() + "\" Msg=\"" + fmt.Sprintf(format, args...) + "\"" + convertTags(ctx))
+		"\" Err=\"" + err.Error() + "\" Msg=\"" + fmt.Sprintf(format, args...) + "\"" + convertTags(tctx))
 }
 
-func Error(ctx *TraceContext, err error, args ...interface{}) {
+func Error(tctx *TraceContext, err error, args ...interface{}) {
+	tctx.Func = getFunc(0)
 	Logger.Print(timePrefix() + " Level=\"" + errorLog +
-		"\" Err=\"" + err.Error() + "\" Msg=\"" + fmt.Sprint(args...) + "\"" + convertTags(ctx))
+		"\" Err=\"" + err.Error() + "\" Msg=\"" + fmt.Sprint(args...) + "\"" + convertTags(tctx))
 }
 
-func Errorf(ctx *TraceContext, err error, format string, args ...interface{}) {
+func Errorf(tctx *TraceContext, err error, format string, args ...interface{}) {
+	tctx.Func = getFunc(0)
 	Logger.Print(timePrefix() + " Level=\"" + errorLog +
-		"\" Err=\"" + err.Error() + "\" Msg=\"" + fmt.Sprintf(format, args...) + "\"" + convertTags(ctx))
+		"\" Err=\"" + err.Error() + "\" Msg=\"" + fmt.Sprintf(format, args...) + "\"" + convertTags(tctx))
 }
 
 func StartTrace(tctx *TraceContext) time.Time {
 	startTime := time.Now()
 	tctx.Func = getFunc(0)
 	Info(tctx, "StartTrace")
+	Logger.Print(timePrefix() + " Level=\"" + infoLog + "\" Msg=\"StartTrace\"" + convertTags(tctx))
 	return startTime
 }
 
@@ -231,9 +330,9 @@ func EndTrace(tctx *TraceContext, startTime time.Time, err error, depth int) {
 	tctx.Func = getFunc(depth)
 	tctx.Metadata["Latency"] = strconv.FormatInt(time.Now().Sub(startTime).Nanoseconds()/1000000, 10)
 	if err != nil {
-		Error(tctx, err, "EndTrace")
+		Logger.Print(timePrefix() + " Level=\"" + errorLog + "\" Msg=\"EndTrace\"" + convertTags(tctx))
 	} else {
-		Info(tctx, "EndTrace")
+		Logger.Print(timePrefix() + " Level=\"" + infoLog + "\" Msg=\"EndTrace\"" + convertTags(tctx))
 	}
 }
 
@@ -242,8 +341,8 @@ func EndGrpcTrace(tctx *TraceContext, startTime time.Time, statusCode int64, err
 	tctx.Metadata["Latency"] = strconv.FormatInt(time.Now().Sub(startTime).Nanoseconds()/1000000, 10)
 	tctx.Metadata["StatusCode"] = strconv.FormatInt(statusCode, 10)
 	if err != "" {
-		Error(tctx, fmt.Errorf(err), "EndGrpcTrace")
+		Logger.Print(timePrefix() + " Level=\"" + errorLog + "\" Msg=\"EndTrace\"" + convertTags(tctx))
 	} else {
-		Info(tctx, "EndGrpcTrace")
+		Logger.Print(timePrefix() + " Level=\"" + infoLog + "\" Msg=\"EndTrace\"" + convertTags(tctx))
 	}
 }

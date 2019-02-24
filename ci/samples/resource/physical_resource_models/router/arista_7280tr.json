@@ -1,0 +1,8 @@
+{
+  "Model": "Arista-7280TR",
+  "Description": "https://www.arista.com/jp/products/platforms",
+  "Throuput": "2.16Tbps",
+  "Port": "QSFP100 6ポート, 10G 10GBASE-T 48ポート",
+  "Unit": 1,
+  "Kind": "RackLeafRouter"
+}

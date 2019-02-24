@@ -15,7 +15,6 @@ start_all() {
     done
 
     start_resource
-    start_monitor
 }
 
 start_resource() {

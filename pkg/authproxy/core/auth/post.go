@@ -31,7 +31,8 @@ func (auth *Auth) IssueToken(c *gin.Context) {
 		c.Abort()
 		return
 	}
-	tctx := logger.NewAuthproxyActionTraceContext(auth.host, auth.name, traceId, authRequest.Username)
+	tctx := logger.NewTraceContextWithTraceId(auth.host, auth.name, traceId)
+	tctx.Metadata["Username"] = authRequest.Username
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 

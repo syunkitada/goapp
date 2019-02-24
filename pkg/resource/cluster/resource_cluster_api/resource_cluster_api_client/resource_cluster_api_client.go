@@ -7,6 +7,7 @@ import (
 
 	"github.com/syunkitada/goapp/pkg/base"
 	"github.com/syunkitada/goapp/pkg/config"
+	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_api"
 	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_api/resource_cluster_api_grpc_pb"
 )
@@ -41,7 +42,7 @@ func (cli *ResourceClusterApiClient) Status() (*resource_cluster_api_grpc_pb.Sta
 	if err != nil {
 		return rep, err
 	}
-	defer conn.Close()
+	defer func() { err = conn.Close() }()
 
 	req := &resource_cluster_api_grpc_pb.StatusRequest{}
 	ctx, cancel := cli.GetContext()
@@ -56,133 +57,75 @@ func (cli *ResourceClusterApiClient) Status() (*resource_cluster_api_grpc_pb.Sta
 	return rep, err
 }
 
-func (cli *ResourceClusterApiClient) GetNode(req *resource_cluster_api_grpc_pb.GetNodeRequest) (*resource_cluster_api_grpc_pb.GetNodeReply, error) {
-	var rep *resource_cluster_api_grpc_pb.GetNodeReply
+func (cli *ResourceClusterApiClient) GetCompute(tctx *logger.TraceContext, target string) (*resource_cluster_api_grpc_pb.ActionReply, error) {
+	return cli.GetAction(tctx, "GetCompute", target)
+}
+
+func (cli *ResourceClusterApiClient) GetNode(tctx *logger.TraceContext, target string) (*resource_cluster_api_grpc_pb.ActionReply, error) {
+	return cli.GetAction(tctx, "GetNode", target)
+}
+
+func (cli *ResourceClusterApiClient) GetAction(tctx *logger.TraceContext, actionName string, target string) (*resource_cluster_api_grpc_pb.ActionReply, error) {
 	var err error
-	conn, err := cli.NewClientConnection()
-	defer conn.Close()
-	if err != nil {
-		return rep, err
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	atctx := logger.NewAuthproxyTraceContext(tctx, nil)
+	atctx.ActionName = actionName
+
+	req := &resource_cluster_api_grpc_pb.ActionRequest{
+		Tctx:   atctx,
+		Target: target,
 	}
+
+	conn, err := cli.NewClientConnection()
+	if err != nil {
+		return nil, err
+	}
+	defer func() { err = conn.Close() }()
 
 	ctx, cancel := cli.GetContext()
 	defer cancel()
+
+	var rep *resource_cluster_api_grpc_pb.ActionReply
 	if cli.conf.Default.EnableTest {
-		rep, err = cli.localServer.GetNode(ctx, req)
+		rep, err = cli.localServer.Action(ctx, req)
 	} else {
 		grpcClient := resource_cluster_api_grpc_pb.NewResourceClusterApiClient(conn)
-		rep, err = grpcClient.GetNode(ctx, req)
-		glog.Info(err)
+		rep, err = grpcClient.Action(ctx, req)
 	}
 
 	return rep, err
 }
 
-func (cli *ResourceClusterApiClient) UpdateNode(req *resource_cluster_api_grpc_pb.UpdateNodeRequest) (*resource_cluster_api_grpc_pb.UpdateNodeReply, error) {
-	var rep *resource_cluster_api_grpc_pb.UpdateNodeReply
+func (cli *ResourceClusterApiClient) UpdateNode(tctx *logger.TraceContext, node *resource_cluster_api_grpc_pb.Node) (*resource_cluster_api_grpc_pb.UpdateNodeReply, error) {
 	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	atctx := logger.NewAuthproxyTraceContext(tctx, nil)
+	atctx.ActionName = "UpdateNode"
+
+	req := &resource_cluster_api_grpc_pb.UpdateNodeRequest{
+		Tctx: atctx,
+		Node: node,
+	}
 
 	conn, err := cli.NewClientConnection()
-	defer conn.Close()
 	if err != nil {
-		return rep, err
+		return nil, err
 	}
+	defer func() { err = conn.Close() }()
 
 	ctx, cancel := cli.GetContext()
 	defer cancel()
 
+	var rep *resource_cluster_api_grpc_pb.UpdateNodeReply
 	if cli.conf.Default.EnableTest {
 		rep, err = cli.localServer.UpdateNode(ctx, req)
 	} else {
 		grpcClient := resource_cluster_api_grpc_pb.NewResourceClusterApiClient(conn)
 		rep, err = grpcClient.UpdateNode(ctx, req)
-	}
-
-	return rep, err
-}
-
-//
-// Compute
-//
-func (cli *ResourceClusterApiClient) GetCompute(req *resource_cluster_api_grpc_pb.GetComputeRequest) (*resource_cluster_api_grpc_pb.GetComputeReply, error) {
-	var rep *resource_cluster_api_grpc_pb.GetComputeReply
-	var err error
-	conn, err := cli.NewClientConnection()
-	defer conn.Close()
-	if err != nil {
-		return rep, err
-	}
-
-	ctx, cancel := cli.GetContext()
-	defer cancel()
-	if cli.conf.Default.EnableTest {
-		rep, err = cli.localServer.GetCompute(ctx, req)
-	} else {
-		grpcClient := resource_cluster_api_grpc_pb.NewResourceClusterApiClient(conn)
-		rep, err = grpcClient.GetCompute(ctx, req)
-	}
-
-	return rep, err
-}
-
-func (cli *ResourceClusterApiClient) CreateCompute(req *resource_cluster_api_grpc_pb.CreateComputeRequest) (*resource_cluster_api_grpc_pb.CreateComputeReply, error) {
-	var rep *resource_cluster_api_grpc_pb.CreateComputeReply
-	var err error
-	conn, err := cli.NewClientConnection()
-	defer conn.Close()
-	if err != nil {
-		return rep, err
-	}
-
-	ctx, cancel := cli.GetContext()
-	defer cancel()
-	if cli.conf.Default.EnableTest {
-		rep, err = cli.localServer.CreateCompute(ctx, req)
-	} else {
-		grpcClient := resource_cluster_api_grpc_pb.NewResourceClusterApiClient(conn)
-		rep, err = grpcClient.CreateCompute(ctx, req)
-	}
-
-	return rep, err
-}
-
-func (cli *ResourceClusterApiClient) UpdateCompute(req *resource_cluster_api_grpc_pb.UpdateComputeRequest) (*resource_cluster_api_grpc_pb.UpdateComputeReply, error) {
-	var rep *resource_cluster_api_grpc_pb.UpdateComputeReply
-	var err error
-	conn, err := cli.NewClientConnection()
-	defer conn.Close()
-	if err != nil {
-		return rep, err
-	}
-
-	ctx, cancel := cli.GetContext()
-	defer cancel()
-	if cli.conf.Default.EnableTest {
-		rep, err = cli.localServer.UpdateCompute(ctx, req)
-	} else {
-		grpcClient := resource_cluster_api_grpc_pb.NewResourceClusterApiClient(conn)
-		rep, err = grpcClient.UpdateCompute(ctx, req)
-	}
-
-	return rep, err
-}
-
-func (cli *ResourceClusterApiClient) DeleteCompute(req *resource_cluster_api_grpc_pb.DeleteComputeRequest) (*resource_cluster_api_grpc_pb.DeleteComputeReply, error) {
-	var rep *resource_cluster_api_grpc_pb.DeleteComputeReply
-	var err error
-	conn, err := cli.NewClientConnection()
-	defer conn.Close()
-	if err != nil {
-		return rep, err
-	}
-
-	ctx, cancel := cli.GetContext()
-	defer cancel()
-	if cli.conf.Default.EnableTest {
-		rep, err = cli.localServer.DeleteCompute(ctx, req)
-	} else {
-		grpcClient := resource_cluster_api_grpc_pb.NewResourceClusterApiClient(conn)
-		rep, err = grpcClient.DeleteCompute(ctx, req)
 	}
 
 	return rep, err

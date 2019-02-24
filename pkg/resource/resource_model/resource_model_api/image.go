@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"net/url"
 	"strings"
+	"time"
 
-	_ "github.com/go-sql-driver/mysql"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/jinzhu/gorm"
 
@@ -16,47 +16,54 @@ import (
 	"github.com/syunkitada/goapp/pkg/resource/resource_model"
 )
 
-func (modelApi *ResourceModelApi) GetImage(tctx *logger.TraceContext, req *resource_api_grpc_pb.GetImageRequest) *resource_api_grpc_pb.GetImageReply {
-	rep := &resource_api_grpc_pb.GetImageReply{}
+func (modelApi *ResourceModelApi) GetImage(tctx *logger.TraceContext, req *resource_api_grpc_pb.ActionRequest, rep *resource_api_grpc_pb.ActionReply) {
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
-	db, err := gorm.Open("mysql", modelApi.conf.Resource.Database.Connection)
-	defer db.Close()
-	if err != nil {
-		rep.Err = err.Error()
-		rep.StatusCode = codes.RemoteDbError
-		return rep
+	var db *gorm.DB
+	if db, err = modelApi.open(tctx); err != nil {
+		rep.Tctx.Err = err.Error()
+		rep.Tctx.StatusCode = codes.RemoteDbError
+		return
 	}
-	db.LogMode(modelApi.conf.Default.EnableDatabaseLog)
+	defer func() { err = db.Close() }()
 
 	var images []resource_model.Image
-	if err = db.Where("name like ?", req.Target).Find(&images).Error; err != nil {
-		rep.Err = err.Error()
-		rep.StatusCode = codes.RemoteDbError
-		return rep
+	if req.Target == "" {
+		err = db.Find(&images).Error
+	} else {
+		err = db.Where("name like ?", req.Target).Find(&images).Error
+	}
+	if err != nil {
+		rep.Tctx.Err = err.Error()
+		rep.Tctx.StatusCode = codes.RemoteDbError
+		return
 	}
 
 	rep.Images = modelApi.convertImages(tctx, images)
-	rep.StatusCode = codes.Ok
-	return rep
+	rep.Tctx.StatusCode = codes.Ok
+	return
 }
 
-func (modelApi *ResourceModelApi) CreateImage(req *resource_api_grpc_pb.CreateImageRequest) *resource_api_grpc_pb.CreateImageReply {
-	rep := &resource_api_grpc_pb.CreateImageReply{}
+func (modelApi *ResourceModelApi) CreateImage(tctx *logger.TraceContext, req *resource_api_grpc_pb.ActionRequest, rep *resource_api_grpc_pb.ActionReply) {
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
-	db, err := gorm.Open("mysql", modelApi.conf.Resource.Database.Connection)
-	defer db.Close()
-	if err != nil {
-		rep.Err = err.Error()
-		rep.StatusCode = codes.RemoteDbError
-		return rep
+	var db *gorm.DB
+	if db, err = modelApi.open(tctx); err != nil {
+		rep.Tctx.Err = err.Error()
+		rep.Tctx.StatusCode = codes.RemoteDbError
+		return
 	}
-	db.LogMode(modelApi.conf.Default.EnableDatabaseLog)
+	defer func() { err = db.Close() }()
 
 	spec, statusCode, err := modelApi.validateImageSpec(db, req.Spec)
 	if err != nil {
-		rep.Err = err.Error()
-		rep.StatusCode = statusCode
-		return rep
+		rep.Tctx.Err = err.Error()
+		rep.Tctx.StatusCode = statusCode
+		return
 	}
 
 	var image resource_model.Image
@@ -64,9 +71,9 @@ func (modelApi *ResourceModelApi) CreateImage(req *resource_api_grpc_pb.CreateIm
 	defer tx.Rollback()
 	if err = tx.Where("name = ? and cluster = ?", spec.Name, spec.Cluster).First(&image).Error; err != nil {
 		if !gorm.IsRecordNotFoundError(err) {
-			rep.Err = err.Error()
-			rep.StatusCode = codes.RemoteDbError
-			return rep
+			rep.Tctx.Err = err.Error()
+			rep.Tctx.StatusCode = codes.RemoteDbError
+			return
 		}
 
 		image = resource_model.Image{
@@ -75,103 +82,125 @@ func (modelApi *ResourceModelApi) CreateImage(req *resource_api_grpc_pb.CreateIm
 			Name:         spec.Name,
 			Spec:         req.Spec,
 			Status:       resource_model.StatusActive,
-			StatusReason: fmt.Sprintf("CreateImage: user=%v, project=%v", req.UserName, req.ProjectName),
+			StatusReason: fmt.Sprintf("CreateImage: user=%v, project=%v", req.Tctx.UserName, req.Tctx.ProjectName),
 		}
 		if err = tx.Create(&image).Error; err != nil {
-			rep.Err = err.Error()
-			rep.StatusCode = codes.RemoteDbError
-			return rep
+			rep.Tctx.Err = err.Error()
+			rep.Tctx.StatusCode = codes.RemoteDbError
+			return
 		}
 	} else {
-		rep.Err = fmt.Sprintf("Already Exists: cluster=%v, name=%v",
-			spec.Cluster, spec.Name)
-		rep.StatusCode = codes.ClientAlreadyExists
-		return rep
+		rep.Tctx.Err = fmt.Sprintf("Already Exists: cluster=%v, name=%v", spec.Cluster, spec.Name)
+		rep.Tctx.StatusCode = codes.ClientAlreadyExists
+		return
 	}
 	tx.Commit()
 
 	imagePb, err := modelApi.convertImage(&image)
 	if err != nil {
-		rep.Err = err.Error()
-		rep.StatusCode = codes.ServerInternalError
-		return rep
+		rep.Tctx.Err = err.Error()
+		rep.Tctx.StatusCode = codes.ServerInternalError
+		return
 	}
 
-	rep.Image = imagePb
-	rep.StatusCode = codes.Ok
-	return rep
+	rep.Images = []*resource_api_grpc_pb.Image{imagePb}
+	rep.Tctx.StatusCode = codes.Ok
+	return
 }
 
-func (modelApi *ResourceModelApi) UpdateImage(req *resource_api_grpc_pb.UpdateImageRequest) *resource_api_grpc_pb.UpdateImageReply {
-	rep := &resource_api_grpc_pb.UpdateImageReply{}
+func (modelApi *ResourceModelApi) UpdateImage(tctx *logger.TraceContext, req *resource_api_grpc_pb.ActionRequest, rep *resource_api_grpc_pb.ActionReply) {
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
-	db, err := gorm.Open("mysql", modelApi.conf.Resource.Database.Connection)
-	defer db.Close()
-	if err != nil {
-		rep.Err = err.Error()
-		rep.StatusCode = codes.RemoteDbError
-		return rep
+	var db *gorm.DB
+	if db, err = modelApi.open(tctx); err != nil {
+		rep.Tctx.Err = err.Error()
+		rep.Tctx.StatusCode = codes.RemoteDbError
+		return
 	}
-	db.LogMode(modelApi.conf.Default.EnableDatabaseLog)
+	defer func() { err = db.Close() }()
 
 	spec, statusCode, err := modelApi.validateImageSpec(db, req.Spec)
 	if err != nil {
-		rep.Err = err.Error()
-		rep.StatusCode = statusCode
-		return rep
+		rep.Tctx.Err = err.Error()
+		rep.Tctx.StatusCode = statusCode
+		return
 	}
 
 	tx := db.Begin()
 	defer tx.Rollback()
 	var image resource_model.Image
-	if err = tx.Where("name = ? and cluster = ?", spec.Name, spec.Cluster).First(&image).Error; err != nil {
-		rep.Err = err.Error()
-		rep.StatusCode = codes.RemoteDbError
-		return rep
+	if err = tx.Model(&image).Where(resource_model.Image{
+		Name:    spec.Name,
+		Cluster: spec.Cluster,
+	}).Updates(resource_model.Image{
+		Spec:         req.Spec,
+		Status:       resource_model.StatusActive,
+		StatusReason: fmt.Sprintf("UpdateImage: user=%v, project=%v", req.Tctx.UserName, req.Tctx.ProjectName),
+	}).Error; err != nil {
+		rep.Tctx.Err = err.Error()
+		rep.Tctx.StatusCode = codes.RemoteDbError
+		return
 	}
 
-	image.Spec = req.Spec
-	image.Status = resource_model.StatusActive
-	image.StatusReason = fmt.Sprintf("UpdateImage: user=%v, project=%v", req.UserName, req.ProjectName)
-	tx.Save(image)
+	imagePb, err := modelApi.convertImage(&image)
+	if err != nil {
+		rep.Tctx.Err = err.Error()
+		rep.Tctx.StatusCode = codes.ServerInternalError
+		return
+	}
+
+	imagePb.Name = spec.Name
+	imagePb.Cluster = spec.Cluster
+	rep.Images = []*resource_api_grpc_pb.Image{imagePb}
+	rep.Tctx.StatusCode = codes.Ok
+}
+
+func (modelApi *ResourceModelApi) DeleteImage(tctx *logger.TraceContext, req *resource_api_grpc_pb.ActionRequest, rep *resource_api_grpc_pb.ActionReply) {
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	var db *gorm.DB
+	if db, err = modelApi.open(tctx); err != nil {
+		rep.Tctx.Err = err.Error()
+		rep.Tctx.StatusCode = codes.RemoteDbError
+		return
+	}
+	defer func() { err = db.Close() }()
+
+	tx := db.Begin()
+	defer tx.Rollback()
+	var image resource_model.Image
+	now := time.Now()
+	if err = tx.Model(&image).Where(resource_model.Image{
+		Name:    req.Target,
+		Cluster: req.Cluster,
+	}).Updates(resource_model.Image{
+		Model: gorm.Model{
+			DeletedAt: &now,
+		},
+		Status:       resource_model.StatusDeleted,
+		StatusReason: fmt.Sprintf("DeleteImage: user=%v, project=%v", req.Tctx.UserName, req.Tctx.ProjectName),
+	}).Error; err != nil {
+		rep.Tctx.Err = err.Error()
+		rep.Tctx.StatusCode = codes.RemoteDbError
+		return
+	}
 	tx.Commit()
 
 	imagePb, err := modelApi.convertImage(&image)
 	if err != nil {
-		rep.Err = err.Error()
-		rep.StatusCode = codes.ServerInternalError
-		return rep
+		rep.Tctx.Err = err.Error()
+		rep.Tctx.StatusCode = codes.ServerInternalError
+		return
 	}
 
-	rep.Image = imagePb
-	rep.StatusCode = codes.Ok
-	return rep
-}
-
-func (modelApi *ResourceModelApi) DeleteImage(req *resource_api_grpc_pb.DeleteImageRequest) *resource_api_grpc_pb.DeleteImageReply {
-	rep := &resource_api_grpc_pb.DeleteImageReply{}
-
-	db, err := gorm.Open("mysql", modelApi.conf.Resource.Database.Connection)
-	defer db.Close()
-	if err != nil {
-		rep.Err = err.Error()
-		rep.StatusCode = codes.RemoteDbError
-		return rep
-	}
-	db.LogMode(modelApi.conf.Default.EnableDatabaseLog)
-
-	tx := db.Begin()
-	defer tx.Rollback()
-	var image resource_model.Image
-	if err = tx.Where("name = ?", req.Target).Delete(&image).Error; err != nil {
-		rep.Err = err.Error()
-		rep.StatusCode = codes.RemoteDbError
-		return rep
-	}
-	tx.Commit()
-
-	rep.StatusCode = codes.Ok
-	return rep
+	imagePb.Name = req.Target
+	imagePb.Cluster = req.Cluster
+	rep.Images = []*resource_api_grpc_pb.Image{imagePb}
+	rep.Tctx.StatusCode = codes.Ok
 }
 
 func (modelApi *ResourceModelApi) convertImages(tctx *logger.TraceContext, images []resource_model.Image) []*resource_api_grpc_pb.Image {

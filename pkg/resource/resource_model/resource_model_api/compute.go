@@ -3,9 +3,10 @@ package resource_model_api
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"strings"
+	"time"
 
-	_ "github.com/go-sql-driver/mysql"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/jinzhu/gorm"
 
@@ -16,47 +17,54 @@ import (
 	"github.com/syunkitada/goapp/pkg/resource/resource_model"
 )
 
-func (modelApi *ResourceModelApi) GetCompute(tctx *logger.TraceContext, req *resource_api_grpc_pb.GetComputeRequest) *resource_api_grpc_pb.GetComputeReply {
-	rep := &resource_api_grpc_pb.GetComputeReply{}
+func (modelApi *ResourceModelApi) GetCompute(tctx *logger.TraceContext, req *resource_api_grpc_pb.ActionRequest, rep *resource_api_grpc_pb.ActionReply) {
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
-	db, err := gorm.Open("mysql", modelApi.conf.Resource.Database.Connection)
-	defer db.Close()
-	if err != nil {
-		rep.Err = err.Error()
-		rep.StatusCode = codes.RemoteDbError
-		return rep
+	var db *gorm.DB
+	if db, err = modelApi.open(tctx); err != nil {
+		rep.Tctx.Err = err.Error()
+		rep.Tctx.StatusCode = codes.RemoteDbError
+		return
 	}
-	db.LogMode(modelApi.conf.Default.EnableDatabaseLog)
+	defer func() { err = db.Close() }()
 
 	var computes []resource_model.Compute
-	if err = db.Where("name like ?", req.Target).Find(&computes).Error; err != nil {
-		rep.Err = err.Error()
-		rep.StatusCode = codes.RemoteDbError
-		return rep
+	if req.Target == "" {
+		err = db.Find(&computes).Error
+	} else {
+		err = db.Where("name like ?", req.Target).Find(&computes).Error
+	}
+	if err != nil {
+		rep.Tctx.Err = err.Error()
+		rep.Tctx.StatusCode = codes.RemoteDbError
+		return
 	}
 
 	rep.Computes = modelApi.convertComputes(tctx, computes)
-	rep.StatusCode = codes.Ok
-	return rep
+	rep.Tctx.StatusCode = codes.Ok
+	return
 }
 
-func (modelApi *ResourceModelApi) CreateCompute(req *resource_api_grpc_pb.CreateComputeRequest) *resource_api_grpc_pb.CreateComputeReply {
-	rep := &resource_api_grpc_pb.CreateComputeReply{}
+func (modelApi *ResourceModelApi) CreateCompute(tctx *logger.TraceContext, req *resource_api_grpc_pb.ActionRequest, rep *resource_api_grpc_pb.ActionReply) {
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
-	db, err := gorm.Open("mysql", modelApi.conf.Resource.Database.Connection)
-	defer db.Close()
-	if err != nil {
-		rep.Err = err.Error()
-		rep.StatusCode = codes.RemoteDbError
-		return rep
+	var db *gorm.DB
+	if db, err = modelApi.open(tctx); err != nil {
+		rep.Tctx.Err = err.Error()
+		rep.Tctx.StatusCode = codes.RemoteDbError
+		return
 	}
-	db.LogMode(modelApi.conf.Default.EnableDatabaseLog)
+	defer func() { err = db.Close() }()
 
 	spec, statusCode, err := modelApi.validateComputeSpec(db, req.Spec)
 	if err != nil {
-		rep.Err = err.Error()
-		rep.StatusCode = statusCode
-		return rep
+		rep.Tctx.Err = err.Error()
+		rep.Tctx.StatusCode = statusCode
+		return
 	}
 
 	var compute resource_model.Compute
@@ -64,114 +72,137 @@ func (modelApi *ResourceModelApi) CreateCompute(req *resource_api_grpc_pb.Create
 	defer tx.Rollback()
 	if err = tx.Where("name = ? and cluster = ?", spec.Name, spec.Cluster).First(&compute).Error; err != nil {
 		if !gorm.IsRecordNotFoundError(err) {
-			rep.Err = err.Error()
-			rep.StatusCode = codes.RemoteDbError
-			return rep
+			rep.Tctx.Err = err.Error()
+			rep.Tctx.StatusCode = codes.RemoteDbError
+			return
 		}
 
 		compute = resource_model.Compute{
 			Cluster:      spec.Cluster,
 			Kind:         spec.Kind,
 			Name:         spec.Name,
+			Domain:       spec.Spec.Domain,
 			Spec:         req.Spec,
-			Status:       resource_model.StatusActive,
-			StatusReason: fmt.Sprintf("CreateCompute: user=%v, project=%v", req.UserName, req.ProjectName),
+			Status:       resource_model.StatusCreating,
+			StatusReason: fmt.Sprintf("CreateCompute: user=%v, project=%v", req.Tctx.UserName, req.Tctx.ProjectName),
 		}
 		if err = tx.Create(&compute).Error; err != nil {
-			rep.Err = err.Error()
-			rep.StatusCode = codes.RemoteDbError
-			return rep
+			rep.Tctx.Err = err.Error()
+			rep.Tctx.StatusCode = codes.RemoteDbError
+			return
 		}
 	} else {
-		rep.Err = fmt.Sprintf("Already Exists: cluster=%v, name=%v",
-			spec.Cluster, spec.Name)
-		rep.StatusCode = codes.ClientAlreadyExists
-		return rep
+		rep.Tctx.Err = fmt.Sprintf("Already Exists: cluster=%v, name=%v", spec.Cluster, spec.Name)
+		rep.Tctx.StatusCode = codes.ClientAlreadyExists
+		return
 	}
 	tx.Commit()
 
 	computePb, err := modelApi.convertCompute(&compute)
 	if err != nil {
-		rep.Err = err.Error()
-		rep.StatusCode = codes.ServerInternalError
-		return rep
+		rep.Tctx.Err = err.Error()
+		rep.Tctx.StatusCode = codes.ServerInternalError
+		return
 	}
 
-	rep.Compute = computePb
-	rep.StatusCode = codes.Ok
-	return rep
+	rep.Computes = []*resource_api_grpc_pb.Compute{computePb}
+	rep.Tctx.StatusCode = codes.Ok
+	return
 }
 
-func (modelApi *ResourceModelApi) UpdateCompute(req *resource_api_grpc_pb.UpdateComputeRequest) *resource_api_grpc_pb.UpdateComputeReply {
-	rep := &resource_api_grpc_pb.UpdateComputeReply{}
+func (modelApi *ResourceModelApi) UpdateCompute(tctx *logger.TraceContext, req *resource_api_grpc_pb.ActionRequest, rep *resource_api_grpc_pb.ActionReply) {
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
-	db, err := gorm.Open("mysql", modelApi.conf.Resource.Database.Connection)
-	defer db.Close()
-	if err != nil {
-		rep.Err = err.Error()
-		rep.StatusCode = codes.RemoteDbError
-		return rep
+	var db *gorm.DB
+	if db, err = modelApi.open(tctx); err != nil {
+		rep.Tctx.Err = err.Error()
+		rep.Tctx.StatusCode = codes.RemoteDbError
+		return
 	}
-	db.LogMode(modelApi.conf.Default.EnableDatabaseLog)
+	defer func() { err = db.Close() }()
 
 	spec, statusCode, err := modelApi.validateComputeSpec(db, req.Spec)
 	if err != nil {
-		rep.Err = err.Error()
-		rep.StatusCode = statusCode
-		return rep
+		rep.Tctx.Err = err.Error()
+		rep.Tctx.StatusCode = statusCode
+		return
 	}
 
 	tx := db.Begin()
 	defer tx.Rollback()
 	var compute resource_model.Compute
-	if err = tx.Where("name = ? and cluster = ?", spec.Name, spec.Cluster).First(&compute).Error; err != nil {
-		rep.Err = err.Error()
-		rep.StatusCode = codes.RemoteDbError
-		return rep
+	if err = tx.Model(&compute).Where(resource_model.Compute{
+		Name:    spec.Name,
+		Cluster: spec.Cluster,
+	}).Updates(resource_model.Compute{
+		Spec:         req.Spec,
+		Status:       resource_model.StatusActive,
+		StatusReason: fmt.Sprintf("UpdateCompute: user=%v, project=%v", req.Tctx.UserName, req.Tctx.ProjectName),
+	}).Error; err != nil {
+		rep.Tctx.Err = err.Error()
+		rep.Tctx.StatusCode = codes.RemoteDbError
+		return
 	}
 
-	compute.Spec = req.Spec
-	compute.Status = resource_model.StatusActive
-	compute.StatusReason = fmt.Sprintf("UpdateCompute: user=%v, project=%v", req.UserName, req.ProjectName)
-	tx.Save(compute)
+	computePb, err := modelApi.convertCompute(&compute)
+	if err != nil {
+		rep.Tctx.Err = err.Error()
+		rep.Tctx.StatusCode = codes.ServerInternalError
+		return
+	}
+	computePb.Name = spec.Name
+	computePb.Cluster = spec.Cluster
+
+	rep.Computes = []*resource_api_grpc_pb.Compute{computePb}
+	rep.Tctx.StatusCode = codes.Ok
+}
+
+func (modelApi *ResourceModelApi) DeleteCompute(tctx *logger.TraceContext, req *resource_api_grpc_pb.ActionRequest, rep *resource_api_grpc_pb.ActionReply) {
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	var db *gorm.DB
+	if db, err = modelApi.open(tctx); err != nil {
+		rep.Tctx.Err = err.Error()
+		rep.Tctx.StatusCode = codes.RemoteDbError
+		return
+	}
+	defer func() { err = db.Close() }()
+
+	tx := db.Begin()
+	defer tx.Rollback()
+	var compute resource_model.Compute
+	now := time.Now()
+	if err = tx.Model(&compute).Where(resource_model.Compute{
+		Name:    req.Target,
+		Cluster: req.Cluster,
+	}).Updates(resource_model.Compute{
+		Model: gorm.Model{
+			DeletedAt: &now,
+		},
+		Status:       resource_model.StatusDeleted,
+		StatusReason: fmt.Sprintf("DeleteCompute: user=%v, project=%v", req.Tctx.UserName, req.Tctx.ProjectName),
+	}).Error; err != nil {
+		rep.Tctx.Err = err.Error()
+		rep.Tctx.StatusCode = codes.RemoteDbError
+		return
+	}
 	tx.Commit()
 
 	computePb, err := modelApi.convertCompute(&compute)
 	if err != nil {
-		rep.Err = err.Error()
-		rep.StatusCode = codes.ServerInternalError
-		return rep
+		rep.Tctx.Err = err.Error()
+		rep.Tctx.StatusCode = codes.ServerInternalError
+		return
 	}
 
-	rep.Compute = computePb
-	rep.StatusCode = codes.Ok
-	return rep
-}
-
-func (modelApi *ResourceModelApi) DeleteCompute(req *resource_api_grpc_pb.DeleteComputeRequest) *resource_api_grpc_pb.DeleteComputeReply {
-	rep := &resource_api_grpc_pb.DeleteComputeReply{}
-
-	db, err := gorm.Open("mysql", modelApi.conf.Resource.Database.Connection)
-	defer db.Close()
-	if err != nil {
-		rep.Err = err.Error()
-		rep.StatusCode = codes.RemoteDbError
-		return rep
-	}
-	db.LogMode(modelApi.conf.Default.EnableDatabaseLog)
-
-	tx := db.Begin()
-	defer tx.Rollback()
-	var compute resource_model.Compute
-	if err = tx.Where("name = ?", req.Target).Delete(&compute).Error; err != nil {
-		rep.Err = err.Error()
-		rep.StatusCode = codes.RemoteDbError
-		return rep
-	}
-	tx.Commit()
-
-	rep.StatusCode = codes.Ok
-	return rep
+	computePb.Name = req.Target
+	computePb.Cluster = req.Cluster
+	rep.Computes = []*resource_api_grpc_pb.Compute{computePb}
+	rep.Tctx.StatusCode = codes.Ok
 }
 
 func (modelApi *ResourceModelApi) convertComputes(tctx *logger.TraceContext, computes []resource_model.Compute) []*resource_api_grpc_pb.Compute {
@@ -263,35 +294,36 @@ func (modelApi *ResourceModelApi) validateComputeSpec(db *gorm.DB, specStr strin
 
 func (modelApi *ResourceModelApi) SyncCompute(tctx *logger.TraceContext) error {
 	var err error
-	db, err := gorm.Open("mysql", modelApi.conf.Resource.Database.Connection)
-	defer db.Close()
-	if err != nil {
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	var db *gorm.DB
+	if db, err = modelApi.open(tctx); err != nil {
 		return err
 	}
-	db.LogMode(modelApi.conf.Default.EnableDatabaseLog)
+	defer func() { err = db.Close() }()
 
 	var computes []resource_model.Compute
 	if err = db.Find(&computes).Error; err != nil {
 		return err
 	}
 
-	computeMap := map[string]resource_cluster_api_grpc_pb.Compute{}
-	req := resource_cluster_api_grpc_pb.GetComputeRequest{Target: "%"}
+	computeMap := map[uint64]resource_cluster_api_grpc_pb.Compute{}
 	for clusterName, clusterClient := range modelApi.clusterClientMap {
-		result, err := clusterClient.GetCompute(&req)
+		result, err := clusterClient.GetCompute(tctx, "")
 		if err != nil {
 			logger.Errorf(tctx, err, "Failed GetCompute from %v", clusterName)
 		}
 		for _, compute := range result.Computes {
-			computeMap[compute.FullName] = *compute
+			computeMap[compute.Compute.Id] = *compute
 		}
 	}
 
 	for _, compute := range computes {
+		tctx.Metadata["ComputeId"] = strconv.FormatUint(uint64(compute.ID), 10)
 		switch compute.Status {
 		case resource_model.StatusCreating:
-			logger.Infof(tctx, "Found %v resource: %v", compute.Status, compute.Name)
-			modelApi.InitializeCompute(db, &compute, computeMap)
+			modelApi.InitializeCompute(tctx, db, &compute)
 		case resource_model.StatusCreatingInitialized:
 			logger.Infof(tctx, "Found %v resource: %v", compute.Status, compute.Name)
 		case resource_model.StatusCreatingScheduled:
@@ -305,13 +337,26 @@ func (modelApi *ResourceModelApi) SyncCompute(tctx *logger.TraceContext) error {
 		case resource_model.StatusDeletingScheduled:
 			logger.Infof(tctx, "Found %v resource: %v", compute.Status, compute.Name)
 		}
+		tctx.Metadata = map[string]string{}
 	}
 
 	return nil
 }
 
-func (modelApi *ResourceModelApi) InitializeCompute(db *gorm.DB, compute *resource_model.Compute, computeMap map[string]resource_cluster_api_grpc_pb.Compute) error {
-	// TODO
-	// Assgin IP address
-	return nil
+func (modelApi *ResourceModelApi) InitializeCompute(tctx *logger.TraceContext, db *gorm.DB, compute *resource_model.Compute) {
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	if err = modelApi.AssignPort(tctx, db, compute); err != nil {
+		return
+	}
+
+	if err = modelApi.RegisterRecord(tctx, db, compute); err != nil {
+		return
+	}
+
+	// Update Creating Initialized
+
+	return
 }

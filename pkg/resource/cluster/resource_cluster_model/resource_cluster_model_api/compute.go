@@ -3,118 +3,228 @@ package resource_cluster_model_api
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
+	"time"
 
-	"github.com/golang/glog"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/jinzhu/gorm"
 
+	"github.com/syunkitada/goapp/pkg/lib/codes"
+	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_api/resource_cluster_api_grpc_pb"
 	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_model"
+	"github.com/syunkitada/goapp/pkg/resource/resource_api/resource_api_grpc_pb"
 	"github.com/syunkitada/goapp/pkg/resource/resource_model"
 )
 
-func (modelApi *ResourceClusterModelApi) GetCompute(req *resource_cluster_api_grpc_pb.GetComputeRequest) (*resource_cluster_api_grpc_pb.GetComputeReply, error) {
+func (modelApi *ResourceClusterModelApi) GetCompute(tctx *logger.TraceContext, req *resource_cluster_api_grpc_pb.ActionRequest, rep *resource_cluster_api_grpc_pb.ActionReply) {
 	var err error
-	db, err := gorm.Open("mysql", modelApi.cluster.Database.Connection)
-	defer db.Close()
-	if err != nil {
-		return nil, err
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	var db *gorm.DB
+	if db, err = modelApi.open(tctx); err != nil {
+		rep.Tctx.Err = err.Error()
+		rep.Tctx.StatusCode = codes.RemoteDbError
+		return
 	}
-	db.LogMode(modelApi.conf.Default.EnableDatabaseLog)
+	defer func() { err = db.Close() }()
 
 	var computes []resource_cluster_model.Compute
-	if err = db.Where("name like ?", req.Target).Find(&computes).Error; err != nil {
-		return nil, err
+	if req.Target == "" {
+		err = db.Find(&computes).Error
+	} else {
+		err = db.Where("name like ?", req.Target).Find(&computes).Error
+	}
+	if err != nil {
+		rep.Tctx.Err = err.Error()
+		rep.Tctx.StatusCode = codes.RemoteDbError
+		return
 	}
 
-	return &resource_cluster_api_grpc_pb.GetComputeReply{
-		Computes: modelApi.convertComputes(computes),
-	}, nil
+	rep.Computes = modelApi.convertComputes(tctx, computes)
+	rep.Tctx.StatusCode = codes.Ok
+	return
 }
 
-func (modelApi *ResourceClusterModelApi) CreateCompute(req *resource_cluster_api_grpc_pb.CreateComputeRequest) (*resource_cluster_api_grpc_pb.CreateComputeReply, error) {
-	rep := &resource_cluster_api_grpc_pb.CreateComputeReply{}
+func (modelApi *ResourceClusterModelApi) CreateCompute(tctx *logger.TraceContext, req *resource_cluster_api_grpc_pb.ActionRequest, rep *resource_cluster_api_grpc_pb.ActionReply) {
 	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
-	db, err := gorm.Open("mysql", modelApi.cluster.Database.Connection)
-	defer db.Close()
+	var db *gorm.DB
+	if db, err = modelApi.open(tctx); err != nil {
+		rep.Tctx.Err = err.Error()
+		rep.Tctx.StatusCode = codes.RemoteDbError
+		return
+	}
+	defer func() { err = db.Close() }()
+
+	spec, statusCode, err := modelApi.validateComputeSpec(db, req.Spec)
 	if err != nil {
-		return rep, err
+		rep.Tctx.Err = err.Error()
+		rep.Tctx.StatusCode = statusCode
+		return
 	}
-	db.LogMode(modelApi.conf.Default.EnableDatabaseLog)
-	glog.Info(req.Spec)
-
-	var spec resource_model.ComputeSpec
-	if err = json.Unmarshal([]byte(req.Spec), &spec); err != nil {
-		return rep, err
-	}
-	glog.Info(spec.Name)
-
-	// TODO Validate projectRole
-	// TODO Validate cluster
-	// TODO Validate spec
 
 	var compute resource_cluster_model.Compute
-	if err = db.Where("name = ? and cluster = ?", spec.Name, spec.Cluster).First(&compute).Error; err != nil {
+	tx := db.Begin()
+	defer tx.Rollback()
+	if err = tx.Where("name = ? and cluster = ?", spec.Name, spec.Cluster).First(&compute).Error; err != nil {
 		if !gorm.IsRecordNotFoundError(err) {
-			return rep, err
+			rep.Tctx.Err = err.Error()
+			rep.Tctx.StatusCode = codes.RemoteDbError
+			return
 		}
 
 		compute = resource_cluster_model.Compute{
 			Kind:         spec.Kind,
 			Name:         spec.Name,
 			Spec:         req.Spec,
-			Status:       resource_model.StatusCreating,
-			StatusReason: req.StatusReason,
+			Status:       resource_cluster_model.StatusCreating,
+			StatusReason: fmt.Sprintf("CreateCompute: user=%v, project=%v", req.Tctx.UserName, req.Tctx.ProjectName),
 		}
-		if err = db.Create(&compute).Error; err != nil {
-			return rep, err
+		if err = tx.Create(&compute).Error; err != nil {
+			rep.Tctx.Err = err.Error()
+			rep.Tctx.StatusCode = codes.RemoteDbError
+			return
 		}
 	} else {
-		return rep, fmt.Errorf("Already Exists: cluster=%v, kind=%v, name=%v",
-			spec.Cluster, spec.Kind, spec.Name)
+		rep.Tctx.Err = fmt.Sprintf("Already Exists: cluster=%v, name=%v", spec.Cluster, spec.Name)
+		rep.Tctx.StatusCode = codes.ClientAlreadyExists
+		return
+	}
+	tx.Commit()
+
+	computePb, err := modelApi.convertCompute(&compute)
+	if err != nil {
+		rep.Tctx.Err = err.Error()
+		rep.Tctx.StatusCode = codes.ServerInternalError
+		return
+	}
+
+	rep.Computes = []*resource_cluster_api_grpc_pb.Compute{computePb}
+	rep.Tctx.StatusCode = codes.Ok
+	return
+}
+
+func (modelApi *ResourceClusterModelApi) UpdateCompute(tctx *logger.TraceContext, req *resource_cluster_api_grpc_pb.ActionRequest, rep *resource_cluster_api_grpc_pb.ActionReply) {
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	var db *gorm.DB
+	if db, err = modelApi.open(tctx); err != nil {
+		rep.Tctx.Err = err.Error()
+		rep.Tctx.StatusCode = codes.RemoteDbError
+		return
+	}
+	defer func() { err = db.Close() }()
+
+	spec, statusCode, err := modelApi.validateComputeSpec(db, req.Spec)
+	if err != nil {
+		rep.Tctx.Err = err.Error()
+		rep.Tctx.StatusCode = statusCode
+		return
+	}
+
+	tx := db.Begin()
+	defer tx.Rollback()
+	var compute resource_cluster_model.Compute
+	if err = tx.Model(&compute).Where(resource_cluster_model.Compute{
+		Name: spec.Name,
+	}).Updates(resource_cluster_model.Compute{
+		Spec:         req.Spec,
+		Status:       resource_cluster_model.StatusUpdating,
+		StatusReason: fmt.Sprintf("UpdateCompute: user=%v, project=%v", req.Tctx.UserName, req.Tctx.ProjectName),
+	}).Error; err != nil {
+		rep.Tctx.Err = err.Error()
+		rep.Tctx.StatusCode = codes.RemoteDbError
+		return
 	}
 
 	computePb, err := modelApi.convertCompute(&compute)
 	if err != nil {
-		return rep, err
+		rep.Tctx.Err = err.Error()
+		rep.Tctx.StatusCode = codes.ServerInternalError
+		return
 	}
-	rep.Compute = computePb
-	glog.Info("Completed CreateCompute")
-	return rep, err
+	computePb.Compute.Name = spec.Name
+
+	rep.Computes = []*resource_cluster_api_grpc_pb.Compute{computePb}
+	rep.Tctx.StatusCode = codes.Ok
 }
 
-func (modelApi *ResourceClusterModelApi) UpdateCompute(req *resource_cluster_api_grpc_pb.UpdateComputeRequest) (*resource_cluster_api_grpc_pb.UpdateComputeReply, error) {
-	rep := &resource_cluster_api_grpc_pb.UpdateComputeReply{}
+func (modelApi *ResourceClusterModelApi) DeleteCompute(tctx *logger.TraceContext, req *resource_cluster_api_grpc_pb.ActionRequest, rep *resource_cluster_api_grpc_pb.ActionReply) {
 	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
-	glog.Info("Completed UpdateCompute")
-	return rep, err
+	var db *gorm.DB
+	if db, err = modelApi.open(tctx); err != nil {
+		rep.Tctx.Err = err.Error()
+		rep.Tctx.StatusCode = codes.RemoteDbError
+		return
+	}
+	defer func() { err = db.Close() }()
+
+	tx := db.Begin()
+	defer tx.Rollback()
+	var compute resource_cluster_model.Compute
+	now := time.Now()
+	if err = tx.Model(&compute).Where(resource_cluster_model.Compute{
+		Name: req.Target,
+	}).Updates(resource_cluster_model.Compute{
+		Model: gorm.Model{
+			DeletedAt: &now,
+		},
+		Status:       resource_cluster_model.StatusDeleting,
+		StatusReason: fmt.Sprintf("DeleteCompute: user=%v, project=%v", req.Tctx.UserName, req.Tctx.ProjectName),
+	}).Error; err != nil {
+		rep.Tctx.Err = err.Error()
+		rep.Tctx.StatusCode = codes.RemoteDbError
+		return
+	}
+	tx.Commit()
+
+	computePb, err := modelApi.convertCompute(&compute)
+	if err != nil {
+		rep.Tctx.Err = err.Error()
+		rep.Tctx.StatusCode = codes.ServerInternalError
+		return
+	}
+
+	computePb.Compute.Name = req.Target
+	rep.Computes = []*resource_cluster_api_grpc_pb.Compute{computePb}
+	rep.Tctx.StatusCode = codes.Ok
 }
 
-func (modelApi *ResourceClusterModelApi) DeleteCompute(req *resource_cluster_api_grpc_pb.DeleteComputeRequest) (*resource_cluster_api_grpc_pb.DeleteComputeReply, error) {
-	return nil, nil
-}
-
-func (modelApi *ResourceClusterModelApi) convertComputes(computes []resource_cluster_model.Compute) []*resource_cluster_api_grpc_pb.Compute {
+func (modelApi *ResourceClusterModelApi) convertComputes(tctx *logger.TraceContext, computes []resource_cluster_model.Compute) []*resource_cluster_api_grpc_pb.Compute {
 	pbComputes := make([]*resource_cluster_api_grpc_pb.Compute, len(computes))
 	for i, compute := range computes {
 		updatedAt, err := ptypes.TimestampProto(compute.Model.UpdatedAt)
+		if err != nil {
+			logger.Warningf(tctx, err,
+				"Failed ptypes.TimestampProto: %v", compute.Model.UpdatedAt)
+			continue
+		}
 		createdAt, err := ptypes.TimestampProto(compute.Model.CreatedAt)
 		if err != nil {
-			glog.Warningf("Invalid timestamp: %v", err)
+			logger.Warningf(tctx, err,
+				"Failed ptypes.TimestampProto: %v", compute.Model.CreatedAt)
 			continue
 		}
 
 		pbComputes[i] = &resource_cluster_api_grpc_pb.Compute{
-			Name:         compute.Name,
-			FullName:     compute.FullName,
-			Kind:         compute.Kind,
-			Labels:       compute.Labels,
-			Status:       compute.Status,
-			StatusReason: compute.StatusReason,
-			UpdatedAt:    updatedAt,
-			CreatedAt:    createdAt,
+			Compute: &resource_api_grpc_pb.Compute{
+				Name:         compute.Name,
+				Kind:         compute.Kind,
+				Labels:       compute.Labels,
+				Status:       compute.Status,
+				StatusReason: compute.StatusReason,
+				UpdatedAt:    updatedAt,
+				CreatedAt:    createdAt,
+			},
 		}
 	}
 
@@ -129,37 +239,76 @@ func (modelApi *ResourceClusterModelApi) convertCompute(compute *resource_cluste
 	}
 
 	computePb := &resource_cluster_api_grpc_pb.Compute{
-		Name:         compute.Name,
-		FullName:     compute.FullName,
-		Kind:         compute.Kind,
-		Labels:       compute.Labels,
-		Status:       compute.Status,
-		StatusReason: compute.StatusReason,
-		UpdatedAt:    updatedAt,
-		CreatedAt:    createdAt,
+		Compute: &resource_api_grpc_pb.Compute{
+			Name:         compute.Name,
+			Kind:         compute.Kind,
+			Labels:       compute.Labels,
+			Status:       compute.Status,
+			StatusReason: compute.StatusReason,
+			UpdatedAt:    updatedAt,
+			CreatedAt:    createdAt,
+		},
 	}
 
 	return computePb, nil
 }
 
-func (modelApi *ResourceClusterModelApi) SyncCompute() error {
-	glog.Info("Starting SyncCompute")
-
+func (modelApi *ResourceClusterModelApi) validateComputeSpec(db *gorm.DB, specStr string) (resource_model.ComputeSpec, int64, error) {
+	var spec resource_model.ComputeSpec
 	var err error
-	db, err := gorm.Open("mysql", modelApi.cluster.Database.Connection)
-	defer db.Close()
-	if err != nil {
+	if err = json.Unmarshal([]byte(specStr), &spec); err != nil {
+		return spec, codes.ClientBadRequest, err
+	}
+	if err = modelApi.validate.Struct(spec); err != nil {
+		return spec, codes.ClientInvalidRequest, err
+	}
+
+	errors := []string{}
+	switch spec.Spec.Kind {
+	case resource_model.SpecKindComputeLibvirt:
+		// TODO Implement Validate SpecKindComputeLibvirt
+		fmt.Printf("Validate SpecKindComputeLibvirt is not implemented")
+
+	default:
+		errors = append(errors, fmt.Sprintf("Invalid kind: %v", spec.Spec.Kind))
+	}
+
+	if len(errors) > 0 {
+		return spec, codes.ClientInvalidRequest, fmt.Errorf(strings.Join(errors, "\n"))
+	}
+
+	return spec, codes.Ok, nil
+}
+
+func (modelApi *ResourceClusterModelApi) SyncCompute(tctx *logger.TraceContext) error {
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	var db *gorm.DB
+	if db, err = modelApi.open(tctx); err != nil {
 		return err
 	}
-	db.LogMode(modelApi.conf.Default.EnableDatabaseLog)
+	defer func() { err = db.Close() }()
 
 	var computes []resource_cluster_model.Compute
 	if err = db.Find(&computes).Error; err != nil {
 		return err
 	}
 
-	glog.Info(computes)
+	for _, compute := range computes {
+		switch compute.Status {
+		case resource_cluster_model.StatusCreating:
+			logger.Infof(tctx, "Found %v resource: %v", compute.Status, compute.Name)
+			modelApi.InitializeCompute(db, &compute)
+		}
+	}
 
-	glog.Info("Complete SyncCompute")
 	return nil
+}
+
+func (modelApi *ResourceClusterModelApi) InitializeCompute(db *gorm.DB, compute *resource_cluster_model.Compute) {
+	// TODO
+	// Assgin IP address
+	return
 }

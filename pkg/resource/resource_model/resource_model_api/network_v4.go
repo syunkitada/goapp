@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"net"
 	"strings"
+	"time"
 
-	_ "github.com/go-sql-driver/mysql"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/jinzhu/gorm"
 
@@ -16,47 +16,54 @@ import (
 	"github.com/syunkitada/goapp/pkg/resource/resource_model"
 )
 
-func (modelApi *ResourceModelApi) GetNetworkV4(tctx *logger.TraceContext, req *resource_api_grpc_pb.GetNetworkV4Request) *resource_api_grpc_pb.GetNetworkV4Reply {
-	rep := &resource_api_grpc_pb.GetNetworkV4Reply{}
+func (modelApi *ResourceModelApi) GetNetworkV4(tctx *logger.TraceContext, req *resource_api_grpc_pb.ActionRequest, rep *resource_api_grpc_pb.ActionReply) {
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
-	db, err := gorm.Open("mysql", modelApi.conf.Resource.Database.Connection)
-	defer db.Close()
+	var db *gorm.DB
+	if db, err = modelApi.open(tctx); err != nil {
+		rep.Tctx.Err = err.Error()
+		rep.Tctx.StatusCode = codes.RemoteDbError
+		return
+	}
+	defer func() { err = db.Close() }()
+
+	var networkv4s []resource_model.NetworkV4
+	if req.Target == "" {
+		err = db.Find(&networkv4s).Error
+	} else {
+		err = db.Where("name like ?", req.Target).Find(&networkv4s).Error
+	}
 	if err != nil {
-		rep.Err = err.Error()
-		rep.StatusCode = codes.RemoteDbError
-		return rep
-	}
-	db.LogMode(modelApi.conf.Default.EnableDatabaseLog)
-
-	var networks []resource_model.NetworkV4
-	if err = db.Where("name like ?", req.Target).Find(&networks).Error; err != nil {
-		rep.Err = err.Error()
-		rep.StatusCode = codes.RemoteDbError
-		return rep
+		rep.Tctx.Err = err.Error()
+		rep.Tctx.StatusCode = codes.RemoteDbError
+		return
 	}
 
-	rep.Networks = modelApi.convertNetworkV4s(tctx, networks)
-	rep.StatusCode = codes.Ok
-	return rep
+	rep.Networks = modelApi.convertNetworkV4s(tctx, networkv4s)
+	rep.Tctx.StatusCode = codes.Ok
+	return
 }
 
-func (modelApi *ResourceModelApi) CreateNetworkV4(req *resource_api_grpc_pb.CreateNetworkV4Request) *resource_api_grpc_pb.CreateNetworkV4Reply {
-	rep := &resource_api_grpc_pb.CreateNetworkV4Reply{}
+func (modelApi *ResourceModelApi) CreateNetworkV4(tctx *logger.TraceContext, req *resource_api_grpc_pb.ActionRequest, rep *resource_api_grpc_pb.ActionReply) {
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
-	db, err := gorm.Open("mysql", modelApi.conf.Resource.Database.Connection)
-	defer db.Close()
-	if err != nil {
-		rep.Err = err.Error()
-		rep.StatusCode = codes.RemoteDbError
-		return rep
+	var db *gorm.DB
+	if db, err = modelApi.open(tctx); err != nil {
+		rep.Tctx.Err = err.Error()
+		rep.Tctx.StatusCode = codes.RemoteDbError
+		return
 	}
-	db.LogMode(modelApi.conf.Default.EnableDatabaseLog)
+	defer func() { err = db.Close() }()
 
 	spec, statusCode, err := modelApi.validateNetworkV4Spec(db, req.Spec)
 	if err != nil {
-		rep.Err = err.Error()
-		rep.StatusCode = statusCode
-		return rep
+		rep.Tctx.Err = err.Error()
+		rep.Tctx.StatusCode = statusCode
+		return
 	}
 
 	var network resource_model.NetworkV4
@@ -64,9 +71,9 @@ func (modelApi *ResourceModelApi) CreateNetworkV4(req *resource_api_grpc_pb.Crea
 	defer tx.Rollback()
 	if err = tx.Where("name = ? and cluster = ?", spec.Name, spec.Cluster).First(&network).Error; err != nil {
 		if !gorm.IsRecordNotFoundError(err) {
-			rep.Err = err.Error()
-			rep.StatusCode = codes.RemoteDbError
-			return rep
+			rep.Tctx.Err = err.Error()
+			rep.Tctx.StatusCode = codes.RemoteDbError
+			return
 		}
 
 		network = resource_model.NetworkV4{
@@ -75,114 +82,136 @@ func (modelApi *ResourceModelApi) CreateNetworkV4(req *resource_api_grpc_pb.Crea
 			Name:         spec.Name,
 			Spec:         req.Spec,
 			Status:       resource_model.StatusActive,
-			StatusReason: fmt.Sprintf("CreateNetworkV4: user=%v, project=%v", req.UserName, req.ProjectName),
+			StatusReason: fmt.Sprintf("CreateNetworkV4: user=%v, project=%v", req.Tctx.UserName, req.Tctx.ProjectName),
 			Subnet:       spec.Spec.Subnet,
 			StartIp:      spec.Spec.StartIp,
 			EndIp:        spec.Spec.EndIp,
 			Gateway:      spec.Spec.Gateway,
 		}
 		if err = tx.Create(&network).Error; err != nil {
-			rep.Err = err.Error()
-			rep.StatusCode = codes.RemoteDbError
-			return rep
+			rep.Tctx.Err = err.Error()
+			rep.Tctx.StatusCode = codes.RemoteDbError
+			return
 		}
 	} else {
-		rep.Err = fmt.Sprintf("Already Exists: cluster=%v, name=%v",
-			spec.Cluster, spec.Name)
-		rep.StatusCode = codes.ClientAlreadyExists
-		return rep
+		rep.Tctx.Err = fmt.Sprintf("Already Exists: cluster=%v, name=%v", spec.Cluster, spec.Name)
+		rep.Tctx.StatusCode = codes.ClientAlreadyExists
+		return
 	}
 	tx.Commit()
 
 	networkPb, err := modelApi.convertNetworkV4(&network)
 	if err != nil {
-		rep.Err = err.Error()
-		rep.StatusCode = codes.ServerInternalError
-		return rep
+		rep.Tctx.Err = err.Error()
+		rep.Tctx.StatusCode = codes.ServerInternalError
+		return
 	}
 
-	rep.Network = networkPb
-	rep.StatusCode = codes.Ok
-	return rep
+	rep.Networks = []*resource_api_grpc_pb.Network{networkPb}
+	rep.Tctx.StatusCode = codes.Ok
 }
 
-func (modelApi *ResourceModelApi) UpdateNetworkV4(req *resource_api_grpc_pb.UpdateNetworkV4Request) *resource_api_grpc_pb.UpdateNetworkV4Reply {
-	rep := &resource_api_grpc_pb.UpdateNetworkV4Reply{}
+func (modelApi *ResourceModelApi) UpdateNetworkV4(tctx *logger.TraceContext, req *resource_api_grpc_pb.ActionRequest, rep *resource_api_grpc_pb.ActionReply) {
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
-	db, err := gorm.Open("mysql", modelApi.conf.Resource.Database.Connection)
-	defer db.Close()
-	if err != nil {
-		rep.Err = err.Error()
-		rep.StatusCode = codes.RemoteDbError
-		return rep
+	var db *gorm.DB
+	if db, err = modelApi.open(tctx); err != nil {
+		rep.Tctx.Err = err.Error()
+		rep.Tctx.StatusCode = codes.RemoteDbError
+		return
 	}
-	db.LogMode(modelApi.conf.Default.EnableDatabaseLog)
+	defer func() { err = db.Close() }()
 
 	spec, statusCode, err := modelApi.validateNetworkV4Spec(db, req.Spec)
 	if err != nil {
-		rep.Err = err.Error()
-		rep.StatusCode = statusCode
-		return rep
+		rep.Tctx.Err = err.Error()
+		rep.Tctx.StatusCode = statusCode
+		return
 	}
 
 	tx := db.Begin()
 	defer tx.Rollback()
 	var network resource_model.NetworkV4
-	if err = tx.Where("name = ? and cluster = ?", spec.Name, spec.Cluster).First(&network).Error; err != nil {
-		rep.Err = err.Error()
-		rep.StatusCode = codes.RemoteDbError
-		return rep
+	if err = tx.Model(&network).Where(resource_model.NetworkV4{
+		Name:    spec.Name,
+		Cluster: spec.Cluster,
+	}).Updates(resource_model.NetworkV4{
+		Spec:         req.Spec,
+		StartIp:      spec.Spec.StartIp,
+		EndIp:        spec.Spec.EndIp,
+		Gateway:      spec.Spec.Gateway,
+		Status:       resource_model.StatusActive,
+		StatusReason: fmt.Sprintf("UpdateNetworkV4: user=%v, project=%v", req.Tctx.UserName, req.Tctx.ProjectName),
+	}).Error; err != nil {
+		rep.Tctx.Err = err.Error()
+		rep.Tctx.StatusCode = codes.RemoteDbError
+		return
 	}
-
-	network.Spec = req.Spec
-	network.Status = resource_model.StatusActive
-	network.StatusReason = fmt.Sprintf("UpdateNetworkV4: user=%v, project=%v", req.UserName, req.ProjectName)
-	network.StartIp = spec.Spec.StartIp
-	network.EndIp = spec.Spec.EndIp
-	network.Gateway = spec.Spec.Gateway
-	tx.Save(network)
 	tx.Commit()
 
 	networkPb, err := modelApi.convertNetworkV4(&network)
 	if err != nil {
-		rep.Err = err.Error()
-		rep.StatusCode = codes.ServerInternalError
-		return rep
+		rep.Tctx.Err = err.Error()
+		rep.Tctx.StatusCode = codes.ServerInternalError
+		return
 	}
+	networkPb.Name = spec.Name
+	networkPb.Cluster = spec.Cluster
 
-	rep.Network = networkPb
-	rep.StatusCode = codes.Ok
-	return rep
+	rep.Networks = []*resource_api_grpc_pb.Network{networkPb}
+	rep.Tctx.StatusCode = codes.Ok
 }
 
-func (modelApi *ResourceModelApi) DeleteNetworkV4(req *resource_api_grpc_pb.DeleteNetworkV4Request) *resource_api_grpc_pb.DeleteNetworkV4Reply {
-	rep := &resource_api_grpc_pb.DeleteNetworkV4Reply{}
+func (modelApi *ResourceModelApi) DeleteNetworkV4(tctx *logger.TraceContext, req *resource_api_grpc_pb.ActionRequest, rep *resource_api_grpc_pb.ActionReply) {
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
-	db, err := gorm.Open("mysql", modelApi.conf.Resource.Database.Connection)
-	defer db.Close()
-	if err != nil {
-		rep.Err = err.Error()
-		rep.StatusCode = codes.RemoteDbError
-		return rep
+	var db *gorm.DB
+	if db, err = modelApi.open(tctx); err != nil {
+		rep.Tctx.Err = err.Error()
+		rep.Tctx.StatusCode = codes.RemoteDbError
+		return
 	}
-	db.LogMode(modelApi.conf.Default.EnableDatabaseLog)
+	defer func() { err = db.Close() }()
 
 	tx := db.Begin()
 	defer tx.Rollback()
 	var network resource_model.NetworkV4
-	if err = tx.Where("name = ?", req.Target).Delete(&network).Error; err != nil {
-		rep.Err = err.Error()
-		rep.StatusCode = codes.RemoteDbError
-		return rep
+	now := time.Now()
+	if err = tx.Model(&network).Where(resource_model.NetworkV4{
+		Name:    req.Target,
+		Cluster: req.Cluster,
+	}).Updates(resource_model.NetworkV4{
+		Model: gorm.Model{
+			DeletedAt: &now,
+		},
+		Status:       resource_model.StatusDeleted,
+		StatusReason: fmt.Sprintf("DeleteNetworkV4: user=%v, project=%v", req.Tctx.UserName, req.Tctx.ProjectName),
+	}).Error; err != nil {
+		rep.Tctx.Err = err.Error()
+		rep.Tctx.StatusCode = codes.RemoteDbError
+		return
 	}
 	tx.Commit()
 
-	rep.StatusCode = codes.Ok
-	return rep
+	networkPb, err := modelApi.convertNetworkV4(&network)
+	if err != nil {
+		rep.Tctx.Err = err.Error()
+		rep.Tctx.StatusCode = codes.ServerInternalError
+		return
+	}
+
+	networkPb.Name = req.Target
+	networkPb.Cluster = req.Cluster
+	rep.Networks = []*resource_api_grpc_pb.Network{networkPb}
+	rep.Tctx.StatusCode = codes.Ok
 }
 
-func (modelApi *ResourceModelApi) convertNetworkV4s(tctx *logger.TraceContext, networks []resource_model.NetworkV4) []*resource_api_grpc_pb.NetworkV4 {
-	pbNetworkV4s := make([]*resource_api_grpc_pb.NetworkV4, len(networks))
+func (modelApi *ResourceModelApi) convertNetworkV4s(tctx *logger.TraceContext, networks []resource_model.NetworkV4) []*resource_api_grpc_pb.Network {
+	pbNetworkV4s := make([]*resource_api_grpc_pb.Network, len(networks))
 	for i, network := range networks {
 		updatedAt, err := ptypes.TimestampProto(network.Model.UpdatedAt)
 		if err != nil {
@@ -195,7 +224,7 @@ func (modelApi *ResourceModelApi) convertNetworkV4s(tctx *logger.TraceContext, n
 			continue
 		}
 
-		pbNetworkV4s[i] = &resource_api_grpc_pb.NetworkV4{
+		pbNetworkV4s[i] = &resource_api_grpc_pb.Network{
 			Cluster:      network.Cluster,
 			Name:         network.Name,
 			Kind:         network.Kind,
@@ -210,14 +239,14 @@ func (modelApi *ResourceModelApi) convertNetworkV4s(tctx *logger.TraceContext, n
 	return pbNetworkV4s
 }
 
-func (modelApi *ResourceModelApi) convertNetworkV4(network *resource_model.NetworkV4) (*resource_api_grpc_pb.NetworkV4, error) {
+func (modelApi *ResourceModelApi) convertNetworkV4(network *resource_model.NetworkV4) (*resource_api_grpc_pb.Network, error) {
 	updatedAt, err := ptypes.TimestampProto(network.Model.UpdatedAt)
 	createdAt, err := ptypes.TimestampProto(network.Model.CreatedAt)
 	if err != nil {
 		return nil, err
 	}
 
-	networkPb := &resource_api_grpc_pb.NetworkV4{
+	networkPb := &resource_api_grpc_pb.Network{
 		Cluster:      network.Cluster,
 		Name:         network.Name,
 		Kind:         network.Kind,
@@ -308,4 +337,29 @@ func (modelApi *ResourceModelApi) validateNetworkV4Spec(db *gorm.DB, specStr str
 	}
 
 	return spec, codes.Ok, nil
+}
+
+func (modelApi *ResourceModelApi) AssignPort(tctx *logger.TraceContext, db *gorm.DB, compute *resource_model.Compute) error {
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	// TODO
+	// assign port(ip and mac)
+
+	// TODO support multi network
+
+	return nil
+}
+
+func (modelApi *ResourceModelApi) RegisterRecord(tctx *logger.TraceContext, db *gorm.DB, compute *resource_model.Compute) error {
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	// TODO
+	// register a record
+	// implrment dns service
+
+	return nil
 }

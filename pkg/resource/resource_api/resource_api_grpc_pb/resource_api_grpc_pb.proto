@@ -1,600 +1,123 @@
 syntax = "proto3";
 
-import "google/protobuf/timestamp.proto";
+package resource_api_grpc_pb;
 
+option go_package = "github.com/syunkitada/goapp/pkg/resource/resource_api/resource_api_grpc_pb";
 option java_multiple_files = true;
 option java_package = "io.grpc.examples.routeguide";
 option java_outer_classname = "RouteGuideProto";
 
-package resource_api_grpc_pb;
+import "google/protobuf/timestamp.proto";
+import "authproxy/authproxy_grpc_pb/authproxy_grpc_pb.proto";
 
 
 service ResourceApi {
   rpc Status(StatusRequest) returns (StatusReply) {}
 
-  rpc GetCluster(GetClusterRequest) returns (GetClusterReply) {}
+  rpc Action(ActionRequest) returns (ActionReply) {}
 
-  rpc GetNode(GetNodeRequest) returns (GetNodeReply) {}
   rpc UpdateNode(UpdateNodeRequest) returns (UpdateNodeReply) {}
-
-  rpc GetNetworkV4(GetNetworkV4Request) returns (GetNetworkV4Reply) {}
-  rpc CreateNetworkV4(CreateNetworkV4Request) returns (CreateNetworkV4Reply) {}
-  rpc UpdateNetworkV4(UpdateNetworkV4Request) returns (UpdateNetworkV4Reply) {}
-  rpc DeleteNetworkV4(DeleteNetworkV4Request) returns (DeleteNetworkV4Reply) {}
-
-  rpc GetCompute(GetComputeRequest) returns (GetComputeReply) {}
-  rpc CreateCompute(CreateComputeRequest) returns (CreateComputeReply) {}
-  rpc UpdateCompute(UpdateComputeRequest) returns (UpdateComputeReply) {}
-  rpc DeleteCompute(DeleteComputeRequest) returns (DeleteComputeReply) {}
-
-  rpc GetContainer(GetContainerRequest) returns (GetContainerReply) {}
-  rpc CreateContainer(CreateContainerRequest) returns (CreateContainerReply) {}
-  rpc UpdateContainer(UpdateContainerRequest) returns (UpdateContainerReply) {}
-  rpc DeleteContainer(DeleteContainerRequest) returns (DeleteContainerReply) {}
-
-  rpc GetImage(GetImageRequest) returns (GetImageReply) {}
-  rpc CreateImage(CreateImageRequest) returns (CreateImageReply) {}
-  rpc UpdateImage(UpdateImageRequest) returns (UpdateImageReply) {}
-  rpc DeleteImage(DeleteImageRequest) returns (DeleteImageReply) {}
-
-  rpc GetVolume(GetVolumeRequest) returns (GetVolumeReply) {}
-  rpc CreateVolume(CreateVolumeRequest) returns (CreateVolumeReply) {}
-  rpc UpdateVolume(UpdateVolumeRequest) returns (UpdateVolumeReply) {}
-  rpc DeleteVolume(DeleteVolumeRequest) returns (DeleteVolumeReply) {}
-
-  rpc GetLoadbalancer(GetLoadbalancerRequest) returns (GetLoadbalancerReply) {}
-  rpc CreateLoadbalancer(CreateLoadbalancerRequest) returns (CreateLoadbalancerReply) {}
-  rpc UpdateLoadbalancer(UpdateLoadbalancerRequest) returns (UpdateLoadbalancerReply) {}
-  rpc DeleteLoadbalancer(DeleteLoadbalancerRequest) returns (DeleteLoadbalancerReply) {}
 }
 
 message StatusRequest {}
 
 message StatusReply {
-    string msg = 1;
+    string Msg = 1;
 }
-
 
 //
-// Cluster
+// Action
 //
-message GetClusterRequest {
-    string trace_id = 1;
-    string user_name = 2;
-    string role_name = 3;
-    string project_name = 4;
-    string project_role_name = 5;
-    string target = 6;
+message ActionRequest {
+    authproxy_grpc_pb.TraceContext Tctx = 1;
+    string Target = 2;
+    string Cluster = 3;
+    string Spec = 4;
 }
 
-message GetClusterReply {
-    int64 status_code = 1;
-    string err = 2;
-    repeated Cluster clusters = 3;
+message ActionReply {
+    authproxy_grpc_pb.TraceContext Tctx = 1;
+    repeated Cluster Clusters = 2;
+    repeated Node Nodes = 3;
+    repeated Compute Computes = 4;
+    repeated Network Networks = 5;
+    repeated Image Images = 6;
 }
-
-message Cluster {
-    google.protobuf.Timestamp updated_at = 1;
-    google.protobuf.Timestamp created_at = 2;
-    string name = 3;
-}
-
 
 //
 // Node
 //
-message GetNodeRequest {
-    string trace_id = 1;
-    string user_name = 2;
-    string role_name = 3;
-    string project_name = 4;
-    string project_role_name = 5;
-    string target = 6;
-    string cluster = 7;
-}
-
-message GetNodeReply {
-    int64 status_code = 1;
-    string err = 2;
-    map<string, Nodes> cluster_nodes_map = 3;
-}
-
 message UpdateNodeRequest {
-    string trace_id = 1;
-    string name = 2;
-    string kind = 3;
-    string role = 4;
-    string status = 5;
-    string status_reason = 6;
-    string state = 7;
-    string state_reason = 8;
+    authproxy_grpc_pb.TraceContext Tctx = 1;
+    Node node = 2;
 }
 
 message UpdateNodeReply {
-    int64 status_code = 1;
-    string err = 2;
+    authproxy_grpc_pb.TraceContext Tctx = 1;
+}
+
+
+//
+// Resources
+//
+message Cluster {
+    google.protobuf.Timestamp UpdatedAt = 1;
+    google.protobuf.Timestamp CreatedAt = 2;
+    string Name = 3;
 }
 
 message Node {
-    google.protobuf.Timestamp updated_at = 1;
-    google.protobuf.Timestamp created_at = 2;
-    string cluster = 3;
-    string name = 4;
-    string kind = 5;
-    string role = 6;
-    string status = 7;
-    string status_reason = 8;
-    string state = 9;
-    string state_reason = 10;
-}
-
-message Nodes {
-    repeated Node nodes = 1;
-}
-
-//
-// NetworkV4
-//
-message GetNetworkV4Request {
-    string trace_id = 1;
-    string user_name = 2;
-    string role_name = 3;
-    string project_name = 4;
-    string project_role_name = 5;
-    string target = 6;
-    string cluster = 7;
-}
-
-message GetNetworkV4Reply {
-    int64 status_code = 1;
-    string err = 2;
-    repeated NetworkV4 networks = 3;
-}
-
-message CreateNetworkV4Request {
-    string trace_id = 1;
-    string user_name = 2;
-    string role_name = 3;
-    string project_name = 4;
-    string project_role_name = 5;
-    string spec = 6;
-}
-
-message CreateNetworkV4Reply {
-    int64 status_code = 1;
-    string err = 2;
-    NetworkV4 network = 3;
-}
-
-message UpdateNetworkV4Request {
-    string trace_id = 1;
-    string user_name = 2;
-    string role_name = 3;
-    string project_name = 4;
-    string project_role_name = 5;
-    string spec = 6;
-}
-
-message UpdateNetworkV4Reply {
-    int64 status_code = 1;
-    string err = 2;
-    NetworkV4 network = 3;
-}
-
-message DeleteNetworkV4Request {
-    string trace_id = 1;
-    string user_name = 2;
-    string role_name = 3;
-    string project_name = 4;
-    string project_role_name = 5;
-    string target = 6;
-    string cluster = 7;
-}
-
-message DeleteNetworkV4Reply {
-    int64 status_code = 1;
-    string err = 2;
-}
-
-message NetworkV4 {
-    google.protobuf.Timestamp updated_at = 1;
-    google.protobuf.Timestamp created_at = 2;
-    string cluster = 3;
-    string kind = 4;
-    string name = 5;
-    string full_name = 6;
-    string labels = 7;
-    string status = 8;
-    string status_reason = 9;
-    string spec = 10;
-}
-
-
-//
-// Compute
-//
-message GetComputeRequest {
-    string trace_id = 1;
-    string user_name = 2;
-    string role_name = 3;
-    string project_name = 4;
-    string project_role_name = 5;
-    string target = 6;
-    string cluster = 7;
-}
-
-message GetComputeReply {
-    int64 status_code = 1;
-    string err = 2;
-    repeated Compute computes = 3;
-}
-
-message CreateComputeRequest {
-    string trace_id = 1;
-    string user_name = 2;
-    string role_name = 3;
-    string project_name = 4;
-    string project_role_name = 5;
-    string spec = 6;
-}
-
-message CreateComputeReply {
-    int64 status_code = 1;
-    string err = 2;
-    Compute compute = 3;
-}
-
-message UpdateComputeRequest {
-    string trace_id = 1;
-    string user_name = 2;
-    string role_name = 3;
-    string project_name = 4;
-    string project_role_name = 5;
-    string spec = 6;
-}
-
-message UpdateComputeReply {
-    int64 status_code = 1;
-    string err = 2;
-    Compute compute = 3;
-}
-
-message DeleteComputeRequest {
-    string trace_id = 1;
-    string user_name = 2;
-    string role_name = 3;
-    string project_name = 4;
-    string project_role_name = 5;
-    string target = 6;
-    string cluster = 7;
-}
-
-message DeleteComputeReply {
-    int64 status_code = 1;
-    string err = 2;
+    google.protobuf.Timestamp UpdatedAt = 1;
+    google.protobuf.Timestamp CreatedAt = 2;
+    uint64 Id = 3;
+    string Cluster = 4;
+    string Kind = 5;
+    string Name = 6;
+    string Role = 7;
+    string Status = 8;
+    string StatusReason = 9;
+    string State = 10;
+    string StateReason = 11;
 }
 
 message Compute {
-    google.protobuf.Timestamp updated_at = 1;
-    google.protobuf.Timestamp created_at = 2;
-    string cluster = 3;
-    string kind = 4;
-    string name = 5;
-    string full_name = 6;
-    string labels = 7;
-    string status = 8;
-    string status_reason = 9;
-    string spec = 10;
+    google.protobuf.Timestamp UpdatedAt = 1;
+    google.protobuf.Timestamp CreatedAt = 2;
+    uint64 Id = 3;
+    string Cluster = 4;
+    string Kind = 5;
+    string Name = 6;
+    string FullName = 7;
+    string Labels = 8;
+    string Status = 9;
+    string StatusReason = 10;
+    string Spec = 11;
 }
 
-
-//
-// Container
-//
-message GetContainerRequest {
-    string trace_id = 1;
-    string user_name = 2;
-    string role_name = 3;
-    string project_name = 4;
-    string project_role_name = 5;
-    string target = 6;
-    string cluster = 7;
-}
-
-message GetContainerReply {
-    int64 status_code = 1;
-    string err = 2;
-    repeated Container containers = 3;
-}
-
-message CreateContainerRequest {
-    string trace_id = 1;
-    string user_name = 2;
-    string role_name = 3;
-    string project_name = 4;
-    string project_role_name = 5;
-    string spec = 6;
-}
-
-message CreateContainerReply {
-    int64 status_code = 1;
-    string err = 2;
-    Container container = 3;
-}
-
-message UpdateContainerRequest {
-    string trace_id = 1;
-    string user_name = 2;
-    string role_name = 3;
-    string project_name = 4;
-    string project_role_name = 5;
-    string spec = 6;
-}
-
-message UpdateContainerReply {
-    int64 status_code = 1;
-    string err = 2;
-    Container container = 3;
-}
-
-message DeleteContainerRequest {
-    string trace_id = 1;
-    string user_name = 2;
-    string role_name = 3;
-    string project_name = 4;
-    string project_role_name = 5;
-    string target = 6;
-    string cluster = 7;
-}
-
-message DeleteContainerReply {
-    int64 status_code = 1;
-    string err = 2;
-}
-
-message Container {
-    google.protobuf.Timestamp updated_at = 1;
-    google.protobuf.Timestamp created_at = 2;
-    string cluster = 3;
-    string kind = 4;
-    string name = 5;
-    string full_name = 6;
-    string labels = 7;
-    string status = 8;
-    string status_reason = 9;
-    string spec = 10;
-}
-
-
-//
-// Image
-//
-message GetImageRequest {
-    string trace_id = 1;
-    string user_name = 2;
-    string role_name = 3;
-    string project_name = 4;
-    string project_role_name = 5;
-    string target = 6;
-    string cluster = 7;
-}
-
-message GetImageReply {
-    int64 status_code = 1;
-    string err = 2;
-    repeated Image images = 3;
-}
-
-message CreateImageRequest {
-    string trace_id = 1;
-    string user_name = 2;
-    string role_name = 3;
-    string project_name = 4;
-    string project_role_name = 5;
-    string spec = 6;
-}
-
-message CreateImageReply {
-    int64 status_code = 1;
-    string err = 2;
-    Image image = 3;
-}
-
-message UpdateImageRequest {
-    string trace_id = 1;
-    string user_name = 2;
-    string role_name = 3;
-    string project_name = 4;
-    string project_role_name = 5;
-    string spec = 6;
-}
-
-message UpdateImageReply {
-    int64 status_code = 1;
-    string err = 2;
-    Image image = 3;
-}
-
-message DeleteImageRequest {
-    string trace_id = 1;
-    string user_name = 2;
-    string role_name = 3;
-    string project_name = 4;
-    string project_role_name = 5;
-    string target = 6;
-    string cluster = 7;
-}
-
-message DeleteImageReply {
-    int64 status_code = 1;
-    string err = 2;
+message Network {
+    google.protobuf.Timestamp UpdatedAt = 1;
+    google.protobuf.Timestamp CreatedAt = 2;
+    uint64 Id = 3;
+    string Cluster = 4;
+    string Kind = 5;
+    string Name = 6;
+    string FullName = 7;
+    string Labels = 8;
+    string Status = 9;
+    string StatusReason = 10;
+    string Spec = 11;
 }
 
 message Image {
-    google.protobuf.Timestamp updated_at = 1;
-    google.protobuf.Timestamp created_at = 2;
-    string cluster = 3;
-    string kind = 4;
-    string name = 5;
-    string full_name = 6;
-    string labels = 7;
-    string status = 8;
-    string status_reason = 9;
-    string spec = 10;
-}
-
-
-//
-// Volume
-//
-message GetVolumeRequest {
-    string trace_id = 1;
-    string user_name = 2;
-    string role_name = 3;
-    string project_name = 4;
-    string project_role_name = 5;
-    string target = 6;
-    string cluster = 7;
-}
-
-message GetVolumeReply {
-    int64 status_code = 1;
-    string err = 2;
-    repeated Volume volumes = 3;
-}
-
-message CreateVolumeRequest {
-    string trace_id = 1;
-    string user_name = 2;
-    string role_name = 3;
-    string project_name = 4;
-    string project_role_name = 5;
-    string spec = 6;
-}
-
-message CreateVolumeReply {
-    int64 status_code = 1;
-    string err = 2;
-    Volume volume = 3;
-}
-
-message UpdateVolumeRequest {
-    string trace_id = 1;
-    string user_name = 2;
-    string role_name = 3;
-    string project_name = 4;
-    string project_role_name = 5;
-    string spec = 6;
-}
-
-message UpdateVolumeReply {
-    int64 status_code = 1;
-    string err = 2;
-    Volume volume = 3;
-}
-
-message DeleteVolumeRequest {
-    string trace_id = 1;
-    string user_name = 2;
-    string role_name = 3;
-    string project_name = 4;
-    string project_role_name = 5;
-    string target = 6;
-    string cluster = 7;
-}
-
-message DeleteVolumeReply {
-    int64 status_code = 1;
-    string err = 2;
-}
-
-message Volume {
-    google.protobuf.Timestamp updated_at = 1;
-    google.protobuf.Timestamp created_at = 2;
-    string cluster = 3;
-    string kind = 4;
-    string name = 5;
-    string full_name = 6;
-    string labels = 7;
-    string status = 8;
-    string status_reason = 9;
-    string spec = 10;
-}
-
-
-//
-// Loadbalancer
-//
-message GetLoadbalancerRequest {
-    string trace_id = 1;
-    string user_name = 2;
-    string role_name = 3;
-    string project_name = 4;
-    string project_role_name = 5;
-    string target = 6;
-    string cluster = 7;
-}
-
-message GetLoadbalancerReply {
-    int64 status_code = 1;
-    string err = 2;
-    repeated Loadbalancer loadbalancers = 3;
-}
-
-message CreateLoadbalancerRequest {
-    string trace_id = 1;
-    string user_name = 2;
-    string role_name = 3;
-    string project_name = 4;
-    string project_role_name = 5;
-    string spec = 6;
-}
-
-message CreateLoadbalancerReply {
-    int64 status_code = 1;
-    string err = 2;
-    Loadbalancer loadbalancer = 3;
-}
-
-message UpdateLoadbalancerRequest {
-    string trace_id = 1;
-    string user_name = 2;
-    string role_name = 3;
-    string project_name = 4;
-    string project_role_name = 5;
-    string spec = 6;
-}
-
-message UpdateLoadbalancerReply {
-    int64 status_code = 1;
-    string err = 2;
-    Loadbalancer loadbalancer = 3;
-}
-
-message DeleteLoadbalancerRequest {
-    string trace_id = 1;
-    string user_name = 2;
-    string role_name = 3;
-    string project_name = 4;
-    string project_role_name = 5;
-    string target = 6;
-    string cluster = 7;
-}
-
-message DeleteLoadbalancerReply {
-    int64 status_code = 1;
-    string err = 2;
-}
-
-message Loadbalancer {
-    google.protobuf.Timestamp updated_at = 1;
-    google.protobuf.Timestamp created_at = 2;
-    string cluster = 3;
-    string kind = 4;
-    string name = 5;
-    string full_name = 6;
-    string labels = 7;
-    string status = 8;
-    string status_reason = 9;
-    string spec = 10;
+    google.protobuf.Timestamp UpdatedAt = 1;
+    google.protobuf.Timestamp CreatedAt = 2;
+    uint64 Id = 3;
+    string Cluster = 4;
+    string Kind = 5;
+    string Name = 6;
+    string FullName = 7;
+    string Labels = 8;
+    string Status = 9;
+    string StatusReason = 10;
+    string Spec = 11;
 }

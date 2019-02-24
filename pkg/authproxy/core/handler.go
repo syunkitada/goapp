@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/syunkitada/goapp/pkg/resource/resource_authproxy"
 )
 
 func (authproxy *Authproxy) NewHandler() http.Handler {
@@ -23,12 +24,14 @@ func (authproxy *Authproxy) NewHandler() http.Handler {
 		ws_authorized.GET("/monitor", authproxy.Monitor.Ws)
 	}
 
+	resourceAuthproxy := resource_authproxy.New(authproxy.conf)
+
 	authorized := handler.Group("/")
 	authorized.Use(authproxy.AuthRequired())
 	{
 		authorized.POST("/dashboard/logout", authproxy.Dashboard.Logout)
 		authorized.POST("/dashboard/state", authproxy.Dashboard.GetState)
-		authorized.POST("/resource", authproxy.Resource.Action)
+		authorized.POST(resourceAuthproxy.GetPath(), resourceAuthproxy.Action)
 		authorized.POST("/monitor", authproxy.Monitor.Action)
 	}
 
