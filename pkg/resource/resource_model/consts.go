@@ -1,6 +1,10 @@
 package resource_model
 
 const (
+	ResourceKindPhysicalModel = "PhysicalModel"
+)
+
+const (
 	KindResourceController = "ResourceController"
 	KindResourceApi        = "ResourceApi"
 )

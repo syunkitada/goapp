@@ -1,6 +1,9 @@
 {
-  "Model": "Unknown-server1",
-  "Description": "test用",
-  "Unit": 1,
-  "Kind": "Server"
+  "Kind": "PhysicalModel",
+  "Name": "Unknown-server1",
+  "Spec": {
+    "Kind": "Server",
+    "Unit": 1,
+    "Description": "test用"
+  }
 }

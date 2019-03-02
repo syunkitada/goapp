@@ -4,6 +4,13 @@ type ResourceSpec struct {
 	Kind    string `validate:"required"`
 	Name    string `validate:"required"`
 	Cluster string `validate:"required"`
+	Spec    []byte
+}
+
+type PhysicalModelSpec struct {
+	Kind        string `validate:"required"`
+	Unit        uint8  `validate:"required"`
+	Description string
 }
 
 type NetworkV4Spec struct {

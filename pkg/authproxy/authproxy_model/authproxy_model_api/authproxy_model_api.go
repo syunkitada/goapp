@@ -68,6 +68,8 @@ func (modelApi *AuthproxyModelApi) Bootstrap(tctx *logger.TraceContext) error {
 	projectTenantServices := []string{"Resource", "Monitor"}
 	actionMap := map[string][]string{}
 	actionMap["Resource"] = []string{
+		"CreatePhysicalResource", "UpdatePhysicalResource",
+		"CreateVirtualResource", "UpdateVirtualResource",
 		"GetState", "GetCluster", "GetNode",
 		"GetNetwork", "CreateNetwork", "UpdateNetwork", "DeleteNetwork",
 		"GetNetworkV4", "CreateNetworkV4", "UpdateNetworkV4", "DeleteNetworkV4",
