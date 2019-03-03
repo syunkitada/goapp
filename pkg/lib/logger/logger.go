@@ -18,6 +18,7 @@ import (
 	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_grpc_pb"
 	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_model"
 	"github.com/syunkitada/goapp/pkg/config"
+	"github.com/syunkitada/goapp/pkg/lib/codes"
 	"github.com/syunkitada/goapp/pkg/lib/error_utils"
 )
 
@@ -191,6 +192,11 @@ func NewGrpcAuthproxyTraceContext(host string, app string, ctx context.Context, 
 	}
 
 	return tctx
+}
+
+func SetErrorTraceContext(tctx *authproxy_grpc_pb.TraceContext, statusCode int64, data interface{}) {
+	tctx.StatusCode = statusCode
+	tctx.Err = codes.GetMsg(statusCode, data)
 }
 
 func Init() {

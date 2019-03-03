@@ -1,5 +1,7 @@
 package codes
 
+import "fmt"
+
 const (
 	// 2xx Success
 	Ok int64 = 200
@@ -21,3 +23,16 @@ const (
 	RemoteDbError      int64 = 521
 	RemoteClusterError int64 = 525
 )
+
+func GetMsg(statusCode int64, data interface{}) string {
+	switch statusCode {
+	case ClientAlreadyExists:
+		return fmt.Sprintf("AlreadyExists: %v", data)
+	case ClientBadRequest:
+		return fmt.Sprintf("BadRequest: %v", data)
+	case RemoteDbError:
+		return fmt.Sprintf("DbError: %v", data)
+	}
+
+	return fmt.Sprintf("Unknown: %v", data)
+}

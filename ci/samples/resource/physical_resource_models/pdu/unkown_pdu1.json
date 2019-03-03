@@ -4,6 +4,7 @@
   "Spec": {
     "Kind": "Pdu",
     "Unit": 1,
-    "Description": "test用"
+    "Description": "test用",
+    "Spec": {}
   }
 }

@@ -1,16 +1,16 @@
 {
   "Kind": "Pdu",
-  "Name": "floor-1-1-2-rack-1-5-pdu01",
+  "Name": "floor-1-1-2-rack-1-6-pdu01",
   "Spec": {
     "Kind": "Pdu",
     "Datacenter": "tokyo",
-    "Rack": "floor-1-1-2-rack-1-5",
+    "Rack": "floor-1-1-2-rack-1-6",
     "Model": "Unknown-pdu1",
     "RackPosition": 1,
     "PowerLinks": [
-      "floor-1-1-2-rack-1-5-rack-leaf-router01",
-      "server1",
-      "server2"
+      "floor-1-1-2-rack-1-6-rack-leaf-router01",
+      "server3",
+      "server4"
     ]
   }
 }
@@ -19,11 +19,11 @@
 
 {
   "Kind": "PhysicalResource",
-  "Name": "floor-1-1-2-rack-1-5-rack-leaf-router01",
+  "Name": "floor-1-1-2-rack-1-6-rack-leaf-router01",
   "Spec": {
     "Kind": "RackSpineRouter",
     "Datacenter": "tokyo",
-    "Rack": "floor-1-1-2-rack-1-5",
+    "Rack": "floor-1-1-2-rack-1-6",
     "Model": "Arista-7280TR",
     "RackPosition": 4,
     "NetLinks": [
@@ -39,11 +39,11 @@
 
 {
   "Kind": "PhysicalResource",
-  "Name": "server1",
+  "Name": "server3",
   "Spec": {
     "Kind": "Server",
     "Datacenter": "tokyo",
-    "Rack": "floor-1-1-2-rack-1-5",
+    "Rack": "floor-1-1-2-rack-1-6",
     "Model": "Unknown-server1",
     "RackPosition": 6
   }
@@ -53,11 +53,11 @@
 
 {
   "Kind": "PhysicalResource",
-  "Name": "server2",
+  "Name": "server4",
   "Spec": {
     "Kind": "Server",
     "Datacenter": "tokyo",
-    "Rack": "floor-1-1-2-rack-1-5",
+    "Rack": "floor-1-1-2-rack-1-6",
     "Model": "Unknown-server1",
     "RackPosition": 7
   }

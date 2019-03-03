@@ -1,7 +1,12 @@
 package resource_model
 
 const (
-	ResourceKindPhysicalModel = "PhysicalModel"
+	ResourceKindDatacenter       = "Datacenter"
+	ResourceKindCluster          = "Cluster"
+	ResourceKindFloor            = "Floor"
+	ResourceKindRack             = "Rack"
+	ResourceKindPhysicalModel    = "PhysicalModel"
+	ResourceKindPhysicalResource = "PhysicalResource"
 )
 
 const (

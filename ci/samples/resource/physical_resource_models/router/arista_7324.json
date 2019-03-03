@@ -5,7 +5,9 @@
     "Kind": "FloorLeafRouter",
     "Unit": 8,
     "Description": "https://www.arista.com/jp/products/platforms",
-    "Throuput": "20Tbps",
-    "Port": "100GbE 128ポート, 25GbE 512ポート"
+    "Spec": {
+      "Throuput": "20Tbps",
+      "Port": "100GbE 128ポート, 25GbE 512ポート"
+    }
   }
 }
