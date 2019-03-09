@@ -1,11 +1,13 @@
 import auth from '../apps/auth/actions';
 import home from '../apps/home/actions';
-import resource from '../apps/project/resource/actions';
+import resourcePhysical from '../apps/project/resource/physical/actions';
+import resourceVirtual from '../apps/project/resource/virtual/actions';
 import monitor from '../apps/project/monitor/actions';
 
 export default {
   auth,
   home,
-  resource,
+  resourcePhysical,
+  resourceVirtual,
   monitor,
 };

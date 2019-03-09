@@ -1,6 +1,6 @@
 import { handleActions } from 'redux-actions';
 
-import actions from '../../../actions'
+import actions from '../../../../actions'
 
 const defaultState = {
   isSyncState: false,
@@ -11,22 +11,22 @@ const defaultState = {
 };
 
 export default handleActions({
-  [actions.monitor.monitorSyncState]: (state) => {
-    console.log("monitor.reducers.syncState")
+  [actions.resourcePhysical.resourcePhysicalGetIndex]: (state) => {
+    console.log("resourcePhysical.reducers.syncState")
     return Object.assign({}, state, {
       isFetching: true,
     })
   },
-  [actions.monitor.monitorSyncStateSuccess]: (state, action) => {
-    console.log("monitor.reducers.syncStateSuccess", state, action)
+  [actions.resourcePhysical.resourcePhysicalGetIndexSuccess]: (state, action) => {
+    console.log("resourcePhysical.reducers.syncStateSuccess", state, action)
     return Object.assign({}, state, {
       isFetching: false,
       redirectToReferrer: true,
       monitor: action.payload.monitor,
     })
   },
-  [actions.monitor.monitorSyncStateFailure]: (state, action) => {
-    console.log("monitor.reducers.syncStateFailure")
+  [actions.resourcePhysical.resourcePhysicalGetIndexFailure]: (state, action) => {
+    console.log("resourcePhysical.reducers.syncStateFailure")
     return Object.assign({}, defaultState, {
       isFetching: false,
       error: action.payload.error,

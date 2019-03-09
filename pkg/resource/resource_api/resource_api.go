@@ -55,6 +55,8 @@ func (srv *ResourceApiServer) Action(ctx context.Context, req *resource_api_grpc
 	switch req.Tctx.ActionName {
 	case "CreatePhysicalResource", "CreateVirtualResource":
 		srv.resourceModelApi.Create(tctx, req, rep)
+	case "GetPhysicalIndex":
+		srv.resourceModelApi.GetPhysicalIndex(tctx, req, rep)
 	case "GetCluster":
 		srv.resourceModelApi.GetCluster(tctx, req, rep)
 	case "GetNode":

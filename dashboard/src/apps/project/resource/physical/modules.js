@@ -1,45 +1,16 @@
 import fetch from 'cross-fetch'
 
-function syncState({projectName}) {
+function getIndex({projectName}) {
   const body = JSON.stringify({
     Action: {
       ProjectName: projectName,
-      ServiceName: 'Monitor',
-      Name: 'GetUserState',
+      ServiceName: 'Resource',
+      Name: 'GetPhysicalIndex',
+      Data: '{}',
     },
   });
-  console.log("monitor.modules.syncState")
-  console.log(body)
 
-  return fetch(process.env.REACT_APP_AUTHPROXY_URL + '/monitor', {
-    method: 'POST',
-    credentials: 'include',
-    mode: 'cors',
-    body: body,
-  }).then(res => res.json()).then(function(payload) {
-    return {
-      payload: payload,
-    };
-  }).catch(function(error) {
-    return {
-      error: error
-    };
-  });
-}
-
-function syncIndexState({projectName, indexName}) {
-  const body = JSON.stringify({
-    Action: {
-      ProjectName: projectName,
-      ServiceName: 'Monitor',
-      Name: 'GetIndexState',
-      Data: '{"Index":"' + indexName + '"}',
-    },
-  });
-  console.log("monitor.modules.syncIndexState")
-  console.log(body)
-
-  return fetch(process.env.REACT_APP_AUTHPROXY_URL + '/monitor', {
+  return fetch(process.env.REACT_APP_AUTHPROXY_URL + '/Resource', {
     method: 'POST',
     credentials: 'include',
     mode: 'cors',
@@ -56,6 +27,5 @@ function syncIndexState({projectName, indexName}) {
 }
 
 export default {
-  syncState,
-  syncIndexState,
+  getIndex,
 }

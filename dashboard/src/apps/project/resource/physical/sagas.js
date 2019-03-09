@@ -1,61 +1,34 @@
 import { delay } from 'redux-saga'
 import { put, call, takeEvery, all } from 'redux-saga/effects'
-import actions from '../../../actions'
-import modules from '../../../modules'
+import actions from '../../../../actions'
+import modules from '../../../../modules'
 
-function* syncState(action) {
-  console.log("monitor.sagas.syncState", action.payload)
-  const {payload, error} = yield call(modules.monitor.syncState, action.payload)
+function* getIndex(action) {
+  console.log("sagas.resource.physical.getIndex", action.payload)
+  const {payload, error} = yield call(modules.resourcePhysical.getIndex, action.payload)
 
   console.log(payload)
   console.log(error)
 
   if (error) {
-    yield put(actions.monitor.monitorSyncStateFailure(""))
+    yield put(actions.resourcePhysical.resourcePhysicalGetIndexFailure(""))
   } else if (payload.error && payload.error != "") {
-    yield put(actions.monitor.monitorSyncStateFailure(""))
+    yield put(actions.resourcePhysical.resourcePhysicalGetIndexFailure(""))
   } else {
-    console.log("sagas.syncState Success")
+    console.log("sagas.resource.physical.getIndex Success")
     const monitor = {
       IndexMap: payload.IndexMap,
     }
     console.log(monitor)
-    yield put(actions.monitor.monitorSyncStateSuccess(monitor))
-    console.log("yield puted actions.monitor.monitorSyncStateSuccess")
+    yield put(actions.resourcePhysical.resourcePhysicalGetIndexSuccess(monitor))
+    console.log("yield puted actions.resourcePhysical.resourcePhysicalGetIndexSuccess")
   }
 }
 
-function* syncIndexState(action) {
-  console.log("monitor.sagas.syncIndexState", action.payload)
-  const {payload, error} = yield call(modules.monitor.syncIndexState, action.payload)
-
-  console.log(payload)
-  console.log(error)
-
-  if (error) {
-    yield put(actions.monitor.monitorSyncIndexStateFailure(""))
-  } else if (payload.error && payload.error != "") {
-    yield put(actions.monitor.monitorSyncIndexStateFailure(""))
-  } else {
-    console.log("sagas.syncIndexState Success")
-    const indexState = {
-      hostMap: payload.HostMap,
-    }
-    console.log(indexState)
-    yield put(actions.monitor.monitorSyncIndexStateSuccess(indexState))
-    console.log("yield puted actions.monitor.monitorSyncIndexStateSuccess")
-  }
-}
-
-function* watchSyncState() {
-  yield takeEvery(actions.monitor.monitorSyncState, syncState)
-}
-
-function* watchSyncIndexState() {
-  yield takeEvery(actions.monitor.monitorSyncIndexState, syncIndexState)
+function* watchGetIndex() {
+  yield takeEvery(actions.resourcePhysical.resourcePhysicalGetIndex, getIndex)
 }
 
 export default {
-  watchSyncState,
-  watchSyncIndexState,
+  watchGetIndex,
 }

@@ -41,8 +41,8 @@ class ProjectResourcePhysical extends Component {
   };
 
   componentWillMount() {
-    const {match, syncState} = this.props
-    syncState(match.params.project)
+    const {match, getIndex} = this.props
+    getIndex(match.params.project)
   }
 
   render() {
@@ -84,7 +84,7 @@ ProjectResourcePhysical.propTypes = {
   classes: PropTypes.object.isRequired,
   auth: PropTypes.object.isRequired,
   monitor: PropTypes.object.isRequired,
-  syncState: PropTypes.func.isRequired
+  getIndex: PropTypes.func.isRequired
 }
 
 function mapStateToProps(state, ownProps) {
@@ -99,8 +99,8 @@ function mapStateToProps(state, ownProps) {
 
 function mapDispatchToProps(dispatch, ownProps) {
   return {
-    syncState: (projectName) => {
-      dispatch(actions.monitor.monitorSyncState(projectName));
+    getIndex: (projectName) => {
+      dispatch(actions.resourcePhysical.resourcePhysicalGetIndex(projectName));
     }
   }
 }
