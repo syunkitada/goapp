@@ -241,43 +241,5 @@ func (modelApi *ResourceModelApi) Create(tctx *logger.TraceContext, req *resourc
 
 	tx.Commit()
 
-	// var compute resource_model.Compute
-	// if err = tx.Where("name = ? and cluster = ?", spec.Name, spec.Cluster).First(&compute).Error; err != nil {
-	// 	if !gorm.IsRecordNotFoundError(err) {
-	// 		rep.Tctx.Err = err.Error()
-	// 		rep.Tctx.StatusCode = codes.RemoteDbError
-	// 		return
-	// 	}
-
-	// 	compute = resource_model.Compute{
-	// 		Cluster:      spec.Cluster,
-	// 		Kind:         spec.Kind,
-	// 		Name:         spec.Name,
-	// 		Domain:       spec.Spec.Domain,
-	// 		Spec:         req.Spec,
-	// 		Status:       resource_model.StatusCreating,
-	// 		StatusReason: fmt.Sprintf("CreateCompute: user=%v, project=%v", req.Tctx.UserName, req.Tctx.ProjectName),
-	// 	}
-	// 	if err = tx.Create(&compute).Error; err != nil {
-	// 		rep.Tctx.Err = err.Error()
-	// 		rep.Tctx.StatusCode = codes.RemoteDbError
-	// 		return
-	// 	}
-	// } else {
-	// 	rep.Tctx.Err = fmt.Sprintf("Already Exists: cluster=%v, name=%v", spec.Cluster, spec.Name)
-	// 	rep.Tctx.StatusCode = codes.ClientAlreadyExists
-	// 	return
-	// }
-	// tx.Commit()
-
-	// computePb, err := modelApi.convertCompute(&compute)
-	// if err != nil {
-	// 	rep.Tctx.Err = err.Error()
-	// 	rep.Tctx.StatusCode = codes.ServerInternalError
-	// 	return
-	// }
-
-	// rep.Computes = []*resource_api_grpc_pb.Compute{computePb}
-	// rep.Tctx.StatusCode = codes.Ok
-	return
+	rep.Tctx.StatusCode = codes.Ok
 }

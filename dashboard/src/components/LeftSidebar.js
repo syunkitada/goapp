@@ -19,7 +19,8 @@ import PeopleIcon from '@material-ui/icons/People';
 import BarChartIcon from '@material-ui/icons/BarChart';
 import LayersIcon from '@material-ui/icons/Layers';
 import AssignmentIcon from '@material-ui/icons/Assignment';
-import ViewComfyIcon from '@material-ui/icons/ViewComfy';
+import CloudQueueIcon from '@material-ui/icons/CloudQueue';
+import CloudIcon from '@material-ui/icons/Cloud';
 import AssessmentIcon from '@material-ui/icons/Assessment';
 import ExpansionPanel from '@material-ui/core/ExpansionPanel';
 import ExpansionPanelSummary from '@material-ui/core/ExpansionPanelSummary';
@@ -79,12 +80,15 @@ class LeftSidebar extends Component {
       ["Ticket", <NoteAddIcon />],
       ["Datacenter", <LayersIcon />],
       ["Home", <DashboardIcon />],
-      ["Resource", <ViewComfyIcon />],
+      ["Resource.Physical", <CloudIcon />],
+      ["Resource.Virtual", <CloudQueueIcon />],
       ["Monitor", <AssessmentIcon />],
     ]
 
+    var splitedLink = null
     for (let serviceLink of serviceLinks) {
-      if (serviceLink[0] in serviceMap) {
+      splitedLink = serviceLink[0].split(".")
+      if (splitedLink[0] in serviceMap) {
         let path = prefixPath + serviceLink[0]
         services.push(
           <NavLink key={serviceLink[0]} to={path} style={{textDecoration: 'none', color: 'unset'}}>
