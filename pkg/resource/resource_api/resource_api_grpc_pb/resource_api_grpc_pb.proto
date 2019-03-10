@@ -37,11 +37,16 @@ message ActionRequest {
 
 message ActionReply {
     authproxy_grpc_pb.TraceContext Tctx = 1;
-    repeated Cluster Clusters = 2;
-    repeated Node Nodes = 3;
-    repeated Compute Computes = 4;
-    repeated Network Networks = 5;
-    repeated Image Images = 6;
+    repeated Datacenter Datacenters = 2;
+    repeated Cluster Clusters = 3;
+    repeated Floor Floors = 4;
+    repeated Rack Racks = 5;
+    repeated PhysicalResource PhysicalResources = 6;
+
+    repeated Node Nodes = 7;
+    repeated Compute Computes = 8;
+    repeated Network Networks = 9;
+    repeated Image Images = 10;
 }
 
 //
@@ -60,6 +65,47 @@ message UpdateNodeReply {
 //
 // Resources
 //
+message Datacenter {
+    google.protobuf.Timestamp UpdatedAt = 1;
+    google.protobuf.Timestamp CreatedAt = 2;
+    string Name = 3;
+    string Kind = 4;
+    string Region = 5;
+}
+
+message Floor {
+    google.protobuf.Timestamp UpdatedAt = 1;
+    google.protobuf.Timestamp CreatedAt = 2;
+    string Name = 3;
+    string Kind = 4;
+    string Datacenter = 5;
+    string Zone = 6;
+    uint32 Floor = 7;
+}
+
+message Rack {
+    google.protobuf.Timestamp UpdatedAt = 1;
+    google.protobuf.Timestamp CreatedAt = 2;
+    string Name = 3;
+    string Kind = 4;
+    string Datacenter = 5;
+    string Floor = 6;
+    uint32 Unit = 7;
+}
+
+message PhysicalResource {
+    google.protobuf.Timestamp UpdatedAt = 1;
+    google.protobuf.Timestamp CreatedAt = 2;
+    string Name = 3;
+    string Kind = 4;
+    string Datacenter = 5;
+    string Rack = 6;
+    string Model = 7;
+    string RackPosition = 8;
+    repeated string PowerLinks = 9;
+    repeated string NetLinks = 10;
+}
+
 message Cluster {
     google.protobuf.Timestamp UpdatedAt = 1;
     google.protobuf.Timestamp CreatedAt = 2;

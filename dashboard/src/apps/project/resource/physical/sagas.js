@@ -16,11 +16,10 @@ function* getIndex(action) {
     yield put(actions.resourcePhysical.resourcePhysicalGetIndexFailure(""))
   } else {
     console.log("sagas.resource.physical.getIndex Success")
-    const monitor = {
-      IndexMap: payload.IndexMap,
+    const index = {
+      Clusters: payload.Clusters,
     }
-    console.log(monitor)
-    yield put(actions.resourcePhysical.resourcePhysicalGetIndexSuccess(monitor))
+    yield put(actions.resourcePhysical.resourcePhysicalGetIndexSuccess(index))
     console.log("yield puted actions.resourcePhysical.resourcePhysicalGetIndexSuccess")
   }
 }

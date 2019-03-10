@@ -46,19 +46,16 @@ class ProjectResourcePhysical extends Component {
   }
 
   render() {
-    const {classes, match, auth, monitor} = this.props
+    const {classes, match, auth, resourcePhysical} = this.props
     const { expanded } = this.state;
-    console.log("DEBUG Monitor")
-    console.log(monitor)
-
     if (!auth.user) {
       return null
     }
 
     const projectService = auth.user.Authority.ProjectServiceMap[match.params.project]
 
-    if (!monitor.monitor) {
-      console.log("!monitor.monitor")
+    if (!resourcePhysical.index) {
+      console.log("!index.index")
       return (
         <Dashboard projectService={projectService} match={match}>
           <div>
@@ -67,6 +64,7 @@ class ProjectResourcePhysical extends Component {
         </Dashboard>
       );
     } else {
+      console.log(resourcePhysical.index)
       return (
         <Dashboard projectService={projectService} match={match}>
           <Typography variant="display1">
@@ -83,17 +81,17 @@ class ProjectResourcePhysical extends Component {
 ProjectResourcePhysical.propTypes = {
   classes: PropTypes.object.isRequired,
   auth: PropTypes.object.isRequired,
-  monitor: PropTypes.object.isRequired,
+  resourcePhysical: PropTypes.object.isRequired,
   getIndex: PropTypes.func.isRequired
 }
 
 function mapStateToProps(state, ownProps) {
   const auth = state.auth
-  const monitor = state.monitor
+  const resourcePhysical = state.resourcePhysical
 
   return {
     auth: auth,
-    monitor: monitor,
+    resourcePhysical: resourcePhysical,
   }
 }
 
