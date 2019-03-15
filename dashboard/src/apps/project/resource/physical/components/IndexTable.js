@@ -83,11 +83,11 @@ function getSorting(order, orderBy) {
 }
 
 const rows = [
-  { id: 'index', numeric: false, disablePadding: true, label: 'Index' },
-  { id: 'count', numeric: true, disablePadding: false, label: 'Count' },
-  { id: 'states', numeric: true, disablePadding: false, label: 'States' },
-  { id: 'warnings', numeric: true, disablePadding: false, label: 'Warnings' },
-  { id: 'errors', numeric: true, disablePadding: false, label: 'Errors' },
+  { id: 'Region', numeric: false, disablePadding: true, label: 'Region' },
+  { id: 'Name', numeric: false, disablePadding: true, label: 'Name' },
+  { id: 'Kind', numeric: false, disablePadding: true, label: 'Kind' },
+  { id: 'UpdatedAt', numeric: false, disablePadding: true, label: 'UpdatedAt' },
+  { id: 'CreatedAt', numeric: false, disablePadding: true, label: 'CreatedAt' },
 ];
 
 class IndexTableHead extends Component {
@@ -353,8 +353,10 @@ class IndexTable extends Component {
     const data = []
     console.log(index.Datacenters)
     for (let i in index.Datacenters) {
-      let datacenter = index.Datacenters[i]
-      data.push([datacenter.Name, 0, 0, 0, 0])
+      let d = index.Datacenters[i]
+      let updatedAt = new Date(d.UpdatedAt.seconds * 1000)
+      let createdAt = new Date(d.CreatedAt.seconds * 1000)
+      data.push([d.Region, d.Name, d.Kind, updatedAt.toISOString(), createdAt.toISOString()])
     }
     this.state.data = data
     const indexLength = data.length
