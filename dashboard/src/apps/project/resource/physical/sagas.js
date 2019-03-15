@@ -17,7 +17,7 @@ function* getIndex(action) {
   } else {
     console.log("sagas.resource.physical.getIndex Success")
     const index = {
-      Clusters: payload.Clusters,
+      Datacenters: payload.Datacenters,
     }
     yield put(actions.resourcePhysical.resourcePhysicalGetIndexSuccess(index))
     console.log("yield puted actions.resourcePhysical.resourcePhysicalGetIndexSuccess")

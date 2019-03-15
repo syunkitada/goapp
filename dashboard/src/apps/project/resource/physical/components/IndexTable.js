@@ -347,15 +347,14 @@ class IndexTable extends Component {
   isSelected = id => this.state.selected.indexOf(id) !== -1;
 
   render() {
-    const { match, classes, auth, monitor} = this.props
+    const { match, classes, auth, index} = this.props
     const { order, orderBy, selected, rowsPerPage, page } = this.state;
-    const indexMap = monitor.monitor.IndexMap
 
     const data = []
-    for (let key in indexMap) {
-      let v = indexMap[key]
-      data.push([v.name, v.count? v.count:0,
-        v.states? v.states:0, v.warnings? v.warnings:0, v.errors? v.errors:0])
+    console.log(index.Datacenters)
+    for (let i in index.Datacenters) {
+      let datacenter = index.Datacenters[i]
+      data.push([datacenter.Name, 0, 0, 0, 0])
     }
     this.state.data = data
     const indexLength = data.length
@@ -531,11 +530,11 @@ IndexTable.propTypes = {
 
 function mapStateToProps(state, ownProps) {
   const auth = state.auth
-  const monitor = state.monitor
+  const index = ownProps.index
 
   return {
     auth: auth,
-    monitor: monitor,
+    index: index,
   }
 }
 

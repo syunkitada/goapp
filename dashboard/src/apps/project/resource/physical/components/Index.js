@@ -61,10 +61,8 @@ class Index extends Component {
   }
 
   render() {
-    const {classes, match, auth, monitor} = this.props
+    const {classes, match, auth, index} = this.props
     let { expanded, tabId } = this.state;
-    console.log("DEBUG Monitor")
-    console.log(monitor)
 
     if (!auth.user) {
       return null
@@ -72,10 +70,11 @@ class Index extends Component {
 
     const projectService = auth.user.Authority.ProjectServiceMap[match.params.project]
 
-    if (!monitor.monitor) {
+    if (!index.Datacenters) {
       console.log("!monitor.monitor")
       return (
         <div>
+          NotFound
         </div>
       );
     } else {
@@ -101,7 +100,7 @@ class Index extends Component {
               </Typography>
             </ExpansionPanelSummary>
             <ExpansionPanelDetails>
-              <IndexTable match={match} />
+              <IndexTable match={match} index={index} />
             </ExpansionPanelDetails>
           </ExpansionPanel>
 
@@ -144,24 +143,24 @@ class Index extends Component {
 Index.propTypes = {
   classes: PropTypes.object.isRequired,
   auth: PropTypes.object.isRequired,
-  monitor: PropTypes.object.isRequired,
+  index: PropTypes.object.isRequired,
   syncState: PropTypes.func.isRequired
 }
 
 function mapStateToProps(state, ownProps) {
   const auth = state.auth
-  const monitor = state.monitor
+  const index = ownProps.index
 
   return {
     auth: auth,
-    monitor: monitor,
+    index: index,
   }
 }
 
 function mapDispatchToProps(dispatch, ownProps) {
   return {
     syncState: (projectName) => {
-      dispatch(actions.monitor.monitorSyncState(projectName));
+      console.log(projectName)
     }
   }
 }
