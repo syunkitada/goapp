@@ -1,6 +1,6 @@
 {
   "Kind": "Floor",
-  "Name": "1-1-1",
+  "Name": "floor-1-1-1",
   "Spec": {
     "Kind": "Floor",
     "Datacenter": "tokyo",

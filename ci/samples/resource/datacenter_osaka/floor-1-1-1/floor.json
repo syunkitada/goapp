@@ -1,9 +1,9 @@
 {
   "Kind": "Floor",
-  "Name": "floor-1-1-2",
+  "Name": "floor-1-1-1",
   "Spec": {
     "Kind": "Floor",
-    "Datacenter": "tokyo",
+    "Datacenter": "osaka",
     "Zone": "Zone1",
     "Floor": 1,
     "Spec": {}

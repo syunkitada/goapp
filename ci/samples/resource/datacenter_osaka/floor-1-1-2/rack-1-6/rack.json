@@ -1,0 +1,10 @@
+{
+  "Kind": "Rack",
+  "Name": "floor-1-1-2-rack-1-6",
+  "Spec": {
+    "Kind": "Rack",
+    "Datacenter": "osaka",
+    "Floor": "floor-1-1-2",
+    "Unit": 40
+  }
+}

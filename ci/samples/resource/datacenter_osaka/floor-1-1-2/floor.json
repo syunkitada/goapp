@@ -3,7 +3,7 @@
   "Name": "floor-1-1-2",
   "Spec": {
     "Kind": "Floor",
-    "Datacenter": "tokyo",
+    "Datacenter": "osaka",
     "Zone": "Zone1",
     "Floor": 1,
     "Spec": {}

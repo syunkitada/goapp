@@ -112,7 +112,7 @@ func (modelApi *ResourceModelApi) Create(tctx *logger.TraceContext, req *resourc
 				}
 
 				var data resource_model.Floor
-				if err = tx.Where("name = ?", rspec.Name).First(&data).Error; err != nil {
+				if err = tx.Where("name = ? and datacenter = ?", rspec.Name, rspec.Spec.Datacenter).First(&data).Error; err != nil {
 					if !gorm.IsRecordNotFoundError(err) {
 						logger.SetErrorTraceContext(rep.Tctx, codes.RemoteDbError, err)
 						return
@@ -143,7 +143,7 @@ func (modelApi *ResourceModelApi) Create(tctx *logger.TraceContext, req *resourc
 				}
 
 				var data resource_model.Rack
-				if err = tx.Where("name = ?", rspec.Name).First(&data).Error; err != nil {
+				if err = tx.Where("name = ? and datacenter = ?", rspec.Name, rspec.Spec.Datacenter).First(&data).Error; err != nil {
 					if !gorm.IsRecordNotFoundError(err) {
 						logger.SetErrorTraceContext(rep.Tctx, codes.RemoteDbError, err)
 						return
@@ -173,7 +173,7 @@ func (modelApi *ResourceModelApi) Create(tctx *logger.TraceContext, req *resourc
 				}
 
 				var data resource_model.PhysicalResource
-				if err = tx.Where("name = ?", rspec.Name).First(&data).Error; err != nil {
+				if err = tx.Where("name = ? and datacenter = ?", rspec.Name, rspec.Spec.Datacenter).First(&data).Error; err != nil {
 					if !gorm.IsRecordNotFoundError(err) {
 						logger.SetErrorTraceContext(rep.Tctx, codes.RemoteDbError, err)
 						return

@@ -70,6 +70,7 @@ class ProjectResourcePhysical extends Component {
           <Typography variant="display1">
             Resource.Physical
           </Typography>
+
           <Route exact path={match.path} render={props =>
             <Index {...props} index={resourcePhysical.index} />
           }/>
