@@ -15,6 +15,7 @@ export default function* rootSaga() {
     auth.watchLogout(),
     home.watchSyncState(),
     resourcePhysical.watchGetIndex(),
+    resourcePhysical.watchGetDatacenterIndex(),
     monitor.watchSyncState(),
     monitor.watchSyncIndexState(),
   ])

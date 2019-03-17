@@ -1,11 +1,38 @@
 import { createActions } from 'redux-actions';
 
 export default createActions({
-  RESOURCE_PHYSICAL_GET_INDEX: (projectName) => ({projectName: projectName}),
-  RESOURCE_PHYSICAL_GET_INDEX_SUCCESS: (index) => ({index: index}),
-  RESOURCE_PHYSICAL_GET_INDEX_FAILURE: (error) => ({error: error}),
+  RESOURCE_PHYSICAL_GET_INDEX: (projectName) => ({
+    stateKey: 'index',
+    serviceName: 'Resource',
+    actionName: 'UserQuery',
+    projectName: projectName,
+    data: {
+      queries: [
+        {kind: "GetDatacenters"},
+      ],
+    },
+  }),
+  RESOURCE_PHYSICAL_GET_DATACENTER_INDEX: (projectName, datacenterName) => ({
+    stateKey: 'datacenterIndex',
+    serviceName: 'Resource',
+    actionName: 'UserQuery',
+    projectName: projectName,
+    data: {
+      queries: [
+        {kind: "GetPhysicalResources", datacenterName: datacenterName},
+        {kind: "GetFloors", datacenterName: datacenterName},
+        {kind: "GetRacks", datacenterName: datacenterName},
+      ],
+    },
+  }),
 
-  // RESROUCE_SYNC_INDEX_STATE: (projectName, indexName) => ({projectName: projectName, indexName: indexName}),
-  // RESROUCE_SYNC_INDEX_STATE_SUCCESS: (indexState) => ({indexState: indexState}),
-  // RESROUCE_SYNC_INDEX_STATE_FAILURE: (error) => ({error: error}),
+  RESOURCE_PHYSICAL_POST_SUCCESS: (action, data) => ({
+    action: action,
+    data: data
+  }),
+  RESOURCE_PHYSICAL_POST_FAILURE: (action, error, payloadError) => ({
+    action: action,
+    error: error,
+    payloadError: payloadError
+  }),
 })

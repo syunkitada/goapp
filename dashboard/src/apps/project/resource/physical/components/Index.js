@@ -56,12 +56,14 @@ class Index extends Component {
   };
 
   componentWillMount() {
-    const {match, syncState} = this.props
-    syncState(match.params.project)
+    const {match, getDatacenterIndex} = this.props
+    if (match.params.index) {
+      getDatacenterIndex(match.params.project, match.params.index)
+    }
   }
 
   render() {
-    const {classes, match, auth, index} = this.props
+    const {classes, match, auth, index, datacenterIndex} = this.props
     let { expanded, tabId } = this.state;
 
     if (!auth.user) {
@@ -90,6 +92,9 @@ class Index extends Component {
         }
       }
 
+      console.log("DEBUG Index")
+      console.log(datacenterIndex)
+
       return (
         <div>
           <ExpansionPanel expanded={expanded === 'IndexPanel'} onChange={this.handleChange('IndexPanel')}>
@@ -114,23 +119,19 @@ class Index extends Component {
                 variant="scrollable"
                 scrollButtons="auto"
               >
-                <Tab label="Alerms" />
-                <Tab label="Silenced Alerms" />
-                <Tab label="Hosts" />
-                <Tab label="Logs" />
+                <Tab label="Resources" />
+                <Tab label="Racks" />
+                <Tab label="Floors" />
               </Tabs>
             </AppBar>
             {tabId === 0 && <TabContainer>
-              Alerms
+              PhysicalResources
             </TabContainer>}
             {tabId === 1 && <TabContainer>
-              Silenced Alerms
+              Racks
             </TabContainer>}
             {tabId === 2 && <TabContainer>
-              <HostTable match={match} />
-            </TabContainer>}
-            {tabId === 3 && <TabContainer>
-              <LogTable match={match} />
+              Floors
             </TabContainer>}
           </Paper>
 
@@ -144,23 +145,25 @@ Index.propTypes = {
   classes: PropTypes.object.isRequired,
   auth: PropTypes.object.isRequired,
   index: PropTypes.object.isRequired,
-  syncState: PropTypes.func.isRequired
+  getDatacenterIndex: PropTypes.func.isRequired
 }
 
 function mapStateToProps(state, ownProps) {
   const auth = state.auth
   const index = ownProps.index
+  const datacenterIndex = state.resourcePhysical.datacenterIndex
 
   return {
     auth: auth,
     index: index,
+    datacenterIndex: datacenterIndex,
   }
 }
 
 function mapDispatchToProps(dispatch, ownProps) {
   return {
-    syncState: (projectName) => {
-      console.log(projectName)
+    getDatacenterIndex: (projectName, datacenterName) => {
+      dispatch(actions.resourcePhysical.resourcePhysicalGetDatacenterIndex(projectName, datacenterName));
     }
   }
 }

@@ -30,9 +30,15 @@ message StatusReply {
 //
 message ActionRequest {
     authproxy_grpc_pb.TraceContext Tctx = 1;
-    string Target = 2;
-    string Cluster = 3;
-    string Spec = 4;
+    repeated Query Queries = 2;
+    string Target = 3;
+    string Cluster = 4;
+    string Spec = 5;
+}
+
+message Query {
+    string Kind = 1;
+    string DatacenterName = 2;
 }
 
 message ActionReply {

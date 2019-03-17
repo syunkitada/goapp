@@ -3,31 +3,30 @@ import { put, call, takeEvery, all } from 'redux-saga/effects'
 import actions from '../../../../actions'
 import modules from '../../../../modules'
 
-function* getIndex(action) {
-  console.log("sagas.resource.physical.getIndex", action.payload)
-  const {payload, error} = yield call(modules.resourcePhysical.getIndex, action.payload)
 
-  console.log(payload)
-  console.log(error)
+function* post(action) {
+  const {payload, error} = yield call(modules.resourcePhysical.post, action.payload)
+  console.log("HOGEllwlwlwlwllwlwsaga")
+  console.log(action)
 
   if (error) {
-    yield put(actions.resourcePhysical.resourcePhysicalGetIndexFailure(""))
+    yield put(actions.resourcePhysical.resourcePhysicalPostFailure(action, error, null))
   } else if (payload.error && payload.error != "") {
-    yield put(actions.resourcePhysical.resourcePhysicalGetIndexFailure(""))
+    yield put(actions.resourcePhysical.resourcePhysicalPostFailure(action, null, payload.error))
   } else {
-    console.log("sagas.resource.physical.getIndex Success")
-    const index = {
-      Datacenters: payload.Datacenters,
-    }
-    yield put(actions.resourcePhysical.resourcePhysicalGetIndexSuccess(index))
-    console.log("yield puted actions.resourcePhysical.resourcePhysicalGetIndexSuccess")
+    yield put(actions.resourcePhysical.resourcePhysicalPostSuccess(action, payload))
   }
 }
 
 function* watchGetIndex() {
-  yield takeEvery(actions.resourcePhysical.resourcePhysicalGetIndex, getIndex)
+  yield takeEvery(actions.resourcePhysical.resourcePhysicalGetIndex, post)
+}
+
+function* watchGetDatacenterIndex() {
+  yield takeEvery(actions.resourcePhysical.resourcePhysicalGetDatacenterIndex, post)
 }
 
 export default {
   watchGetIndex,
+  watchGetDatacenterIndex,
 }

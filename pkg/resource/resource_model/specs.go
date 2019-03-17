@@ -1,5 +1,10 @@
 package resource_model
 
+type QuerySpec struct {
+	Kind           string
+	DatacenterName string
+}
+
 type ResourceSpec struct {
 	Kind    string `validate:"required"`
 	Name    string `validate:"required"`

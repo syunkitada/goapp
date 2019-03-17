@@ -1,12 +1,12 @@
 import fetch from 'cross-fetch'
 
-function getIndex({projectName}) {
+function post({serviceName, actionName, projectName, data}) {
   const body = JSON.stringify({
     Action: {
+      ServiceName: serviceName,
+      Name: actionName,
       ProjectName: projectName,
-      ServiceName: 'Resource',
-      Name: 'GetPhysicalIndex',
-      Data: '{}',
+      Data: JSON.stringify(data),
     },
   });
 
@@ -27,5 +27,5 @@ function getIndex({projectName}) {
 }
 
 export default {
-  getIndex,
+  post,
 }

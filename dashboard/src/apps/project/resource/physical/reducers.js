@@ -3,38 +3,40 @@ import { handleActions } from 'redux-actions';
 import actions from '../../../../actions'
 
 const defaultState = {
-  isSyncState: false,
   isFetching: false,
   error: null,
+  payloadError: null,
   index: null,
+  datacenterIndex: null,
 };
 
 export default handleActions({
   [actions.resourcePhysical.resourcePhysicalGetIndex]: (state) => {
-    console.log("resourcePhysical.reducers.syncState")
     return Object.assign({}, state, {
       isFetching: true,
     })
   },
-  [actions.resourcePhysical.resourcePhysicalGetIndexSuccess]: (state, action) => {
-    console.log("resourcePhysical.reducers.syncStateSuccess", state, action)
+  [actions.resourcePhysical.resourcePhysicalGetDatacenterIndex]: (state) => {
     return Object.assign({}, state, {
-      isFetching: false,
-      redirectToReferrer: true,
-      index: action.payload.index,
+      isFetching: true,
     })
   },
-  [actions.resourcePhysical.resourcePhysicalGetIndexFailure]: (state, action) => {
-    console.log("resourcePhysical.reducers.syncStateFailure")
+
+  [actions.resourcePhysical.resourcePhysicalPostSuccess]: (state, action) => {
+    let newState = Object.assign({}, state, {
+      isFetching: false,
+      redirectToReferrer: true,
+    })
+    newState[action.payload.action.payload.stateKey] = action.payload.data
+    console.log("Debug: resourcePhysicalPostSuccess")
+    console.log(newState)
+    return newState
+  },
+  [actions.resourcePhysical.resourcePhysicalPostFailure]: (state, action) => {
     return Object.assign({}, defaultState, {
       isFetching: false,
       error: action.payload.error,
-    })
-  },
-  [actions.monitor.monitorSyncIndexState]: (state) => {
-    console.log("monitor.reducers.syncIndexState")
-    return Object.assign({}, state, {
-      isFetching: true,
+      payloadError: action.payload.payloadError,
     })
   },
 }, defaultState);

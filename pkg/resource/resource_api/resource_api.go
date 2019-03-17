@@ -53,6 +53,8 @@ func (srv *ResourceApiServer) Action(ctx context.Context, req *resource_api_grpc
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
 	switch req.Tctx.ActionName {
+	case "UserQuery":
+		srv.resourceModelApi.UserQuery(tctx, req, rep)
 	case "CreatePhysicalResource", "CreateVirtualResource":
 		srv.resourceModelApi.Create(tctx, req, rep)
 	case "GetPhysicalIndex":
