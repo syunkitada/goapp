@@ -53,12 +53,70 @@ import IndexTableHead         from '../../../../../components/tables/IndexTableH
 import TableToolbar from '../../../../../components/tables/TableToolbar'
 import sort_utils from '../../../../../modules/sort_utils'
 
+import Dialog from '@material-ui/core/Dialog';
+import MuiDialogTitle from '@material-ui/core/DialogTitle';
+import MuiDialogContent from '@material-ui/core/DialogContent';
+import MuiDialogActions from '@material-ui/core/DialogActions';
+import CloseIcon from '@material-ui/icons/Close';
+import Button from '@material-ui/core/Button';
+
+
+import ClickAwayListener from '@material-ui/core/ClickAwayListener';
+import Grow from '@material-ui/core/Grow';
+import Popper from '@material-ui/core/Popper';
+import MenuItem from '@material-ui/core/MenuItem';
+import MenuList from '@material-ui/core/MenuList';
+import Popover from '@material-ui/core/Popover';
+
+
+const DialogTitle = withStyles(theme => ({
+  root: {
+    borderBottom: `1px solid ${theme.palette.divider}`,
+    margin: 0,
+    padding: theme.spacing.unit * 2,
+  },
+  closeButton: {
+    position: 'absolute',
+    right: theme.spacing.unit,
+    top: theme.spacing.unit,
+    color: theme.palette.grey[500],
+  },
+}))(props => {
+  const { children, classes, onClose } = props;
+  return (
+    <MuiDialogTitle disableTypography className={classes.root}>
+      <Typography variant="h6">{children}</Typography>
+      {onClose ? (
+        <IconButton aria-label="Close" className={classes.closeButton} onClick={onClose}>
+          <CloseIcon />
+        </IconButton>
+      ) : null}
+    </MuiDialogTitle>
+  );
+});
+
+const DialogContent = withStyles(theme => ({
+  root: {
+    margin: 0,
+    padding: theme.spacing.unit * 2,
+  },
+}))(MuiDialogContent);
+
+const DialogActions = withStyles(theme => ({
+  root: {
+    borderTop: `1px solid ${theme.palette.divider}`,
+    margin: 0,
+    padding: theme.spacing.unit,
+  },
+}))(MuiDialogActions);
+
 const rows = [
   { id: 0, numeric: false, disablePadding: true, label: 'Name' },
   { id: 1, numeric: false, disablePadding: false, label: 'Region' },
   { id: 2, numeric: false, disablePadding: false, label: 'Kind' },
   { id: 3, numeric: false, disablePadding: false, label: 'UpdatedAt' },
   { id: 4, numeric: false, disablePadding: false, label: 'CreatedAt' },
+  { id: 5, numeric: false, disablePadding: false, label: 'Action' },
 ];
 
 const styles = theme => ({
@@ -85,7 +143,7 @@ const styles = theme => ({
   },
 });
 
-class IndexTable extends Component {
+class PhysicalResourcesTable extends Component {
   state = {
     order: 'asc',
     orderBy: 0,
@@ -94,6 +152,32 @@ class IndexTable extends Component {
     page: 0,
     rowsPerPage: 5,
     searchRegExp: null,
+    dialogOpen: false,
+		menuOpen: false,
+		openedActionMenu: -1,
+		anchorEl: null,
+  };
+
+  handleClickOpen = () => {
+    this.setState({
+      open: true,
+    });
+  };
+
+  handleClose = () => {
+    this.setState({ open: false });
+  };
+
+	handleActionMenuToggle = (event) => {
+			this.setState({
+        anchorEl: event.currentTarget,
+      });
+	};
+
+	handleClose = () => {
+    this.setState({
+         anchorEl: null,
+    });
   };
 
   handleRequestSort = (event, property) => {
@@ -124,12 +208,22 @@ class IndexTable extends Component {
   };
 
   render() {
-    const { match, classes, auth, index} = this.props
-    const { order, orderBy, rowsPerPage, page, searchRegExp } = this.state;
+    const { match, classes, auth, datacenterIndex} = this.props
+    const { order, orderBy, rowsPerPage, page, searchRegExp, menuOpen, dialogOpen, anchorEl } = this.state;
+
+	  const open = Boolean(anchorEl);
+
+    if (datacenterIndex == null || datacenterIndex.PhysicalResources == null) {
+      return (
+        <div>No Resources</div>
+      )
+    }
+		console.log("DEBUBgllalalalala")
+		console.log(menuOpen)
 
     const data = []
-    for (let i in index.Datacenters) {
-      let d = index.Datacenters[i]
+    for (let i in datacenterIndex.PhysicalResources) {
+      let d = datacenterIndex.PhysicalResources[i]
       if (searchRegExp && !searchRegExp.exec(d.Name) && !searchRegExp.exec(d.Region)) {
         continue
       }
@@ -172,13 +266,39 @@ class IndexTable extends Component {
                       tabIndex={-1}
                       key={n[0]}
                     >
-                      <TableCell component="th" scope="row" padding="none">
-                        <Link to={`${match.url}/${n[0]}`}>{n[0]}</Link>
-                      </TableCell>
+                      <TableCell component="th" scope="row" padding="none">{n[0]}</TableCell>
                       <TableCell align="right">{n[1]}</TableCell>
                       <TableCell align="right">{n[2]}</TableCell>
                       <TableCell align="right">{n[3]}</TableCell>
                       <TableCell align="right">{n[4]}</TableCell>
+                      <TableCell align="right">
+
+														<Button
+                              aria-owns={n[0] == this.state.openedActionMenu ? 'simple-popper' : undefined}
+                              aria-haspopup="true"
+                              variant="contained"
+                                onClick={this.handleActionMenuToggle}
+                            >
+                              Action
+                            </Button>
+														  <Popover
+                              id="simple-popper"
+                              open={open}
+                              anchorEl={anchorEl}
+                              onClose={this.handleClose}
+anchorOrigin={{
+      vertical: 'bottom',
+        horizontal: 'right',
+      }}
+                      transformOrigin={{
+                            vertical: 'top',
+                              horizontal: 'right',
+                            }}
+                            >
+                              <Typography className={classes.typography}>The content of the Popover.</Typography>
+                            </Popover>
+
+											</TableCell>
                     </TableRow>
                   );
                 })}
@@ -190,22 +310,56 @@ class IndexTable extends Component {
             </TableBody>
           </Table>
         </div>
+
+
+
+
+        <Dialog
+          onClose={this.handleClose}
+          aria-labelledby="customized-dialog-title"
+          open={this.state.dialogOpen}
+        >
+          <DialogTitle id="customized-dialog-title" onClose={this.handleClose}>
+            Modal title
+          </DialogTitle>
+          <DialogContent>
+            <Typography gutterBottom>
+              Cras mattis consectetur purus sit amet fermentum. Cras justo odio, dapibus ac
+              facilisis in, egestas eget quam. Morbi leo risus, porta ac consectetur ac, vestibulum
+              at eros.
+            </Typography>
+            <Typography gutterBottom>
+              Praesent commodo cursus magna, vel scelerisque nisl consectetur et. Vivamus sagittis
+              lacus vel augue laoreet rutrum faucibus dolor auctor.
+            </Typography>
+            <Typography gutterBottom>
+              Aenean lacinia bibendum nulla sed consectetur. Praesent commodo cursus magna, vel
+              scelerisque nisl consectetur et. Donec sed odio dui. Donec ullamcorper nulla non metus
+              auctor fringilla.
+            </Typography>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={this.handleClose} color="primary">
+              Save changes
+            </Button>
+          </DialogActions>
+        </Dialog>
       </div>
     );
   }
 }
 
-IndexTable.propTypes = {
+PhysicalResourcesTable.propTypes = {
   classes: PropTypes.object.isRequired,
 };
 
 function mapStateToProps(state, ownProps) {
   const auth = state.auth
-  const index = ownProps.index
+  const datacenterIndex = ownProps.datacenterIndex
 
   return {
     auth: auth,
-    index: index,
+    datacenterIndex: datacenterIndex,
   }
 }
 
@@ -216,4 +370,4 @@ function mapDispatchToProps(dispatch, ownProps) {
 export default connect(
   mapStateToProps,
   mapDispatchToProps
-)(withStyles(styles)(IndexTable));
+)(withStyles(styles)(PhysicalResourcesTable));

@@ -20,6 +20,7 @@ import Tab from '@material-ui/core/Tab';
 import AppBar from '@material-ui/core/AppBar';
 
 import IndexTable from './IndexTable'
+import PhysicalResourcesTable from './PhysicalResourcesTable'
 import HostTable from './HostTable'
 import LogTable from './LogTable'
 import actions from '../../../../../actions'
@@ -125,7 +126,7 @@ class Index extends Component {
               </Tabs>
             </AppBar>
             {tabId === 0 && <TabContainer>
-              PhysicalResources
+              <PhysicalResourcesTable match={match} datacenterIndex={datacenterIndex} />
             </TabContainer>}
             {tabId === 1 && <TabContainer>
               Racks
