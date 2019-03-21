@@ -52,7 +52,7 @@ class LeftSidebar extends Component {
   };
 
   render() {
-    const { classes, auth, projectService, match } = this.props;
+    const { classes, auth, match } = this.props;
 
     if (!auth.user) {
       return null
@@ -62,13 +62,13 @@ class LeftSidebar extends Component {
     var serviceMap = null
     var projectText = null
     var prefixPath = null
-    if (projectService) {
-      prefixPath = '/Project/' + projectService.ProjectName + '/'
-      projectText = projectService.ProjectName
-      serviceMap = projectService.ServiceMap
+    if (match.params.project) {
+      prefixPath = '/Project/' + match.params.project + '/'
+      projectText = match.params.project
+      serviceMap = auth.user.Authority.ProjectServiceMap[match.params.project].ServiceMap
       serviceMap['Home'] = {}
     } else {
-      prefixPath = '/'
+      prefixPath = '/Service/'
       projectText = 'Projects'
       serviceMap = auth.user.Authority.ServiceMap
     }
@@ -85,10 +85,8 @@ class LeftSidebar extends Component {
       ["Monitor", <AssessmentIcon />],
     ]
 
-    var splitedLink = null
     for (let serviceLink of serviceLinks) {
-      splitedLink = serviceLink[0].split(".")
-      if (splitedLink[0] in serviceMap) {
+      if (serviceLink[0] in serviceMap) {
         let path = prefixPath + serviceLink[0]
         services.push(
           <NavLink key={serviceLink[0]} to={path} style={{textDecoration: 'none', color: 'unset'}}>
@@ -124,8 +122,8 @@ class LeftSidebar extends Component {
       <div>
         <Divider />
         <List>
-          <NavLink to="/Home" style={{textDecoration: 'none', color: 'unset'}}>
-            <ListItem button selected={match.url === '/Home'}>
+          <NavLink to="/Service/Home" style={{textDecoration: 'none', color: 'unset'}}>
+            <ListItem button selected={match.url === '/Service/Home'}>
               <ListItemIcon>
                 <HomeIcon />
               </ListItemIcon>

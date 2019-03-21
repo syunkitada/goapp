@@ -43,16 +43,17 @@ message Query {
 
 message ActionReply {
     authproxy_grpc_pb.TraceContext Tctx = 1;
-    repeated Datacenter Datacenters = 2;
-    repeated Cluster Clusters = 3;
-    repeated Floor Floors = 4;
-    repeated Rack Racks = 5;
-    repeated PhysicalResource PhysicalResources = 6;
+    string index = 2;
+    repeated Datacenter Datacenters = 3;
+    repeated Cluster Clusters = 4;
+    repeated Floor Floors = 5;
+    repeated Rack Racks = 6;
+    repeated PhysicalResource PhysicalResources = 7;
 
-    repeated Node Nodes = 7;
-    repeated Compute Computes = 8;
-    repeated Network Networks = 9;
-    repeated Image Images = 10;
+    repeated Node Nodes = 8;
+    repeated Compute Computes = 9;
+    repeated Network Networks = 10;
+    repeated Image Images = 11;
 }
 
 //

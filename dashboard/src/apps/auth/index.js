@@ -6,7 +6,7 @@ import actions from '../../actions'
 class Auth extends Component {
   componentWillMount() {
     if (!this.props.auth.isSyncState) {
-      console.log("Debug App WillMount")
+      console.log("Auth WillMount")
       this.props.syncState()
     }
   }

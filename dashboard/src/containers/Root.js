@@ -9,17 +9,13 @@ import AuthRoute from './AuthRoute'
 import Dashboard from '../components/Dashboard'
 
 import Auth from '../apps/auth'
-import Login from '../apps/auth/components/Login'
-import Home from '../apps/home'
-import User from '../apps/user'
-import Chat from '../apps/chat'
-import Datacenter from '../apps/datacenter'
-import Ticket from '../apps/ticket'
-import Wiki from '../apps/wiki'
 import ProjectHome from '../apps/project/home'
 import ProjectResourcePhysical from '../apps/project/resource/physical'
 import ProjectResourceVirtual from '../apps/project/resource/virtual'
 import ProjectMonitor from '../apps/project/monitor'
+
+import Login from '../apps/auth/components/Login'
+import Service from '../apps/service'
 
 const store = configureStore()
 
@@ -31,16 +27,8 @@ export default class Root extends Component {
           <BrowserRouter>
             <Switch>
               <Route path="/login" component={Login} />
-              <AuthRoute path="/Home" component={Home} />
-              <AuthRoute path="/User" component={User} />
-              <AuthRoute path="/Chat" component={Chat} />
-              <AuthRoute path="/Datacenter" component={Datacenter} />
-              <AuthRoute path="/Ticket" component={Ticket} />
-              <AuthRoute path="/Wiki" component={Wiki} />
-              <AuthRoute path="/Project/:project/Home" component={ProjectHome} />
-              <AuthRoute path="/Project/:project/Resource.Physical" component={ProjectResourcePhysical} />
-              <AuthRoute path="/Project/:project/Resource.Virtual" component={ProjectResourceVirtual} />
-              <AuthRoute path="/Project/:project/Monitor" component={ProjectMonitor} />
+              <AuthRoute path="/Service/:service" component={Service} />
+              <AuthRoute path="/Project/:project/:service" component={Service} />
               <Route component={NotFound} />
             </Switch>
           </BrowserRouter>

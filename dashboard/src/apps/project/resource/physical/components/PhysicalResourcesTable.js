@@ -67,6 +67,7 @@ import Popper from '@material-ui/core/Popper';
 import MenuItem from '@material-ui/core/MenuItem';
 import MenuList from '@material-ui/core/MenuList';
 import Popover from '@material-ui/core/Popover';
+import MoreVertIcon from '@material-ui/icons/MoreVert';
 
 
 const DialogTitle = withStyles(theme => ({
@@ -85,7 +86,8 @@ const DialogTitle = withStyles(theme => ({
   const { children, classes, onClose } = props;
   return (
     <MuiDialogTitle disableTypography className={classes.root}>
-      <Typography variant="h6">{children}</Typography>
+      <Typography variant="subheading">{children}
+			</Typography>
       {onClose ? (
         <IconButton aria-label="Close" className={classes.closeButton} onClick={onClose}>
           <CloseIcon />
@@ -156,6 +158,23 @@ class PhysicalResourcesTable extends Component {
 		menuOpen: false,
 		openedActionMenu: -1,
 		anchorEl: null,
+		dialogKey: null,
+  };
+
+  handleDialogOpen = (key) => {
+    const {getPhysicalResource} = this.props
+		console.log(key)
+		getPhysicalResource(key)
+    this.setState({
+      dialogOpen: true,
+			dialogKey: key,
+    });
+  };
+
+  handleDialogClose = () => {
+    this.setState({
+      dialogOpen: false,
+    });
   };
 
   handleClickOpen = () => {
@@ -266,7 +285,7 @@ class PhysicalResourcesTable extends Component {
                       tabIndex={-1}
                       key={n[0]}
                     >
-                      <TableCell component="th" scope="row" padding="none">{n[0]}</TableCell>
+                      <TableCell component="th" scope="row" padding="none" onClick={() => this.handleDialogOpen(n[0])} style={{ cursor: 'pointer' }}>{n[0]}</TableCell>
                       <TableCell align="right">{n[1]}</TableCell>
                       <TableCell align="right">{n[2]}</TableCell>
                       <TableCell align="right">{n[3]}</TableCell>
@@ -275,12 +294,15 @@ class PhysicalResourcesTable extends Component {
 
 														<Button
                               aria-owns={n[0] == this.state.openedActionMenu ? 'simple-popper' : undefined}
+															color="primary"
                               aria-haspopup="true"
+															size="small"
                               variant="contained"
-                                onClick={this.handleActionMenuToggle}
-                            >
-                              Action
+                                onClick={this.handleActionMenuToggle} >
+                              Actions
+															<MoreVertIcon />
                             </Button>
+
 														  <Popover
                               id="simple-popper"
                               open={open}
@@ -295,7 +317,16 @@ anchorOrigin={{
                               horizontal: 'right',
                             }}
                             >
-                              <Typography className={classes.typography}>The content of the Popover.</Typography>
+                              <Typography className={classes.typography}>
+                     <Paper className={classes.paper}>
+          <MenuList>
+            <MenuItem>Profile</MenuItem>
+            <MenuItem>My account</MenuItem>
+            <MenuItem>Logout</MenuItem>
+          </MenuList>
+        </Paper>
+
+                              </Typography>
                             </Popover>
 
 											</TableCell>
@@ -312,15 +343,13 @@ anchorOrigin={{
         </div>
 
 
-
-
         <Dialog
-          onClose={this.handleClose}
+          onClose={this.handleDialogClose}
           aria-labelledby="customized-dialog-title"
           open={this.state.dialogOpen}
         >
-          <DialogTitle id="customized-dialog-title" onClose={this.handleClose}>
-            Modal title
+          <DialogTitle id="customized-dialog-title" onClose={this.handleDialogClose}>
+						Modal: { this.state.dialogKey }
           </DialogTitle>
           <DialogContent>
             <Typography gutterBottom>
@@ -339,11 +368,12 @@ anchorOrigin={{
             </Typography>
           </DialogContent>
           <DialogActions>
-            <Button onClick={this.handleClose} color="primary">
+            <Button onClick={this.handleDialogClose} color="primary">
               Save changes
             </Button>
           </DialogActions>
         </Dialog>
+
       </div>
     );
   }

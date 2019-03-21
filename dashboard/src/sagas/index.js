@@ -3,6 +3,7 @@ import auth from '../apps/auth/sagas';
 import home from '../apps/home/sagas';
 import resourcePhysical from '../apps/project/resource/physical/sagas';
 import monitor from '../apps/project/monitor/sagas';
+import service from '../apps/service/sagas';
 
 // redux-sagaのMiddlewareが rootSaga タスクを起動する
 
@@ -18,5 +19,6 @@ export default function* rootSaga() {
     resourcePhysical.watchGetDatacenterIndex(),
     monitor.watchSyncState(),
     monitor.watchSyncIndexState(),
+    service.watchGetIndex(),
   ])
 }

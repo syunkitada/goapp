@@ -24,6 +24,14 @@ func (modelApi *ResourceModelApi) UserQuery(tctx *logger.TraceContext, req *reso
 
 	for _, query := range req.Queries {
 		switch query.Kind {
+		case "GetIndex":
+			var datacenters []resource_model.Datacenter
+			if err = db.Find(&datacenters).Error; err != nil {
+				rep.Tctx.Err = err.Error()
+				rep.Tctx.StatusCode = codes.RemoteDbError
+				return
+			}
+			rep.Datacenters = modelApi.convertDatacenters(tctx, datacenters)
 		case "GetDatacenters":
 			var datacenters []resource_model.Datacenter
 			if err = db.Find(&datacenters).Error; err != nil {

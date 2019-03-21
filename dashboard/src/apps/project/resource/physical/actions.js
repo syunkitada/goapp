@@ -25,6 +25,17 @@ export default createActions({
       ],
     },
   }),
+  RESOURCE_PHYSICAL_GET_PHYSICAL_RESOURCE: (projectName, datacenterName, name) => ({
+    stateKey: 'dialogIndex',
+    serviceName: 'Resource',
+    actionName: 'UserQuery',
+    projectName: projectName,
+    data: {
+      queries: [
+        {kind: "GetPhysicalResource", datacenterName: datacenterName, name: name},
+      ],
+    },
+  }),
 
   RESOURCE_PHYSICAL_POST_SUCCESS: (action, data) => ({
     action: action,
