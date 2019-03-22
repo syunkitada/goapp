@@ -124,14 +124,32 @@ class IndexTable extends Component {
       return null
     }
 
+    let searchColumns = []
+    for (let i = 0, len = columns.length; i < len; i++) {
+      if (columns[i].IsSearch) {
+        searchColumns.push(columns[i].Name)
+      }
+    }
+
+    let isSkip = true
     const tableData = []
-    loop: for (let d of data) {
+    for (let d of data) {
+      if (searchRegExp != null) {
+        for (let c of searchColumns) {
+          if (searchRegExp.exec(d[c])) {
+            isSkip = false
+            break
+          }
+        }
+        if (isSkip) {
+          continue
+        }
+        isSkip = true
+      }
+
       let row = []
       for (let column of columns) {
         let c = d[column.Name]
-        if (column.IsSearch && searchRegExp && !searchRegExp.exec(c)) {
-          continue loop
-        }
         if (column.Type == "Time") {
           let time = new Date(c.seconds * 1000)
           row.push(time.toISOString())
@@ -174,6 +192,20 @@ class IndexTable extends Component {
               {sort_utils.stableSort(tableData, sort_utils.getSorting(order, orderBy))
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map(n => {
+                  let cells = []
+                  for (let i = 0, len = columns.length; i < len; i++) {
+                    if (columns[i].Link) {
+                      cells.push(
+                        <TableCell key={i} component="th" scope="row" padding="none">
+                          <Link to={`${match.url}${columns[i].Link}${n[0]}`}>{n[i]}</Link>
+                        </TableCell>
+                      )
+                    } else {
+                      cells.push(
+                        <TableCell key={i} align="right">{n[i]}</TableCell>
+                      )
+                    }
+                  }
                   return (
                     <TableRow
                       hover
@@ -181,13 +213,7 @@ class IndexTable extends Component {
                       tabIndex={-1}
                       key={n[0]}
                     >
-                      <TableCell component="th" scope="row" padding="none">
-                        <Link to={`${match.url}/${n[0]}`}>{n[0]}</Link>
-                      </TableCell>
-                      <TableCell align="right">{n[1]}</TableCell>
-                      <TableCell align="right">{n[2]}</TableCell>
-                      <TableCell align="right">{n[3]}</TableCell>
-                      <TableCell align="right">{n[4]}</TableCell>
+                    {cells}
                     </TableRow>
                   );
                 })}

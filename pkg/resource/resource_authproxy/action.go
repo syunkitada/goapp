@@ -32,24 +32,40 @@ func (resource *Resource) PhysicalAction(c *gin.Context) {
 	c.JSON(200, gin.H{
 		"Data": resp,
 		"Index": gin.H{
-			"Name":               "Root",
-			"Kind":               "Panels",
-			"DefaultExpandPanel": "Datacenter",
+			"Name": "Root",
+			"Kind": "RoutePanels",
 			"Panels": []interface{}{
 				gin.H{
-					"Name":    "Datacenter",
+					"Name":    "Datacenters",
+					"Route":   "",
+					"Subname": "datacenter",
 					"Kind":    "Table",
 					"DataKey": "Datacenters",
 					"Columns": []interface{}{
-						gin.H{"Name": "Name", "IsSearch": true},
+						gin.H{"Name": "Name", "IsSearch": true, "Link": "/"},
 						gin.H{"Name": "Region", "IsSearch": true},
 						gin.H{"Name": "UpdatedAt", "Type": "Time"},
 						gin.H{"Name": "CreatedAt", "Type": "Time"},
 					},
 				},
 				gin.H{
-					"Name": "Piyo",
-					"Kind": "Msg",
+					"Name":  "Resources",
+					"Route": "/:datacenter",
+					"Kind":  "Tabs",
+					"Tabs": []interface{}{
+						gin.H{
+							"Name": "PhysicalResources",
+							"Kind": "Msg",
+						},
+						gin.H{
+							"Name": "Racks",
+							"Kind": "Msg",
+						},
+						gin.H{
+							"Name": "Floors",
+							"Kind": "Msg",
+						},
+					},
 				},
 			},
 		},

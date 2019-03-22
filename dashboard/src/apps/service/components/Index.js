@@ -21,6 +21,7 @@ import AppBar from '@material-ui/core/AppBar';
 
 import actions from '../../../actions'
 import IndexTable from './IndexTable'
+import RoutePanels from './RoutePanels'
 
 
 const styles = theme => ({
@@ -35,55 +36,17 @@ class Index extends Component {
 		expandedMap: {}
 	};
 
-  handleChange = (group, expanded) => {
-		let { expandedMap } = this.state
-		if (expandedMap[group] == expanded) {
-			expandedMap[group] = null
-		} else {
-			expandedMap[group] = expanded
-		}
-    this.setState({
-      expandedMap: expandedMap,
-    });
-  };
-
-	renderIndex = (match, data, group, index) => {
-		let html = []
+	renderIndex = (match, data, index) => {
 		switch(index.Kind) {
 			case "Msg":
-				return (
-					<div>{index.Name}</div>
-				);
-			case "Panels":
-				console.log("DEBUGllalala Panels")
-				console.log(group)
-				for (const v of index.Panels) {
-					console.log(v.Name)
-					html.push(
-						<ExpansionPanel key={v.Name} expanded={this.state.expandedMap[group] === v.Name} onChange={() => this.handleChange(group, v.Name)}>
-							<ExpansionPanelSummary expandIcon={<ExpandMoreIcon />}>
-								<Typography variant="title">
-									Index Table
-								</Typography>
-							</ExpansionPanelSummary>
-							<ExpansionPanelDetails>
-								{this.renderIndex(match, data, v.Name, v)}
-							</ExpansionPanelDetails>
-						</ExpansionPanel>
-					)
-				};
-				break;
+				return <div>{index.Name}</div>
+			case "RoutePanels":
+				return <RoutePanels render={this.renderIndex} match={match} data={data} index={index} />
 			case "Table":
-				return (
-					<IndexTable match={match} columns={index.Columns} data={data[index.DataKey]} />
-				);
+				return <IndexTable match={match} columns={index.Columns} data={data[index.DataKey]} />
+      default:
+        return <div>Unsupported Kind: {index.Kind}</div>
 		}
-
-		return (
-			<div>
-				{html}
-			</div>
-		)
 	};
 
   render() {
@@ -92,7 +55,7 @@ class Index extends Component {
     if (index.Index == null) {
       return null
     }
-    let html = this.renderIndex(match, index.Data, index.Index.Name, index.Index)
+    let html = this.renderIndex(match, index.Data, index.Index)
 
     return (
       <div>
