@@ -20,8 +20,9 @@ import Tab from '@material-ui/core/Tab';
 import AppBar from '@material-ui/core/AppBar';
 
 import actions from '../../../actions'
-import IndexTable from './IndexTable'
-import RoutePanels from './RoutePanels'
+import IndexTable from './tables/IndexTable'
+import RoutePanels from './panels/RoutePanels'
+import RouteTabs from './tabs/RouteTabs'
 
 
 const styles = theme => ({
@@ -42,6 +43,8 @@ class Index extends Component {
 				return <div>{index.Name}</div>
 			case "RoutePanels":
 				return <RoutePanels render={this.renderIndex} match={match} data={data} index={index} />
+			case "RouteTabs":
+				return <RouteTabs render={this.renderIndex} match={match} data={data} index={index} />
 			case "Table":
 				return <IndexTable match={match} columns={index.Columns} data={data[index.DataKey]} />
       default:

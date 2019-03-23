@@ -49,12 +49,13 @@ import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline';
 import NotificationImportantIcon from '@material-ui/icons/NotificationImportant';
 import NotificationsNoneIcon from '@material-ui/icons/NotificationsNone';
 
-import IndexTableHead from './tables/IndexTableHead'
-import TableToolbar from './tables/TableToolbar'
-import sort_utils from '../../../modules/sort_utils'
+import IndexTableHead from './IndexTableHead'
+import TableToolbar from './TableToolbar'
+import sort_utils from '../../../../modules/sort_utils'
 
 const styles = theme => ({
   root: {
+		margin: theme.spacing.unit * 2,
     width: '100%',
   },
   table: {
@@ -64,7 +65,7 @@ const styles = theme => ({
     overflowX: 'auto',
   },
   margin: {
-    margin: theme.spacing.unit * 2,
+    margin: theme.spacing.unit,
   },
   spacer: {
     flex: '1 1 100%',
@@ -197,7 +198,7 @@ class IndexTable extends Component {
                     if (columns[i].Link) {
                       cells.push(
                         <TableCell key={i} component="th" scope="row" padding="none">
-                          <Link to={`${match.url}${columns[i].Link}${n[0]}`}>{n[i]}</Link>
+                          <Link to={`${match.url}${columns[i].Link}/${n[0]}`}>{n[i]}</Link>
                         </TableCell>
                       )
                     } else {

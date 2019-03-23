@@ -55,21 +55,20 @@ import ExpansionPanel from '@material-ui/core/ExpansionPanel';
 import ExpansionPanelSummary from '@material-ui/core/ExpansionPanelSummary';
 import ExpansionPanelDetails from '@material-ui/core/ExpansionPanelDetails';
 
+import Tabs from './Tabs'
 
-import RoutePanelsHead from './tables/IndexTableHead'
-import TableToolbar from './tables/TableToolbar'
-import sort_utils from '../../../modules/sort_utils'
-import ExpansionPanels from './ExpansionPanels'
-
-class RoutePanels extends Component {
+class RouteTabs extends Component {
   render() {
     const { classes, auth, render, match, data, index } = this.props
+    console.log("DEBUG RouteTabs")
+    console.log(index)
+    console.log(match.path)
 
     return (
-      <div>
-      {index.Panels.map((v) =>
+      <div className={classes.root}>
+      {index.Tabs.map((v) =>
         <Route exact={v.Route == ""} path={match.path + v.Route} key={v.Name} render={props =>
-          <ExpansionPanels render={render} match={match} data={data} index={index} root={v} route={props} />
+          <Tabs render={render} match={match} data={data} index={index} root={v} route={props} />
         } />
       )}
       </div>
@@ -78,12 +77,12 @@ class RoutePanels extends Component {
 }
 
 const styles = theme => ({
-  nested: {
-    paddingLeft: theme.spacing.unit * 4,
+  root: {
+    width: '100%',
   },
 });
 
-RoutePanels.propTypes = {
+RouteTabs.propTypes = {
   classes: PropTypes.object.isRequired,
 };
 
@@ -102,4 +101,4 @@ function mapDispatchToProps(dispatch, ownProps) {
 export default connect(
   mapStateToProps,
   mapDispatchToProps
-)(withStyles(styles)(RoutePanels));
+)(withStyles(styles)(RouteTabs));

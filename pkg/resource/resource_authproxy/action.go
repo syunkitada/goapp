@@ -42,7 +42,7 @@ func (resource *Resource) PhysicalAction(c *gin.Context) {
 					"Kind":    "Table",
 					"DataKey": "Datacenters",
 					"Columns": []interface{}{
-						gin.H{"Name": "Name", "IsSearch": true, "Link": "/"},
+						gin.H{"Name": "Name", "IsSearch": true, "Link": "/Datacenters"},
 						gin.H{"Name": "Region", "IsSearch": true},
 						gin.H{"Name": "UpdatedAt", "Type": "Time"},
 						gin.H{"Name": "CreatedAt", "Type": "Time"},
@@ -50,20 +50,23 @@ func (resource *Resource) PhysicalAction(c *gin.Context) {
 				},
 				gin.H{
 					"Name":  "Resources",
-					"Route": "/:datacenter",
-					"Kind":  "Tabs",
+					"Route": "/Datacenters/:datacenter",
+					"Kind":  "RouteTabs",
 					"Tabs": []interface{}{
 						gin.H{
-							"Name": "PhysicalResources",
-							"Kind": "Msg",
+							"Name":  "Resources",
+							"Route": "",
+							"Kind":  "Msg",
 						},
 						gin.H{
-							"Name": "Racks",
-							"Kind": "Msg",
+							"Name":  "Racks",
+							"Route": "/Racks",
+							"Kind":  "Msg",
 						},
 						gin.H{
-							"Name": "Floors",
-							"Kind": "Msg",
+							"Name":  "Floors",
+							"Route": "/Floors",
+							"Kind":  "Msg",
 						},
 					},
 				},

@@ -55,73 +55,73 @@ import ExpansionPanel from '@material-ui/core/ExpansionPanel';
 import ExpansionPanelSummary from '@material-ui/core/ExpansionPanelSummary';
 import ExpansionPanelDetails from '@material-ui/core/ExpansionPanelDetails';
 
+import CoreTabs from '@material-ui/core/Tabs';
+import Tab from '@material-ui/core/Tab';
+import AppBar from '@material-ui/core/AppBar';
 
-import ExpansionPanelsHead from './tables/IndexTableHead'
-import TableToolbar from './tables/TableToolbar'
-import sort_utils from '../../../modules/sort_utils'
+function TabContainer(props) {
+  return (
+    <Typography component="div" style={{ padding: 8 * 3 }}>
+      {props.children}
+    </Typography>
+  );
+}
 
-class ExpansionPanels extends Component {
+class Tabs extends Component {
   state = {
-		expanded: null,
+    tabRoute: null,
+		tabId: null,
 	}
 
-  handleChange = (expanded) => {
-    const { route } = this.props
-    if (this.state.expanded == expanded) {
-      this.setState({
-        expanded: false,
-      });
-    } else if (this.state.expanded == null && route.match.path == expanded) {
-      this.setState({
-        expanded: false,
-      });
-    } else {
-      this.setState({
-        expanded: expanded,
-      });
-    }
+  handleChange = (event, tabId) => {
+    const { index, match, route } = this.props
+    route.history.push(match.url + index.Tabs[tabId].Route)
   };
 
   render() {
-    const { classes, auth, render, match, data, index, root, route } = this.props
-    let { expanded } = this.state;
-    console.log("DEBUG expansion panels")
+    const { classes, auth, render, match, data, index, root, route } = this.props;
 
-    console.log(match)
-
-    if (expanded === null) {
-      expanded = route.match.path
+    let tabs = []
+    let tabContainer = null
+    let tabId = 0;
+    for (let i = 0, len = index.Tabs.length; i < len; i++) {
+      let tab = index.Tabs[i];
+      if (route.match.path == match.path + tab.Route) {
+        tabId = i;
+        tabContainer = <TabContainer>{render(match, data, tab)}</TabContainer>
+      }
+      tabs.push(<Tab key={tab.Name} label={tab.Name} />)
     }
 
     return (
-      <div>
-      { index.Panels.map((p) =>
-            <ExpansionPanel key={p.Name} expanded={
-              expanded === match.path + p.Route
-            } onChange={() => this.handleChange(match.path + p.Route)}>
-              <ExpansionPanelSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography variant="title">
-                  {p.Name} {route.match.params[p.Subname]}
-                </Typography>
-              </ExpansionPanelSummary>
-              <ExpansionPanelDetails>
-                {render(match, data, p)}
-              </ExpansionPanelDetails>
-            </ExpansionPanel>
-          )
-      }
+      <div className={classes.root}>
+        <AppBar position="static" color="default">
+          <CoreTabs
+            value={tabId}
+            onChange={this.handleChange}
+            indicatorColor="primary"
+            textColor="primary"
+            variant="scrollable"
+            scrollButtons="auto"
+          >
+            {tabs}
+          </CoreTabs>
+        </AppBar>
+        {tabContainer}
       </div>
     );
   }
 }
 
 const styles = theme => ({
-  nested: {
-    paddingLeft: theme.spacing.unit * 4,
+  root: {
+		flexGrow: 1,
+    width: '100%',
+    backgroundColor: theme.palette.background.paper,
   },
 });
 
-ExpansionPanels.propTypes = {
+Tabs.propTypes = {
   classes: PropTypes.object.isRequired,
 };
 
@@ -140,4 +140,4 @@ function mapDispatchToProps(dispatch, ownProps) {
 export default connect(
   mapStateToProps,
   mapDispatchToProps
-)(withStyles(styles)(ExpansionPanels));
+)(withStyles(styles)(Tabs));
