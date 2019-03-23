@@ -81,6 +81,9 @@ class Tabs extends Component {
   render() {
     const { classes, auth, render, match, data, index, root, route } = this.props;
 
+		console.log("render Tabs")
+		console.log(data)
+
     let tabs = []
     let tabContainer = null
     let tabId = 0;

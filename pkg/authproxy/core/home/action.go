@@ -19,13 +19,14 @@ func (srv *Home) Action(c *gin.Context) {
 
 	resp := map[string]interface{}{
 		"Index": map[string]interface{}{
-			"Kind": "Panels",
+			"Name": "Root",
+			"Kind": "RoutePanels",
 			"Panels": []interface{}{
-				map[string]interface{}{
+				gin.H{
 					"Name": "Hoge",
 					"Kind": "Msg",
 				},
-				map[string]interface{}{
+				gin.H{
 					"Name": "Piyo",
 					"Kind": "Msg",
 				},

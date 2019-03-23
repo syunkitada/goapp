@@ -19,6 +19,11 @@ function* watchGetIndex() {
   yield takeEvery(actions.service.serviceGetIndex, post)
 }
 
+function* watchGetQueries() {
+  yield takeEvery(actions.service.serviceGetQueries, post)
+}
+
 export default {
   watchGetIndex,
+  watchGetQueries,
 }

@@ -55,10 +55,25 @@ import ExpansionPanel from '@material-ui/core/ExpansionPanel';
 import ExpansionPanelSummary from '@material-ui/core/ExpansionPanelSummary';
 import ExpansionPanelDetails from '@material-ui/core/ExpansionPanelDetails';
 
+import actions from '../../../../actions'
+
 
 class ExpansionPanels extends Component {
   state = {
 		expanded: null,
+	}
+
+	componentWillMount() {
+    const { classes, auth, render, match, data, index, root, route } = this.props
+		for (let i = 0, len = index.Panels.length; i < len; i++) {
+			let panel = index.Panels[i];
+			if (route.match.path === match.path + panel.Route) {
+				if (panel.GetQueries) {
+					this.props.getQueries(panel.GetQueries, route.match.params)
+				}
+				break
+			}
+		}
 	}
 
   handleChange = (expanded) => {
@@ -93,15 +108,15 @@ class ExpansionPanels extends Component {
       <div>
       { index.Panels.map((p) =>
             <ExpansionPanel key={p.Name} expanded={
-              expanded === data.match.path + p.Route
-            } onChange={() => this.handleChange(data.match.path + p.Route)}>
+              expanded === match.path + p.Route
+            } onChange={() => this.handleChange(match.path + p.Route)}>
               <ExpansionPanelSummary expandIcon={<ExpandMoreIcon />}>
                 <Typography variant="title">
                   {p.Name} {route.match.params[p.Subname]}
                 </Typography>
               </ExpansionPanelSummary>
               <ExpansionPanelDetails style={{padding: 0}}>
-                {render(match, data, p)}
+                {render(route.match, data, p)}
               </ExpansionPanelDetails>
             </ExpansionPanel>
           )
@@ -123,14 +138,21 @@ ExpansionPanels.propTypes = {
 
 function mapStateToProps(state, ownProps) {
   const auth = state.auth
+	const data = state.service.index.Data
 
   return {
     auth: auth,
+		data: data,
   }
 }
 
 function mapDispatchToProps(dispatch, ownProps) {
-  return {}
+  return {
+    getQueries: (querys, params) => {
+			console.log("DEBUG getQueries")
+      dispatch(actions.service.serviceGetQueries(querys, params));
+    }
+  }
 }
 
 export default connect(

@@ -19,7 +19,7 @@ class Service extends Component {
       return null
     }
 
-    if (!service.index) {
+    if (!service.index.Index) {
       return null
     }
 

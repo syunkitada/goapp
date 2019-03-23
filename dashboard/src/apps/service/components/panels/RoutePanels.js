@@ -64,14 +64,12 @@ import ExpansionPanels from './ExpansionPanels'
 class RoutePanels extends Component {
   render() {
     const { classes, auth, render, match, data, index } = this.props
-    data.match = match
     console.log("DEBUG RoutePanels")
-    console.log(match.path)
     return (
       <div>
       {index.Panels.map((v) =>
         <Route exact={v.Route == ""} path={match.path + v.Route} key={v.Name} render={props =>
-          <ExpansionPanels render={render} match={props.match} data={data} index={index} root={v} route={props} />
+          <ExpansionPanels render={render} match={match} index={index} root={v} route={props} />
         } />
       )}
       </div>

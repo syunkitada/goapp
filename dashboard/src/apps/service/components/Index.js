@@ -55,6 +55,8 @@ class Index extends Component {
   render() {
     const {classes, match, auth, index} = this.props
 
+		console.log("reder Index")
+
     if (index.Index == null) {
       return null
     }

@@ -120,7 +120,6 @@ class IndexTable extends Component {
     const { match, classes, columns, auth, data} = this.props
     const { order, orderBy, rowsPerPage, page, searchRegExp } = this.state;
 
-    console.log(data)
     if (!data) {
       return null
     }
@@ -161,7 +160,6 @@ class IndexTable extends Component {
       tableData.push(row)
     }
 
-    console.log(columns)
     for (let i = 0, l = columns.length; i < l; i++) {
       columns[i].id = i
     }
@@ -237,7 +235,7 @@ IndexTable.propTypes = {
 
 function mapStateToProps(state, ownProps) {
   const auth = state.auth
-  const index = ownProps.index
+  const index = state.index
 
   return {
     auth: auth,

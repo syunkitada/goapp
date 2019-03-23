@@ -20,5 +20,6 @@ export default function* rootSaga() {
     monitor.watchSyncState(),
     monitor.watchSyncIndexState(),
     service.watchGetIndex(),
+    service.watchGetQueries(),
   ])
 }

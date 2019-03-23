@@ -1,6 +1,8 @@
 package resource_model_api
 
 import (
+	"fmt"
+
 	"github.com/golang/protobuf/ptypes"
 	"github.com/jinzhu/gorm"
 	"github.com/syunkitada/goapp/pkg/lib/codes"
@@ -22,6 +24,8 @@ func (modelApi *ResourceModelApi) UserQuery(tctx *logger.TraceContext, req *reso
 	}
 	defer func() { err = db.Close() }()
 
+	fmt.Println("HOGElwlwlwllwwwwwwwww")
+
 	for _, query := range req.Queries {
 		switch query.Kind {
 		case "GetIndex":
@@ -41,24 +45,36 @@ func (modelApi *ResourceModelApi) UserQuery(tctx *logger.TraceContext, req *reso
 			}
 			rep.Datacenters = modelApi.convertDatacenters(tctx, datacenters)
 		case "GetFloors":
+			datacenter, ok := query.StrParams["datacenter"]
+			if !ok {
+				continue
+			}
 			var floors []resource_model.Floor
-			if err = db.Where("datacenter = ?", query.DatacenterName).Find(&floors).Error; err != nil {
+			if err = db.Where("datacenter = ?", datacenter).Find(&floors).Error; err != nil {
 				rep.Tctx.Err = err.Error()
 				rep.Tctx.StatusCode = codes.RemoteDbError
 				return
 			}
 			rep.Floors = modelApi.convertFloors(tctx, floors)
 		case "GetRacks":
+			datacenter, ok := query.StrParams["datacenter"]
+			if !ok {
+				continue
+			}
 			var racks []resource_model.Rack
-			if err = db.Where("datacenter = ?", query.DatacenterName).Find(&racks).Error; err != nil {
+			if err = db.Where("datacenter = ?", datacenter).Find(&racks).Error; err != nil {
 				rep.Tctx.Err = err.Error()
 				rep.Tctx.StatusCode = codes.RemoteDbError
 				return
 			}
 			rep.Racks = modelApi.convertRacks(tctx, racks)
 		case "GetPhysicalResources":
+			datacenter, ok := query.StrParams["datacenter"]
+			if !ok {
+				continue
+			}
 			var physicalResources []resource_model.PhysicalResource
-			if err = db.Where("datacenter = ?", query.DatacenterName).Find(&physicalResources).Error; err != nil {
+			if err = db.Where("datacenter = ?", datacenter).Find(&physicalResources).Error; err != nil {
 				rep.Tctx.Err = err.Error()
 				rep.Tctx.StatusCode = codes.RemoteDbError
 				return

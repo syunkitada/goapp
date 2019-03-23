@@ -33,7 +33,7 @@ func (authproxy *Authproxy) NewHandler() http.Handler {
 	{
 		authorized.POST("/dashboard/logout", authproxy.Dashboard.Logout)
 		authorized.POST("/dashboard/state", authproxy.Dashboard.GetState)
-		authorized.POST(homeSrv.GetPath(), homeSrv.Action)
+		authorized.POST("/Home", homeSrv.Action)
 		authorized.POST("/Resource.Physical", resourceAuthproxy.PhysicalAction)
 		authorized.POST("/Resource.Virtual", resourceAuthproxy.VirtualAction)
 		authorized.POST("/monitor", authproxy.Monitor.Action)

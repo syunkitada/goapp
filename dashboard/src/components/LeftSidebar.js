@@ -79,7 +79,6 @@ class LeftSidebar extends Component {
       ["Wiki", <ReceiptIcon />],
       ["Ticket", <NoteAddIcon />],
       ["Datacenter", <LayersIcon />],
-      ["Home", <DashboardIcon />],
       ["Resource.Physical", <CloudIcon />],
       ["Resource.Virtual", <CloudQueueIcon />],
       ["Monitor", <AssessmentIcon />],

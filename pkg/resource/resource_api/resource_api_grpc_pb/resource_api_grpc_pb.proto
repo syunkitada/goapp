@@ -38,7 +38,7 @@ message ActionRequest {
 
 message Query {
     string Kind = 1;
-    string DatacenterName = 2;
+    map<string, string> StrParams = 2;
 }
 
 message ActionReply {
