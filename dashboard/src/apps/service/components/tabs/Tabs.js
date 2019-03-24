@@ -81,15 +81,14 @@ class Tabs extends Component {
   render() {
     const { classes, auth, render, match, data, index, root, route } = this.props;
 
-		console.log("render Tabs")
-		console.log(data)
+    console.log(match.stack)
 
     let tabs = []
     let tabContainer = null
     let tabId = 0;
     for (let i = 0, len = index.Tabs.length; i < len; i++) {
       let tab = index.Tabs[i];
-      if (route.match.path == match.path + tab.Route) {
+      if (route.match.path == match.stack.slice(-2)[0] + tab.Route) {
         tabId = i;
         tabContainer = <TabContainer>{render(match, data, tab)}</TabContainer>
       }

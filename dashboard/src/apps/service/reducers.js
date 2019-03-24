@@ -69,14 +69,23 @@ export default handleActions({
     if (project) {
       newState.projectServiceMap[project][service].isFetching = false
       newState.projectServiceMap[project][service].Index = action.payload.data.Index
-      newState.projectServiceMap[project][service].Data = action.payload.data.Data
-      for (let key in action.payload.data.Data) {
-        newState.projectServiceMap[project][service].Data[key] = action.payload.data.Data[key]
+      if (newState.projectServiceMap[project][service].Data) {
+        for (let key in action.payload.data.Data) {
+          newState.projectServiceMap[project][service].Data[key] = action.payload.data.Data[key]
+        }
+      } else {
+        newState.projectServiceMap[project][service].Data = action.payload.data.Data
       }
     } else {
       newState.serviceMap[service].isFetching = false
       newState.serviceMap[service].Index = action.payload.data.Index
-      newState.serviceMap[service].Data = action.payload.data.Data
+      if (newState.serviceMap[service].Data) {
+        for (let key in action.payload.data.Data) {
+          newState.serviceMap[service].Data[key] = action.payload.data.Data[key]
+        }
+      } else {
+        newState.serviceMap[service].Data = action.payload.data.Data
+      }
     }
     console.log(newState)
     return newState

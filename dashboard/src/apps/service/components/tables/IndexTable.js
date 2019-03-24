@@ -120,6 +120,9 @@ class IndexTable extends Component {
     const { match, classes, columns, auth, data} = this.props
     const { order, orderBy, rowsPerPage, page, searchRegExp } = this.state;
 
+    console.log("MATCH DEBUG")
+    console.log(match.url)
+
     if (!data) {
       return null
     }

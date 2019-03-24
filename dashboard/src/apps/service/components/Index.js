@@ -32,6 +32,9 @@ const styles = theme => ({
 });
 
 function renderIndex(match, data, index) {
+  if (!index) {
+    return <div>Not Found</div>
+  }
   console.log("DEBUG: Index.renderIndex: ", index.Kind, index.Name)
   switch(index.Kind) {
     case "Msg":
@@ -96,6 +99,7 @@ function mapStateToProps(state, ownProps) {
   console.log("DEBUG mapStateToProps")
   console.log(ownProps)
   const match = ownProps.match
+  match.stack = [match]
   const auth = state.auth
   const service = state.service
 

@@ -60,15 +60,18 @@ import Tabs from './Tabs'
 class RouteTabs extends Component {
   render() {
     const { classes, auth, render, match, data, index } = this.props
-    console.log("DEBUG RouteTabs")
-    console.log(index)
-    console.log(match.path)
+
+    // FIXME
+		console.log("RouteTab: match render Tabs")
+		console.log(match)
 
     return (
       <div className={classes.root}>
       {index.Tabs.map((v) =>
-        <Route exact={v.Route == ""} path={match.path + v.Route} key={v.Name} render={props =>
-          <Tabs render={render} match={match} data={data} index={index} root={v} route={props} />
+        <Route exact={v.Route == ""} path={match.stack.slice(-1)[0].path + v.Route} key={v.Name} render={props => {
+          match.stack.push(props.match)
+          return <Tabs render={render} match={match} data={data} index={index} root={v} route={props} />
+        }
         } />
       )}
       </div>

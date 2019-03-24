@@ -116,7 +116,7 @@ class ExpansionPanels extends Component {
                 </Typography>
               </ExpansionPanelSummary>
               <ExpansionPanelDetails style={{padding: 0}}>
-                {render(route.match, data, p)}
+                {render(match, data, p)}
               </ExpansionPanelDetails>
             </ExpansionPanel>
           )
