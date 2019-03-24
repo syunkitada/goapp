@@ -134,15 +134,14 @@ const styles = theme => ({
 
 ExpansionPanels.propTypes = {
   classes: PropTypes.object.isRequired,
+  render: PropTypes.func.isRequired,
 };
 
 function mapStateToProps(state, ownProps) {
   const auth = state.auth
-	const data = state.service.index.Data
 
   return {
     auth: auth,
-		data: data,
   }
 }
 

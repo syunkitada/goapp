@@ -64,12 +64,12 @@ import ExpansionPanels from './ExpansionPanels'
 class RoutePanels extends Component {
   render() {
     const { classes, auth, render, match, data, index } = this.props
-    console.log("DEBUG RoutePanels")
+    console.log("DEBUG RoutePanels.render")
     return (
       <div>
       {index.Panels.map((v) =>
         <Route exact={v.Route == ""} path={match.path + v.Route} key={v.Name} render={props =>
-          <ExpansionPanels render={render} match={match} index={index} root={v} route={props} />
+          <ExpansionPanels render={render} match={match} index={index} data={data} root={v} route={props} />
         } />
       )}
       </div>
@@ -83,13 +83,21 @@ const styles = theme => ({
 
 RoutePanels.propTypes = {
   classes: PropTypes.object.isRequired,
+  render: PropTypes.func.isRequired,
 };
 
 function mapStateToProps(state, ownProps) {
   const auth = state.auth
+  const { render, match, data, index } = ownProps
+  console.log("DEBUG mapState")
+  console.log(ownProps)
 
   return {
     auth: auth,
+    render: render,
+    match: match,
+    data: data,
+    index: index,
   }
 }
 

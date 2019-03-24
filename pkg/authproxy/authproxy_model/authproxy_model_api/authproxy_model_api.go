@@ -89,6 +89,8 @@ func (modelApi *AuthproxyModelApi) Bootstrap(tctx *logger.TraceContext) error {
 		"GetIgnoreAlert", "CreateIgnoreAlert", "UpdateIgnoreAlert", "DeleteIgnoreAlert",
 	}
 	actionMap["Home"] = []string{"UserQuery"}
+	actionMap["Chat"] = []string{"UserQuery"}
+	actionMap["Wiki"] = []string{"UserQuery"}
 
 	for _, userTenantService := range userTenantServices {
 		if err = modelApi.CreateService(tctx, userTenantService, "user"); err != nil {

@@ -31,36 +31,52 @@ const styles = theme => ({
   },
 });
 
+function renderIndex(match, data, index) {
+  console.log("DEBUG: Index.renderIndex: ", index.Kind, index.Name)
+  switch(index.Kind) {
+    case "Msg":
+      return <div>{index.Name}</div>
+    case "RoutePanels":
+      return <RoutePanels render={renderIndex} match={match} data={data} index={index} />
+    case "RouteTabs":
+      return <RouteTabs render={renderIndex} match={match} data={data} index={index} />
+    case "Table":
+      return <IndexTable match={match} columns={index.Columns} data={data[index.DataKey]} />
+    default:
+      return <div>Unsupported Kind: {index.Kind}</div>
+  }
+}
 
 class Index extends Component {
-  state = {
-		expandedMap: {}
-	};
+  componentWillMount() {
+    console.log("DEBUG: Index will mount")
+    const {match, getIndex} = this.props
+    getIndex(match.params)
+  }
 
-	renderIndex = (match, data, index) => {
-		switch(index.Kind) {
-			case "Msg":
-				return <div>{index.Name}</div>
-			case "RoutePanels":
-				return <RoutePanels render={this.renderIndex} match={match} data={data} index={index} />
-			case "RouteTabs":
-				return <RouteTabs render={this.renderIndex} match={match} data={data} index={index} />
-			case "Table":
-				return <IndexTable match={match} columns={index.Columns} data={data[index.DataKey]} />
-      default:
-        return <div>Unsupported Kind: {index.Kind}</div>
-		}
-	};
 
   render() {
-    const {classes, match, auth, index} = this.props
+    const {classes, match, service, serviceName, projectName, auth, index, getIndex} = this.props
+		console.log("reder Index", projectName, serviceName)
 
-		console.log("reder Index")
-
-    if (index.Index == null) {
+    if (service.serviceName != serviceName || service.projectName != projectName) {
+      getIndex(match.params)
       return null
     }
-    let html = this.renderIndex(match, index.Data, index.Index)
+
+    let state = null
+    if (projectName) {
+      state = service.projectServiceMap[projectName][serviceName]
+    } else {
+      state = service.serviceMap[serviceName]
+    }
+
+    console.log(state)
+    if (state.isFetching) {
+      return <div>Fetching...</div>
+    }
+
+    let html = renderIndex(match, state.Data, state.Index)
 
     return (
       <div>
@@ -72,22 +88,32 @@ class Index extends Component {
 
 Index.propTypes = {
   classes: PropTypes.object.isRequired,
+  match: PropTypes.object.isRequired,
   auth: PropTypes.object.isRequired,
-  index: PropTypes.object.isRequired,
 }
 
 function mapStateToProps(state, ownProps) {
+  console.log("DEBUG mapStateToProps")
+  console.log(ownProps)
+  const match = ownProps.match
   const auth = state.auth
-  const index = state.service.index
+  const service = state.service
 
   return {
+    match: match,
+    serviceName: match.params.service,
+    projectName: match.params.project,
     auth: auth,
-    index: index,
+    service: service,
   }
 }
 
 function mapDispatchToProps(dispatch, ownProps) {
-  return {}
+  return {
+    getIndex: (params) => {
+      dispatch(actions.service.serviceGetIndex(params));
+    }
+  }
 }
 
 export default connect(

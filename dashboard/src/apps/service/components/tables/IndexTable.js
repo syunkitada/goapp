@@ -235,11 +235,9 @@ IndexTable.propTypes = {
 
 function mapStateToProps(state, ownProps) {
   const auth = state.auth
-  const index = state.index
 
   return {
     auth: auth,
-    index: index,
   }
 }
 

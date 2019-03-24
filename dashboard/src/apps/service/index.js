@@ -7,19 +7,11 @@ import Paper from '@material-ui/core/Paper';
 
 
 class Service extends Component {
-  componentWillMount() {
-    const {match, getIndex} = this.props
-    this.props.getIndex(match.params)
-  }
-
   render() {
-    const {match, auth, service} = this.props
+    const {match, auth} = this.props
+    console.log("DEBUG: Service.render()")
 
     if (!auth.user) {
-      return null
-    }
-
-    if (!service.index.Index) {
       return null
     }
 
@@ -34,20 +26,16 @@ class Service extends Component {
 
 function mapStateToProps(state, ownProps) {
   const auth = state.auth
-  const service = state.service
+  const match = ownProps.match
 
   return {
+    match: match,
     auth: auth,
-    service: service,
   }
 }
 
 function mapDispatchToProps(dispatch, ownProps) {
-  return {
-    getIndex: (params) => {
-      dispatch(actions.service.serviceGetIndex(params));
-    }
-  }
+  return {}
 }
 
 export default connect(

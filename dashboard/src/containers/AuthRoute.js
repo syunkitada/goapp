@@ -5,6 +5,7 @@ import { BrowserRouter, Route, Link, Switch, Redirect, withRouter } from 'react-
 class AuthRoute extends Component {
   render() {
     const { component: Component, auth, ...rest } = this.props
+    console.log("DEBUG: AuthRoute.render()")
     return (
       <Route {...rest}
         render={props =>
