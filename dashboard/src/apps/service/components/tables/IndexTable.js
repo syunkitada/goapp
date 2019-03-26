@@ -2,81 +2,16 @@ import React, {Component} from 'react';
 import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
 
-import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
-import TablePagination from '@material-ui/core/TablePagination';
 import TableRow from '@material-ui/core/TableRow';
-import TableSortLabel from '@material-ui/core/TableSortLabel';
-import Toolbar from '@material-ui/core/Toolbar';
-import Typography from '@material-ui/core/Typography';
-import Paper from '@material-ui/core/Paper';
-import Checkbox from '@material-ui/core/Checkbox';
-import IconButton from '@material-ui/core/IconButton';
-import Tooltip from '@material-ui/core/Tooltip';
-import DeleteIcon from '@material-ui/icons/Delete';
-import NotificationsOffIcon from '@material-ui/icons/NotificationsOff';
-import FilterListIcon from '@material-ui/icons/FilterList';
-import { lighten } from '@material-ui/core/styles/colorManipulator';
-
-import { fade } from '@material-ui/core/styles/colorManipulator';
-import FirstPageIcon from '@material-ui/icons/FirstPage';
-import KeyboardArrowLeft from '@material-ui/icons/KeyboardArrowLeft';
-import KeyboardArrowRight from '@material-ui/icons/KeyboardArrowRight';
-import LastPageIcon from '@material-ui/icons/LastPage';
-
-import InputBase from '@material-ui/core/InputBase';
-import Input from '@material-ui/core/Input';
-import InputLabel from '@material-ui/core/InputLabel';
-import InputAdornment from '@material-ui/core/InputAdornment';
-import FormControl from '@material-ui/core/FormControl';
-import SearchIcon from '@material-ui/icons/Search';
-
-import Grid from '@material-ui/core/Grid';
-
-import Badge from '@material-ui/core/Badge';
-import ShoppingCartIcon from '@material-ui/icons/ShoppingCart';
-
-
-import CheckCircleIcon from '@material-ui/icons/CheckCircle';
-import CheckCircleOutlineIcon from '@material-ui/icons/CheckCircleOutline';
-import WarningIcon from '@material-ui/icons/Warning';
-import ErrorIcon from '@material-ui/icons/Error';
-import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline';
-import NotificationImportantIcon from '@material-ui/icons/NotificationImportant';
-import NotificationsNoneIcon from '@material-ui/icons/NotificationsNone';
 
 import IndexTableHead from './IndexTableHead'
 import TableToolbar from './TableToolbar'
 import sort_utils from '../../../../modules/sort_utils'
-
-const styles = theme => ({
-  root: {
-		margin: theme.spacing.unit * 2,
-    width: '100%',
-  },
-  table: {
-    width: '100%',
-  },
-  tableWrapper: {
-    overflowX: 'auto',
-  },
-  margin: {
-    margin: theme.spacing.unit,
-  },
-  spacer: {
-    flex: '1 1 100%',
-  },
-  actions: {
-    color: theme.palette.text.secondary,
-  },
-  title: {
-    flex: '0 0 auto',
-  },
-});
 
 class IndexTable extends Component {
   state = {
@@ -110,22 +45,21 @@ class IndexTable extends Component {
 
   handleChangeSearchInput = event => {
     let searchRegExp = null
-    if (event.target.value != '') {
+    if (event.target.value !== '') {
       searchRegExp = new RegExp(event.target.value, 'i');
     }
     this.setState({ searchRegExp: searchRegExp });
   };
 
   render() {
-    const { match, classes, columns, auth, data} = this.props
+    const { routes, classes, columns, data} = this.props
     const { order, orderBy, rowsPerPage, page, searchRegExp } = this.state;
-
-    console.log("MATCH DEBUG")
-    console.log(match.url)
 
     if (!data) {
       return null
     }
+
+    let beforeRoute = routes.slice(-2)[0]
 
     let searchColumns = []
     for (let i = 0, len = columns.length; i < len; i++) {
@@ -153,7 +87,7 @@ class IndexTable extends Component {
       let row = []
       for (let column of columns) {
         let c = d[column.Name]
-        if (column.Type == "Time") {
+        if (column.Type === "Time") {
           let time = new Date(c.seconds * 1000)
           row.push(time.toISOString())
         } else {
@@ -199,7 +133,7 @@ class IndexTable extends Component {
                     if (columns[i].Link) {
                       cells.push(
                         <TableCell key={i} component="th" scope="row" padding="none">
-                          <Link to={`${match.url}${columns[i].Link}/${n[0]}`}>{n[i]}</Link>
+                          <Link to={`${beforeRoute.match.url}${columns[i].Link}/${n[0]}`}>{n[i]}</Link>
                         </TableCell>
                       )
                     } else {
@@ -211,7 +145,6 @@ class IndexTable extends Component {
                   return (
                     <TableRow
                       hover
-                      role="checkbox"
                       tabIndex={-1}
                       key={n[0]}
                     >
@@ -231,6 +164,31 @@ class IndexTable extends Component {
     );
   }
 }
+
+const styles = theme => ({
+  root: {
+    // margin: theme.spacing.unit * 2,
+    width: '100%',
+  },
+  table: {
+    width: '100%',
+  },
+  tableWrapper: {
+    overflowX: 'auto',
+  },
+  margin: {
+    // margin: theme.spacing.unit,
+  },
+  spacer: {
+    flex: '1 1 100%',
+  },
+  actions: {
+    color: theme.palette.text.secondary,
+  },
+  title: {
+    flex: '0 0 auto',
+  },
+});
 
 IndexTable.propTypes = {
   classes: PropTypes.object.isRequired,

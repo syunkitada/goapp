@@ -49,10 +49,6 @@ const styles = theme => ({
 });
 
 class Login extends Component {
-  constructor(props) {
-    super(props)
-  };
-
   render() {
     const { classes, auth, history, onSubmit } = this.props
     const { from } = history.location.state || { from: { pathname: "/" } };

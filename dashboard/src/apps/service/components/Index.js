@@ -1,23 +1,8 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { Route } from 'react-router-dom';
 
 import { withStyles } from '@material-ui/core/styles';
-import Paper from '@material-ui/core/Paper';
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemIcon from '@material-ui/core/ListItemIcon';
-import ListItemText from '@material-ui/core/ListItemText';
-import DashboardIcon from '@material-ui/icons/Dashboard';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-import ExpansionPanel from '@material-ui/core/ExpansionPanel';
-import ExpansionPanelSummary from '@material-ui/core/ExpansionPanelSummary';
-import ExpansionPanelDetails from '@material-ui/core/ExpansionPanelDetails';
-import Typography from '@material-ui/core/Typography';
-import Tabs from '@material-ui/core/Tabs';
-import Tab from '@material-ui/core/Tab';
-import AppBar from '@material-ui/core/AppBar';
 
 import actions from '../../../actions'
 import IndexTable from './tables/IndexTable'
@@ -31,7 +16,7 @@ const styles = theme => ({
   },
 });
 
-function renderIndex(match, data, index) {
+function renderIndex(routes, data, index) {
   if (!index) {
     return <div>Not Found</div>
   }
@@ -40,11 +25,11 @@ function renderIndex(match, data, index) {
     case "Msg":
       return <div>{index.Name}</div>
     case "RoutePanels":
-      return <RoutePanels render={renderIndex} match={match} data={data} index={index} />
+      return <RoutePanels render={renderIndex} routes={routes} data={data} index={index} />
     case "RouteTabs":
-      return <RouteTabs render={renderIndex} match={match} data={data} index={index} />
+      return <RouteTabs render={renderIndex} routes={routes} data={data} index={index} />
     case "Table":
-      return <IndexTable match={match} columns={index.Columns} data={data[index.DataKey]} />
+      return <IndexTable routes={routes} columns={index.Columns} data={data[index.DataKey]} />
     default:
       return <div>Unsupported Kind: {index.Kind}</div>
   }
@@ -52,17 +37,17 @@ function renderIndex(match, data, index) {
 
 class Index extends Component {
   componentWillMount() {
-    console.log("DEBUG: Index will mount")
+    console.log("Index.componentWillMount")
     const {match, getIndex} = this.props
     getIndex(match.params)
   }
 
 
   render() {
-    const {classes, match, service, serviceName, projectName, auth, index, getIndex} = this.props
-		console.log("reder Index", projectName, serviceName)
+    const {match, service, serviceName, projectName, getIndex} = this.props
+		console.log("Index.reder", projectName, serviceName)
 
-    if (service.serviceName != serviceName || service.projectName != projectName) {
+    if (service.serviceName !== serviceName || service.projectName !== projectName) {
       getIndex(match.params)
       return null
     }
@@ -74,12 +59,12 @@ class Index extends Component {
       state = service.serviceMap[serviceName]
     }
 
-    console.log(state)
     if (state.isFetching) {
       return <div>Fetching...</div>
     }
 
-    let html = renderIndex(match, state.Data, state.Index)
+    const routes = [this.props]
+    let html = renderIndex(routes, state.Data, state.Index)
 
     return (
       <div>
@@ -93,22 +78,22 @@ Index.propTypes = {
   classes: PropTypes.object.isRequired,
   match: PropTypes.object.isRequired,
   auth: PropTypes.object.isRequired,
+  service: PropTypes.object.isRequired,
+  serviceName: PropTypes.string.isRequired,
+  projectName: PropTypes.string.isRequired,
 }
 
 function mapStateToProps(state, ownProps) {
-  console.log("DEBUG mapStateToProps")
-  console.log(ownProps)
   const match = ownProps.match
-  match.stack = [match]
   const auth = state.auth
   const service = state.service
 
   return {
     match: match,
-    serviceName: match.params.service,
-    projectName: match.params.project,
     auth: auth,
     service: service,
+    serviceName: match.params.service,
+    projectName: match.params.project,
   }
 }
 

@@ -1,5 +1,4 @@
-import { delay } from 'redux-saga'
-import { put, call, takeEvery, all } from 'redux-saga/effects'
+import { put, call, takeEvery } from 'redux-saga/effects'
 import actions from '../../actions'
 import modules from '../../modules'
 
@@ -8,7 +7,7 @@ function* post(action) {
 
   if (error) {
     yield put(actions.service.servicePostFailure(action, error, null))
-  } else if (payload.error && payload.error != "") {
+  } else if (payload.error && payload.error !== "") {
     yield put(actions.service.servicePostFailure(action, null, payload.error))
   } else {
     yield put(actions.service.servicePostSuccess(action, payload))

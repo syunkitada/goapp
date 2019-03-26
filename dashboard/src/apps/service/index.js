@@ -1,15 +1,13 @@
 import React, {Component} from 'react';
-import Dashboard from '../../components/Dashboard'
 import { connect } from 'react-redux';
-import actions from '../../actions'
+
+import Dashboard from '../../components/Dashboard'
 import Index from './components/Index'
-import Paper from '@material-ui/core/Paper';
 
 
 class Service extends Component {
   render() {
     const {match, auth} = this.props
-    console.log("DEBUG: Service.render()")
 
     if (!auth.user) {
       return null
