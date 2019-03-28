@@ -16,9 +16,10 @@ class RoutePanels extends Component {
       <div>
       {index.Panels.map((v) =>
         <Route exact={v.Route === ""} path={beforeRoute.match.path + v.Route} key={v.Name} render={props => {
-          routes.push(props)
+          const newRoutes = routes.slice(0)
+          newRoutes.push(props)
           return (
-            <ExpansionPanels render={render} routes={routes} index={index} data={data} root={v} />
+            <ExpansionPanels render={render} routes={newRoutes} index={index} data={data} root={v} />
           )}
         } />
       )}

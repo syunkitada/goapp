@@ -15,7 +15,6 @@ class Service extends Component {
 
     return (
       <Dashboard match={match}>
-        <h2>{match.params.service}</h2>
         <Index match={match} />
       </Dashboard>
     );

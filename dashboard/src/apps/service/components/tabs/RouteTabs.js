@@ -18,8 +18,9 @@ class RouteTabs extends Component {
       <div className={classes.root}>
       {index.Tabs.map((v) =>
         <Route exact={v.Route === ""} path={beforeRoute.match.path + v.Route} key={v.Name} render={props => {
-          routes.push(props)
-          return <Tabs render={render} routes={routes} data={data} index={index} root={v} />
+          const newRoutes = routes.slice(0)
+          newRoutes.push(props)
+          return <Tabs render={render} routes={newRoutes} data={data} index={index} root={v} />
         }
         } />
       )}

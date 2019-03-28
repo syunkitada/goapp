@@ -15,6 +15,7 @@ import actions from '../../../../actions'
 class ExpansionPanels extends Component {
   state = {
 		expanded: null,
+		expandedUrl: null,
 	}
 
 	componentWillMount() {
@@ -33,28 +34,16 @@ class ExpansionPanels extends Component {
 		}
 	}
 
-  handleChange = (expanded) => {
-    const { routes } = this.props
-    let route = routes.slice(-1)[0]
-
-    if (this.state.expanded === expanded) {
-      this.setState({
-        expanded: false,
-      });
-    } else if (this.state.expanded == null && route.match.path === expanded) {
-      this.setState({
-        expanded: false,
-      });
-    } else {
-      this.setState({
-        expanded: expanded,
-      });
-    }
+  handleChange = (expandedPath, expandedUrl) => {
+    this.setState({
+      expanded: expandedPath,
+      expandedUrl: expandedUrl,
+    });
   };
 
   render() {
     const { classes, render, routes, data, index } = this.props
-    let { expanded } = this.state;
+    let { expanded, expandedUrl } = this.state;
     console.log("ExpansionPanels.render()")
 
     let route = routes.slice(-1)[0]
@@ -64,12 +53,16 @@ class ExpansionPanels extends Component {
       expanded = route.match.path
     }
 
+    if (expandedUrl !== null && expanded !== route.match.path && expandedUrl !== route.match.url) {
+      expanded = route.match.path
+    }
+
     return (
       <div className={classes.root}>
       { index.Panels.map((p) =>
-            <ExpansionPanel key={p.Name} expanded={
-              expanded === beforeRoute.match.path + p.Route
-            } onChange={() => this.handleChange(beforeRoute.match.path + p.Route)}>
+            <ExpansionPanel key={p.Name} expanded={(() => {
+              return expanded === beforeRoute.match.path + p.Route
+            })()} onChange={() => this.handleChange(beforeRoute.match.path + p.Route, route.match.url)}>
               <ExpansionPanelSummary expandIcon={<ExpandMoreIcon />}>
                 <Typography variant="title">
                   {p.Name} {route.match.params[p.Subname]}

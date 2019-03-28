@@ -9,6 +9,10 @@ import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableRow from '@material-ui/core/TableRow';
 
+import Button from '@material-ui/core/Button';
+import Menu from '@material-ui/core/Menu';
+import MenuItem from '@material-ui/core/MenuItem';
+
 import IndexTableHead from './IndexTableHead'
 import TableToolbar from './TableToolbar'
 import sort_utils from '../../../../modules/sort_utils'
@@ -22,6 +26,7 @@ class IndexTable extends Component {
     page: 0,
     rowsPerPage: 5,
     searchRegExp: null,
+    anchorEl: null,
   };
 
   handleRequestSort = (event, property) => {
@@ -51,9 +56,17 @@ class IndexTable extends Component {
     this.setState({ searchRegExp: searchRegExp });
   };
 
+  handleClick = event => {
+    this.setState({ anchorEl: event.currentTarget });
+  };
+
+  handleClose = () => {
+    this.setState({ anchorEl: null });
+  };
+
   render() {
     const { routes, classes, columns, data} = this.props
-    const { order, orderBy, rowsPerPage, page, searchRegExp } = this.state;
+    const { anchorEl, order, orderBy, rowsPerPage, page, searchRegExp } = this.state;
 
     if (!data) {
       return null
@@ -90,6 +103,8 @@ class IndexTable extends Component {
         if (column.Type === "Time") {
           let time = new Date(c.seconds * 1000)
           row.push(time.toISOString())
+        } else if (column.Type === "Action") {
+          row.push("")
         } else {
           row.push(c)
         }
@@ -136,6 +151,19 @@ class IndexTable extends Component {
                           <Link to={`${beforeRoute.match.url}${columns[i].Link}/${n[0]}`}>{n[i]}</Link>
                         </TableCell>
                       )
+                    } else if (columns[i].Type === "Action") {
+                      cells.push(
+                        <TableCell key={i} align="right">
+                          <Button
+                            aria-owns={anchorEl ? 'simple-menu' : undefined}
+                            aria-haspopup="true"
+                            variant="outlined"
+                            onClick={this.handleClick}
+                          >
+                            Open Actions
+                          </Button>
+                        </TableCell>
+                      )
                     } else {
                       cells.push(
                         <TableCell key={i} align="right">{n[i]}</TableCell>
@@ -159,6 +187,17 @@ class IndexTable extends Component {
               )}
             </TableBody>
           </Table>
+
+          <Menu
+            anchorEl={anchorEl}
+            open={Boolean(anchorEl)}
+            onClose={this.handleClose}
+            transitionDuration={100}
+          >
+            <MenuItem onClick={this.handleClose}>Profile</MenuItem>
+            <MenuItem onClick={this.handleClose}>My account</MenuItem>
+            <MenuItem onClick={this.handleClose}>Logout</MenuItem>
+          </Menu>
         </div>
       </div>
     );
