@@ -14,7 +14,7 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 
 class FormDialog extends Component {
   render() {
-    const { open, onClose } = this.props
+    const { open, onClose, action } = this.props
 
 		console.log("DEBUG FormDialog", open)
 
@@ -25,12 +25,9 @@ class FormDialog extends Component {
             onClose={onClose}
             aria-labelledby="form-dialog-title"
           >
-            <DialogTitle id="form-dialog-title">Subscribe</DialogTitle>
+            <DialogTitle id="form-dialog-title">{ action.Name }</DialogTitle>
             <DialogContent>
-              <DialogContentText>
-                To subscribe to this website, please enter your email address here. We will send
-                updates occasionally.
-              </DialogContentText>
+              <DialogContentText>{ action.Description }</DialogContentText>
               <TextField
                 autoFocus
                 margin="dense"

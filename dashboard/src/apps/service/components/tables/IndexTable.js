@@ -186,7 +186,19 @@ class IndexTable extends Component {
 			}
 		}
 
-		let actionDialog = <FormDialog open={actionName !== null} onClose={this.handleActionDialogClose} />
+		let action = null
+		let actionDialog = null
+		if (actionName !== null) {
+			for (let a of index.Actions) {
+				if (a.Name === actionName) {
+					action = a
+					break
+				}
+			}
+			if (action.Form) {
+				actionDialog = <FormDialog open={true} action={action} onClose={this.handleActionDialogClose} />
+			}
+		}
 
     const indexLength = tableData.length
     const emptyRows = rowsPerPage - Math.min(rowsPerPage, indexLength - page * rowsPerPage);
