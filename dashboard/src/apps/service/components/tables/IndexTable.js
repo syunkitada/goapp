@@ -13,10 +13,14 @@ import Button from '@material-ui/core/Button';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown';
+import ListItemIcon from '@material-ui/core/ListItemIcon';
+import ListItemText from '@material-ui/core/ListItemText';
 
 import IndexTableHead from './IndexTableHead'
 import TableToolbar from './TableToolbar'
+import FormDialog from '../dialogs/FormDialog'
 import sort_utils from '../../../../modules/sort_utils'
+import icon_utils from '../../../../modules/icon_utils'
 
 class IndexTable extends Component {
   state = {
@@ -28,6 +32,8 @@ class IndexTable extends Component {
     rowsPerPage: 5,
     searchRegExp: null,
     anchorEl: null,
+		actionTarget: null,
+		actionName: null,
   };
 
   isSelected = (id) => {
@@ -94,17 +100,25 @@ class IndexTable extends Component {
     this.setState({ searchRegExp: searchRegExp });
   };
 
-  handleClick = event => {
-    this.setState({ anchorEl: event.currentTarget });
+  handleActionMenuClick = (event, key) => {
+    this.setState({ anchorEl: event.currentTarget, actionTarget: key });
   };
 
   handleClose = () => {
     this.setState({ anchorEl: null });
   };
 
+	handleActionClick = (event, actionName) => {
+    this.setState({ actionName: actionName });
+	};
+
+	handleActionDialogClose = () => {
+		this.setState({ actionName: null });
+	}
+
   render() {
     const { routes, classes, index, columns, data} = this.props
-    const { selected, anchorEl, order, orderBy, rowsPerPage, page, searchRegExp } = this.state;
+    const { selected, anchorEl, order, orderBy, rowsPerPage, page, searchRegExp, actionName, actionTarget } = this.state;
 
     if (!data) {
       return null
@@ -160,6 +174,20 @@ class IndexTable extends Component {
       columns[i].id = i
     }
 
+		let columnActions = []
+		if (index.ColumnActions != null) {
+			for (let i = 0, len = index.ColumnActions.length; i < len; i++) {
+				let action = index.ColumnActions[i];
+				columnActions.push(
+					<MenuItem key={action.Name} onClick={event => this.handleActionClick(event, action.Name)}>
+						<ListItemIcon>{icon_utils.getIcon(action.Icon)}</ListItemIcon>
+						<ListItemText inset primary={action.Name} />
+					</MenuItem>);
+			}
+		}
+
+		let actionDialog = <FormDialog open={actionName !== null} onClose={this.handleActionDialogClose} />
+
     const indexLength = tableData.length
     const emptyRows = rowsPerPage - Math.min(rowsPerPage, indexLength - page * rowsPerPage);
 
@@ -169,14 +197,17 @@ class IndexTable extends Component {
           count={indexLength}
           rowsPerPage={rowsPerPage}
           page={page}
+					index={index}
 					numSelected={selected.length}
           onChangePage={this.handleChangePage}
           onChangeRowsPerPage={this.handleChangeRowsPerPage}
           onChangeSearchInput={this.handleChangeSearchInput}
+					onActionClick={this.handleActionClick}
         />
         <div className={classes.tableWrapper}>
           <Table className={classes.table} aria-labelledby="tableTitle">
             <IndexTableHead
+							index={index}
               order={order}
               orderBy={orderBy}
               onSelectAllClick={this.handleSelectAllClick}
@@ -215,7 +246,7 @@ class IndexTable extends Component {
                             aria-owns={anchorEl ? 'simple-menu' : undefined}
                             aria-haspopup="true"
                             variant="outlined"
-                            onClick={this.handleClick}
+                            onClick={e => {this.handleActionMenuClick(e, key)}}
                           >
                             Actions <KeyboardArrowDownIcon />
                           </Button>
@@ -251,10 +282,10 @@ class IndexTable extends Component {
             onClose={this.handleClose}
             transitionDuration={100}
           >
-            <MenuItem onClick={this.handleClose}>Profile</MenuItem>
-            <MenuItem onClick={this.handleClose}>My account</MenuItem>
-            <MenuItem onClick={this.handleClose}>Logout</MenuItem>
+						{columnActions}
           </Menu>
+
+					{actionDialog}
         </div>
       </div>
     );

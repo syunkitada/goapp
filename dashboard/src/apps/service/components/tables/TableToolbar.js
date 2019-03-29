@@ -7,25 +7,57 @@ import { lighten } from '@material-ui/core/styles/colorManipulator';
 
 import { fade } from '@material-ui/core/styles/colorManipulator';
 
-import Typography from '@material-ui/core/Typography';
 import Input from '@material-ui/core/Input';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import FormControl from '@material-ui/core/FormControl';
 import Tooltip from '@material-ui/core/Tooltip';
 import SearchIcon from '@material-ui/icons/Search';
-import DeleteIcon from '@material-ui/icons/Delete';
-import AddBoxIcon from '@material-ui/icons/AddBox';
 import Button from '@material-ui/core/Button';
 import IconButton from '@material-ui/core/IconButton';
 
 import Grid from '@material-ui/core/Grid';
 
-
+import icon_utils from '../../../../modules/icon_utils'
 import TablePagination from './TablePagination'
+
 
 class TableToolbar extends Component {
   render() {
-    const { classes, onChangeSearchInput, count, numSelected, rowsPerPage, page, onChangePage, onChangeRowsPerPage } = this.props
+    const { classes, index, onChangeSearchInput, count, numSelected, rowsPerPage, page, onChangePage, onChangeRowsPerPage, onActionClick } = this.props
+
+		const actionButtons = []
+		if (numSelected > 0) {
+			if (index.SelectActions != null) {
+				actionButtons.push(
+					<Button key={-1} color="secondary">
+						{numSelected} selected
+					</Button>
+				)
+				for (let i = 0, len = index.SelectActions.length; i < len; i++) {
+					let action = index.SelectActions[i]
+					actionButtons.push(
+						<Tooltip key={i} title={action.Name}>
+							<IconButton variant="outlined" size="small" color="secondary" className={classes.marginButton} onClick={e => onActionClick(e, action.Name)}>
+								{icon_utils.getIcon(action.Icon)}
+							</IconButton>
+						</Tooltip>
+					)
+				}
+			}
+		} else {
+			if (index.Actions != null) {
+				for (let i = 0, len = index.Actions.length; i < len; i++) {
+					let action = index.Actions[i]
+					actionButtons.push(
+						<Tooltip key={i} title={action.Name}>
+							<IconButton variant="outlined" size="small" color="primary" className={classes.marginButton} onClick={e => onActionClick(e, action.Name)}>
+								{icon_utils.getIcon(action.Icon)}
+							</IconButton>
+						</Tooltip>
+					)
+				}
+			}
+		}
 
     return (
       <Toolbar>
@@ -46,26 +78,9 @@ class TableToolbar extends Component {
               </FormControl>
             </div>
           </Grid>
-					{ numSelected > 0 ? (
           <Grid item>
-						<Button color="secondary">
-							{numSelected} selected
-						</Button>
-						<Tooltip title="Delete">
-							<IconButton variant="outlined" size="small" color="secondary" className={classes.marginButton}>
-								<DeleteIcon />
-							</IconButton>
-						</Tooltip>
+						{actionButtons}
           </Grid>
-							) : (
-          <Grid item>
-						<Tooltip title="Create">
-							<IconButton variant="outlined" size="small" color="primary" className={classes.marginButton}>
-								<AddBoxIcon />
-							</IconButton>
-						</Tooltip>
-          </Grid>
-					)}
 
           <Grid item>
             <TablePagination

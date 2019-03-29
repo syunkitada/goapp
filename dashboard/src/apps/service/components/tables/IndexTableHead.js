@@ -20,18 +20,20 @@ class IndexTableHead extends Component {
   };
 
   render() {
-    const { order, orderBy, columns, numSelected, rowCount, onSelectAllClick } = this.props;
+    const { index, order, orderBy, columns, numSelected, rowCount, onSelectAllClick } = this.props;
 
     return (
       <TableHead>
         <TableRow>
+					{(index.SelectActions != null && index.SelectActions.length > 0) ?
 					<TableCell padding="checkbox">
             <Checkbox
               indeterminate={numSelected > 0 && numSelected < rowCount}
               checked={numSelected === rowCount}
               onChange={onSelectAllClick}
             />
-					</TableCell>
+					</TableCell> : null
+					}
           {columns.map(
             column => (
               <TableCell

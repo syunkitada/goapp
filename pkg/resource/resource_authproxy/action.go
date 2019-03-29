@@ -60,24 +60,21 @@ func (resource *Resource) PhysicalAction(c *gin.Context) {
 							"Kind":    "Table",
 							"DataKey": "PhysicalResources",
 							"Actions": []interface{}{
-								gin.H{"Name": "Create"},
+								gin.H{"Name": "Create", "Icon": "Create"},
 							},
 							"SelectActions": []interface{}{
-								gin.H{"Name": "Delete"},
+								gin.H{"Name": "Delete", "Icon": "Delete"},
+							},
+							"ColumnActions": []interface{}{
+								gin.H{"Name": "Detail", "Icon": "Detail"},
+								gin.H{"Name": "Update", "Icon": "Update"},
 							},
 							"Columns": []interface{}{
 								gin.H{"Name": "Name", "IsSearch": true},
 								gin.H{"Name": "Kind"},
 								gin.H{"Name": "UpdatedAt", "Type": "Time"},
 								gin.H{"Name": "CreatedAt", "Type": "Time"},
-								gin.H{
-									"Name": "Action", "Type": "Action",
-									"Actions": gin.H{
-										"Detail": "Hoge",
-										"Update": "Hoge",
-										"Delete": "Hoge",
-									},
-								},
+								gin.H{"Name": "Action", "Type": "Action"},
 							},
 						},
 						gin.H{
