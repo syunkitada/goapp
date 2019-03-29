@@ -7,10 +7,16 @@ import { lighten } from '@material-ui/core/styles/colorManipulator';
 
 import { fade } from '@material-ui/core/styles/colorManipulator';
 
+import Typography from '@material-ui/core/Typography';
 import Input from '@material-ui/core/Input';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import FormControl from '@material-ui/core/FormControl';
+import Tooltip from '@material-ui/core/Tooltip';
 import SearchIcon from '@material-ui/icons/Search';
+import DeleteIcon from '@material-ui/icons/Delete';
+import AddBoxIcon from '@material-ui/icons/AddBox';
+import Button from '@material-ui/core/Button';
+import IconButton from '@material-ui/core/IconButton';
 
 import Grid from '@material-ui/core/Grid';
 
@@ -19,7 +25,7 @@ import TablePagination from './TablePagination'
 
 class TableToolbar extends Component {
   render() {
-    const { classes, onChangeSearchInput, count, rowsPerPage, page, onChangePage, onChangeRowsPerPage } = this.props
+    const { classes, onChangeSearchInput, count, numSelected, rowsPerPage, page, onChangePage, onChangeRowsPerPage } = this.props
 
     return (
       <Toolbar>
@@ -40,6 +46,26 @@ class TableToolbar extends Component {
               </FormControl>
             </div>
           </Grid>
+					{ numSelected > 0 ? (
+          <Grid item>
+						<Button color="secondary">
+							{numSelected} selected
+						</Button>
+						<Tooltip title="Delete">
+							<IconButton variant="outlined" size="small" color="secondary" className={classes.marginButton}>
+								<DeleteIcon />
+							</IconButton>
+						</Tooltip>
+          </Grid>
+							) : (
+          <Grid item>
+						<Tooltip title="Create">
+							<IconButton variant="outlined" size="small" color="primary" className={classes.marginButton}>
+								<AddBoxIcon />
+							</IconButton>
+						</Tooltip>
+          </Grid>
+					)}
 
           <Grid item>
             <TablePagination
@@ -77,6 +103,10 @@ const style = theme => ({
   },
   margin: {
     margin: theme.spacing.unit * 2,
+  },
+  buttonMargin: {
+    marginTop: theme.spacing.unit * 2,
+    marginBottom: theme.spacing.unit * 2,
   },
   highlight:
     theme.palette.type === 'light'

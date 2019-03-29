@@ -29,7 +29,7 @@ function renderIndex(routes, data, index) {
     case "RouteTabs":
       return <RouteTabs render={renderIndex} routes={routes} data={data} index={index} />
     case "Table":
-      return <IndexTable routes={routes} columns={index.Columns} data={data[index.DataKey]} />
+      return <IndexTable routes={routes} index={index} columns={index.Columns} data={data[index.DataKey]} />
     default:
       return <div>Unsupported Kind: {index.Kind}</div>
   }

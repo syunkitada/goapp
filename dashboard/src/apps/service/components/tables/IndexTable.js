@@ -8,10 +8,11 @@ import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableRow from '@material-ui/core/TableRow';
-
+import Checkbox from '@material-ui/core/Checkbox';
 import Button from '@material-ui/core/Button';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
+import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown';
 
 import IndexTableHead from './IndexTableHead'
 import TableToolbar from './TableToolbar'
@@ -28,6 +29,43 @@ class IndexTable extends Component {
     searchRegExp: null,
     anchorEl: null,
   };
+
+  isSelected = (id) => {
+		return this.state.selected.indexOf(id) !== -1;
+	}
+
+	handleSelectClick = (event, id) => {
+    const { selected } = this.state;
+    const selectedIndex = selected.indexOf(id);
+    let newSelected = [];
+
+    if (selectedIndex === -1) {
+			newSelected = newSelected.concat(selected, id);
+		} else if (selectedIndex === 0) {
+			newSelected = newSelected.concat(selected.slice(1));
+		} else if (selectedIndex === selected.length - 1) {
+			newSelected = newSelected.concat(selected.slice(0, -1));
+		} else if (selectedIndex > 0) {
+			newSelected = newSelected.concat(
+				selected.slice(0, selectedIndex),
+				selected.slice(selectedIndex + 1),
+			);
+		}
+
+    this.setState({ selected: newSelected });
+	};
+
+	handleSelectAllClick = event => {
+		console.log("DEBUG handleSelectAllClick")
+    const { columns, data } = this.props
+		const keyColumn = columns[0].Name
+		if (event.target.checked) {
+			this.setState(state => ({ selected: data.map(n => n[keyColumn]) }));
+			return;
+		}
+
+		this.setState({ selected: [] });
+	};
 
   handleRequestSort = (event, property) => {
     const orderBy = property;
@@ -65,11 +103,16 @@ class IndexTable extends Component {
   };
 
   render() {
-    const { routes, classes, columns, data} = this.props
-    const { anchorEl, order, orderBy, rowsPerPage, page, searchRegExp } = this.state;
+    const { routes, classes, index, columns, data} = this.props
+    const { selected, anchorEl, order, orderBy, rowsPerPage, page, searchRegExp } = this.state;
 
     if (!data) {
       return null
+    }
+
+    let isSelectActions = false
+    if (index.SelectActions) {
+      isSelectActions = true
     }
 
     let beforeRoute = routes.slice(-2)[0]
@@ -83,7 +126,8 @@ class IndexTable extends Component {
 
     let isSkip = true
     const tableData = []
-    for (let d of data) {
+    for (let i = 0, len = data.length; i < len; i++) {
+			let d = data[i]
       if (searchRegExp != null) {
         for (let c of searchColumns) {
           if (searchRegExp.exec(d[c])) {
@@ -125,6 +169,7 @@ class IndexTable extends Component {
           count={indexLength}
           rowsPerPage={rowsPerPage}
           page={page}
+					numSelected={selected.length}
           onChangePage={this.handleChangePage}
           onChangeRowsPerPage={this.handleChangeRowsPerPage}
           onChangeSearchInput={this.handleChangeSearchInput}
@@ -138,12 +183,24 @@ class IndexTable extends Component {
               onRequestSort={this.handleRequestSort}
               rowCount={indexLength}
               columns={columns}
+							numSelected={selected.length}
             />
             <TableBody>
               {sort_utils.stableSort(tableData, sort_utils.getSorting(order, orderBy))
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map(n => {
-                  let cells = []
+                  const cells = []
+									const key = n[0]
+                  const isSelected = this.isSelected(key);
+
+                  if (isSelectActions) {
+                    cells.push(
+                      <TableCell key={-1} padding="checkbox" onClick={event => this.handleSelectClick(event, key)}>
+                        <Checkbox checked={isSelected} />
+                      </TableCell>
+                    )
+                  }
+
                   for (let i = 0, len = columns.length; i < len; i++) {
                     if (columns[i].Link) {
                       cells.push(
@@ -160,7 +217,7 @@ class IndexTable extends Component {
                             variant="outlined"
                             onClick={this.handleClick}
                           >
-                            Open Actions
+                            Actions <KeyboardArrowDownIcon />
                           </Button>
                         </TableCell>
                       )
@@ -174,7 +231,7 @@ class IndexTable extends Component {
                     <TableRow
                       hover
                       tabIndex={-1}
-                      key={n[0]}
+                      key={key}
                     >
                     {cells}
                     </TableRow>

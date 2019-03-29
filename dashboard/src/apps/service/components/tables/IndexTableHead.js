@@ -8,6 +8,7 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import TableSortLabel from '@material-ui/core/TableSortLabel';
 import Tooltip from '@material-ui/core/Tooltip';
+import Checkbox from '@material-ui/core/Checkbox';
 
 import { lighten } from '@material-ui/core/styles/colorManipulator';
 import { fade } from '@material-ui/core/styles/colorManipulator';
@@ -19,11 +20,18 @@ class IndexTableHead extends Component {
   };
 
   render() {
-    const { order, orderBy, columns } = this.props;
+    const { order, orderBy, columns, numSelected, rowCount, onSelectAllClick } = this.props;
 
     return (
       <TableHead>
         <TableRow>
+					<TableCell padding="checkbox">
+            <Checkbox
+              indeterminate={numSelected > 0 && numSelected < rowCount}
+              checked={numSelected === rowCount}
+              onChange={onSelectAllClick}
+            />
+					</TableCell>
           {columns.map(
             column => (
               <TableCell
@@ -118,6 +126,9 @@ IndexTableHead.propTypes = {
   order: PropTypes.string.isRequired,
   orderBy: PropTypes.number.isRequired,
   columns: PropTypes.array.isRequired,
+	numSelected: PropTypes.number.isRequired,
+	rowCount: PropTypes.number.isRequired,
+	onSelectAllClick: PropTypes.func.isRequired,
 };
 
 function mapStateToProps(state, ownProps) {
