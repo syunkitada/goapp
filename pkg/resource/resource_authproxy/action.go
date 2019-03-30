@@ -61,10 +61,14 @@ func (resource *Resource) PhysicalAction(c *gin.Context) {
 							"DataKey": "PhysicalResources",
 							"Actions": []interface{}{
 								gin.H{
-									"Name": "Create", "Icon": "Create",
-									"Form": []interface{}{
-										gin.H{"Name": "Name"},
-										gin.H{"Name": "Datacenter"},
+									"Name": "Create", "Icon": "Create", "Kind": "Form",
+									"DataKind": "PhysicalResource",
+									"Fields": []interface{}{
+										gin.H{"Name": "Name", "Type": "text"},
+										gin.H{"Name": "Kind", "Type": "text"},
+										gin.H{"Name": "Datacenter", "Type": "text"},
+										gin.H{"Name": "Rack", "Type": "text"},
+										gin.H{"Name": "Model", "Type": "text"},
 									},
 								},
 							},

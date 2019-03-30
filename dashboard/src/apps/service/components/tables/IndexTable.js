@@ -195,9 +195,15 @@ class IndexTable extends Component {
 					break
 				}
 			}
-			if (action.Form) {
-				actionDialog = <FormDialog open={true} action={action} onClose={this.handleActionDialogClose} />
-			}
+      switch (action.Kind) {
+        case 'Form':
+          actionDialog = <FormDialog open={true} action={action}
+            onClose={this.handleActionDialogClose} />
+          break;
+        default:
+          actionDialog = null
+          break;
+      }
 		}
 
     const indexLength = tableData.length

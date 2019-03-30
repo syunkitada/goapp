@@ -13,10 +13,53 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 
 
 class FormDialog extends Component {
+  state = {
+    fieldMap: {}
+  };
+
+  handleTestFieldChange = (event, field) => {
+    console.log("DEBUG handleTestFieldChange", field.Name, event.target.value)
+    const { fieldMap } = this.state;
+
+    // TODO Validate
+    fieldMap[field.Name] = {value: event.target.value, error: null}
+
+    this.setState({fieldMap: fieldMap})
+  };
+
+  handleActionSubmit = () => {
+    const { action } = this.props
+    console.log("DEBUG handleActionSubmit", action.Name, action.DataKind, this.state.fieldMap)
+  };
+
   render() {
-    const { open, onClose, action } = this.props
+    const { open, action, onClose } = this.props
 
 		console.log("DEBUG FormDialog", open)
+
+    let fields = []
+    for (let i = 0, len = action.Fields.length; i < len; i++) {
+      let field = action.Fields[i]
+      let autoFocus = false
+      if (i === 0) {
+        autoFocus = true
+      }
+      switch (field.Type) {
+      case "text":
+        fields.push(
+          <TextField key={field.Name} id={field.Name} label={field.Name}
+            autoFocus={autoFocus} margin="dense" type={field.Type} fullWidth
+            onChange={event => {this.handleTestFieldChange(event, field)}}
+          />
+        )
+        break
+      default:
+        fields.push(
+          <span>FieldNotFound</span>
+        )
+        break
+      }
+    }
 
 		return (
         <div>
@@ -25,24 +68,17 @@ class FormDialog extends Component {
             onClose={onClose}
             aria-labelledby="form-dialog-title"
           >
-            <DialogTitle id="form-dialog-title">{ action.Name }</DialogTitle>
+            <DialogTitle id="form-dialog-title">{ action.Name } { action.DataKind }</DialogTitle>
             <DialogContent>
               <DialogContentText>{ action.Description }</DialogContentText>
-              <TextField
-                autoFocus
-                margin="dense"
-                id="name"
-                label="Email Address"
-                type="email"
-                fullWidth
-              />
+              {fields}
             </DialogContent>
             <DialogActions>
               <Button onClick={onClose} color="primary">
                 Cancel
               </Button>
-              <Button onClick={onClose} color="primary">
-                Subscribe
+              <Button onClick={this.handleActionSubmit} color="primary">
+                Submit
               </Button>
             </DialogActions>
           </Dialog>
