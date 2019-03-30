@@ -197,7 +197,7 @@ class IndexTable extends Component {
 			}
       switch (action.Kind) {
         case 'Form':
-          actionDialog = <FormDialog open={true} action={action}
+          actionDialog = <FormDialog open={true} action={action} routes={routes}
             onClose={this.handleActionDialogClose} />
           break;
         default:

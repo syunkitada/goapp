@@ -11,6 +11,8 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 
+import actions from '../../../../actions'
+
 
 class FormDialog extends Component {
   state = {
@@ -22,14 +24,17 @@ class FormDialog extends Component {
     const { fieldMap } = this.state;
 
     // TODO Validate
-    fieldMap[field.Name] = {value: event.target.value, error: null}
+    fieldMap[field.Name] = {value: event.target.value, error: null, type: field.Type}
 
     this.setState({fieldMap: fieldMap})
   };
 
   handleActionSubmit = () => {
-    const { action } = this.props
-    console.log("DEBUG handleActionSubmit", action.Name, action.DataKind, this.state.fieldMap)
+    const { action, routes, targets, submitQueries } = this.props
+    const { fieldMap } = this.state
+    console.log("DEBUG handleActionSubmit", action.Name, action.DataKind, fieldMap, targets)
+    let route = routes.slice(-1)[0]
+    submitQueries(action, fieldMap, targets, route.match.params)
   };
 
   render() {
@@ -92,7 +97,12 @@ function mapStateToProps(state, ownProps) {
 }
 
 function mapDispatchToProps(dispatch, ownProps) {
-  return {}
+  return {
+    submitQueries: (action, fieldMap, targets, params) => {
+			console.log("DEBUG submitQueries")
+      dispatch(actions.service.serviceSubmitQueries(action, fieldMap, targets));
+    }
+  }
 }
 
 const style = theme => ({});

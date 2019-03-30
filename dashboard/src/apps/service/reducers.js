@@ -49,8 +49,16 @@ export default handleActions({
 
     return newState;
   },
+
   [actions.service.serviceGetQueries]: (state) => {
     console.log("action.serviceGetQueries")
+    return Object.assign({}, state, {
+      isFetching: true,
+    })
+  },
+
+  [actions.service.serviceSubmitQueries]: (state) => {
+    console.log("action.serviceSubmitQueries")
     return Object.assign({}, state, {
       isFetching: true,
     })

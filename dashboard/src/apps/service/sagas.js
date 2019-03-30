@@ -22,7 +22,12 @@ function* watchGetQueries() {
   yield takeEvery(actions.service.serviceGetQueries, post)
 }
 
+function* watchSubmitQueries() {
+  yield takeEvery(actions.service.serviceSubmitQueries, post)
+}
+
 export default {
   watchGetIndex,
   watchGetQueries,
+  watchSubmitQueries,
 }
