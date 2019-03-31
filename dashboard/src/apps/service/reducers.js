@@ -50,6 +50,20 @@ export default handleActions({
     return newState;
   },
 
+  [actions.service.serviceStartBackgroundSync]: (state) => {
+    console.log("action.serviceStartBackgroundSync")
+    return Object.assign({}, state, {
+      isFetching: true,
+    })
+  },
+
+  [actions.service.serviceStopBackgroundSync]: (state) => {
+    console.log("action.serviceStopBackgroundSync")
+    return Object.assign({}, state, {
+      isFetching: false,
+    })
+  },
+
   [actions.service.serviceGetQueries]: (state) => {
     console.log("action.serviceGetQueries")
     return Object.assign({}, state, {
@@ -98,6 +112,7 @@ export default handleActions({
     console.log(newState)
     return newState
   },
+
   [actions.service.servicePostFailure]: (state, action) => {
     return Object.assign({}, defaultState, {
       isFetching: false,

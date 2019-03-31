@@ -1,4 +1,4 @@
-import { put, call, takeEvery } from 'redux-saga/effects'
+import { put, call, takeEvery, cancel, cancelled, fork, take, delay } from 'redux-saga/effects'
 import actions from '../../actions'
 import modules from '../../modules'
 
@@ -14,8 +14,40 @@ function* post(action) {
   }
 }
 
+function* sync() {
+  try {
+    while (true) {
+      console.log("DEBUG sync")
+      // yield put(actions.requestStart())
+      // const result = yield call(someApi)
+      // yield put(actions.requestSuccess(result))
+      yield delay(5000)
+    }
+  } finally {
+    if (yield cancelled()) {
+      console.log("DEBUG sync cancelled")
+      // yield put(actions.requestFailure('Sync cancelled!'))
+    }
+  }
+}
+
+function* bgSync(action) {
+   // starts the task in the background
+  const bgSyncTask = yield fork(sync)
+
+  // wait for the user stop action
+  yield take(actions.service.serviceStopBackgroundSync)
+  // user clicked stop. cancel the background task
+  // this will cause the forked bgSync task to jump into its finally block
+  yield cancel(bgSyncTask)
+}
+
 function* watchGetIndex() {
   yield takeEvery(actions.service.serviceGetIndex, post)
+}
+
+function* watchStartBackgroundSync() {
+  yield takeEvery(actions.service.serviceStartBackgroundSync, bgSync)
 }
 
 function* watchGetQueries() {
@@ -30,4 +62,5 @@ export default {
   watchGetIndex,
   watchGetQueries,
   watchSubmitQueries,
+  watchStartBackgroundSync,
 }
