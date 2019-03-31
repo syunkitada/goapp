@@ -31,14 +31,12 @@ message StatusReply {
 message ActionRequest {
     authproxy_grpc_pb.TraceContext Tctx = 1;
     repeated Query Queries = 2;
-    string Target = 3;
-    string Cluster = 4;
-    string Spec = 5;
 }
 
 message Query {
     string Kind = 1;
     map<string, string> StrParams = 2;
+    map<string, int64> NumParams = 3;
 }
 
 message ActionReply {

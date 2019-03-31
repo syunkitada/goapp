@@ -6,11 +6,9 @@ export default createActions({
     serviceName: params.service,
     actionName: 'UserQuery',
     projectName: params.project,
-    data: {
-      queries: [
-        {kind: "GetIndex", params: params},
-      ],
-    },
+    queries: [
+      {Kind: "GetIndex", StrParams: params},
+    ],
   }),
 
   SERVICE_START_BACKGROUND_SYNC: (queries, params) => {
@@ -23,9 +21,7 @@ export default createActions({
       serviceName: params.service,
       actionName: 'UserQuery',
       projectName: params.project,
-      data: {
-        queries: dataQueries,
-      },
+      queries: dataQueries,
     }
   },
 
@@ -41,9 +37,7 @@ export default createActions({
       serviceName: params.service,
       actionName: 'UserQuery',
       projectName: params.project,
-      data: {
-        queries: dataQueries,
-      },
+      queries: dataQueries,
     }
   },
 
@@ -52,28 +46,31 @@ export default createActions({
     let dataQueries = [];
     let strParams = Object.assign({}, params)
     let numParams = {}
+
+    let spec = Object.assign({}, params)
     for (let key in fieldMap) {
       let field = fieldMap[key]
-      switch (field.Type) {
-        case "text":
-          strParams[key] = field.value
-          break
-        default:
-          break
-      }
+      spec[key] = field.value
     }
+    let specsStr = JSON.stringify([spec])
+    strParams['Specs'] = specsStr
 
-    for (let i = 0, len = targets.length; i < len; i ++) {
+    if (targets) {
+      for (let i = 0, len = targets.length; i < len; i ++) {
+        let target = targets[i]
+        strParams.Target = target
+        dataQueries.push({Kind: kind, StrParams: strParams, NumParams: numParams})
+      }
+    } else {
       dataQueries.push({Kind: kind, StrParams: strParams, NumParams: numParams})
     }
+
     return {
       stateKey: 'index',
       serviceName: params.service,
       actionName: 'UserQuery',
       projectName: params.project,
-      data: {
-        queries: dataQueries,
-      },
+      queries: dataQueries,
     }
   },
 

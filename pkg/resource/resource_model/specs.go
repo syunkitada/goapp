@@ -1,10 +1,5 @@
 package resource_model
 
-type QuerySpec struct {
-	Kind           string
-	DatacenterName string
-}
-
 type ResourceSpec struct {
 	Kind    string `validate:"required"`
 	Name    string `validate:"required"`
@@ -80,14 +75,15 @@ type PhysicalResourceSpec struct {
 
 type PhysicalResourceSpecData struct {
 	Kind         string `validate:"required"`
-	Datacenter   string
+	Name         string `validate:"required"`
+	Datacenter   string `validate:"required"`
 	Cluster      string
 	Rack         string
 	Model        string
 	RackPosition uint8
 	NetLinks     []string
 	PowerLinks   []string
-	Spec         interface{}
+	Spec         string
 }
 
 type NetworkV4Spec struct {

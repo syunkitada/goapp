@@ -66,7 +66,6 @@ func (resource *Resource) PhysicalAction(c *gin.Context) {
 									"Fields": []interface{}{
 										gin.H{"Name": "Name", "Type": "text", "Require": true},
 										gin.H{"Name": "Kind", "Type": "text", "Require": true},
-										gin.H{"Name": "Datacenter", "Type": "text", "Require": true},
 										gin.H{"Name": "Rack", "Type": "text", "Require": true},
 										gin.H{"Name": "Model", "Type": "text", "Require": true},
 									},

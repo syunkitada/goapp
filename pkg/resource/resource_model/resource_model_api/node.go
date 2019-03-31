@@ -1,7 +1,6 @@
 package resource_model_api
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/golang/protobuf/ptypes"
@@ -14,62 +13,62 @@ import (
 	"github.com/syunkitada/goapp/pkg/resource/resource_model"
 )
 
-func (modelApi *ResourceModelApi) GetNode(tctx *logger.TraceContext, req *resource_api_grpc_pb.ActionRequest, rep *resource_api_grpc_pb.ActionReply) {
-	var err error
-	startTime := logger.StartTrace(tctx)
-	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
-
-	var db *gorm.DB
-	if db, err = modelApi.open(tctx); err != nil {
-		rep.Tctx.Err = err.Error()
-		rep.Tctx.StatusCode = codes.RemoteDbError
-		return
-	}
-	defer func() { err = db.Close() }()
-
-	pbNodes := []*resource_api_grpc_pb.Node{}
-	if req.Cluster == "" {
-		var nodes []resource_model.Node
-		if err = db.Find(&nodes).Error; err != nil {
-			rep.Tctx.Err = err.Error()
-			rep.Tctx.StatusCode = codes.RemoteDbError
-			return
-		}
-		rootNodes := modelApi.convertNodes(tctx, "root", nodes)
-		pbNodes = append(pbNodes, rootNodes...)
-		rep.Tctx.StatusCode = codes.Ok
-
-		for clusterName, clusterClient := range modelApi.clusterClientMap {
-			remoteRep, err := clusterClient.GetNode(tctx, req.Target)
-			if err != nil {
-				rep.Tctx.Err += fmt.Sprintf("Failed get node from cluster(%v) by error(%v), ",
-					clusterName, err.Error())
-				rep.Tctx.StatusCode = codes.RemoteClusterError
-			}
-			clusterNodes := modelApi.convertClusterNodes(clusterName, remoteRep.Nodes)
-			pbNodes = append(pbNodes, clusterNodes...)
-		}
-
-	} else {
-		clusterClient, ok := modelApi.clusterClientMap[req.Cluster]
-		if !ok {
-			rep.Tctx.Err = fmt.Sprintf("NotFound cluster: %v", req.Cluster)
-			rep.Tctx.StatusCode = codes.ClientNotFound
-			return
-		}
-
-		remoteRep, err := clusterClient.GetNode(tctx, req.Target)
-		if err != nil {
-			rep.Tctx.Err = err.Error()
-			rep.Tctx.StatusCode = codes.RemoteClusterError
-			return
-		}
-		clusterNodes := modelApi.convertClusterNodes(req.Cluster, remoteRep.Nodes)
-		pbNodes = append(pbNodes, clusterNodes...)
-	}
-
-	rep.Nodes = pbNodes
-}
+// func (modelApi *ResourceModelApi) GetNode(tctx *logger.TraceContext, req *resource_api_grpc_pb.ActionRequest, rep *resource_api_grpc_pb.ActionReply) {
+// 	var err error
+// 	startTime := logger.StartTrace(tctx)
+// 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+//
+// 	var db *gorm.DB
+// 	if db, err = modelApi.open(tctx); err != nil {
+// 		rep.Tctx.Err = err.Error()
+// 		rep.Tctx.StatusCode = codes.RemoteDbError
+// 		return
+// 	}
+// 	defer func() { err = db.Close() }()
+//
+// 	pbNodes := []*resource_api_grpc_pb.Node{}
+// 	if req.Cluster == "" {
+// 		var nodes []resource_model.Node
+// 		if err = db.Find(&nodes).Error; err != nil {
+// 			rep.Tctx.Err = err.Error()
+// 			rep.Tctx.StatusCode = codes.RemoteDbError
+// 			return
+// 		}
+// 		rootNodes := modelApi.convertNodes(tctx, "root", nodes)
+// 		pbNodes = append(pbNodes, rootNodes...)
+// 		rep.Tctx.StatusCode = codes.Ok
+//
+// 		for clusterName, clusterClient := range modelApi.clusterClientMap {
+// 			remoteRep, err := clusterClient.GetNode(tctx, req.Target)
+// 			if err != nil {
+// 				rep.Tctx.Err += fmt.Sprintf("Failed get node from cluster(%v) by error(%v), ",
+// 					clusterName, err.Error())
+// 				rep.Tctx.StatusCode = codes.RemoteClusterError
+// 			}
+// 			clusterNodes := modelApi.convertClusterNodes(clusterName, remoteRep.Nodes)
+// 			pbNodes = append(pbNodes, clusterNodes...)
+// 		}
+//
+// 	} else {
+// 		clusterClient, ok := modelApi.clusterClientMap[req.Cluster]
+// 		if !ok {
+// 			rep.Tctx.Err = fmt.Sprintf("NotFound cluster: %v", req.Cluster)
+// 			rep.Tctx.StatusCode = codes.ClientNotFound
+// 			return
+// 		}
+//
+// 		remoteRep, err := clusterClient.GetNode(tctx, req.Target)
+// 		if err != nil {
+// 			rep.Tctx.Err = err.Error()
+// 			rep.Tctx.StatusCode = codes.RemoteClusterError
+// 			return
+// 		}
+// 		clusterNodes := modelApi.convertClusterNodes(req.Cluster, remoteRep.Nodes)
+// 		pbNodes = append(pbNodes, clusterNodes...)
+// 	}
+//
+// 	rep.Nodes = pbNodes
+// }
 
 func (modelApi *ResourceModelApi) UpdateNode(tctx *logger.TraceContext, req *resource_api_grpc_pb.UpdateNodeRequest, rep *resource_api_grpc_pb.UpdateNodeReply) {
 	var err error

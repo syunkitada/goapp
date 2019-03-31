@@ -1,12 +1,12 @@
 import fetch from 'cross-fetch'
 
-function post({serviceName, actionName, projectName, data}) {
+function post({serviceName, actionName, projectName, queries}) {
   const body = JSON.stringify({
     Action: {
       ServiceName: serviceName,
       Name: actionName,
       ProjectName: projectName,
-      Data: JSON.stringify(data),
+      Queries: queries,
     },
   });
 

@@ -34,6 +34,7 @@ class FormDialog extends Component {
     const { fieldMap } = this.state
     console.log("DEBUG handleActionSubmit", action.Name, action.DataKind, fieldMap, targets)
     let route = routes.slice(-1)[0]
+    console.log(route)
     submitQueries(action, fieldMap, targets, route.match.params)
   };
 
@@ -100,7 +101,7 @@ function mapDispatchToProps(dispatch, ownProps) {
   return {
     submitQueries: (action, fieldMap, targets, params) => {
 			console.log("DEBUG submitQueries")
-      dispatch(actions.service.serviceSubmitQueries(action, fieldMap, targets));
+      dispatch(actions.service.serviceSubmitQueries(action, fieldMap, targets, params));
     }
   }
 }

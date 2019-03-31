@@ -11,8 +11,9 @@ import (
 	"github.com/syunkitada/goapp/pkg/resource/resource_model"
 )
 
-func (modelApi *ResourceModelApi) UserQuery(tctx *logger.TraceContext, req *resource_api_grpc_pb.ActionRequest, rep *resource_api_grpc_pb.ActionReply) {
+func (modelApi *ResourceModelApi) Action(tctx *logger.TraceContext, req *resource_api_grpc_pb.ActionRequest, rep *resource_api_grpc_pb.ActionReply) {
 	var err error
+	var statusCode int64
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
@@ -24,11 +25,12 @@ func (modelApi *ResourceModelApi) UserQuery(tctx *logger.TraceContext, req *reso
 	}
 	defer func() { err = db.Close() }()
 
-	fmt.Println("HOGElwlwlwllwwwwwwwww")
-
+	fmt.Println("DEBUG Queries")
 	for _, query := range req.Queries {
+		fmt.Println(query)
 		switch query.Kind {
 		case "GetIndex":
+			fmt.Println("DEBUG Datacenter")
 			var datacenters []resource_model.Datacenter
 			if err = db.Find(&datacenters).Error; err != nil {
 				rep.Tctx.Err = err.Error()
@@ -36,6 +38,7 @@ func (modelApi *ResourceModelApi) UserQuery(tctx *logger.TraceContext, req *reso
 				return
 			}
 			rep.Datacenters = modelApi.convertDatacenters(tctx, datacenters)
+			fmt.Println("DEBUG Datacenter", rep.Datacenters)
 		case "GetDatacenters":
 			var datacenters []resource_model.Datacenter
 			if err = db.Find(&datacenters).Error; err != nil {
@@ -80,6 +83,12 @@ func (modelApi *ResourceModelApi) UserQuery(tctx *logger.TraceContext, req *reso
 				return
 			}
 			rep.PhysicalResources = modelApi.convertPhysicalResources(tctx, physicalResources)
+		case "CreatePhysicalResource":
+			if err, statusCode = modelApi.CreatePhysicalResource(tctx, db, query); err != nil {
+				rep.Tctx.Err = err.Error()
+				rep.Tctx.StatusCode = statusCode
+				return
+			}
 		}
 	}
 

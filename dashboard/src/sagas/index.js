@@ -13,5 +13,7 @@ export default function* rootSaga() {
     auth.watchLogout(),
     service.watchGetIndex(),
     service.watchGetQueries(),
+    service.watchSubmitQueries(),
+    service.watchStartBackgroundSync(),
   ])
 }

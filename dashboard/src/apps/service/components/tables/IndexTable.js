@@ -197,6 +197,8 @@ class IndexTable extends Component {
 			}
       switch (action.Kind) {
         case 'Form':
+          console.log("DEBUG Formlalalallalalala")
+          console.log(routes)
           actionDialog = <FormDialog open={true} action={action} routes={routes}
             onClose={this.handleActionDialogClose} />
           break;

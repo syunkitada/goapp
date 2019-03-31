@@ -108,6 +108,7 @@ function mapDispatchToProps(dispatch, ownProps) {
     getQueries: (querys, params) => {
 			console.log("DEBUG getQueries")
       dispatch(actions.service.serviceGetQueries(querys, params));
+      dispatch(actions.service.serviceStartBackgroundSync(querys, params));
     }
   }
 }

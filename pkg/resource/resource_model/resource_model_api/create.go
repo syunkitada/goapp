@@ -7,55 +7,51 @@ import (
 
 	"github.com/jinzhu/gorm"
 	"github.com/syunkitada/goapp/pkg/lib/codes"
+	"github.com/syunkitada/goapp/pkg/lib/error_utils"
 	"github.com/syunkitada/goapp/pkg/lib/json_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/resource/resource_api/resource_api_grpc_pb"
 	"github.com/syunkitada/goapp/pkg/resource/resource_model"
 )
 
-func (modelApi *ResourceModelApi) Create(tctx *logger.TraceContext, req *resource_api_grpc_pb.ActionRequest, rep *resource_api_grpc_pb.ActionReply) {
+func (modelApi *ResourceModelApi) Create(tctx *logger.TraceContext, db *gorm.DB, query *resource_api_grpc_pb.Query) (error, int64) {
 	var err error
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
-	var specs []resource_model.ResourceSpec
-	if err = json.Unmarshal([]byte(req.Spec), &specs); err != nil {
-		logger.SetErrorTraceContext(rep.Tctx, codes.ClientBadRequest, err)
-		return
+	strSpec, ok := query.StrParams["Spec"]
+	if !ok {
+		err = error_utils.NewInvalidRequestError("NotFound Spec")
+		return error_utils.NewInvalidRequestError("NotFound Spec"), codes.ClientBadRequest
 	}
 
-	var db *gorm.DB
-	if db, err = modelApi.open(tctx); err != nil {
-		logger.SetErrorTraceContext(rep.Tctx, codes.RemoteDbError, err)
-		return
+	var specs []resource_model.ResourceSpec
+	if err = json.Unmarshal([]byte(strSpec), &specs); err != nil {
+		return err, codes.ClientBadRequest
 	}
-	defer func() { err = db.Close() }()
 
 	tx := db.Begin()
 	defer tx.Rollback()
 
-	switch req.Tctx.ActionName {
+	switch query.Kind {
 	case "CreatePhysicalResource":
 		for _, spec := range specs {
 			specBytes, err := json_utils.Marshal(&spec)
 			if err != nil {
-				logger.SetErrorTraceContext(rep.Tctx, codes.ClientBadRequest, err)
-				return
+				return err, codes.ClientBadRequest
 			}
 
 			switch spec.Kind {
 			case resource_model.ResourceKindDatacenter:
 				var rspec resource_model.DatacenterSpec
 				if err = json.Unmarshal(specBytes, &rspec); err != nil {
-					logger.SetErrorTraceContext(rep.Tctx, codes.ClientBadRequest, err)
-					return
+					return err, codes.ClientBadRequest
 				}
 
 				var data resource_model.Datacenter
 				if err = tx.Where("name = ?", rspec.Name).First(&data).Error; err != nil {
 					if !gorm.IsRecordNotFoundError(err) {
-						logger.SetErrorTraceContext(rep.Tctx, codes.RemoteDbError, err)
-						return
+						return err, codes.RemoteDbError
 					}
 
 					data = resource_model.Datacenter{
@@ -66,26 +62,23 @@ func (modelApi *ResourceModelApi) Create(tctx *logger.TraceContext, req *resourc
 						Spec:         string(specBytes),
 					}
 					if err = tx.Create(&data).Error; err != nil {
-						logger.SetErrorTraceContext(rep.Tctx, codes.RemoteDbError, err)
-						return
+						return err, codes.RemoteDbError
 					}
 				} else {
-					logger.SetErrorTraceContext(rep.Tctx, codes.ClientAlreadyExists, rspec.Name)
-					return
+					err = error_utils.NewConflictAlreadyExistsError(rspec.Name)
+					return err, codes.ClientAlreadyExists
 				}
 
 			case resource_model.ResourceKindCluster:
 				var rspec resource_model.ClusterSpec
 				if err = json.Unmarshal(specBytes, &rspec); err != nil {
-					logger.SetErrorTraceContext(rep.Tctx, codes.ClientBadRequest, err)
-					return
+					return err, codes.ClientBadRequest
 				}
 
 				var data resource_model.Cluster
 				if err = tx.Where("name = ?", rspec.Name).First(&data).Error; err != nil {
 					if !gorm.IsRecordNotFoundError(err) {
-						logger.SetErrorTraceContext(rep.Tctx, codes.RemoteDbError, err)
-						return
+						return err, codes.RemoteDbError
 					}
 
 					data = resource_model.Cluster{
@@ -96,26 +89,23 @@ func (modelApi *ResourceModelApi) Create(tctx *logger.TraceContext, req *resourc
 						Spec:         string(specBytes),
 					}
 					if err = tx.Create(&data).Error; err != nil {
-						logger.SetErrorTraceContext(rep.Tctx, codes.RemoteDbError, err)
-						return
+						return err, codes.RemoteDbError
 					}
 				} else {
-					logger.SetErrorTraceContext(rep.Tctx, codes.ClientAlreadyExists, rspec.Name)
-					return
+					err = error_utils.NewConflictAlreadyExistsError(rspec.Name)
+					return err, codes.ClientAlreadyExists
 				}
 
 			case resource_model.ResourceKindFloor:
 				var rspec resource_model.FloorSpec
 				if err = json.Unmarshal(specBytes, &rspec); err != nil {
-					logger.SetErrorTraceContext(rep.Tctx, codes.ClientBadRequest, err)
-					return
+					return err, codes.ClientBadRequest
 				}
 
 				var data resource_model.Floor
 				if err = tx.Where("name = ? and datacenter = ?", rspec.Name, rspec.Spec.Datacenter).First(&data).Error; err != nil {
 					if !gorm.IsRecordNotFoundError(err) {
-						logger.SetErrorTraceContext(rep.Tctx, codes.RemoteDbError, err)
-						return
+						return err, codes.RemoteDbError
 					}
 
 					data = resource_model.Floor{
@@ -127,26 +117,23 @@ func (modelApi *ResourceModelApi) Create(tctx *logger.TraceContext, req *resourc
 						Spec:       string(specBytes),
 					}
 					if err = tx.Create(&data).Error; err != nil {
-						logger.SetErrorTraceContext(rep.Tctx, codes.RemoteDbError, err)
-						return
+						return err, codes.RemoteDbError
 					}
 				} else {
-					logger.SetErrorTraceContext(rep.Tctx, codes.ClientAlreadyExists, rspec.Name)
-					return
+					err = error_utils.NewConflictAlreadyExistsError(rspec.Name)
+					return err, codes.ClientAlreadyExists
 				}
 
 			case resource_model.ResourceKindRack:
 				var rspec resource_model.RackSpec
 				if err = json.Unmarshal(specBytes, &rspec); err != nil {
-					logger.SetErrorTraceContext(rep.Tctx, codes.ClientBadRequest, err)
-					return
+					return err, codes.ClientBadRequest
 				}
 
 				var data resource_model.Rack
 				if err = tx.Where("name = ? and datacenter = ?", rspec.Name, rspec.Spec.Datacenter).First(&data).Error; err != nil {
 					if !gorm.IsRecordNotFoundError(err) {
-						logger.SetErrorTraceContext(rep.Tctx, codes.RemoteDbError, err)
-						return
+						return err, codes.RemoteDbError
 					}
 
 					data = resource_model.Rack{
@@ -157,26 +144,23 @@ func (modelApi *ResourceModelApi) Create(tctx *logger.TraceContext, req *resourc
 						Spec:       string(specBytes),
 					}
 					if err = tx.Create(&data).Error; err != nil {
-						logger.SetErrorTraceContext(rep.Tctx, codes.RemoteDbError, err)
-						return
+						return err, codes.RemoteDbError
 					}
 				} else {
-					logger.SetErrorTraceContext(rep.Tctx, codes.ClientAlreadyExists, rspec.Name)
-					return
+					err = error_utils.NewConflictAlreadyExistsError(rspec.Name)
+					return err, codes.ClientAlreadyExists
 				}
 
 			case resource_model.ResourceKindPhysicalResource:
 				var rspec resource_model.PhysicalResourceSpec
 				if err = json.Unmarshal(specBytes, &rspec); err != nil {
-					logger.SetErrorTraceContext(rep.Tctx, codes.ClientBadRequest, err)
-					return
+					return err, codes.ClientBadRequest
 				}
 
 				var data resource_model.PhysicalResource
 				if err = tx.Where("name = ? and datacenter = ?", rspec.Name, rspec.Spec.Datacenter).First(&data).Error; err != nil {
 					if !gorm.IsRecordNotFoundError(err) {
-						logger.SetErrorTraceContext(rep.Tctx, codes.RemoteDbError, err)
-						return
+						return err, codes.RemoteDbError
 					}
 
 					data = resource_model.PhysicalResource{
@@ -192,26 +176,23 @@ func (modelApi *ResourceModelApi) Create(tctx *logger.TraceContext, req *resourc
 						Spec:          string(specBytes),
 					}
 					if err = tx.Create(&data).Error; err != nil {
-						logger.SetErrorTraceContext(rep.Tctx, codes.RemoteDbError, err)
-						return
+						return err, codes.RemoteDbError
 					}
 				} else {
-					logger.SetErrorTraceContext(rep.Tctx, codes.ClientAlreadyExists, rspec.Name)
-					return
+					err = error_utils.NewConflictAlreadyExistsError(rspec.Name)
+					return err, codes.ClientAlreadyExists
 				}
 
 			case resource_model.ResourceKindPhysicalModel:
 				var rspec resource_model.PhysicalModelSpec
 				if err = json.Unmarshal(specBytes, &rspec); err != nil {
-					logger.SetErrorTraceContext(rep.Tctx, codes.ClientBadRequest, err)
-					return
+					return err, codes.ClientBadRequest
 				}
 
 				var data resource_model.PhysicalModel
 				if err = tx.Where("name = ?", rspec.Name).First(&data).Error; err != nil {
 					if !gorm.IsRecordNotFoundError(err) {
-						logger.SetErrorTraceContext(rep.Tctx, codes.RemoteDbError, err)
-						return
+						return err, codes.RemoteDbError
 					}
 
 					data = resource_model.PhysicalModel{
@@ -222,12 +203,11 @@ func (modelApi *ResourceModelApi) Create(tctx *logger.TraceContext, req *resourc
 						Spec:        string(specBytes),
 					}
 					if err = tx.Create(&data).Error; err != nil {
-						logger.SetErrorTraceContext(rep.Tctx, codes.RemoteDbError, err)
-						return
+						return err, codes.RemoteDbError
 					}
 				} else {
-					logger.SetErrorTraceContext(rep.Tctx, codes.ClientAlreadyExists, rspec.Name)
-					return
+					err = error_utils.NewConflictAlreadyExistsError(rspec.Name)
+					return err, codes.ClientAlreadyExists
 				}
 
 			}
@@ -241,5 +221,5 @@ func (modelApi *ResourceModelApi) Create(tctx *logger.TraceContext, req *resourc
 
 	tx.Commit()
 
-	rep.Tctx.StatusCode = codes.Ok
+	return nil, codes.Ok
 }

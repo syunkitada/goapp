@@ -150,11 +150,12 @@ func (authproxy *Authproxy) AuthRequired() gin.HandlerFunc {
 }
 
 func (authproxy *Authproxy) WsAuthRequired() gin.HandlerFunc {
+	// FIXME
 	return func(c *gin.Context) {
 		token := c.Request.Header["X-Auth-Token"]
 		projectName := c.Request.Header["X-Auth-Project"]
 		serviceName := c.Request.Header["X-Auth-Service"]
-		actionName := c.Request.Header["X-Auth-Action"]
+		// actionName := c.Request.Header["X-Auth-Action"]
 
 		traceId := c.GetString("TraceId")
 		tctx := logger.NewTraceContextWithTraceId(traceId, authproxy.host, authproxy.name)
@@ -164,7 +165,7 @@ func (authproxy *Authproxy) WsAuthRequired() gin.HandlerFunc {
 			Action: authproxy_model.ActionRequest{
 				ProjectName: projectName[0],
 				ServiceName: serviceName[0],
-				Name:        actionName[0],
+				// Name:        actionName[0],
 			},
 		}
 

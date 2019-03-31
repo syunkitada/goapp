@@ -14,11 +14,11 @@ function* post(action) {
   }
 }
 
-function* sync() {
+function* sync(action) {
   try {
     while (true) {
-      console.log("DEBUG sync")
-      // yield put(actions.requestStart())
+      console.log("DEBUG sync", action)
+      post(action)
       // const result = yield call(someApi)
       // yield put(actions.requestSuccess(result))
       yield delay(5000)
@@ -33,7 +33,7 @@ function* sync() {
 
 function* bgSync(action) {
    // starts the task in the background
-  const bgSyncTask = yield fork(sync)
+  const bgSyncTask = yield fork(sync, action)
 
   // wait for the user stop action
   yield take(actions.service.serviceStopBackgroundSync)
