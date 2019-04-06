@@ -52,7 +52,7 @@ func (resource *Resource) PhysicalAction(c *gin.Context) {
 					"Name":       "Resources",
 					"Route":      "/Datacenters/:datacenter",
 					"Kind":       "RouteTabs",
-					"GetQueries": []string{"GetPhysicalResources", "GetRacks", "GetFloors"},
+					"GetQueries": []string{"GetPhysicalResources", "GetRacks", "GetFloors", "GetModels"},
 					"Tabs": []interface{}{
 						gin.H{
 							"Name":    "Resources",
@@ -65,9 +65,15 @@ func (resource *Resource) PhysicalAction(c *gin.Context) {
 									"DataKind": "PhysicalResource",
 									"Fields": []interface{}{
 										gin.H{"Name": "Name", "Type": "text", "Require": true},
-										gin.H{"Name": "Kind", "Type": "text", "Require": true},
-										gin.H{"Name": "Rack", "Type": "text", "Require": true},
-										gin.H{"Name": "Model", "Type": "text", "Require": true},
+										gin.H{"Name": "Kind", "Type": "select", "Require": true,
+											"Options": []string{
+												"Server", "Pdu", "RackSpineRouter",
+												"FloorLeafRouter", "FloorSpineRouter", "GatewayRouter",
+											}},
+										gin.H{"Name": "Rack", "Type": "select", "Require": true,
+											"DataKey": "Racks"},
+										gin.H{"Name": "Model", "Type": "select", "Require": true,
+											"DataKey": "Models"},
 									},
 								},
 							},
@@ -108,6 +114,32 @@ func (resource *Resource) PhysicalAction(c *gin.Context) {
 								gin.H{"Name": "Kind"},
 								gin.H{"Name": "UpdatedAt", "Type": "Time"},
 								gin.H{"Name": "CreatedAt", "Type": "Time"},
+							},
+						},
+						gin.H{
+							"Name":    "Models",
+							"Route":   "/Models",
+							"Kind":    "Table",
+							"DataKey": "Models",
+							"Columns": []interface{}{
+								gin.H{"Name": "Name", "IsSearch": true},
+								gin.H{"Name": "Kind"},
+								gin.H{"Name": "UpdatedAt", "Type": "Time"},
+								gin.H{"Name": "CreatedAt", "Type": "Time"},
+							},
+							"Actions": []interface{}{
+								gin.H{
+									"Name": "Create", "Icon": "Create", "Kind": "Form",
+									"DataKind": "PhysicalModel",
+									"Fields": []interface{}{
+										gin.H{"Name": "Name", "Type": "text", "Require": true},
+										gin.H{"Name": "Kind", "Type": "select", "Require": true,
+											"Options": []string{
+												"Server", "Pdu", "RackSpineRouter",
+												"FloorLeafRouter", "FloorSpineRouter", "GatewayRouter",
+											}},
+									},
+								},
 							},
 						},
 					},

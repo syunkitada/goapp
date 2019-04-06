@@ -29,6 +29,16 @@ class FormDialog extends Component {
     this.setState({fieldMap: fieldMap})
   };
 
+  handleSelectFieldChange = (event, field) => {
+    console.log("DEBUG handleSelectFieldChange", field.Name, event.target.value)
+    const { fieldMap } = this.state;
+
+    // TODO Validate
+    fieldMap[field.Name] = {value: event.target.value, error: null, type: field.Type}
+
+    this.setState({fieldMap: fieldMap})
+  };
+
   handleActionSubmit = () => {
     const { action, routes, targets, submitQueries } = this.props
     const { fieldMap } = this.state
@@ -39,7 +49,8 @@ class FormDialog extends Component {
   };
 
   render() {
-    const { open, action, onClose } = this.props
+    const { classes, data, open, action, onClose } = this.props
+    const { fieldMap } = this.state;
 
 		console.log("DEBUG FormDialog", open)
 
@@ -57,6 +68,52 @@ class FormDialog extends Component {
             autoFocus={autoFocus} margin="dense" type={field.Type} fullWidth
             onChange={event => {this.handleTestFieldChange(event, field)}}
           />
+        )
+        break
+      case "select":
+        let f = fieldMap[field.Name]
+        let options = field.Options
+        if (!options) {
+          console.log(data)
+          options = []
+          let d = data[field.DataKey]
+          if (d) {
+            for (let j = 0, l = d.length; j < l; j++) {
+              options.push(d[j].Name)
+            }
+          } else {
+            options.push("")
+          }
+        }
+        if (!f) {
+          f = options[0]
+        }
+
+        console.log(f)
+        fields.push(
+          <TextField
+            select
+            key={field.Name}
+            label={field.Name}
+            className={classes.textField}
+            value={f.value}
+            onChange={event => {this.handleSelectFieldChange(event, field)}}
+            SelectProps={{
+              native: true,
+              MenuProps: {
+                className: classes.menu,
+              },
+            }}
+            helperText="Please select"
+            margin="normal"
+            fullWidth
+          >
+            {options.map(option => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </TextField>
         )
         break
       default:

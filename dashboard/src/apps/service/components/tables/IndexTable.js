@@ -117,10 +117,13 @@ class IndexTable extends Component {
 	}
 
   render() {
-    const { routes, classes, index, columns, data} = this.props
+    const { routes, classes, index, data} = this.props
     const { selected, anchorEl, order, orderBy, rowsPerPage, page, searchRegExp, actionName, actionTarget } = this.state;
 
-    if (!data) {
+    let columns = index.Columns
+    let rawData = data[index.DataKey]
+
+    if (!rawData) {
       return null
     }
 
@@ -140,8 +143,8 @@ class IndexTable extends Component {
 
     let isSkip = true
     const tableData = []
-    for (let i = 0, len = data.length; i < len; i++) {
-			let d = data[i]
+    for (let i = 0, len = rawData.length; i < len; i++) {
+			let d = rawData[i]
       if (searchRegExp != null) {
         for (let c of searchColumns) {
           if (searchRegExp.exec(d[c])) {
@@ -199,7 +202,7 @@ class IndexTable extends Component {
         case 'Form':
           console.log("DEBUG Formlalalallalalala")
           console.log(routes)
-          actionDialog = <FormDialog open={true} action={action} routes={routes}
+          actionDialog = <FormDialog open={true} data={data} action={action} routes={routes}
             onClose={this.handleActionDialogClose} />
           break;
         default:

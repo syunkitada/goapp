@@ -47,11 +47,12 @@ message ActionReply {
     repeated Floor Floors = 5;
     repeated Rack Racks = 6;
     repeated PhysicalResource PhysicalResources = 7;
+    repeated PhysicalModel PhysicalModels = 8;
 
-    repeated Node Nodes = 8;
-    repeated Compute Computes = 9;
-    repeated Network Networks = 10;
-    repeated Image Images = 11;
+    repeated Node Nodes = 9;
+    repeated Compute Computes = 10;
+    repeated Network Networks = 11;
+    repeated Image Images = 12;
 }
 
 //
@@ -109,6 +110,13 @@ message PhysicalResource {
     string RackPosition = 8;
     repeated string PowerLinks = 9;
     repeated string NetLinks = 10;
+}
+
+message PhysicalModel {
+    google.protobuf.Timestamp UpdatedAt = 1;
+    google.protobuf.Timestamp CreatedAt = 2;
+    string Name = 3;
+    string Kind = 4;
 }
 
 message Cluster {
