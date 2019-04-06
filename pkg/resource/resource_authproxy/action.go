@@ -52,7 +52,7 @@ func (resource *Resource) PhysicalAction(c *gin.Context) {
 					"Name":       "Resources",
 					"Route":      "/Datacenters/:datacenter",
 					"Kind":       "RouteTabs",
-					"GetQueries": []string{"GetPhysicalResources", "GetRacks", "GetFloors", "GetModels"},
+					"GetQueries": []string{"GetPhysicalResources", "GetRacks", "GetFloors", "GetPhysicalModels"},
 					"Tabs": []interface{}{
 						gin.H{
 							"Name":    "Resources",
@@ -73,7 +73,7 @@ func (resource *Resource) PhysicalAction(c *gin.Context) {
 										gin.H{"Name": "Rack", "Type": "select", "Require": true,
 											"DataKey": "Racks"},
 										gin.H{"Name": "Model", "Type": "select", "Require": true,
-											"DataKey": "Models"},
+											"DataKey": "PhysicalModels"},
 									},
 								},
 							},
@@ -120,7 +120,7 @@ func (resource *Resource) PhysicalAction(c *gin.Context) {
 							"Name":    "Models",
 							"Route":   "/Models",
 							"Kind":    "Table",
-							"DataKey": "Models",
+							"DataKey": "PhysicalModels",
 							"Columns": []interface{}{
 								gin.H{"Name": "Name", "IsSearch": true},
 								gin.H{"Name": "Kind"},

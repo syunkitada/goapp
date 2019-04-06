@@ -84,12 +84,8 @@ func (modelApi *ResourceModelApi) Action(tctx *logger.TraceContext, req *resourc
 			}
 			rep.PhysicalResources = modelApi.convertPhysicalResources(tctx, physicalResources)
 		case "GetPhysicalModels":
-			datacenter, ok := query.StrParams["datacenter"]
-			if !ok {
-				continue
-			}
 			var physicalModels []resource_model.PhysicalModel
-			if err = db.Where("datacenter = ?", datacenter).Find(&physicalModels).Error; err != nil {
+			if err = db.Find(&physicalModels).Error; err != nil {
 				rep.Tctx.Err = err.Error()
 				rep.Tctx.StatusCode = codes.RemoteDbError
 				return
@@ -97,6 +93,12 @@ func (modelApi *ResourceModelApi) Action(tctx *logger.TraceContext, req *resourc
 			rep.PhysicalModels = modelApi.convertPhysicalModels(tctx, physicalModels)
 		case "CreatePhysicalResource":
 			if err, statusCode = modelApi.CreatePhysicalResource(tctx, db, query); err != nil {
+				rep.Tctx.Err = err.Error()
+				rep.Tctx.StatusCode = statusCode
+				return
+			}
+		case "CreatePhysicalModel":
+			if err, statusCode = modelApi.CreatePhysicalModel(tctx, db, query); err != nil {
 				rep.Tctx.Err = err.Error()
 				rep.Tctx.StatusCode = statusCode
 				return

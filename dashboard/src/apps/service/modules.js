@@ -1,6 +1,7 @@
 import fetch from 'cross-fetch'
 
 function post({serviceName, actionName, projectName, queries}) {
+  console.log("POST Start")
   const body = JSON.stringify({
     Action: {
       ServiceName: serviceName,

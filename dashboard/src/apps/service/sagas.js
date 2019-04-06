@@ -3,6 +3,7 @@ import actions from '../../actions'
 import modules from '../../modules'
 
 function* post(action) {
+  console.log("sagas.post")
   const {payload, error} = yield call(modules.service.post, action.payload)
 
   if (error) {
@@ -18,10 +19,10 @@ function* sync(action) {
   try {
     while (true) {
       console.log("DEBUG sync", action)
-      post(action)
+      yield call(post, action)
       // const result = yield call(someApi)
       // yield put(actions.requestSuccess(result))
-      yield delay(5000)
+      yield delay(10000)
     }
   } finally {
     if (yield cancelled()) {

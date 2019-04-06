@@ -2,6 +2,7 @@ package resource_model_api
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/golang/protobuf/ptypes"
 	"github.com/jinzhu/gorm"
@@ -22,6 +23,7 @@ func (modelApi *ResourceModelApi) CreatePhysicalModel(tctx *logger.TraceContext,
 		err = error_utils.NewInvalidRequestError("NotFound Specs")
 		return error_utils.NewInvalidRequestError("NotFound Specs"), codes.ClientBadRequest
 	}
+	fmt.Println("DEBUG CreatePhysicalModel1")
 
 	var specs []resource_model.PhysicalModelSpecData
 	if err = json.Unmarshal([]byte(strSpecs), &specs); err != nil {
@@ -29,6 +31,7 @@ func (modelApi *ResourceModelApi) CreatePhysicalModel(tctx *logger.TraceContext,
 	}
 	// TODO validate
 
+	fmt.Println("DEBUG CreatePhysicalModel2")
 	tx := db.Begin()
 	defer tx.Rollback()
 

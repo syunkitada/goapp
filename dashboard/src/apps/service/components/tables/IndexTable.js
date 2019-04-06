@@ -124,7 +124,7 @@ class IndexTable extends Component {
     let rawData = data[index.DataKey]
 
     if (!rawData) {
-      return null
+      rawData = []
     }
 
     let isSelectActions = false
