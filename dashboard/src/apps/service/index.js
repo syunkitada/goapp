@@ -4,8 +4,19 @@ import { connect } from 'react-redux';
 import Dashboard from '../../components/Dashboard'
 import Index from './components/Index'
 
+import actions from '../../actions'
+
 
 class Service extends Component {
+  componentWillMount() {
+    console.log("componentWillMount Service")
+    this.props.startBackgroundSync()
+  }
+
+  componentWillUnmount() {
+    console.log("componentWillUnmount Service")
+  }
+
   render() {
     const {match, auth} = this.props
 
@@ -32,7 +43,11 @@ function mapStateToProps(state, ownProps) {
 }
 
 function mapDispatchToProps(dispatch, ownProps) {
-  return {}
+  return {
+    startBackgroundSync: () => {
+      dispatch(actions.service.serviceStartBackgroundSync())
+    }
+  }
 }
 
 export default connect(

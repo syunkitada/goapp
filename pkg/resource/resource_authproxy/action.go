@@ -32,8 +32,9 @@ func (resource *Resource) PhysicalAction(c *gin.Context) {
 	c.JSON(200, gin.H{
 		"Data": resp,
 		"Index": gin.H{
-			"Name": "Root",
-			"Kind": "RoutePanels",
+			"Name":      "Root",
+			"Kind":      "RoutePanels",
+			"SyncDelay": 20000,
 			"Panels": []interface{}{
 				gin.H{
 					"Name":    "Datacenters",
@@ -53,6 +54,7 @@ func (resource *Resource) PhysicalAction(c *gin.Context) {
 					"Route":      "/Datacenters/:datacenter",
 					"Kind":       "RouteTabs",
 					"GetQueries": []string{"GetPhysicalResources", "GetRacks", "GetFloors", "GetPhysicalModels"},
+					"IsSync":     true,
 					"Tabs": []interface{}{
 						gin.H{
 							"Name":    "Resources",

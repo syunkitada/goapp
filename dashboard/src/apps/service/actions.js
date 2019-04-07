@@ -11,23 +11,11 @@ export default createActions({
     ],
   }),
 
-  SERVICE_START_BACKGROUND_SYNC: (queries, params) => {
-    let dataQueries = [];
-    for (let i = 0, len = queries.length; i < len; i ++) {
-      dataQueries.push({Kind: queries[i], StrParams: params})
-    }
-    return {
-      stateKey: 'index',
-      serviceName: params.service,
-      actionName: 'UserQuery',
-      projectName: params.project,
-      queries: dataQueries,
-    }
-  },
+  SERVICE_START_BACKGROUND_SYNC: () => {},
 
   SERVICE_STOP_BACKGROUND_SYNC: () => {},
 
-  SERVICE_GET_QUERIES: (queries, params) => {
+  SERVICE_GET_QUERIES: (queries, isSync, params) => {
     let dataQueries = [];
     for (let i = 0, len = queries.length; i < len; i ++) {
       dataQueries.push({Kind: queries[i], StrParams: params})
@@ -38,6 +26,7 @@ export default createActions({
       actionName: 'UserQuery',
       projectName: params.project,
       queries: dataQueries,
+      isSync: isSync,
     }
   },
 

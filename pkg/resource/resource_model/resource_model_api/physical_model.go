@@ -31,11 +31,13 @@ func (modelApi *ResourceModelApi) CreatePhysicalModel(tctx *logger.TraceContext,
 	}
 	// TODO validate
 
-	fmt.Println("DEBUG CreatePhysicalModel2")
 	tx := db.Begin()
 	defer tx.Rollback()
-
 	for _, spec := range specs {
+		if err = modelApi.validate.Struct(&spec); err != nil {
+			return err, codes.ClientBadRequest
+		}
+
 		var data resource_model.PhysicalModel
 		if err = tx.Where("name = ?", spec.Name).First(&data).Error; err != nil {
 			if !gorm.IsRecordNotFoundError(err) {

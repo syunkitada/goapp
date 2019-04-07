@@ -27,7 +27,7 @@ class ExpansionPanels extends Component {
 			let panel = index.Panels[i];
 			if (route.match.path === beforeRoute.match.path + panel.Route) {
 				if (panel.GetQueries) {
-					this.props.getQueries(panel.GetQueries, route.match.params)
+					this.props.getQueries(panel.GetQueries, panel.IsSync, route.match.params)
 				}
 				break
 			}
@@ -105,10 +105,9 @@ function mapStateToProps(state, ownProps) {
 
 function mapDispatchToProps(dispatch, ownProps) {
   return {
-    getQueries: (querys, params) => {
+    getQueries: (querys, isSync, params) => {
 			console.log("DEBUG getQueries")
-      dispatch(actions.service.serviceGetQueries(querys, params));
-      dispatch(actions.service.serviceStartBackgroundSync(querys, params));
+      dispatch(actions.service.serviceGetQueries(querys, isSync, params));
     }
   }
 }

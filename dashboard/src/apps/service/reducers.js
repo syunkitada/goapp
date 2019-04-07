@@ -4,12 +4,17 @@ import actions from '../../actions'
 
 const defaultState = {
   isFetching: false,
+  isSubmitting: false,
+  isSubmitSuccess: false,
+  isSubmitFailed: false,
   error: null,
   payloadError: null,
   index: {Index: null, Data: null},
   datacenterIndex: null,
   serviceName: null,
   projectName: null,
+  syncAction: null,
+  syncDelay: 10000,
   serviceMap: {},
   projectServiceMap: {},
 };
@@ -22,6 +27,8 @@ export default handleActions({
     let newState = Object.assign({}, state, {
       serviceName: service,
       projectName: project,
+      syncAction: null,
+      syncDelay: 10000,
     })
 
     if (project) {
@@ -75,16 +82,44 @@ export default handleActions({
     console.log("action.serviceSubmitQueries")
     return Object.assign({}, state, {
       isFetching: true,
+      isSubmitting: true,
+      isSubmitSuccess: false,
+      isSubmitFailed: false,
     })
   },
 
   [actions.service.servicePostSuccess]: (state, action) => {
     console.log("DEBUG: servicePostSuccess: ", action.payload.action.type)
-    console.log(action)
+    console.log(action.payload.action)
     let newState = Object.assign({}, state, {
       isFetching: false,
       redirectToReferrer: true,
     })
+
+    if (action.payload.action.type === 'SERVICE_SUBMIT_QUERIES') {
+      Object.assign(newState, {
+        isSubmitting: false,
+        isSubmitSuccess: true,
+        isSubmitFailed: false,
+      })
+    }
+
+    let tctx = action.payload.data.Data.Tctx
+    console.log(tctx)
+    // TODO handling tctx.Err, tctx.StatusCode
+
+    if (action.payload.action.payload.isSync) {
+      newState.syncAction = action.payload.action
+    } else {
+      newState.syncAction = null
+    }
+
+    let index = action.payload.data.Index
+    if (index) {
+      if (index.SyncDelay && index.SyncDelay > 1000) {
+        newState.syncDelay = index.SyncDelay
+      }
+    }
 
     let service = action.payload.action.payload.serviceName
     let project = action.payload.action.payload.projectName
@@ -109,15 +144,25 @@ export default handleActions({
         newState.serviceMap[service].Data = action.payload.data.Data
       }
     }
+
     console.log(newState)
     return newState
   },
 
   [actions.service.servicePostFailure]: (state, action) => {
-    return Object.assign({}, defaultState, {
+    let newState = Object.assign({}, defaultState, {
       isFetching: false,
       error: action.payload.error,
       payloadError: action.payload.payloadError,
     })
+
+    if (action.payload.action.type === 'SERVICE_SUBMIT_QUERIES') {
+      Object.assign(newState, {
+        isSubmitting: false,
+        isSubmitSuccess: false,
+        isSubmitFailed: true,
+      })
+    }
+    return newState
   },
 }, defaultState);

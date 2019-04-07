@@ -7,17 +7,27 @@ import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
+import Grid from '@material-ui/core/Grid';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
+
+import classNames from 'classnames';
+import CircularProgress from '@material-ui/core/CircularProgress';
+import green from '@material-ui/core/colors/green';
+import red from '@material-ui/core/colors/red';
 
 import actions from '../../../../actions'
 
 
 class FormDialog extends Component {
   state = {
-    fieldMap: {}
+    fieldMap: {},
   };
+
+  componentWillMount() {
+    console.log("FormDialog.componentWillMount")
+  }
 
   handleTestFieldChange = (event, field) => {
     console.log("DEBUG handleTestFieldChange", field.Name, event.target.value)
@@ -49,8 +59,12 @@ class FormDialog extends Component {
   };
 
   render() {
-    const { classes, data, open, action, onClose } = this.props
+    const { classes, data, open, action, onClose, isSubmitting, isSubmitSuccess, isSubmitFailed } = this.props
     const { fieldMap } = this.state;
+
+    const buttonClassname = classNames({
+      [classes.buttonSuccess]: isSubmitSuccess,
+    });
 
 		console.log("DEBUG FormDialog", open)
 
@@ -137,12 +151,37 @@ class FormDialog extends Component {
               {fields}
             </DialogContent>
             <DialogActions>
-              <Button onClick={onClose} color="primary">
-                Cancel
-              </Button>
-              <Button onClick={this.handleActionSubmit} color="primary">
-                Submit
-              </Button>
+              <div className={classes.wrapper} style={{width: '100%'}}>
+                <Grid container>
+                  <Grid container item xs={4} justify="flex-start">
+                    <Button onClick={onClose} disabled={isSubmitting}>
+                      Cancel
+                    </Button>
+                  </Grid>
+                  <Grid container item xs={4} justify="center">
+                    {isSubmitting && <CircularProgress size={24} className={classes.buttonProgress} />}
+                    {isSubmitSuccess && <Button
+                      variant="contained"
+                      color="primary"
+                      className={classes.buttonSuccess} >Success</Button> }
+                    {isSubmitFailed && <Button
+                      variant="contained"
+                      color="primary"
+                      className={classes.buttonFailed} >Failed</Button> }
+                  </Grid>
+                  <Grid container item xs={4} justify="flex-end">
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      disabled={isSubmitting}
+                      onClick={this.handleActionSubmit}
+                    >
+                      Submit
+                    </Button>
+                  </Grid>
+                </Grid>
+              </div>
+
             </DialogActions>
           </Dialog>
         </div>
@@ -151,7 +190,12 @@ class FormDialog extends Component {
 }
 
 function mapStateToProps(state, ownProps) {
-  return {}
+  const { isSubmitting, isSubmitSuccess, isSubmitFailed } = state.service;
+  return {
+    isSubmitting: isSubmitting,
+    isSubmitSuccess: isSubmitSuccess,
+    isSubmitFailed: isSubmitFailed,
+  }
 }
 
 function mapDispatchToProps(dispatch, ownProps) {
@@ -163,9 +207,45 @@ function mapDispatchToProps(dispatch, ownProps) {
   }
 }
 
-const style = theme => ({});
+const styles = theme => ({
+  root: {
+    display: 'flex',
+    alignItems: 'center',
+  },
+  wrapper: {
+    margin: theme.spacing.unit,
+    position: 'relative',
+  },
+  buttonSuccess: {
+    backgroundColor: green[500],
+    '&:hover': {
+      backgroundColor: green[700],
+    },
+  },
+  buttonFailed: {
+    backgroundColor: red[500],
+    '&:hover': {
+      backgroundColor: red[700],
+    },
+  },
+  fabProgress: {
+    color: green[500],
+    position: 'absolute',
+    top: -6,
+    left: -6,
+    zIndex: 1,
+  },
+  buttonProgress: {
+    color: green[500],
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    marginTop: -12,
+    marginLeft: -12,
+  },
+});
 
 export default connect(
   mapStateToProps,
   mapDispatchToProps
-)(withStyles(style, {withTheme: true})(FormDialog));
+)(withStyles(styles, {withTheme: true})(FormDialog));
