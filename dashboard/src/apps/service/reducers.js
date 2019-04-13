@@ -5,8 +5,14 @@ import actions from '../../actions'
 const defaultState = {
   isFetching: false,
   isSubmitting: false,
-  isSubmitSuccess: false,
-  isSubmitFailed: false,
+
+  getIndexTctx: null,
+  getQueriesTctx: null,
+  submitQueriesTctx: null,
+
+  openGetQueriesTctx: false,
+  openSubmitQueriesTctx: false,
+
   error: null,
   payloadError: null,
   index: {Index: null, Data: null},
@@ -27,6 +33,9 @@ export default handleActions({
     let newState = Object.assign({}, state, {
       serviceName: service,
       projectName: project,
+      getIndexTctx: {
+        fetching: true
+      },
       syncAction: null,
       syncDelay: 10000,
     })
@@ -59,32 +68,45 @@ export default handleActions({
 
   [actions.service.serviceStartBackgroundSync]: (state) => {
     console.log("action.serviceStartBackgroundSync")
-    return Object.assign({}, state, {
-      isFetching: true,
-    })
+    return Object.assign({}, state, {})
   },
 
   [actions.service.serviceStopBackgroundSync]: (state) => {
     console.log("action.serviceStopBackgroundSync")
-    return Object.assign({}, state, {
-      isFetching: false,
-    })
+    return Object.assign({}, state, {})
   },
 
   [actions.service.serviceGetQueries]: (state) => {
     console.log("action.serviceGetQueries")
     return Object.assign({}, state, {
-      isFetching: true,
+      getQueriesTctx: {
+        fetching: true
+      },
+      openGetQueriesTctx: false,
     })
   },
 
   [actions.service.serviceSubmitQueries]: (state) => {
     console.log("action.serviceSubmitQueries")
     return Object.assign({}, state, {
+      submitQueriesTctx: {
+        fetching: true
+      },
+      openSubmitQueriesTctx: false,
       isFetching: true,
       isSubmitting: true,
-      isSubmitSuccess: false,
-      isSubmitFailed: false,
+    })
+  },
+
+  [actions.service.serviceCloseGetQueriesTctx]: (state) => {
+    return Object.assign({}, state, {
+      openGetQueriesTctx: false,
+    })
+  },
+
+  [actions.service.serviceCloseSubmitQueriesTctx]: (state) => {
+    return Object.assign({}, state, {
+      openSubmitQueriesTctx: false,
     })
   },
 
@@ -99,14 +121,34 @@ export default handleActions({
     if (action.payload.action.type === 'SERVICE_SUBMIT_QUERIES') {
       Object.assign(newState, {
         isSubmitting: false,
-        isSubmitSuccess: true,
-        isSubmitFailed: false,
       })
     }
 
-    let tctx = action.payload.data.Data.Tctx
-    console.log(tctx)
-    // TODO handling tctx.Err, tctx.StatusCode
+    const actionType = action.payload.action.type
+    console.log("DEBUG actionType", actionType)
+    const tctx = action.payload.data.Data.Tctx
+
+    switch(actionType) {
+      case 'SERVICE_GET_INDEX':
+        newState.getIndexTctx = tctx
+        break
+      case 'SERVICE_GET_QUERIES':
+        console.log("DEBUG SERVICE GET QUERIES")
+        newState.getQueriesTctx = tctx
+        newState.openGetQueriesTctx = true
+        break
+      case 'SERVICE_SUBMIT_QUERIES':
+        newState.submitQueriesTctx = tctx
+        newState.openSubmitQueriesTctx = true
+        break
+      default:
+        break
+    }
+    if (tctx.StatusCode > 200) {
+      console.log(tctx)
+      // TODO handling tctx.Err, tctx.StatusCode
+      return newState
+    }
 
     if (action.payload.action.payload.isSync) {
       newState.syncAction = action.payload.action
@@ -159,8 +201,6 @@ export default handleActions({
     if (action.payload.action.type === 'SERVICE_SUBMIT_QUERIES') {
       Object.assign(newState, {
         isSubmitting: false,
-        isSubmitSuccess: false,
-        isSubmitFailed: true,
       })
     }
     return newState

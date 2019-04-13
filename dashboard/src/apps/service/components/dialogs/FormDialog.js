@@ -12,7 +12,6 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 
-import classNames from 'classnames';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import green from '@material-ui/core/colors/green';
 import red from '@material-ui/core/colors/red';
@@ -59,14 +58,8 @@ class FormDialog extends Component {
   };
 
   render() {
-    const { classes, data, open, action, onClose, isSubmitting, isSubmitSuccess, isSubmitFailed } = this.props
+    const { classes, data, open, action, onClose, isSubmitting } = this.props
     const { fieldMap } = this.state;
-
-    const buttonClassname = classNames({
-      [classes.buttonSuccess]: isSubmitSuccess,
-    });
-
-		console.log("DEBUG FormDialog", open)
 
     let fields = []
     for (let i = 0, len = action.Fields.length; i < len; i++) {
@@ -160,14 +153,6 @@ class FormDialog extends Component {
                   </Grid>
                   <Grid container item xs={4} justify="center">
                     {isSubmitting && <CircularProgress size={24} className={classes.buttonProgress} />}
-                    {isSubmitSuccess && <Button
-                      variant="contained"
-                      color="primary"
-                      className={classes.buttonSuccess} >Success</Button> }
-                    {isSubmitFailed && <Button
-                      variant="contained"
-                      color="primary"
-                      className={classes.buttonFailed} >Failed</Button> }
                   </Grid>
                   <Grid container item xs={4} justify="flex-end">
                     <Button
@@ -190,11 +175,10 @@ class FormDialog extends Component {
 }
 
 function mapStateToProps(state, ownProps) {
-  const { isSubmitting, isSubmitSuccess, isSubmitFailed } = state.service;
+  const { isSubmitting, isSubmitSuccess } = state.service;
   return {
     isSubmitting: isSubmitting,
     isSubmitSuccess: isSubmitSuccess,
-    isSubmitFailed: isSubmitFailed,
   }
 }
 

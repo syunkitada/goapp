@@ -8,6 +8,8 @@ import actions from '../../../actions'
 import IndexTable from './tables/IndexTable'
 import RoutePanels from './panels/RoutePanels'
 import RouteTabs from './tabs/RouteTabs'
+import GetMsgSnackbar from './snackbars/GetMsgSnackbar'
+import SubmitMsgSnackbar from './snackbars/SubmitMsgSnackbar'
 
 
 const styles = theme => ({
@@ -36,12 +38,20 @@ function renderIndex(routes, data, index) {
 }
 
 class Index extends Component {
+  state = {
+    openAlertSnackbar: true,
+		traceMsgMap: {},
+  }
+
   componentWillMount() {
     console.log("Index.componentWillMount")
     const {match, getIndex} = this.props
     getIndex(match.params)
   }
 
+  handleCloseAlertSnackbar = () => {
+    this.setState({ openAlertSnackbar: false });
+  };
 
   render() {
     const {match, service, serviceName, projectName, getIndex} = this.props
@@ -69,6 +79,8 @@ class Index extends Component {
     return (
       <div>
         { html }
+				<GetMsgSnackbar />
+				<SubmitMsgSnackbar />
       </div>
     );
   }

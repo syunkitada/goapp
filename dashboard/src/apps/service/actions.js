@@ -63,6 +63,10 @@ export default createActions({
     }
   },
 
+  SERVICE_CLOSE_GET_QUERIES_TCTX: () => {},
+
+  SERVICE_CLOSE_SUBMIT_QUERIES_TCTX: () => {},
+
   SERVICE_POST_SUCCESS: (action, data) => ({
     action: action,
     data: data
@@ -72,4 +76,5 @@ export default createActions({
     error: error,
     payloadError: payloadError
   }),
+
 })

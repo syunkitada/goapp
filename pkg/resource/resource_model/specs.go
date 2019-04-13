@@ -64,7 +64,7 @@ type PhysicalModelSpec struct {
 type PhysicalModelSpecData struct {
 	Kind        string `validate:"required"`
 	Name        string `validate:"required"`
-	Unit        uint8  `validate:"required"`
+	Unit        uint8
 	Description string
 	Spec        interface{}
 }
