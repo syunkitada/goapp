@@ -24,36 +24,71 @@ class FormDialog extends Component {
     fieldMap: {},
   };
 
-  componentWillMount() {
-    console.log("FormDialog.componentWillMount")
-  }
-
   handleTestFieldChange = (event, field) => {
-    console.log("DEBUG handleTestFieldChange", field.Name, event.target.value)
     const { fieldMap } = this.state;
+    let text = event.target.value
+    let error = ""
+    let re = new RegExp(field.RegExp)
+    let len = text.length
 
-    // TODO Validate
-    fieldMap[field.Name] = {value: event.target.value, error: null, type: field.Type}
+    if (len < field.Min) {
+      error += `Please enter ${field.Min} or more charactors. `
+    } else if (len > field.Max) {
+      error += `Please enter ${field.Max} or less charactors. `
+    }
+    if (!re.test(text)) {
+      if (field.RegExpMsg) {
+        error += field.RegExpMsg + " "
+      } else {
+        error += "Invalid characters. "
+      }
+    }
+
+    fieldMap[field.Name] = {value: event.target.value, error: error, type: field.Type}
 
     this.setState({fieldMap: fieldMap})
   };
 
   handleSelectFieldChange = (event, field) => {
-    console.log("DEBUG handleSelectFieldChange", field.Name, event.target.value)
     const { fieldMap } = this.state;
-
-    // TODO Validate
     fieldMap[field.Name] = {value: event.target.value, error: null, type: field.Type}
-
     this.setState({fieldMap: fieldMap})
   };
 
   handleActionSubmit = () => {
     const { action, routes, targets, submitQueries } = this.props
     const { fieldMap } = this.state
-    console.log("DEBUG handleActionSubmit", action.Name, action.DataKind, fieldMap, targets)
     let route = routes.slice(-1)[0]
-    console.log(route)
+
+    // Validate
+    // フォーム入力がなく、デフォルト値がある場合はセットする
+    for (let i = 0, len = action.Fields.length; i < len; i++) {
+      let field = action.Fields[i]
+      switch (field.Type) {
+      case "text":
+        if (field.Require) {
+          if (!fieldMap[field.Name] || fieldMap[field.Name] === "") {
+            fieldMap[field.Name] = {value: "", error: "This is required",type: field.Type}
+          }
+        }
+        break
+      case "select":
+        if (!fieldMap[field.Name]) {
+          fieldMap[field.Name] = {value: field.Options[0], error: null, type: field.Type}
+        }
+        break
+      default:
+        break
+      }
+    }
+
+    for (let key in fieldMap) {
+      if (fieldMap[key].error && fieldMap[key].error !== "") {
+        this.setState({fieldMap: fieldMap})
+        return
+      }
+    }
+
     submitQueries(action, fieldMap, targets, route.match.params)
   };
 
@@ -64,16 +99,30 @@ class FormDialog extends Component {
     let fields = []
     for (let i = 0, len = action.Fields.length; i < len; i++) {
       let field = action.Fields[i]
+      let fieldState = fieldMap[field.Name]
+      let isError = false
+      let helperText = ""
+      if (fieldState) {
+        if (fieldState.error !== "") {
+          isError = true
+          helperText = fieldState.error
+        }
+      }
+
       let autoFocus = false
       if (i === 0) {
         autoFocus = true
       }
+
       switch (field.Type) {
       case "text":
         fields.push(
-          <TextField key={field.Name} id={field.Name} label={field.Name}
+          <TextField id={field.Name} key={field.Name}
+            label={field.Name}
             autoFocus={autoFocus} margin="dense" type={field.Type} fullWidth
             onChange={event => {this.handleTestFieldChange(event, field)}}
+            helperText={helperText}
+            error={isError}
           />
         )
         break
@@ -81,7 +130,6 @@ class FormDialog extends Component {
         let f = fieldMap[field.Name]
         let options = field.Options
         if (!options) {
-          console.log(data)
           options = []
           let d = data[field.DataKey]
           if (d) {
@@ -96,7 +144,6 @@ class FormDialog extends Component {
           f = options[0]
         }
 
-        console.log(f)
         fields.push(
           <TextField
             select
@@ -185,7 +232,6 @@ function mapStateToProps(state, ownProps) {
 function mapDispatchToProps(dispatch, ownProps) {
   return {
     submitQueries: (action, fieldMap, targets, params) => {
-			console.log("DEBUG submitQueries")
       dispatch(actions.service.serviceSubmitQueries(action, fieldMap, targets, params));
     }
   }

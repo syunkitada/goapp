@@ -66,7 +66,7 @@ func (resource *Resource) PhysicalAction(c *gin.Context) {
 									"Name": "Create", "Icon": "Create", "Kind": "Form",
 									"DataKind": "PhysicalResource",
 									"Fields": []interface{}{
-										gin.H{"Name": "Name", "Type": "text", "Require": true},
+										gin.H{"Name": "Name", "Type": "text", "Require": true, "Min": 5, "Max": 200, "RegExp": "[0-9a-Z]*"},
 										gin.H{"Name": "Kind", "Type": "select", "Require": true,
 											"Options": []string{
 												"Server", "Pdu", "RackSpineRouter",
@@ -134,7 +134,9 @@ func (resource *Resource) PhysicalAction(c *gin.Context) {
 									"Name": "Create", "Icon": "Create", "Kind": "Form",
 									"DataKind": "PhysicalModel",
 									"Fields": []interface{}{
-										gin.H{"Name": "Name", "Type": "text", "Require": true},
+										gin.H{"Name": "Name", "Type": "text", "Require": true,
+											"Min": 5, "Max": 200, "RegExp": "^[0-9a-zA-Z]+$",
+											"RegExpMsg": "Please enter alphanumeric characters."},
 										gin.H{"Name": "Kind", "Type": "select", "Require": true,
 											"Options": []string{
 												"Server", "Pdu", "RackSpineRouter",

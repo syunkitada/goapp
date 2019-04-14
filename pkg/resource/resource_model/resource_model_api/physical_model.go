@@ -2,7 +2,6 @@ package resource_model_api
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"github.com/golang/protobuf/ptypes"
 	"github.com/jinzhu/gorm"
@@ -13,7 +12,7 @@ import (
 	"github.com/syunkitada/goapp/pkg/resource/resource_model"
 )
 
-func (modelApi *ResourceModelApi) CreatePhysicalModel(tctx *logger.TraceContext, db *gorm.DB, query *resource_api_grpc_pb.Query) (error, int64) {
+func (modelApi *ResourceModelApi) CreatePhysicalModel(tctx *logger.TraceContext, tx *gorm.DB, query *resource_api_grpc_pb.Query) (error, int64) {
 	var err error
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
@@ -23,16 +22,12 @@ func (modelApi *ResourceModelApi) CreatePhysicalModel(tctx *logger.TraceContext,
 		err = error_utils.NewInvalidRequestError("NotFound Specs")
 		return error_utils.NewInvalidRequestError("NotFound Specs"), codes.ClientBadRequest
 	}
-	fmt.Println("DEBUG CreatePhysicalModel1")
 
 	var specs []resource_model.PhysicalModelSpecData
 	if err = json.Unmarshal([]byte(strSpecs), &specs); err != nil {
 		return err, codes.ClientBadRequest
 	}
-	// TODO validate
 
-	tx := db.Begin()
-	defer tx.Rollback()
 	for _, spec := range specs {
 		if err = modelApi.validate.Struct(&spec); err != nil {
 			return err, codes.ClientBadRequest
@@ -59,9 +54,7 @@ func (modelApi *ResourceModelApi) CreatePhysicalModel(tctx *logger.TraceContext,
 		}
 	}
 
-	tx.Commit()
-
-	return nil, codes.Ok
+	return nil, codes.OkCreated
 }
 
 func (modelApi *ResourceModelApi) convertPhysicalModels(tctx *logger.TraceContext, physicalModels []resource_model.PhysicalModel) []*resource_api_grpc_pb.PhysicalModel {

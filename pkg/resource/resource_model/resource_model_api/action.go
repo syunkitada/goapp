@@ -25,6 +25,9 @@ func (modelApi *ResourceModelApi) Action(tctx *logger.TraceContext, req *resourc
 	}
 	defer func() { err = db.Close() }()
 
+	tx := db.Begin()
+	defer tx.Rollback()
+
 	fmt.Println("DEBUG Queries")
 	for _, query := range req.Queries {
 		fmt.Println(query)
@@ -98,7 +101,7 @@ func (modelApi *ResourceModelApi) Action(tctx *logger.TraceContext, req *resourc
 				return
 			}
 		case "CreatePhysicalModel":
-			if err, statusCode = modelApi.CreatePhysicalModel(tctx, db, query); err != nil {
+			if err, statusCode = modelApi.CreatePhysicalModel(tctx, tx, query); err != nil {
 				rep.Tctx.Err = err.Error()
 				rep.Tctx.StatusCode = statusCode
 				return
@@ -106,7 +109,9 @@ func (modelApi *ResourceModelApi) Action(tctx *logger.TraceContext, req *resourc
 		}
 	}
 
-	rep.Tctx.StatusCode = codes.Ok
+	tx.Commit()
+
+	rep.Tctx.StatusCode = statusCode
 }
 
 func (modelApi *ResourceModelApi) convertPhysicalResources(tctx *logger.TraceContext, physicalResourcess []resource_model.PhysicalResource) []*resource_api_grpc_pb.PhysicalResource {
