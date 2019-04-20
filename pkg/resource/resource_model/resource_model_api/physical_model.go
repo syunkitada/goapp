@@ -57,6 +57,28 @@ func (modelApi *ResourceModelApi) CreatePhysicalModel(tctx *logger.TraceContext,
 	return nil, codes.OkCreated
 }
 
+func (modelApi *ResourceModelApi) convertPhysicalModel(tctx *logger.TraceContext, physicalModel resource_model.PhysicalModel) *resource_api_grpc_pb.PhysicalModel {
+	updatedAt, err := ptypes.TimestampProto(physicalModel.Model.UpdatedAt)
+	if err != nil {
+		logger.Warningf(tctx, err,
+			"Failed ptypes.TimestampProto: %v", physicalModel.Model.UpdatedAt)
+	}
+	createdAt, err := ptypes.TimestampProto(physicalModel.Model.CreatedAt)
+	if err != nil {
+		logger.Warningf(tctx, err,
+			"Failed ptypes.TimestampProto: %v", physicalModel.Model.CreatedAt)
+	}
+
+	pbPhysicalModel := &resource_api_grpc_pb.PhysicalModel{
+		Name:      physicalModel.Name,
+		Kind:      physicalModel.Kind,
+		UpdatedAt: updatedAt,
+		CreatedAt: createdAt,
+	}
+
+	return pbPhysicalModel
+}
+
 func (modelApi *ResourceModelApi) convertPhysicalModels(tctx *logger.TraceContext, physicalModels []resource_model.PhysicalModel) []*resource_api_grpc_pb.PhysicalModel {
 	pbPhysicalModels := make([]*resource_api_grpc_pb.PhysicalModel, len(physicalModels))
 	for i, physicalModel := range physicalModels {

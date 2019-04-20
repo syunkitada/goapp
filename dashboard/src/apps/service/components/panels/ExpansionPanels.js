@@ -44,7 +44,6 @@ class ExpansionPanels extends Component {
   render() {
     const { classes, render, routes, data, index } = this.props
     let { expanded, expandedUrl } = this.state;
-    console.log("ExpansionPanels.render()")
 
     let route = routes.slice(-1)[0]
     let beforeRoute = routes.slice(-2)[0]
@@ -56,6 +55,10 @@ class ExpansionPanels extends Component {
     if (expandedUrl !== null && expanded !== route.match.path && expandedUrl !== route.match.url) {
       expanded = route.match.path
     }
+
+    console.log("DEBUG ExpansionPanels", index.Panels)
+    const map1 = index.Panels.map((p) => p.Name);
+    console.log("DEBUG map1", map1)
 
     return (
       <div className={classes.root}>

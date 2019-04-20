@@ -53,6 +53,13 @@ message ActionReply {
     repeated Compute Computes = 10;
     repeated Network Networks = 11;
     repeated Image Images = 12;
+
+    Datacenter Datacenter = 21;
+    Cluster Cluster = 22;
+    Floor Floor = 23;
+    Rack Rack = 24;
+    PhysicalResource PhysicalResource = 25;
+    PhysicalModel PhysicalModel = 26;
 }
 
 //

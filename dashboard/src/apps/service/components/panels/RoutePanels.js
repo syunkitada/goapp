@@ -3,13 +3,15 @@ import { connect } from 'react-redux';
 import { Route } from 'react-router-dom';
 import PropTypes from 'prop-types';
 
-import ExpansionPanels from './ExpansionPanels'
+import ExpansionPanels from './ExpansionPanels';
+import logger from '../../../../lib/logger';
 
 
 class RoutePanels extends Component {
   render() {
     const { render, routes, data, index } = this.props
-    console.log("RoutePanels.render")
+    logger.info("RoutePanels.render")
+
     let beforeRoute = routes.slice(-1)[0]
 
     return (

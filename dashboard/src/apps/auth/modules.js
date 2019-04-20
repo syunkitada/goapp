@@ -36,10 +36,12 @@ function login({name, password}) {
     credentials: 'include',
     body: body,
   }).then(res => res.json()).then(function(payload) {
+    console.log("ERROR1")
     return {
       payload: payload,
     };
   }).catch(function(error) {
+    console.log("ERROR2")
     return {
       error: error
     };

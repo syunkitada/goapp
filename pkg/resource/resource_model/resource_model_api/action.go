@@ -2,6 +2,7 @@ package resource_model_api
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/golang/protobuf/ptypes"
 	"github.com/jinzhu/gorm"
@@ -25,6 +26,8 @@ func (modelApi *ResourceModelApi) Action(tctx *logger.TraceContext, req *resourc
 	}
 	defer func() { err = db.Close() }()
 
+	statusCode = codes.OkRead
+
 	tx := db.Begin()
 	defer tx.Rollback()
 
@@ -32,8 +35,45 @@ func (modelApi *ResourceModelApi) Action(tctx *logger.TraceContext, req *resourc
 	for _, query := range req.Queries {
 		fmt.Println(query)
 		switch query.Kind {
+		case "GetResource":
+			errStrs := []string{}
+			datacenter, ok := query.StrParams["datacenter"]
+			if !ok {
+				errStrs = append(errStrs, "datacenter is None")
+			}
+			kind, ok := query.StrParams["kind"]
+			if !ok {
+				errStrs = append(errStrs, "kind is None")
+			}
+			project, ok := query.StrParams["project"]
+			if !ok {
+				errStrs = append(errStrs, "project is None")
+			}
+			resource, ok := query.StrParams["resource"]
+			if !ok {
+				errStrs = append(errStrs, "resource is None")
+			}
+			if len(errStrs) > 0 {
+				fmt.Println("DEBUG errStrs")
+				rep.Tctx.Err = strings.Join(errStrs, ", ")
+				rep.Tctx.StatusCode = codes.ClientBadRequest
+				return
+			}
+			fmt.Println("DEBUG PhysicalResourceModel", datacenter, kind, project, resource)
+			switch kind {
+			case "PhysicalResourceModel":
+				var physicalModel resource_model.PhysicalModel
+				if err = db.Where(&resource_model.PhysicalModel{
+					Name: resource,
+				}).First(&physicalModel).Error; err != nil {
+					rep.Tctx.Err = err.Error()
+					rep.Tctx.StatusCode = codes.RemoteDbError
+					return
+				}
+				rep.PhysicalModel = modelApi.convertPhysicalModel(tctx, physicalModel)
+			}
+
 		case "GetIndex":
-			fmt.Println("DEBUG Datacenter")
 			var datacenters []resource_model.Datacenter
 			if err = db.Find(&datacenters).Error; err != nil {
 				rep.Tctx.Err = err.Error()
@@ -41,7 +81,6 @@ func (modelApi *ResourceModelApi) Action(tctx *logger.TraceContext, req *resourc
 				return
 			}
 			rep.Datacenters = modelApi.convertDatacenters(tctx, datacenters)
-			fmt.Println("DEBUG Datacenter", rep.Datacenters)
 		case "GetDatacenters":
 			var datacenters []resource_model.Datacenter
 			if err = db.Find(&datacenters).Error; err != nil {

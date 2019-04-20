@@ -5,11 +5,14 @@ import { connect } from 'react-redux';
 import { withStyles } from '@material-ui/core/styles';
 
 import actions from '../../../actions'
+import BasicForm from './forms/BasicForm'
 import IndexTable from './tables/IndexTable'
 import RoutePanels from './panels/RoutePanels'
 import RouteTabs from './tabs/RouteTabs'
 import GetMsgSnackbar from './snackbars/GetMsgSnackbar'
 import SubmitMsgSnackbar from './snackbars/SubmitMsgSnackbar'
+
+import logger from '../../../lib/logger'
 
 
 const styles = theme => ({
@@ -23,6 +26,7 @@ function renderIndex(routes, data, index) {
     return <div>Not Found</div>
   }
   console.log("DEBUG: Index.renderIndex: ", index.Kind, index.Name)
+  logger.info("DEBUG INFOlwlwlwllw")
   switch(index.Kind) {
     case "Msg":
       return <div>{index.Name}</div>
@@ -32,6 +36,8 @@ function renderIndex(routes, data, index) {
       return <RouteTabs render={renderIndex} routes={routes} data={data} index={index} />
     case "Table":
       return <IndexTable routes={routes} index={index} data={data} />
+    case "Form":
+      return <BasicForm />
     default:
       return <div>Unsupported Kind: {index.Kind}</div>
   }
@@ -55,7 +61,7 @@ class Index extends Component {
 
   render() {
     const {match, service, serviceName, projectName, getIndex} = this.props
-		console.log("Index.reder", projectName, serviceName)
+		console.info("Index.reder", projectName, serviceName)
 
     if (service.serviceName !== serviceName || service.projectName !== projectName) {
       getIndex(match.params)

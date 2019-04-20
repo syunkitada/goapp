@@ -43,7 +43,7 @@ func (resource *Resource) PhysicalAction(c *gin.Context) {
 					"Kind":    "Table",
 					"DataKey": "Datacenters",
 					"Columns": []interface{}{
-						gin.H{"Name": "Name", "IsSearch": true, "Link": "/Datacenters"},
+						gin.H{"Name": "Name", "IsSearch": true, "Link": "Datacenters/:0/Resources"},
 						gin.H{"Name": "Region", "IsSearch": true},
 						gin.H{"Name": "UpdatedAt", "Type": "Time"},
 						gin.H{"Name": "CreatedAt", "Type": "Time"},
@@ -51,7 +51,8 @@ func (resource *Resource) PhysicalAction(c *gin.Context) {
 				},
 				gin.H{
 					"Name":       "Resources",
-					"Route":      "/Datacenters/:datacenter",
+					"Subname":    "kind",
+					"Route":      "/Datacenters/:datacenter/Resources",
 					"Kind":       "RouteTabs",
 					"GetQueries": []string{"GetPhysicalResources", "GetRacks", "GetFloors", "GetPhysicalModels"},
 					"IsSync":     true,
@@ -123,12 +124,6 @@ func (resource *Resource) PhysicalAction(c *gin.Context) {
 							"Route":   "/Models",
 							"Kind":    "Table",
 							"DataKey": "PhysicalModels",
-							"Columns": []interface{}{
-								gin.H{"Name": "Name", "IsSearch": true},
-								gin.H{"Name": "Kind"},
-								gin.H{"Name": "UpdatedAt", "Type": "Time"},
-								gin.H{"Name": "CreatedAt", "Type": "Time"},
-							},
 							"Actions": []interface{}{
 								gin.H{
 									"Name": "Create", "Icon": "Create", "Kind": "Form",
@@ -145,8 +140,39 @@ func (resource *Resource) PhysicalAction(c *gin.Context) {
 									},
 								},
 							},
+							"ColumnActions": []interface{}{
+								gin.H{"Name": "Detail", "Icon": "Detail"},
+								gin.H{
+									"Name": "Update", "Icon": "Update", "Kind": "Form",
+									"GetQueries": []string{"GetPhysicalModel"},
+									"DataKind":   "PhysicalModel",
+									"Fields": []interface{}{
+										gin.H{"Name": "Name", "Type": "text", "Require": true,
+											"Min": 5, "Max": 200, "RegExp": "^[0-9a-zA-Z]+$",
+											"RegExpMsg": "Please enter alphanumeric characters."},
+										gin.H{"Name": "Kind", "Type": "select", "Require": true,
+											"Options": []string{
+												"Server", "Pdu", "RackSpineRouter",
+												"FloorLeafRouter", "FloorSpineRouter", "GatewayRouter",
+											}},
+									}},
+							},
+							"Columns": []interface{}{
+								gin.H{"Name": "Name", "IsSearch": true, "Link": "../Resource/ResourceModel/:0"},
+								gin.H{"Name": "Kind"},
+								gin.H{"Name": "UpdatedAt", "Type": "Time"},
+								gin.H{"Name": "CreatedAt", "Type": "Time"},
+								gin.H{"Name": "Action", "Type": "Action"},
+							},
 						},
-					},
+					}, // Tabs
+				},
+				gin.H{
+					"Name":       "Resource",
+					"SubName":    "resource",
+					"Route":      "/Datacenters/:datacenter/Resource/:kind/:resource",
+					"Kind":       "Form",
+					"GetQueries": []string{"GetResource"},
 				},
 			},
 		},

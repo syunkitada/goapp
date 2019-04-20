@@ -15,6 +15,7 @@ import Typography from '@material-ui/core/Typography';
 import withStyles from '@material-ui/core/styles/withStyles';
 
 import actions from '../../../actions'
+import MsgSnackbar from '../../../components/snackbars/MsgSnackbar'
 
 const styles = theme => ({
   layout: {
@@ -49,6 +50,10 @@ const styles = theme => ({
 });
 
 class Login extends Component {
+  handleClose = (event, reason) => {
+    console.log("Close")
+  };
+
   render() {
     const { classes, auth, history, onSubmit } = this.props
     const { from } = history.location.state || { from: { pathname: "/" } };
@@ -69,9 +74,21 @@ class Login extends Component {
       )
     }
 
+    let msgHtml = null
+    if (auth.error != null && auth.error !== "") {
+      let variant = "error"
+      let vertical = "bottom"
+      let horizontal = "left"
+
+      msgHtml = <MsgSnackbar open={true} onClose={this.handleClose}
+          vertical={vertical} horizontal={horizontal} 
+          variant={variant} msg={auth.error} />
+    }
+
     return (
       <React.Fragment>
         <CssBaseline />
+        {msgHtml}
         <main className={classes.layout}>
           <Paper className={classes.paper}>
             <Avatar className={classes.avatar}>
@@ -104,6 +121,7 @@ class Login extends Component {
             </form>
           </Paper>
         </main>
+
       </React.Fragment>
 
     );

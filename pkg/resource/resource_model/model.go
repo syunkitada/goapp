@@ -63,7 +63,7 @@ type Rack struct {
 type PhysicalModel struct {
 	gorm.Model
 	Kind        string `gorm:"not null;size:25;"`
-	Name        string `gorm:"not null;size:200;index;"` // Datacenter内でユニーク
+	Name        string `gorm:"not null;size:200;index;"`
 	Description string `gorm:"not null;size:200;"`
 	Unit        uint8  `gorm:"not null;"`
 	Spec        string `gorm:"not null;size:5000;"`

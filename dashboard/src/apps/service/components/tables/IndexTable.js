@@ -198,16 +198,28 @@ class IndexTable extends Component {
 					break
 				}
 			}
-      switch (action.Kind) {
-        case 'Form':
-          console.log("DEBUG Formlalalallalalala")
-          console.log(routes)
-          actionDialog = <FormDialog open={true} data={data} action={action} routes={routes}
-            onClose={this.handleActionDialogClose} />
-          break;
-        default:
-          actionDialog = null
-          break;
+      if (action === null) {
+        for (let a of index.ColumnActions) {
+          if (a.Name === actionName) {
+            action = a
+            break
+          }
+        }
+      }
+      if (action === null) {
+        actionDialog = null
+      } else {
+        switch (action.Kind) {
+          case 'Form':
+            console.log("DEBUG Formlalalallalalala")
+            console.log(routes)
+            actionDialog = <FormDialog open={true} data={data} action={action} routes={routes}
+              onClose={this.handleActionDialogClose} />
+            break;
+          default:
+            actionDialog = null
+            break;
+        }
       }
 		}
 
@@ -257,9 +269,26 @@ class IndexTable extends Component {
 
                   for (let i = 0, len = columns.length; i < len; i++) {
                     if (columns[i].Link) {
+                      let link = columns[i].Link
+                      let splitedLink = link.split('/')
+                      let subPaths = 0
+                      let splitedNextLink = []
+                      for (let j = 0, len = splitedLink.length; j < len; j++) {
+                        let path = splitedLink[j]
+                        if (path === '..') {
+                          subPaths++
+                        } else {
+                          path = path.replace(':0', n[0])
+                          splitedNextLink.push(path)
+                        }
+                      }
+                      let splitedBeforeUrl = beforeRoute.match.url.split('/')
+                      link = splitedBeforeUrl.slice(0, splitedBeforeUrl.length - subPaths).join('/')
+                        + '/' + splitedNextLink.join('/')
+
                       cells.push(
                         <TableCell key={i} component="th" scope="row" padding="none">
-                          <Link to={`${beforeRoute.match.url}${columns[i].Link}/${n[0]}`}>{n[i]}</Link>
+                          <Link to={`${link}`}>{n[i]}</Link>
                         </TableCell>
                       )
                     } else if (columns[i].Type === "Action") {

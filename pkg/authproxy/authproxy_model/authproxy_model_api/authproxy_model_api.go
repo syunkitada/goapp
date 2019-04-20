@@ -73,6 +73,7 @@ func (modelApi *AuthproxyModelApi) Bootstrap(tctx *logger.TraceContext) error {
 		"GetPhysicalIndex", "GetVirtualIndex",
 		"CreatePhysicalResource", "UpdatePhysicalResource",
 		"CreateVirtualResource", "UpdateVirtualResource",
+		"GetResource",
 		"GetState", "GetCluster", "GetNode",
 		"GetNetwork", "CreateNetwork", "UpdateNetwork", "DeleteNetwork",
 		"GetNetworkV4", "CreateNetworkV4", "UpdateNetworkV4", "DeleteNetworkV4",
