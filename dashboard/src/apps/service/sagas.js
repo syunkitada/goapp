@@ -1,10 +1,12 @@
 import { put, call, takeEvery, cancel, cancelled, fork, take, delay } from 'redux-saga/effects'
+
 import actions from '../../actions'
 import modules from '../../modules'
 import store from '../../store'
+import logger from '../../lib/logger'
+
 
 function* post(action) {
-  console.log("sagas.post")
   const {payload, error} = yield call(modules.service.post, action.payload)
 
   if (error) {
@@ -19,20 +21,18 @@ function* post(action) {
 function* sync(action) {
   try {
     while (true) {
-      console.log("DEBUG sync", action)
       const serviceState = Object.assign({}, store.getState().service)
-      console.log(serviceState)
       if (serviceState.syncAction) {
-        console.log("syncAction")
+        logger.info("saga", "sync", "syncAction")
         yield call(post, serviceState.syncAction)
       } else {
-        console.log("syncAction is null")
+        logger.info("saga", "sync", "syncAction is null")
       }
       yield delay(serviceState.syncDelay)
     }
   } finally {
     if (yield cancelled()) {
-      console.log("DEBUG sync cancelled")
+      logger.info("saga", "sync", "finally")
       // yield put(actions.requestFailure('Sync cancelled!'))
     }
   }

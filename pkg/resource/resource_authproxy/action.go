@@ -51,7 +51,6 @@ func (resource *Resource) PhysicalAction(c *gin.Context) {
 				},
 				gin.H{
 					"Name":       "Resources",
-					"Subname":    "kind",
 					"Route":      "/Datacenters/:datacenter/Resources",
 					"Kind":       "RouteTabs",
 					"GetQueries": []string{"GetPhysicalResources", "GetRacks", "GetFloors", "GetPhysicalModels"},
@@ -158,7 +157,7 @@ func (resource *Resource) PhysicalAction(c *gin.Context) {
 									}},
 							},
 							"Columns": []interface{}{
-								gin.H{"Name": "Name", "IsSearch": true, "Link": "../Resource/ResourceModel/:0"},
+								gin.H{"Name": "Name", "IsSearch": true, "Link": "../Resource/PhysicalModel/:0"},
 								gin.H{"Name": "Kind"},
 								gin.H{"Name": "UpdatedAt", "Type": "Time"},
 								gin.H{"Name": "CreatedAt", "Type": "Time"},
@@ -168,11 +167,24 @@ func (resource *Resource) PhysicalAction(c *gin.Context) {
 					}, // Tabs
 				},
 				gin.H{
-					"Name":       "Resource",
-					"SubName":    "resource",
-					"Route":      "/Datacenters/:datacenter/Resource/:kind/:resource",
-					"Kind":       "Form",
-					"GetQueries": []string{"GetResource"},
+					"Name":         "Resource",
+					"Route":        "/Datacenters/:datacenter/Resource/PhysicalModel/:resource",
+					"Kind":         "Form",
+					"DataKey":      "PhysicalModel",
+					"SubmitAction": "Update",
+					"GetQueries":   []string{"GetPhysicalModel"},
+					"Fields": []interface{}{
+						gin.H{"Name": "Name", "Type": "text", "Require": true,
+							"Updatable": false,
+							"Min":       5, "Max": 200, "RegExp": "^[0-9a-zA-Z]+$",
+							"RegExpMsg": "Please enter alphanumeric characters."},
+						gin.H{"Name": "Kind", "Type": "select", "Require": true,
+							"Updatable": true,
+							"Options": []string{
+								"Server", "Pdu", "RackSpineRouter",
+								"FloorLeafRouter", "FloorSpineRouter", "GatewayRouter",
+							}},
+					},
 				},
 			},
 		},

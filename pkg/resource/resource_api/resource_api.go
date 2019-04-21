@@ -1,6 +1,8 @@
 package resource_api
 
 import (
+	"fmt"
+
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 
@@ -64,6 +66,7 @@ func (srv *ResourceApiServer) Action(ctx context.Context, req *resource_api_grpc
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
 	srv.resourceModelApi.Action(tctx, req, rep)
+	fmt.Println("DEBUG ACTION", rep.PhysicalModel)
 
 	return rep, nil
 }

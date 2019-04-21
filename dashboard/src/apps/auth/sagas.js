@@ -1,4 +1,5 @@
 import { put, call, takeEvery } from 'redux-saga/effects'
+
 import actions from '../../actions'
 import modules from '../../modules'
 
@@ -6,11 +7,9 @@ function* syncState(action) {
   const {payload, error} = yield call(modules.auth.syncState)
 
   if (error) {
-    console.log("DEBUG syncState", error)
     console.dir(error)
     yield put(actions.auth.authLoginFailure(error.message))
   } else if (payload.Err && payload.Err !== "") {
-    console.log("DEBUG payload.Err")
     yield put(actions.auth.authLoginFailure(payload.Err))
   } else {
     const user = {
@@ -46,9 +45,7 @@ function* watchLogin() {
 }
 
 function* logout(action) {
-  console.log("logout", action.payload)
   const {payload, error} = yield call(modules.auth.logout)
-  console.log(payload)
 
   if (error) {
     yield put(actions.auth.authLogoutFailure(error))

@@ -1,6 +1,7 @@
 import { handleActions } from 'redux-actions';
 
 import actions from '../../actions'
+import logger from '../../lib/logger'
 
 const defaultState = {
   isFetching: false,
@@ -27,7 +28,7 @@ const defaultState = {
 
 export default handleActions({
   [actions.service.serviceGetIndex]: (state, action) => {
-    console.log("DEBUG serviceGetIndex")
+    logger.info("reducers", "serviceGetIndex")
     let service = action.payload.serviceName
     let project = action.payload.projectName
     let newState = Object.assign({}, state, {
@@ -61,23 +62,23 @@ export default handleActions({
       }
     }
 
-    console.log(newState)
+    logger.info("reducers", "serviceGetIndex", newState)
 
     return newState;
   },
 
   [actions.service.serviceStartBackgroundSync]: (state) => {
-    console.log("action.serviceStartBackgroundSync")
+    logger.info("reducers", "serviceStartBackgroundSync")
     return Object.assign({}, state, {})
   },
 
   [actions.service.serviceStopBackgroundSync]: (state) => {
-    console.log("action.serviceStopBackgroundSync")
+    logger.info("reducers", "serviceStopBackgroundSync")
     return Object.assign({}, state, {})
   },
 
   [actions.service.serviceGetQueries]: (state) => {
-    console.log("action.serviceGetQueries")
+    logger.info("reducers", "serviceGetQueries")
     return Object.assign({}, state, {
       getQueriesTctx: {
         fetching: true
@@ -87,7 +88,7 @@ export default handleActions({
   },
 
   [actions.service.serviceSubmitQueries]: (state) => {
-    console.log("action.serviceSubmitQueries")
+    logger.info("reducers", "serviceSubmitQueries")
     return Object.assign({}, state, {
       submitQueriesTctx: {
         fetching: true
@@ -99,20 +100,21 @@ export default handleActions({
   },
 
   [actions.service.serviceCloseGetQueriesTctx]: (state) => {
+    logger.info("reducers", "serviceCloseGetQueriesTctx")
     return Object.assign({}, state, {
       openGetQueriesTctx: false,
     })
   },
 
   [actions.service.serviceCloseSubmitQueriesTctx]: (state) => {
+    logger.info("reducers", "serviceCloseSubmitQueriesTctx")
     return Object.assign({}, state, {
       openSubmitQueriesTctx: false,
     })
   },
 
   [actions.service.servicePostSuccess]: (state, action) => {
-    console.log("DEBUG: servicePostSuccess: ", action.payload.action.type)
-    console.log(action.payload.action)
+    logger.info("reducers", "servicePostSuccess", action.payload.action.type)
     let newState = Object.assign({}, state, {
       isFetching: false,
       redirectToReferrer: true,
@@ -125,7 +127,6 @@ export default handleActions({
     }
 
     const actionType = action.payload.action.type
-    console.log("DEBUG actionType", actionType)
     const tctx = action.payload.data.Data.Tctx
 
     switch(actionType) {
@@ -133,7 +134,6 @@ export default handleActions({
         newState.getIndexTctx = tctx
         break
       case 'SERVICE_GET_QUERIES':
-        console.log("DEBUG SERVICE GET QUERIES")
         newState.getQueriesTctx = tctx
         newState.openGetQueriesTctx = true
         break
@@ -144,8 +144,8 @@ export default handleActions({
       default:
         break
     }
-    if (tctx.StatusCode > 200) {
-      console.log(tctx)
+    if (tctx.StatusCode >= 300) {
+      logger.error("reducers", "servicePostSuccess: newState", newState)
       // TODO handling tctx.Err, tctx.StatusCode
       return newState
     }
@@ -187,7 +187,7 @@ export default handleActions({
       }
     }
 
-    console.log(newState)
+    logger.info("reducers", "servicePostSuccess: newState", newState)
     return newState
   },
 

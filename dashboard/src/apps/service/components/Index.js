@@ -25,8 +25,7 @@ function renderIndex(routes, data, index) {
   if (!index) {
     return <div>Not Found</div>
   }
-  console.log("DEBUG: Index.renderIndex: ", index.Kind, index.Name)
-  logger.info("DEBUG INFOlwlwlwllw")
+  logger.info('Index', 'renderIndex:', index.Kind, index.Name)
   switch(index.Kind) {
     case "Msg":
       return <div>{index.Name}</div>
@@ -37,7 +36,7 @@ function renderIndex(routes, data, index) {
     case "Table":
       return <IndexTable routes={routes} index={index} data={data} />
     case "Form":
-      return <BasicForm />
+      return <BasicForm routes={routes} index={index} data={data} />
     default:
       return <div>Unsupported Kind: {index.Kind}</div>
   }
@@ -50,7 +49,7 @@ class Index extends Component {
   }
 
   componentWillMount() {
-    console.log("Index.componentWillMount")
+    logger.info('Index', 'componentWillMount()')
     const {match, getIndex} = this.props
     getIndex(match.params)
   }
@@ -61,7 +60,7 @@ class Index extends Component {
 
   render() {
     const {match, service, serviceName, projectName, getIndex} = this.props
-		console.info("Index.reder", projectName, serviceName)
+    logger.info('Index', 'render', projectName, serviceName)
 
     if (service.serviceName !== serviceName || service.projectName !== projectName) {
       getIndex(match.params)

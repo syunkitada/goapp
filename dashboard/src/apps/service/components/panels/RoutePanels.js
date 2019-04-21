@@ -10,7 +10,7 @@ import logger from '../../../../lib/logger';
 class RoutePanels extends Component {
   render() {
     const { render, routes, data, index } = this.props
-    logger.info("RoutePanels.render")
+    logger.info('RoutePanels', 'render()')
 
     let beforeRoute = routes.slice(-1)[0]
 

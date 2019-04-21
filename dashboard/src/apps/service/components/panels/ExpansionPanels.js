@@ -56,9 +56,7 @@ class ExpansionPanels extends Component {
       expanded = route.match.path
     }
 
-    console.log("DEBUG ExpansionPanels", index.Panels)
     const map1 = index.Panels.map((p) => p.Name);
-    console.log("DEBUG map1", map1)
 
     return (
       <div className={classes.root}>
@@ -109,7 +107,6 @@ function mapStateToProps(state, ownProps) {
 function mapDispatchToProps(dispatch, ownProps) {
   return {
     getQueries: (querys, isSync, params) => {
-			console.log("DEBUG getQueries")
       dispatch(actions.service.serviceGetQueries(querys, isSync, params));
     }
   }

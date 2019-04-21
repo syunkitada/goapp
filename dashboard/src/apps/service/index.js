@@ -5,16 +5,17 @@ import Dashboard from '../../components/Dashboard'
 import Index from './components/Index'
 
 import actions from '../../actions'
+import logger from '../../lib/logger'
 
 
 class Service extends Component {
   componentWillMount() {
-    console.log("componentWillMount Service")
+    logger.info("Service", "componentWillMount()")
     this.props.startBackgroundSync()
   }
 
   componentWillUnmount() {
-    console.log("componentWillUnmount Service")
+    logger.info("Service", "componentWillUnmount()")
   }
 
   render() {

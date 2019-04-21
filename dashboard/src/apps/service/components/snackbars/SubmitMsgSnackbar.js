@@ -53,7 +53,6 @@ SubmitMsgSnackbar.propTypes = {
 
 function mapStateToProps(state, ownProps) {
   const { openSubmitQueriesTctx, submitQueriesTctx } = state.service;
-	console.log(state.service)
 
   return {
 		open: openSubmitQueriesTctx,

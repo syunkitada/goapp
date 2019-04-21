@@ -47,7 +47,6 @@ GetMsgSnackbar.propTypes = {
 
 function mapStateToProps(state, ownProps) {
   const { openGetQueriesTctx, getQueriesTctx } = state.service;
-	console.log("DEBUG GetMsgSnackbar mapStateToProps", openGetQueriesTctx)
 
   return {
 		open: openGetQueriesTctx,

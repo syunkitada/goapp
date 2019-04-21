@@ -2,7 +2,6 @@ import fetch from 'cross-fetch'
 
 function syncState() {
   const body = JSON.stringify({});
-  console.log("auth.modules.syncState")
 
   return fetch(process.env.REACT_APP_AUTHPROXY_URL + '/dashboard/state', {
     method: 'POST',
@@ -10,13 +9,10 @@ function syncState() {
     mode: 'cors',
     body: body,
   }).then(res => res.json()).then(function(payload) {
-    console.log("auth.modules.syncState payload")
-    console.log(payload)
     return {
       payload: payload,
     };
   }).catch(function(error) {
-    console.log("auth.modules.syncState error")
     return {
       error: error
     };
@@ -28,7 +24,6 @@ function login({name, password}) {
     username: name,
     password: password
   });
-  console.log("auth.modules.login")
 
   return fetch(process.env.REACT_APP_AUTHPROXY_URL + '/dashboard/login', {
     method: "POST",
@@ -36,12 +31,10 @@ function login({name, password}) {
     credentials: 'include',
     body: body,
   }).then(res => res.json()).then(function(payload) {
-    console.log("ERROR1")
     return {
       payload: payload,
     };
   }).catch(function(error) {
-    console.log("ERROR2")
     return {
       error: error
     };

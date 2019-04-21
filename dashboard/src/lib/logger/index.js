@@ -1,12 +1,30 @@
 var IS_DEVELOP = true;
 
-function info(data) {
+function debug(data) {
   if (!IS_DEVELOP) {
     return
   }
 
   let now = new Date()
-  console.info(now.toISOString() + " INFO", data)
+  console.error(now.toISOString() + " DEBUG", arguments)
+}
+
+function info() {
+  if (!IS_DEVELOP) {
+    return
+  }
+
+  let now = new Date()
+  console.info(now.toISOString() + " INFO", arguments)
+}
+
+function warn() {
+  if (!IS_DEVELOP) {
+    return
+  }
+
+  let now = new Date()
+  console.info(now.toISOString() + " WARN", arguments)
 }
 
 function error(data) {
@@ -15,7 +33,7 @@ function error(data) {
   }
 
   let now = new Date()
-  console.error(now.toISOString() + " ERROR", data)
+  console.error(now.toISOString() + " ERROR", arguments)
 }
 
 export default {

@@ -11,7 +11,6 @@ class RouteTabs extends Component {
   render() {
     const { classes, render, routes, data, index } = this.props
 
-		console.log("RouteTab: render")
     let beforeRoute = routes.slice(-1)[0]
 
     return (

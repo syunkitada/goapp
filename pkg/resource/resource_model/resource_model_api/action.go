@@ -35,15 +35,11 @@ func (modelApi *ResourceModelApi) Action(tctx *logger.TraceContext, req *resourc
 	for _, query := range req.Queries {
 		fmt.Println(query)
 		switch query.Kind {
-		case "GetResource":
+		case "GetPhysicalModel":
 			errStrs := []string{}
 			datacenter, ok := query.StrParams["datacenter"]
 			if !ok {
 				errStrs = append(errStrs, "datacenter is None")
-			}
-			kind, ok := query.StrParams["kind"]
-			if !ok {
-				errStrs = append(errStrs, "kind is None")
 			}
 			project, ok := query.StrParams["project"]
 			if !ok {
@@ -59,19 +55,16 @@ func (modelApi *ResourceModelApi) Action(tctx *logger.TraceContext, req *resourc
 				rep.Tctx.StatusCode = codes.ClientBadRequest
 				return
 			}
-			fmt.Println("DEBUG PhysicalResourceModel", datacenter, kind, project, resource)
-			switch kind {
-			case "PhysicalResourceModel":
-				var physicalModel resource_model.PhysicalModel
-				if err = db.Where(&resource_model.PhysicalModel{
-					Name: resource,
-				}).First(&physicalModel).Error; err != nil {
-					rep.Tctx.Err = err.Error()
-					rep.Tctx.StatusCode = codes.RemoteDbError
-					return
-				}
-				rep.PhysicalModel = modelApi.convertPhysicalModel(tctx, physicalModel)
+			fmt.Println("DEBUG PhysicalModel", datacenter, project, resource)
+			var physicalModel resource_model.PhysicalModel
+			if err = db.Where(&resource_model.PhysicalModel{
+				Name: resource,
+			}).First(&physicalModel).Error; err != nil {
+				rep.Tctx.Err = err.Error()
+				rep.Tctx.StatusCode = codes.RemoteDbError
+				return
 			}
+			rep.PhysicalModel = modelApi.convertPhysicalModel(tctx, physicalModel)
 
 		case "GetIndex":
 			var datacenters []resource_model.Datacenter
@@ -149,6 +142,7 @@ func (modelApi *ResourceModelApi) Action(tctx *logger.TraceContext, req *resourc
 	}
 
 	tx.Commit()
+	fmt.Println("DEBUG OK Queries", rep.PhysicalModel)
 
 	rep.Tctx.StatusCode = statusCode
 }

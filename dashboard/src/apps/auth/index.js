@@ -1,12 +1,14 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
+
 import actions from '../../actions'
+import logger from '../../lib/logger'
 
 class Auth extends Component {
   componentWillMount() {
     if (!this.props.auth.isSyncState) {
-      console.log("Auth WillMount")
+      logger.info('Auth', 'componentWillMount()')
       this.props.syncState()
     }
   }

@@ -62,7 +62,6 @@ class IndexTable extends Component {
 	};
 
 	handleSelectAllClick = event => {
-		console.log("DEBUG handleSelectAllClick")
     const { columns, data } = this.props
 		const keyColumn = columns[0].Name
 		if (event.target.checked) {
@@ -211,8 +210,6 @@ class IndexTable extends Component {
       } else {
         switch (action.Kind) {
           case 'Form':
-            console.log("DEBUG Formlalalallalalala")
-            console.log(routes)
             actionDialog = <FormDialog open={true} data={data} action={action} routes={routes}
               onClose={this.handleActionDialogClose} />
             break;

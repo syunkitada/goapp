@@ -1,7 +1,8 @@
 import fetch from 'cross-fetch'
 
+import logger from '../../lib/logger'
+
 function post({serviceName, actionName, projectName, queries}) {
-  console.log("POST Start")
   const body = JSON.stringify({
     Action: {
       ServiceName: serviceName,
@@ -17,6 +18,7 @@ function post({serviceName, actionName, projectName, queries}) {
     mode: 'cors',
     body: body,
   }).then(res => res.json()).then(function(payload) {
+    logger.info("modules", "post", queries, payload)
     return {
       payload: payload,
     };
