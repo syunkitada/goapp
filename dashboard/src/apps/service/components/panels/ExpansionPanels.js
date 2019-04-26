@@ -10,6 +10,7 @@ import ExpansionPanelDetails from '@material-ui/core/ExpansionPanelDetails';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 
 import actions from '../../../../actions'
+import logger from '../../../../lib/logger';
 
 
 class ExpansionPanels extends Component {
@@ -44,6 +45,8 @@ class ExpansionPanels extends Component {
   render() {
     const { classes, render, routes, data, index } = this.props
     let { expanded, expandedUrl } = this.state;
+
+    logger.info('ExpansionPanels', 'render()', routes)
 
     let route = routes.slice(-1)[0]
     let beforeRoute = routes.slice(-2)[0]

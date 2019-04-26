@@ -9,6 +9,7 @@ import IndexForm from './forms/IndexForm'
 import IndexTable from './tables/IndexTable'
 import RoutePanels from './panels/RoutePanels'
 import RouteTabs from './tabs/RouteTabs'
+import Tabs from './tabs/Tabs'
 import GetMsgSnackbar from './snackbars/GetMsgSnackbar'
 import SubmitMsgSnackbar from './snackbars/SubmitMsgSnackbar'
 
@@ -32,7 +33,7 @@ function renderIndex(routes, data, index) {
     case "RoutePanels":
       return <RoutePanels render={renderIndex} routes={routes} data={data} index={index} />
     case "RouteTabs":
-      return <RouteTabs render={renderIndex} routes={routes} data={data} index={index} />
+      return <Tabs render={renderIndex} routes={routes} data={data} index={index} />
     case "Table":
       return <IndexTable routes={routes} index={index} data={data} />
     case "Form":

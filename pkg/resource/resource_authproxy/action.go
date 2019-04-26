@@ -43,7 +43,7 @@ func (resource *Resource) PhysicalAction(c *gin.Context) {
 					"Kind":    "Table",
 					"DataKey": "Datacenters",
 					"Columns": []interface{}{
-						gin.H{"Name": "Name", "IsSearch": true, "Link": "Datacenters/:0/Resources"},
+						gin.H{"Name": "Name", "IsSearch": true, "Link": "Datacenters/:0/Resources/Resources"},
 						gin.H{"Name": "Region", "IsSearch": true},
 						gin.H{"Name": "UpdatedAt", "Type": "Time"},
 						gin.H{"Name": "CreatedAt", "Type": "Time"},
@@ -51,14 +51,16 @@ func (resource *Resource) PhysicalAction(c *gin.Context) {
 				},
 				gin.H{
 					"Name":       "Resources",
-					"Route":      "/Datacenters/:datacenter/Resources",
+					"Subname":    "kind",
+					"Route":      "/Datacenters/:datacenter/Resources/:kind",
+					"TabParam":   "kind",
 					"Kind":       "RouteTabs",
 					"GetQueries": []string{"GetPhysicalResources", "GetRacks", "GetFloors", "GetPhysicalModels"},
 					"IsSync":     true,
 					"Tabs": []interface{}{
 						gin.H{
 							"Name":    "Resources",
-							"Route":   "",
+							"Route":   "PhysicalResources",
 							"Kind":    "Table",
 							"DataKey": "PhysicalResources",
 							"Actions": []interface{}{
@@ -157,7 +159,8 @@ func (resource *Resource) PhysicalAction(c *gin.Context) {
 									}},
 							},
 							"Columns": []interface{}{
-								gin.H{"Name": "Name", "IsSearch": true, "Link": "../Resource/PhysicalModel/:0"},
+								gin.H{"Name": "Name", "IsSearch": true,
+									"Link": "Datacenters/:datacenter/Resources/Models/Detail/:0"},
 								gin.H{"Name": "Kind"},
 								gin.H{"Name": "UpdatedAt", "Type": "Time"},
 								gin.H{"Name": "CreatedAt", "Type": "Time"},
@@ -168,7 +171,8 @@ func (resource *Resource) PhysicalAction(c *gin.Context) {
 				},
 				gin.H{
 					"Name":         "Resource",
-					"Route":        "/Datacenters/:datacenter/Resource/PhysicalModel/:resource",
+					"Subname":      "resource",
+					"Route":        "/Datacenters/:datacenter/Resources/:kind/Detail/:resource",
 					"Kind":         "Form",
 					"DataKey":      "PhysicalModel",
 					"SubmitAction": "Update",

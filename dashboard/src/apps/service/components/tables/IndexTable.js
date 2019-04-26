@@ -131,6 +131,7 @@ class IndexTable extends Component {
       isSelectActions = true
     }
 
+    let currentRoute = routes.slice(-1)[0]
     let beforeRoute = routes.slice(-2)[0]
 
     let searchColumns = []
@@ -270,19 +271,22 @@ class IndexTable extends Component {
                       let splitedLink = link.split('/')
                       let subPaths = 0
                       let splitedNextLink = []
+                      let baseUrl = beforeRoute.match.url
                       for (let j = 0, len = splitedLink.length; j < len; j++) {
                         let path = splitedLink[j]
-                        if (path === '..') {
-                          subPaths++
-                        } else {
-                          path = path.replace(':0', n[0])
-                          splitedNextLink.push(path)
+                        if (path.indexOf(':') === 0) {
+                          let key = path.slice(1)
+                          let tmppath = currentRoute.match.params[key]
+                          if (tmppath) {
+                            path = tmppath
+                          } else {
+                            path = n[parseInt(key, 10)]
+                          }
                         }
+                        splitedNextLink.push(path)
                       }
-                      let splitedBeforeUrl = beforeRoute.match.url.split('/')
-                      link = splitedBeforeUrl.slice(0, splitedBeforeUrl.length - subPaths).join('/')
-                        + '/' + splitedNextLink.join('/')
-
+                      let splitedBeforeUrl = baseUrl.split('/')
+                      link = baseUrl + '/' +splitedNextLink.join('/')
                       cells.push(
                         <TableCell key={i} component="th" scope="row" padding="none">
                           <Link to={`${link}`}>{n[i]}</Link>

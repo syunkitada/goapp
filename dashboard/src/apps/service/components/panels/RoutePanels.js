@@ -10,14 +10,16 @@ import logger from '../../../../lib/logger';
 class RoutePanels extends Component {
   render() {
     const { render, routes, data, index } = this.props
-    logger.info('RoutePanels', 'render()')
 
     let beforeRoute = routes.slice(-1)[0]
+    logger.info('RoutePanels', 'render()', beforeRoute)
+    console.log(index.Panels)
 
     return (
       <div>
       {index.Panels.map((v) =>
-        <Route exact={v.Route === ""} path={beforeRoute.match.path + v.Route} key={v.Name} render={props => {
+        <Route exact path={beforeRoute.match.path + v.Route} key={v.Name} render={props => {
+          console.log(v.Route)
           const newRoutes = routes.slice(0)
           newRoutes.push(props)
           return (
