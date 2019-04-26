@@ -30,8 +30,7 @@ export default createActions({
     }
   },
 
-  SERVICE_SUBMIT_QUERIES: (action, fieldMap, targets, params) => {
-    let kind = action.Name + action.DataKind
+  SERVICE_SUBMIT_QUERIES: (queryKind, action, fieldMap, targets, params) => {
     let dataQueries = [];
     let strParams = Object.assign({}, params)
     let numParams = {}
@@ -48,10 +47,10 @@ export default createActions({
       for (let i = 0, len = targets.length; i < len; i ++) {
         let target = targets[i]
         strParams.Target = target
-        dataQueries.push({Kind: kind, StrParams: strParams, NumParams: numParams})
+        dataQueries.push({Kind: queryKind, StrParams: strParams, NumParams: numParams})
       }
     } else {
-      dataQueries.push({Kind: kind, StrParams: strParams, NumParams: numParams})
+      dataQueries.push({Kind: queryKind, StrParams: strParams, NumParams: numParams})
     }
 
     return {

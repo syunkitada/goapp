@@ -1,41 +1,31 @@
 import React, {Component} from 'react';
-import { connect } from 'react-redux';
-import { Link } from 'react-router-dom';
-
 import PropTypes from 'prop-types';
-import { withStyles } from '@material-ui/core/styles';
-import Table from '@material-ui/core/Table';
-import TableBody from '@material-ui/core/TableBody';
-import TableCell from '@material-ui/core/TableCell';
-import TableRow from '@material-ui/core/TableRow';
-import Checkbox from '@material-ui/core/Checkbox';
-import Button from '@material-ui/core/Button';
-import Menu from '@material-ui/core/Menu';
-import MenuItem from '@material-ui/core/MenuItem';
-import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown';
-import ListItemIcon from '@material-ui/core/ListItemIcon';
-import ListItemText from '@material-ui/core/ListItemText';
-import TextField from '@material-ui/core/TextField';
+import { connect } from 'react-redux';
 
-import sort_utils from '../../../../modules/sort_utils'
-import icon_utils from '../../../../modules/icon_utils'
+import { withStyles } from '@material-ui/core/styles';
+
+import Button from '@material-ui/core/Button';
+import TextField from '@material-ui/core/TextField';
+import Dialog from '@material-ui/core/Dialog';
+import DialogActions from '@material-ui/core/DialogActions';
+import Grid from '@material-ui/core/Grid';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogContentText from '@material-ui/core/DialogContentText';
+import DialogTitle from '@material-ui/core/DialogTitle';
+
+import CircularProgress from '@material-ui/core/CircularProgress';
+import green from '@material-ui/core/colors/green';
+import red from '@material-ui/core/colors/red';
+
+import actions from '../../../../actions'
+
 
 class BasicForm extends Component {
   state = {
-    order: 'asc',
-    orderBy: 0,
-    selected: [],
-    data: [],
-    page: 0,
-    rowsPerPage: 5,
-    searchRegExp: null,
-    anchorEl: null,
-		actionTarget: null,
-		actionName: null,
     fieldMap: {},
   };
 
-  handleTestFieldChange = (event, field) => {
+  handleTextFieldChange = (event, field) => {
     const { fieldMap } = this.state;
     let text = event.target.value
     let error = ""
@@ -66,14 +56,46 @@ class BasicForm extends Component {
     this.setState({fieldMap: fieldMap})
   };
 
-  render() {
-    const { routes, classes, index, data} = this.props
-    const { fieldMap, selected, anchorEl, order, orderBy, rowsPerPage, page, searchRegExp, actionName, actionTarget } = this.state;
+  handleActionSubmit = () => {
+    const { index, routes, targets, submitQueries } = this.props
+    const { fieldMap } = this.state
+    let route = routes.slice(-1)[0]
 
-    let rawData = data[index.DataKey]
-    if (!rawData) {
-      return null
+    // Validate
+    // フォーム入力がなく、デフォルト値がある場合はセットする
+    for (let i = 0, len = index.Fields.length; i < len; i++) {
+      let field = index.Fields[i]
+      switch (field.Type) {
+      case "text":
+        if (field.Require) {
+          if (!fieldMap[field.Name] || fieldMap[field.Name] === "") {
+            fieldMap[field.Name] = {value: "", error: "This is required",type: field.Type}
+          }
+        }
+        break
+      case "select":
+        if (!fieldMap[field.Name]) {
+          fieldMap[field.Name] = {value: field.Options[0], error: null, type: field.Type}
+        }
+        break
+      default:
+        break
+      }
     }
+
+    for (let key in fieldMap) {
+      if (fieldMap[key].error && fieldMap[key].error !== "") {
+        this.setState({fieldMap: fieldMap})
+        return
+      }
+    }
+
+    submitQueries(index, fieldMap, targets, route.match.params)
+  };
+
+  render() {
+    const { classes, data, index, onClose, isSubmitting, title, rawData, submitButtonName } = this.props
+    const { fieldMap } = this.state;
 
     let fields = []
     for (let i = 0, len = index.Fields.length; i < len; i++) {
@@ -93,13 +115,13 @@ class BasicForm extends Component {
         autoFocus = true
       }
 
-
-      let f = fieldMap[field.Name]
       let value = ""
-      if (f) {
-        value = f.value
+      if (fieldState) {
+        value = fieldState.value
       } else {
-        value = rawData[field.Name]
+        if (rawData) {
+          value = rawData[field.Name]
+        }
       }
 
       switch (field.Type) {
@@ -108,9 +130,9 @@ class BasicForm extends Component {
           <TextField id={field.Name} key={field.Name}
             label={field.Name}
             autoFocus={autoFocus} margin="dense" type={field.Type} fullWidth
-            onChange={event => {this.handleTestFieldChange(event, field)}}
-            helperText={helperText}
+            onChange={event => {this.handleTextFieldChange(event, field)}}
             value={value}
+            helperText={helperText}
             error={isError}
           />
         )
@@ -166,56 +188,102 @@ class BasicForm extends Component {
       }
     }
 
-    return (
-      <div className={classes.root}>
-        {fields}
-      </div>
-    );
+		return (
+        <div className={classes.root}>
+          {title && <DialogTitle id="form-dialog-title">{ title }</DialogTitle>}
+          <DialogContent>
+            <DialogContentText>{ index.Description }</DialogContentText>
+            {fields}
+          </DialogContent>
+          <DialogActions>
+            <div className={classes.wrapper} style={{width: '100%'}}>
+              <Grid container>
+                <Grid container item xs={4} justify="flex-start">
+                  {onClose && <Button onClick={onClose} disabled={isSubmitting}>Cancel</Button>}
+                </Grid>
+                <Grid container item xs={4} justify="center">
+                  {isSubmitting && <CircularProgress size={24} className={classes.buttonProgress} />}
+                </Grid>
+                <Grid container item xs={4} justify="flex-end">
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    disabled={isSubmitting}
+                    onClick={this.handleActionSubmit}
+                  >
+                    {submitButtonName}
+                  </Button>
+                </Grid>
+              </Grid>
+            </div>
+
+          </DialogActions>
+        </div>
+      );
+  }
+}
+
+BasicForm.propTypes = {
+  classes: PropTypes.object.isRequired,
+  queryKind: PropTypes.string.isRequired,
+  submitButtonName: PropTypes.string.isRequired,
+}
+
+function mapStateToProps(state, ownProps) {
+  const { isSubmitting, isSubmitSuccess } = state.service;
+  return {
+    isSubmitting: isSubmitting,
+    isSubmitSuccess: isSubmitSuccess,
+  }
+}
+
+function mapDispatchToProps(dispatch, ownProps) {
+  const { queryKind } = ownProps;
+  return {
+    submitQueries: (index, fieldMap, targets, params) => {
+      dispatch(actions.service.serviceSubmitQueries(queryKind, index, fieldMap, targets, params));
+    }
   }
 }
 
 const styles = theme => ({
   root: {
-    // margin: theme.spacing.unit * 2,
     width: '100%',
   },
-  table: {
-    width: '100%',
+  wrapper: {
+    margin: theme.spacing.unit,
+    position: 'relative',
   },
-  tableWrapper: {
-    overflowX: 'auto',
+  buttonSuccess: {
+    backgroundColor: green[500],
+    '&:hover': {
+      backgroundColor: green[700],
+    },
   },
-  margin: {
-    // margin: theme.spacing.unit,
+  buttonFailed: {
+    backgroundColor: red[500],
+    '&:hover': {
+      backgroundColor: red[700],
+    },
   },
-  spacer: {
-    flex: '1 1 100%',
+  fabProgress: {
+    color: green[500],
+    position: 'absolute',
+    top: -6,
+    left: -6,
+    zIndex: 1,
   },
-  actions: {
-    color: theme.palette.text.secondary,
-  },
-  title: {
-    flex: '0 0 auto',
+  buttonProgress: {
+    color: green[500],
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    marginTop: -12,
+    marginLeft: -12,
   },
 });
-
-BasicForm.propTypes = {
-  classes: PropTypes.object.isRequired,
-};
-
-function mapStateToProps(state, ownProps) {
-  const auth = state.auth
-
-  return {
-    auth: auth,
-  }
-}
-
-function mapDispatchToProps(dispatch, ownProps) {
-  return {}
-}
 
 export default connect(
   mapStateToProps,
   mapDispatchToProps
-)(withStyles(styles)(BasicForm));
+)(withStyles(styles, {withTheme: true})(BasicForm));

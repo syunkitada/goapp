@@ -5,7 +5,7 @@ import { connect } from 'react-redux';
 import { withStyles } from '@material-ui/core/styles';
 
 import actions from '../../../actions'
-import BasicForm from './forms/BasicForm'
+import IndexForm from './forms/IndexForm'
 import IndexTable from './tables/IndexTable'
 import RoutePanels from './panels/RoutePanels'
 import RouteTabs from './tabs/RouteTabs'
@@ -36,7 +36,7 @@ function renderIndex(routes, data, index) {
     case "Table":
       return <IndexTable routes={routes} index={index} data={data} />
     case "Form":
-      return <BasicForm routes={routes} index={index} data={data} />
+      return <IndexForm routes={routes} index={index} data={data} />
     default:
       return <div>Unsupported Kind: {index.Kind}</div>
   }
