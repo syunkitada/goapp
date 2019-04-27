@@ -98,7 +98,6 @@ Index.propTypes = {
   auth: PropTypes.object.isRequired,
   service: PropTypes.object.isRequired,
   serviceName: PropTypes.string.isRequired,
-  projectName: PropTypes.string.isRequired,
 }
 
 function mapStateToProps(state, ownProps) {

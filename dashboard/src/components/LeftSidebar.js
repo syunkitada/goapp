@@ -43,21 +43,6 @@ class LeftSidebar extends Component {
       return null
     }
 
-    var services = [];
-    var serviceMap = null
-    var projectText = null
-    var prefixPath = null
-    if (match.params.project) {
-      prefixPath = '/Project/' + match.params.project + '/'
-      projectText = match.params.project
-      serviceMap = auth.user.Authority.ProjectServiceMap[match.params.project].ServiceMap
-      serviceMap['Home'] = {}
-    } else {
-      prefixPath = '/Service/'
-      projectText = 'Projects'
-      serviceMap = auth.user.Authority.ServiceMap
-    }
-
     // https://material.io/tools/icons/?style=baseline
     var serviceLinks = [
       ["Chat", <ChatIcon />],
@@ -68,6 +53,23 @@ class LeftSidebar extends Component {
       ["Resource.Virtual", <CloudQueueIcon />],
       ["Monitor", <AssessmentIcon />],
     ]
+
+    var services = [];
+    var serviceMap = null
+    var projectText = null
+    var prefixPath = null
+    if (match.params.project) {
+      prefixPath = '/Project/' + match.params.project + '/'
+      projectText = match.params.project
+      serviceMap = auth.user.Authority.ProjectServiceMap[match.params.project].ServiceMap
+
+      serviceMap['Home'] = {}
+      serviceLinks.unshift(["Home", <HomeIcon />])
+    } else {
+      prefixPath = '/Service/'
+      projectText = 'Projects'
+      serviceMap = auth.user.Authority.ServiceMap
+    }
 
     for (let serviceLink of serviceLinks) {
       if (serviceLink[0] in serviceMap) {

@@ -17,14 +17,29 @@ function post({serviceName, actionName, projectName, queries}) {
     credentials: 'include',
     mode: 'cors',
     body: body,
-  }).then(res => res.json()).then(function(payload) {
-    logger.info("modules", "post", queries, payload)
-    return {
-      payload: payload,
-    };
+  }).then(function(resp) {
+    if (!resp.ok) {
+      return {
+        payload: null,
+        error: {
+          errCode: resp.status,
+          err: resp.Err,
+        },
+      }
+    }
+
+    return resp.json().then(function(payload) {
+      return {
+        payload: payload,
+        error: null,
+      };
+    });
   }).catch(function(error) {
     return {
-      error: error
+      payload: null,
+      error: {
+        err: error,
+      }
     };
   });
 }

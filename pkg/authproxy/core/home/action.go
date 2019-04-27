@@ -18,6 +18,12 @@ func (srv *Home) Action(c *gin.Context) {
 	}
 
 	resp := map[string]interface{}{
+		"Data": gin.H{
+			"Tctx": gin.H{
+				"TraceId":    tctx.TraceId,
+				"StatusCode": 200,
+			},
+		},
 		"Index": map[string]interface{}{
 			"Name": "Root",
 			"Kind": "RoutePanels",
@@ -52,6 +58,12 @@ func (srv *Home) Chat(c *gin.Context) {
 	}
 
 	resp := map[string]interface{}{
+		"Data": gin.H{
+			"Tctx": gin.H{
+				"TraceId":    tctx.TraceId,
+				"StatusCode": 200,
+			},
+		},
 		"Index": map[string]interface{}{
 			"Name": "Root",
 			"Kind": "RoutePanels",
@@ -86,6 +98,12 @@ func (srv *Home) Wiki(c *gin.Context) {
 	}
 
 	resp := map[string]interface{}{
+		"Data": gin.H{
+			"Tctx": gin.H{
+				"TraceId":    tctx.TraceId,
+				"StatusCode": 200,
+			},
+		},
 		"Index": map[string]interface{}{
 			"Name": "Root",
 			"Kind": "RoutePanels",

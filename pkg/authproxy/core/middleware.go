@@ -113,7 +113,7 @@ func (authproxy *Authproxy) AuthRequired() gin.HandlerFunc {
 
 		if err := c.ShouldBindWith(&tokenAuthRequest, binding.JSON); err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{
-				"Err": "Invalid Auth Request",
+				"Error": "Invalid Auth Request",
 			})
 			c.Abort()
 			return

@@ -70,10 +70,9 @@ export default createActions({
     action: action,
     data: data
   }),
-  SERVICE_POST_FAILURE: (action, error, payloadError) => ({
+  SERVICE_POST_FAILURE: (action, error) => ({
     action: action,
     error: error,
-    payloadError: payloadError
   }),
 
 })

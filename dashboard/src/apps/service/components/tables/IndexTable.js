@@ -21,6 +21,7 @@ import TableToolbar from './TableToolbar'
 import FormDialog from '../dialogs/FormDialog'
 import sort_utils from '../../../../modules/sort_utils'
 import icon_utils from '../../../../modules/icon_utils'
+import actions from '../../../../actions'
 
 class IndexTable extends Component {
   state = {
@@ -114,6 +115,15 @@ class IndexTable extends Component {
 	handleActionDialogClose = () => {
 		this.setState({ actionName: null });
 	}
+
+  handleLinkClick = (event, link, value, column) => {
+    const { index, routes } = this.props
+    let route = routes[routes.length - 1]
+    const params = route.match.params
+    params[column.LinkParam] = value
+		this.props.getQueries(column.LinkGetQueries, column.LinkSync, route.match.params)
+    route.history.push(link)
+  }
 
   render() {
     const { routes, classes, index, data} = this.props
@@ -288,8 +298,9 @@ class IndexTable extends Component {
                       let splitedBeforeUrl = baseUrl.split('/')
                       link = baseUrl + '/' +splitedNextLink.join('/')
                       cells.push(
-                        <TableCell key={i} component="th" scope="row" padding="none">
-                          <Link to={`${link}`}>{n[i]}</Link>
+                        <TableCell key={i} component="th" scope="row" padding="none"
+                            onClick={e => {this.handleLinkClick(e, link, n[i], columns[i])}}>
+                          {n[i]}
                         </TableCell>
                       )
                     } else if (columns[i].Type === "Action") {
@@ -383,7 +394,11 @@ function mapStateToProps(state, ownProps) {
 }
 
 function mapDispatchToProps(dispatch, ownProps) {
-  return {}
+  return {
+    getQueries: (querys, isSync, params) => {
+      dispatch(actions.service.serviceGetQueries(querys, isSync, params));
+    }
+  }
 }
 
 export default connect(

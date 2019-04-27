@@ -20,14 +20,21 @@ class ExpansionPanels extends Component {
 	}
 
 	componentWillMount() {
-    const { routes, index } = this.props
+    const { routes, index, data } = this.props
     let route = routes.slice(-1)[0]
     let beforeRoute = routes.slice(-2)[0]
 
 		for (let i = 0, len = index.Panels.length; i < len; i++) {
 			let panel = index.Panels[i];
-			if (route.match.path === beforeRoute.match.path + panel.Route) {
-				if (panel.GetQueries) {
+			if (panel.ExpectedDataKeys && panel.GetQueries && route.match.path === beforeRoute.match.path + panel.Route) {
+        let isInit = false
+        for (let j = 0, len = panel.ExpectedDataKeys.length; j < len; j++) {
+          if (!data[panel.ExpectedDataKeys[j]]) {
+            isInit = true
+            break
+          }
+        }
+				if (isInit && panel.GetQueries) {
 					this.props.getQueries(panel.GetQueries, panel.IsSync, route.match.params)
 				}
 				break

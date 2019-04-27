@@ -10,9 +10,7 @@ function* post(action) {
   const {payload, error} = yield call(modules.service.post, action.payload)
 
   if (error) {
-    yield put(actions.service.servicePostFailure(action, error, null))
-  } else if (payload.error && payload.error !== "") {
-    yield put(actions.service.servicePostFailure(action, null, payload.error))
+    yield put(actions.service.servicePostFailure(action, error))
   } else {
     yield put(actions.service.servicePostSuccess(action, payload))
   }

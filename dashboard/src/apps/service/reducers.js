@@ -20,15 +20,17 @@ const defaultState = {
   datacenterIndex: null,
   serviceName: null,
   projectName: null,
+
   syncAction: null,
   syncDelay: 10000,
+
   serviceMap: {},
   projectServiceMap: {},
 };
 
 export default handleActions({
   [actions.service.serviceGetIndex]: (state, action) => {
-    logger.info("reducers", "serviceGetIndex")
+    logger.info("reducers", "serviceGetIndex", action.payload)
     let service = action.payload.serviceName
     let project = action.payload.projectName
     let newState = Object.assign({}, state, {
@@ -192,10 +194,9 @@ export default handleActions({
   },
 
   [actions.service.servicePostFailure]: (state, action) => {
-    let newState = Object.assign({}, defaultState, {
+    let newState = Object.assign({}, state, {
       isFetching: false,
       error: action.payload.error,
-      payloadError: action.payload.payloadError,
     })
 
     if (action.payload.action.type === 'SERVICE_SUBMIT_QUERIES') {
@@ -203,6 +204,16 @@ export default handleActions({
         isSubmitting: false,
       })
     }
+
+    let service = action.payload.action.payload.serviceName
+    let project = action.payload.action.payload.projectName
+    if (project) {
+      newState.projectServiceMap[project][service].isFetching = false
+    } else {
+      newState.serviceMap[service].isFetching = false
+    }
+
+    logger.error("reducers", "servicePostFailure: newState", action.payload.action.type, newState)
     return newState
   },
 }, defaultState);
