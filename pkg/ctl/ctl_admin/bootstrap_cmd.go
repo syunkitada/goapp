@@ -79,7 +79,9 @@ func (ctl *Ctl) Bootstrap(isRecreate bool) error {
 		clusterConf := *ctl.Conf
 		clusterConf.Resource.Node.ClusterName = clusterName
 		resourceClusterModelApi := resource_cluster_model_api.NewResourceClusterModelApi(&clusterConf)
-		resourceClusterModelApi.Bootstrap()
+		if err := resourceClusterModelApi.Bootstrap(); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -119,7 +121,7 @@ func (ctl *Ctl) CreateDatabase(isRecreate bool, connection string) error {
 		}
 	}
 
-	if err := ctl.ExecMysql(conn, "create database if not exists "+conn.database); err != nil {
+	if err := ctl.ExecMysql(conn, "create database if not exists "+conn.database+" DEFAULT CHARACTER SET utf8"); err != nil {
 		return err
 	}
 

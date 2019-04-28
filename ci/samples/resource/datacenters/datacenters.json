@@ -1,0 +1,45 @@
+{
+  "Kind": "Datacenter",
+  "Name": "Hokkaido",
+  "Spec": {
+    "Kind": "Private",
+    "Region": "Hokkaido",
+    "DomainSuffix": ".hkd.phy.example.com"
+  }
+}
+
+---
+
+{
+  "Kind": "Datacenter",
+  "Name": "Hukuoka",
+  "Spec": {
+    "Kind": "Private",
+    "Region": "Kyushu",
+    "DomainSuffix": ".hkt.phy.example.com"
+  }
+}
+
+---
+
+{
+  "Kind": "Datacenter",
+  "Name": "Washington",
+  "Spec": {
+    "Kind": "Shared",
+    "Region": "Washington",
+    "DomainSuffix": ".wst.phy.example.com"
+  }
+}
+
+---
+
+{
+  "Kind": "Datacenter",
+  "Name": "Singapore",
+  "Spec": {
+    "Kind": "Shared",
+    "Region": "Singapore",
+    "DomainSuffix": ".sgp.phy.example.com"
+  }
+}

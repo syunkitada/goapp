@@ -1,6 +1,14 @@
 {
-  "Model": "Unknown-server1",
-  "Description": "test用",
-  "Unit": 1,
-  "Kind": "Server"
+  "Kind": "PhysicalModel",
+  "Name": "Unknown-server1",
+  "Spec": {
+    "Kind": "Server",
+    "Unit": 1,
+    "Description": "test用",
+    "Spec": {
+      "Cpu": "EPYC7601 * 2, 32コア, 64スレッド, 基本クロック:2.2, 最大ブーストクロック:3.2GHz, TDP:180W",
+      "Memory": "512GB",
+      "Storage": "2TB"
+    }
+  }
 }
