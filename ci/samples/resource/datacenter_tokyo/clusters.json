@@ -1,11 +1,10 @@
 {
   "Kind": "Cluster",
-  "Name": "tokyo1",
+  "Name": "tokyo-1",
+  "Datacenter": "tokyo",
+  "VirtualResourceDomainSuffix": ".tky.vir.example.com",
   "Spec": {
-    "Kind": "Private",
-    "Datacenter": "tokyo",
-    "DomainSuffix": ".tokyo1.vir.example.com",
-    "Spec": {}
+    "Kind": "Cluster"
   }
 }
 
@@ -13,11 +12,10 @@
 
 {
   "Kind": "Cluster",
-  "Name": "tokyo2",
+  "Name": "tokyo-2",
+  "Datacenter": "tokyo",
+  "VirtualResourceDomainSuffix": ".tky.vir.example.com",
   "Spec": {
-    "Kind": "Private",
-    "Datacenter": "tokyo",
-    "DomainSuffix": ".tokyo2.vir.example.com",
-    "Spec": {}
+    "Kind": "Cluster"
   }
 }

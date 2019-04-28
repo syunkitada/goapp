@@ -63,17 +63,11 @@ func (modelApi *AuthproxyModelApi) Bootstrap(tctx *logger.TraceContext) error {
 		return err
 	}
 
-	userTenantServices := []string{"Wiki", "Chat", "Ticket", "Home"}
-	userAdminServices := []string{"Datacenter", "Home"}
-	projectTenantServices := []string{"Resource.Physical", "Resource.Virtual", "Monitor", "Home.Project"}
+	userTenantServices := []string{"Wiki", "Chat", "Ticket"}
+	userAdminServices := []string{"Datacenter"}
+	projectTenantServices := []string{"Resource", "Monitor"}
 	actionMap := map[string][]string{}
-	actionMap["Resource.Virtual"] = []string{"UserQuery"}
-	actionMap["Resource.Physical"] = []string{
-		"GetIndex",
-		"GetPhysicalIndex", "GetVirtualIndex",
-		"CreatePhysicalResource", "UpdatePhysicalResource",
-		"CreateVirtualResource", "UpdateVirtualResource",
-		"GetResource",
+	actionMap["Resource"] = []string{
 		"GetState", "GetCluster", "GetNode",
 		"GetNetwork", "CreateNetwork", "UpdateNetwork", "DeleteNetwork",
 		"GetNetworkV4", "CreateNetworkV4", "UpdateNetworkV4", "DeleteNetworkV4",
@@ -88,10 +82,6 @@ func (modelApi *AuthproxyModelApi) Bootstrap(tctx *logger.TraceContext) error {
 		"GetState", "GetUserState", "GetIndexState", "GetNode", "GetIndex", "GetHost", "GetLog", "GetMetric",
 		"GetIgnoreAlert", "CreateIgnoreAlert", "UpdateIgnoreAlert", "DeleteIgnoreAlert",
 	}
-	actionMap["Home.Project"] = []string{"GetIndex"}
-	actionMap["Home"] = []string{"GetIndex"}
-	actionMap["Chat"] = []string{"GetIndex"}
-	actionMap["Wiki"] = []string{"GetIndex"}
 
 	for _, userTenantService := range userTenantServices {
 		if err = modelApi.CreateService(tctx, userTenantService, "user"); err != nil {

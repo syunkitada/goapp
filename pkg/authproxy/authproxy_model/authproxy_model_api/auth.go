@@ -355,14 +355,10 @@ func (modelApi *AuthproxyModelApi) GetUserAuthority(tctx *logger.TraceContext, u
 	if err != nil {
 		return nil, err
 	}
-	defer func() {
-		if err := db.Close(); err != nil {
-			logger.Error(tctx, err)
-		}
-	}()
+	defer func() { err = db.Close() }()
 
 	var users []authproxy_model.CustomUser
-	if err = db.Raw(sqlSelectUser+"WHERE u.name = ?", username).Scan(&users).Error; err != nil {
+	if err := db.Raw(sqlSelectUser+"WHERE u.name = ?", username).Scan(&users).Error; err != nil {
 		return nil, err
 	}
 
@@ -395,34 +391,25 @@ func (modelApi *AuthproxyModelApi) GetUserAuthority(tctx *logger.TraceContext, u
 		ProjectServiceMap: projectServiceMap,
 	}
 
-	if actionRequest != nil && actionRequest.ProjectName != "" && actionRequest.ServiceName != "" {
+	if actionRequest != nil && actionRequest.ProjectName != "" && actionRequest.ServiceName != "" && actionRequest.Name != "" {
 		projectService, projectServiceOk := projectServiceMap[actionRequest.ProjectName]
 		if !projectServiceOk {
-			err = fmt.Errorf("NotFound %v in projectServiceMap", actionRequest.ProjectName)
-			return nil, err
+			return nil, fmt.Errorf("NotFound %v in projectServiceMap", actionRequest.ProjectName)
 		}
 
 		serviceID, serviceOk := projectService.ServiceMap[actionRequest.ServiceName]
 		if !serviceOk {
-			err = fmt.Errorf("NotFound %v in projectService.ServiceMap", actionRequest.ServiceName)
+			return nil, fmt.Errorf("NotFound %v in projectService.ServiceMap", actionRequest.ServiceName)
+		}
+
+		var action authproxy_model.Action
+		if err := db.Where("service_id = ? and name = ? and project_role_id = ?", serviceID, actionRequest.Name, projectService.ProjectRoleID).First(&action).Error; err != nil {
 			return nil, err
 		}
 
-		var actions []authproxy_model.Action
-		if err = db.Where("service_id = ? and project_role_id = ?", serviceID, projectService.ProjectRoleID).Find(&actions).Error; err != nil {
-			return nil, err
-		}
-
-		for _, query := range actionRequest.Queries {
-			for _, action := range actions {
-				if query.Kind == action.Name {
-					if action.RoleID != 0 && action.RoleID != projectService.RoleID {
-						err = fmt.Errorf("action.RoleID(%v) != projectService.RoleID(%v)",
-							action.RoleID, projectService.RoleID)
-						return nil, err
-					}
-				}
-			}
+		if action.RoleID != 0 && action.RoleID != projectService.RoleID {
+			return nil, fmt.Errorf("action.RoleID(%v) != projectService.RoleID(%v)",
+				action.RoleID, projectService.RoleID)
 		}
 
 		userAuthority.ActionProjectService = projectService

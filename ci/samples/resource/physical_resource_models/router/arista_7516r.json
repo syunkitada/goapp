@@ -1,13 +1,8 @@
 {
-  "Kind": "PhysicalModel",
-  "Name": "Arista-7516R",
-  "Spec": {
-    "Kind": "GatewayRouter",
-    "Unit": 29,
-    "Description": "https://www.arista.com/jp/products/platforms",
-    "Spec": {
-      "Throuput": "150Tbps",
-      "Port": "10GbE 2,304ポート,25GbE 2,304ポート,40GbE 576ポート,100GbE 576ポート,MACsec,コヒーレントDWDM"
-    }
-  }
+  "Model": "Arista-7516R",
+  "Description": "https://www.arista.com/jp/products/platforms",
+  "Throuput": "150Tbps",
+  "Port": "10GbE 2,304ポート,25GbE 2,304ポート,40GbE 576ポート,100GbE 576ポート,MACsec,コヒーレントDWDM",
+  "Unit": 29,
+  "Kind": "GatewayRouter"
 }

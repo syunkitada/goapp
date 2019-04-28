@@ -1,15 +1,6 @@
 package resource_model
 
 const (
-	ResourceKindDatacenter       = "Datacenter"
-	ResourceKindCluster          = "Cluster"
-	ResourceKindFloor            = "Floor"
-	ResourceKindRack             = "Rack"
-	ResourceKindPhysicalModel    = "PhysicalModel"
-	ResourceKindPhysicalResource = "PhysicalResource"
-)
-
-const (
 	KindResourceController = "ResourceController"
 	KindResourceApi        = "ResourceApi"
 )

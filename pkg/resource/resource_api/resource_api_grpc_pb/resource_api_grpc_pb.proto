@@ -30,36 +30,18 @@ message StatusReply {
 //
 message ActionRequest {
     authproxy_grpc_pb.TraceContext Tctx = 1;
-    repeated Query Queries = 2;
-}
-
-message Query {
-    string Kind = 1;
-    map<string, string> StrParams = 2;
-    map<string, int64> NumParams = 3;
+    string Target = 2;
+    string Cluster = 3;
+    string Spec = 4;
 }
 
 message ActionReply {
     authproxy_grpc_pb.TraceContext Tctx = 1;
-    string index = 2;
-    repeated Datacenter Datacenters = 3;
-    repeated Cluster Clusters = 4;
-    repeated Floor Floors = 5;
-    repeated Rack Racks = 6;
-    repeated PhysicalResource PhysicalResources = 7;
-    repeated PhysicalModel PhysicalModels = 8;
-
-    repeated Node Nodes = 9;
-    repeated Compute Computes = 10;
-    repeated Network Networks = 11;
-    repeated Image Images = 12;
-
-    Datacenter Datacenter = 21;
-    Cluster Cluster = 22;
-    Floor Floor = 23;
-    Rack Rack = 24;
-    PhysicalResource PhysicalResource = 25;
-    PhysicalModel PhysicalModel = 26;
+    repeated Cluster Clusters = 2;
+    repeated Node Nodes = 3;
+    repeated Compute Computes = 4;
+    repeated Network Networks = 5;
+    repeated Image Images = 6;
 }
 
 //
@@ -78,54 +60,6 @@ message UpdateNodeReply {
 //
 // Resources
 //
-message Datacenter {
-    google.protobuf.Timestamp UpdatedAt = 1;
-    google.protobuf.Timestamp CreatedAt = 2;
-    string Name = 3;
-    string Kind = 4;
-    string Region = 5;
-}
-
-message Floor {
-    google.protobuf.Timestamp UpdatedAt = 1;
-    google.protobuf.Timestamp CreatedAt = 2;
-    string Name = 3;
-    string Kind = 4;
-    string Datacenter = 5;
-    string Zone = 6;
-    uint32 Floor = 7;
-}
-
-message Rack {
-    google.protobuf.Timestamp UpdatedAt = 1;
-    google.protobuf.Timestamp CreatedAt = 2;
-    string Name = 3;
-    string Kind = 4;
-    string Datacenter = 5;
-    string Floor = 6;
-    uint32 Unit = 7;
-}
-
-message PhysicalResource {
-    google.protobuf.Timestamp UpdatedAt = 1;
-    google.protobuf.Timestamp CreatedAt = 2;
-    string Name = 3;
-    string Kind = 4;
-    string Datacenter = 5;
-    string Rack = 6;
-    string Model = 7;
-    string RackPosition = 8;
-    repeated string PowerLinks = 9;
-    repeated string NetLinks = 10;
-}
-
-message PhysicalModel {
-    google.protobuf.Timestamp UpdatedAt = 1;
-    google.protobuf.Timestamp CreatedAt = 2;
-    string Name = 3;
-    string Kind = 4;
-}
-
 message Cluster {
     google.protobuf.Timestamp UpdatedAt = 1;
     google.protobuf.Timestamp CreatedAt = 2;

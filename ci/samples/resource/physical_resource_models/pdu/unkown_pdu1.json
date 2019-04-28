@@ -1,10 +1,6 @@
 {
-  "Kind": "PhysicalModel",
-  "Name": "Unknown-pdu1",
-  "Spec": {
-    "Kind": "Pdu",
-    "Unit": 1,
-    "Description": "test用",
-    "Spec": {}
-  }
+  "Model": "Unknown-pdu1",
+  "Description": "test用",
+  "Unit": 1,
+  "Kind": "Pdu"
 }
