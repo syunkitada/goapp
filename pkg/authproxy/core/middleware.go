@@ -67,7 +67,7 @@ func (authproxy *Authproxy) ValidateHeaders() gin.HandlerFunc {
 			}
 			if !isGoodHost {
 				c.JSON(http.StatusForbidden, gin.H{
-					"err": fmt.Sprintf("Bad host name: %s", c.Request.Host),
+					"Err": fmt.Sprintf("Bad host name: %s", c.Request.Host),
 				})
 				c.Abort()
 				return
@@ -76,7 +76,7 @@ func (authproxy *Authproxy) ValidateHeaders() gin.HandlerFunc {
 		// If there was an error, do not continue request
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
-				"err": fmt.Sprintf("Failed to check allowed hosts"),
+				"Err": fmt.Sprintf("Failed to check allowed hosts"),
 			})
 			c.Abort()
 			return
@@ -113,7 +113,7 @@ func (authproxy *Authproxy) AuthRequired() gin.HandlerFunc {
 
 		if err := c.ShouldBindWith(&tokenAuthRequest, binding.JSON); err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{
-				"Error": "Invalid Auth Request",
+				"Err": "Invalid Auth Request: You need to login.",
 			})
 			c.Abort()
 			return
@@ -127,7 +127,7 @@ func (authproxy *Authproxy) AuthRequired() gin.HandlerFunc {
 		claims, err := authproxy.Token.ParseToken(tokenAuthRequest)
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{
-				"Err": "Invalid Auth Token",
+				"Err": "Invalid Auth Token: You need to login.",
 			})
 			c.Abort()
 			return
@@ -137,7 +137,7 @@ func (authproxy *Authproxy) AuthRequired() gin.HandlerFunc {
 		userAuthority, getUserAuthorityErr := authproxy.AuthproxyModelApi.GetUserAuthority(tctx, username, &tokenAuthRequest.Action)
 		if getUserAuthorityErr != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{
-				"Err": "Invalid Auth Action",
+				"Err": "Invalid AuthAction: This request is not allowed.",
 			})
 			c.Abort()
 			return

@@ -34,6 +34,7 @@ func (authproxy *Authproxy) NewHandler() http.Handler {
 		authorized.POST("/dashboard/logout", authproxy.Dashboard.Logout)
 		authorized.POST("/dashboard/state", authproxy.Dashboard.GetState)
 		authorized.POST("/Home", homeSrv.Action)
+		authorized.POST("/Home.Project", homeSrv.Action)
 		authorized.POST("/Chat", homeSrv.Chat)
 		authorized.POST("/Wiki", homeSrv.Wiki)
 		authorized.POST("/Resource.Physical", resourceAuthproxy.PhysicalAction)

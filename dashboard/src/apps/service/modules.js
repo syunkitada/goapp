@@ -19,13 +19,14 @@ function post({serviceName, actionName, projectName, queries}) {
     body: body,
   }).then(function(resp) {
     if (!resp.ok) {
-      return {
-        payload: null,
-        error: {
-          errCode: resp.status,
-          err: resp.Err,
-        },
-      }
+      return resp.json().then(function(payload) {
+        return {
+          error: {
+            errCode: resp.status,
+            err: payload.Err,
+          },
+        };
+      });
     }
 
     return resp.json().then(function(payload) {

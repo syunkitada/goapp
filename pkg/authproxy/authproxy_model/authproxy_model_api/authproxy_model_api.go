@@ -65,7 +65,7 @@ func (modelApi *AuthproxyModelApi) Bootstrap(tctx *logger.TraceContext) error {
 
 	userTenantServices := []string{"Wiki", "Chat", "Ticket", "Home"}
 	userAdminServices := []string{"Datacenter", "Home"}
-	projectTenantServices := []string{"Resource.Physical", "Resource.Virtual", "Monitor", "Home"}
+	projectTenantServices := []string{"Resource.Physical", "Resource.Virtual", "Monitor", "Home.Project"}
 	actionMap := map[string][]string{}
 	actionMap["Resource.Virtual"] = []string{"UserQuery"}
 	actionMap["Resource.Physical"] = []string{
@@ -88,9 +88,10 @@ func (modelApi *AuthproxyModelApi) Bootstrap(tctx *logger.TraceContext) error {
 		"GetState", "GetUserState", "GetIndexState", "GetNode", "GetIndex", "GetHost", "GetLog", "GetMetric",
 		"GetIgnoreAlert", "CreateIgnoreAlert", "UpdateIgnoreAlert", "DeleteIgnoreAlert",
 	}
-	actionMap["Home"] = []string{"UserQuery"}
-	actionMap["Chat"] = []string{"UserQuery"}
-	actionMap["Wiki"] = []string{"UserQuery"}
+	actionMap["Home.Project"] = []string{"GetIndex"}
+	actionMap["Home"] = []string{"GetIndex"}
+	actionMap["Chat"] = []string{"GetIndex"}
+	actionMap["Wiki"] = []string{"GetIndex"}
 
 	for _, userTenantService := range userTenantServices {
 		if err = modelApi.CreateService(tctx, userTenantService, "user"); err != nil {

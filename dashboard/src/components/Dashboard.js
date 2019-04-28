@@ -172,14 +172,14 @@ class Dashboard extends React.Component {
 
   render() {
     const { anchorEl } = this.state;
-    const { classes, children, projectService, match, auth, onClickLogout } = this.props;
+    const { classes, children, projectService, match, history, auth, onClickLogout } = this.props;
     const isMenuOpen = Boolean(anchorEl);
     const title = match.url
 
     const drawer = (
       <div>
         <div className={classes.toolbar} />
-        <LeftSidebar projectService={projectService} match={match} />
+        <LeftSidebar projectService={projectService} match={match} history={history} />
       </div>
     );
 
@@ -280,6 +280,8 @@ class Dashboard extends React.Component {
 Dashboard.propTypes = {
   classes: PropTypes.object.isRequired,
   auth: PropTypes.object.isRequired,
+  match: PropTypes.object.isRequired,
+  history: PropTypes.object.isRequired,
 };
 
 function mapStateToProps(state, ownProps) {

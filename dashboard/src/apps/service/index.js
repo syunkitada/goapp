@@ -19,15 +19,15 @@ class Service extends Component {
   }
 
   render() {
-    const {match, auth} = this.props
+    const {match, history, auth} = this.props
 
     if (!auth.user) {
       return null
     }
 
     return (
-      <Dashboard match={match}>
-        <Index match={match} />
+      <Dashboard match={match} history={history}>
+        <Index match={match} history={history} />
       </Dashboard>
     );
   }

@@ -29,11 +29,17 @@ const styles = theme => ({
 
 class LeftSidebar extends Component {
   state = {
-    open: false,
+    openProjects: false,
   };
 
-  handleClick = () => {
-    this.setState(state => ({open: !state.open}));
+  handleOpenProjectsClick = () => {
+    this.setState(state => ({openProjects: !state.openProjects}));
+  };
+
+  handleProjectClick = (event, path) => {
+    const { history } = this.props;
+    history.push(path)
+    this.setState({ openProjects: false });
   };
 
   render() {
@@ -49,6 +55,7 @@ class LeftSidebar extends Component {
       ["Wiki", <ReceiptIcon />],
       ["Ticket", <NoteAddIcon />],
       ["Datacenter", <LayersIcon />],
+      ["Home.Project", <HomeIcon />],
       ["Resource.Physical", <CloudIcon />],
       ["Resource.Virtual", <CloudQueueIcon />],
       ["Monitor", <AssessmentIcon />],
@@ -62,9 +69,6 @@ class LeftSidebar extends Component {
       prefixPath = '/Project/' + match.params.project + '/'
       projectText = match.params.project
       serviceMap = auth.user.Authority.ProjectServiceMap[match.params.project].ServiceMap
-
-      serviceMap['Home'] = {}
-      serviceLinks.unshift(["Home", <HomeIcon />])
     } else {
       prefixPath = '/Service/'
       projectText = 'Projects'
@@ -89,18 +93,16 @@ class LeftSidebar extends Component {
 
     var projects = [];
     for (let project in auth.user.Authority.ProjectServiceMap) {
-      let path = "/Project/" + project + "/Home"
+      let path = "/Project/" + project + "/Home.Project"
       projects.push(
-        <NavLink key={project} to={path} style={{textDecoration: 'none', color: 'unset'}}>
-          <List component="div" disablePadding>
-            <ListItem button className={classes.nested}>
-              <ListItemIcon>
-                <DashboardIcon />
-              </ListItemIcon>
-              <ListItemText inset primary={project} />
-            </ListItem>
-          </List>
-        </NavLink>
+        <List key={project} component="div" disablePadding>
+          <ListItem button className={classes.nested} onClick={event => this.handleProjectClick(event, path)}>
+            <ListItemIcon>
+              <DashboardIcon />
+            </ListItemIcon>
+            <ListItemText inset primary={project} />
+          </ListItem>
+        </List>
       )
     }
 
@@ -117,14 +119,14 @@ class LeftSidebar extends Component {
             </ListItem>
           </NavLink>
 
-          <ListItem button onClick={this.handleClick}>
+          <ListItem button onClick={this.handleOpenProjectsClick}>
             <ListItemIcon>
               <DashboardIcon />
             </ListItemIcon>
             <ListItemText inset primary={projectText} />
-            {this.state.open ? <ExpandLess /> : <ExpandMore />}
+            {this.state.openProjects ? <ExpandLess /> : <ExpandMore />}
           </ListItem>
-          <Collapse in={this.state.open} timeout="auto" unmountOnExit>
+          <Collapse in={this.state.openProjects} timeout="auto" unmountOnExit>
             {projects}
           </Collapse>
         </List>
@@ -141,6 +143,8 @@ class LeftSidebar extends Component {
 LeftSidebar.propTypes = {
   classes: PropTypes.object.isRequired,
   auth: PropTypes.object.isRequired,
+  match: PropTypes.object.isRequired,
+  history: PropTypes.object.isRequired,
 };
 
 function mapStateToProps(state, ownProps) {

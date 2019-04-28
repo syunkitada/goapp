@@ -62,6 +62,8 @@ export default createActions({
     }
   },
 
+  SERVICE_CLOSE_ERR: () => {},
+
   SERVICE_CLOSE_GET_QUERIES_TCTX: () => {},
 
   SERVICE_CLOSE_SUBMIT_QUERIES_TCTX: () => {},

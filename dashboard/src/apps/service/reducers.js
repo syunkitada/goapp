@@ -101,6 +101,13 @@ export default handleActions({
     })
   },
 
+  [actions.service.serviceCloseErr]: (state) => {
+    logger.info("reducers", "serviceCloseErr")
+    return Object.assign({}, state, {
+      error: null,
+    })
+  },
+
   [actions.service.serviceCloseGetQueriesTctx]: (state) => {
     logger.info("reducers", "serviceCloseGetQueriesTctx")
     return Object.assign({}, state, {

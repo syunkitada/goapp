@@ -63,10 +63,12 @@ class IndexTable extends Component {
 	};
 
 	handleSelectAllClick = event => {
-    const { columns, data } = this.props
+    const { index, data } = this.props
+    const columns = index.Columns
 		const keyColumn = columns[0].Name
+    let rawData = data[index.DataKey]
 		if (event.target.checked) {
-			this.setState(state => ({ selected: data.map(n => n[keyColumn]) }));
+			this.setState(state => ({ selected: rawData.map(n => n[keyColumn]) }));
 			return;
 		}
 

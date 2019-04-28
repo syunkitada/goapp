@@ -10,6 +10,7 @@ import IndexTable from './tables/IndexTable'
 import RoutePanels from './panels/RoutePanels'
 import RouteTabs from './tabs/RouteTabs'
 import Tabs from './tabs/Tabs'
+import RequestErrSnackbar from './snackbars/RequestErrSnackbar'
 import GetMsgSnackbar from './snackbars/GetMsgSnackbar'
 import SubmitMsgSnackbar from './snackbars/SubmitMsgSnackbar'
 
@@ -79,12 +80,15 @@ class Index extends Component {
       return <div>Fetching...</div>
     }
 
+    console.log("DEBUG HOGElwlwlw")
+
     const routes = [this.props]
     let html = renderIndex(routes, state.Data, state.Index)
 
     return (
       <div>
         { html }
+				<RequestErrSnackbar />
 				<GetMsgSnackbar />
 				<SubmitMsgSnackbar />
       </div>

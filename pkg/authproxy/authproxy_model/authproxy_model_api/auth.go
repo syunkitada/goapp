@@ -355,10 +355,14 @@ func (modelApi *AuthproxyModelApi) GetUserAuthority(tctx *logger.TraceContext, u
 	if err != nil {
 		return nil, err
 	}
-	defer func() { err = db.Close() }()
+	defer func() {
+		if err := db.Close(); err != nil {
+			logger.Error(tctx, err)
+		}
+	}()
 
 	var users []authproxy_model.CustomUser
-	if err := db.Raw(sqlSelectUser+"WHERE u.name = ?", username).Scan(&users).Error; err != nil {
+	if err = db.Raw(sqlSelectUser+"WHERE u.name = ?", username).Scan(&users).Error; err != nil {
 		return nil, err
 	}
 
@@ -394,16 +398,18 @@ func (modelApi *AuthproxyModelApi) GetUserAuthority(tctx *logger.TraceContext, u
 	if actionRequest != nil && actionRequest.ProjectName != "" && actionRequest.ServiceName != "" {
 		projectService, projectServiceOk := projectServiceMap[actionRequest.ProjectName]
 		if !projectServiceOk {
-			return nil, fmt.Errorf("NotFound %v in projectServiceMap", actionRequest.ProjectName)
+			err = fmt.Errorf("NotFound %v in projectServiceMap", actionRequest.ProjectName)
+			return nil, err
 		}
 
 		serviceID, serviceOk := projectService.ServiceMap[actionRequest.ServiceName]
 		if !serviceOk {
-			return nil, fmt.Errorf("NotFound %v in projectService.ServiceMap", actionRequest.ServiceName)
+			err = fmt.Errorf("NotFound %v in projectService.ServiceMap", actionRequest.ServiceName)
+			return nil, err
 		}
 
 		var actions []authproxy_model.Action
-		if err := db.Where("service_id = ? and project_role_id = ?", serviceID, projectService.ProjectRoleID).Find(&actions).Error; err != nil {
+		if err = db.Where("service_id = ? and project_role_id = ?", serviceID, projectService.ProjectRoleID).Find(&actions).Error; err != nil {
 			return nil, err
 		}
 
@@ -411,8 +417,9 @@ func (modelApi *AuthproxyModelApi) GetUserAuthority(tctx *logger.TraceContext, u
 			for _, action := range actions {
 				if query.Kind == action.Name {
 					if action.RoleID != 0 && action.RoleID != projectService.RoleID {
-						return nil, fmt.Errorf("action.RoleID(%v) != projectService.RoleID(%v)",
+						err = fmt.Errorf("action.RoleID(%v) != projectService.RoleID(%v)",
 							action.RoleID, projectService.RoleID)
+						return nil, err
 					}
 				}
 			}
