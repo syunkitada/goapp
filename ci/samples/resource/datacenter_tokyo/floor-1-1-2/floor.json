@@ -1,8 +1,11 @@
 {
   "Kind": "Floor",
-  "Name": "1-1-2",
-  "Datacenter": "tokyo",
+  "Name": "floor-1-1-2",
   "Spec": {
-    "Kind": "Floor"
+    "Kind": "Floor",
+    "Datacenter": "tokyo",
+    "Zone": "Zone1",
+    "Floor": 1,
+    "Spec": {}
   }
 }

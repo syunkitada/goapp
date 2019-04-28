@@ -1,8 +1,13 @@
 {
-  "Model": "Arista-7324",
-  "Description": "https://www.arista.com/jp/products/platforms",
-  "Throuput": "20Tbps",
-  "Port": "100GbE 128ポート, 25GbE 512ポート",
-  "Unit": 8,
-  "Kind": "FloorLeafRouter"
+  "Kind": "PhysicalModel",
+  "Name": "Arista-7324",
+  "Spec": {
+    "Kind": "FloorLeafRouter",
+    "Unit": 8,
+    "Description": "https://www.arista.com/jp/products/platforms",
+    "Spec": {
+      "Throuput": "20Tbps",
+      "Port": "100GbE 128ポート, 25GbE 512ポート"
+    }
+  }
 }

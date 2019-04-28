@@ -1,8 +1,6 @@
 package resource_api_client
 
 import (
-	"encoding/json"
-
 	"github.com/syunkitada/goapp/pkg/base"
 	"github.com/syunkitada/goapp/pkg/config"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
@@ -53,11 +51,19 @@ func (cli *ResourceApiClient) Action(tctx *logger.ActionTraceContext) (*resource
 	startTime := logger.StartTrace(&tctx.TraceContext)
 	defer func() { logger.EndTrace(&tctx.TraceContext, startTime, err, 1) }()
 
-	var req resource_api_grpc_pb.ActionRequest
-	if err = json.Unmarshal([]byte(tctx.ActionData), &req); err != nil {
-		return nil, err
+	queries := []*resource_api_grpc_pb.Query{}
+	for _, query := range tctx.Queries {
+		queries = append(queries, &resource_api_grpc_pb.Query{
+			Kind:      query.Kind,
+			StrParams: query.StrParams,
+			NumParams: query.NumParams,
+		})
 	}
-	req.Tctx = logger.NewAuthproxyTraceContext(nil, tctx)
+
+	req := resource_api_grpc_pb.ActionRequest{
+		Tctx:    logger.NewAuthproxyTraceContext(nil, tctx),
+		Queries: queries,
+	}
 
 	conn, err := cli.NewClientConnection()
 	if err != nil {

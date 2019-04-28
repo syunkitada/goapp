@@ -1,0 +1,57 @@
+{
+  "Kind": "Pdu",
+  "Name": "floor-1-1-1-rack-1-4-pdu01",
+  "Spec": {
+    "Kind": "Pdu",
+    "Datacenter": "osaka",
+    "Rack": "floor-1-1-1-rack-1-4",
+    "Model": "Unknown-pdu1",
+    "RackPosition": 1,
+    "PowerLinks": [
+      "root-1-floor-spine-router01",
+      "root-1-floor-spine-router02",
+      "root-2-floor-spine-router01",
+      "root-2-floor-spine-router02"
+    ]
+  }
+}
+
+---
+
+{
+  "Kind": "PhysicalResource",
+  "Name": "root-1-floor-spine-router02",
+  "Spec": {
+    "Kind": "FloorSpineRouter",
+    "Datacenter": "osaka",
+    "Rack": "floor-1-1-1-rack-1-4",
+    "Model": "Arista-7328X",
+    "RackPosition": 4,
+    "NetLinks": [
+      "floor-1-1-2-floor-leaf-router01",
+      "floor-1-1-2-floor-leaf-router02",
+      "floor-1-1-2-floor-leaf-router03",
+      "floor-1-1-2-floor-leaf-router04"
+    ]
+  }
+}
+
+---
+
+{
+  "Kind": "PhysicalResource",
+  "Name": "root-2-floor-spine-router02",
+  "Spec": {
+    "Kind": "FloorSpineRouter",
+    "Datacenter": "osaka",
+    "Rack": "floor-1-1-1-rack-1-4",
+    "Model": "Arista-7328X",
+    "RackPosition": 18,
+    "NetLinks": [
+      "floor-1-1-2-floor-leaf-router01",
+      "floor-1-1-2-floor-leaf-router02",
+      "floor-1-1-2-floor-leaf-router03",
+      "floor-1-1-2-floor-leaf-router04"
+    ]
+  }
+}

@@ -1,10 +1,13 @@
 import React, {Component} from 'react'
 import { connect } from 'react-redux'
-import { BrowserRouter, Route, Link, Switch, Redirect, withRouter } from 'react-router-dom';
+import { Route, Redirect } from 'react-router-dom';
+
+import logger from '../lib/logger';
 
 class AuthRoute extends Component {
   render() {
     const { component: Component, auth, ...rest } = this.props
+    logger.info('AuthRoute', 'render()')
     return (
       <Route {...rest}
         render={props =>
@@ -13,7 +16,7 @@ class AuthRoute extends Component {
           ) : (
             <Redirect
               to={{
-                pathname: "/login",
+                pathname: '/login',
                 state: { from: props.location }
               }}
             />

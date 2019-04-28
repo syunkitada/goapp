@@ -18,6 +18,7 @@ import (
 	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_grpc_pb"
 	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_model"
 	"github.com/syunkitada/goapp/pkg/config"
+	"github.com/syunkitada/goapp/pkg/lib/codes"
 	"github.com/syunkitada/goapp/pkg/lib/error_utils"
 )
 
@@ -53,8 +54,7 @@ type ActionTraceContext struct {
 	RoleName        string
 	ProjectName     string
 	ProjectRoleName string
-	ActionName      string
-	ActionData      string
+	Queries         []authproxy_model.Query
 }
 
 func NewTraceContext(host string, app string) *TraceContext {
@@ -104,6 +104,9 @@ func NewAuthproxyActionTraceContext(host string, app string, c *gin.Context) (*A
 	}
 	tmpAuthority := userAuthority.(*authproxy_model.UserAuthority)
 	tmpAction := action.(authproxy_model.ActionRequest)
+
+	fmt.Println("DEBUG Action")
+	fmt.Println(tmpAction.Queries)
 	return &ActionTraceContext{
 		TraceContext: TraceContext{
 			TraceId: traceId.(string),
@@ -117,8 +120,7 @@ func NewAuthproxyActionTraceContext(host string, app string, c *gin.Context) (*A
 		RoleName:        tmpAuthority.ActionProjectService.RoleName,
 		ProjectName:     tmpAuthority.ActionProjectService.ProjectName,
 		ProjectRoleName: tmpAuthority.ActionProjectService.ProjectRoleName,
-		ActionName:      tmpAction.Name,
-		ActionData:      tmpAction.Data,
+		Queries:         tmpAction.Queries,
 	}, nil
 }
 
@@ -151,7 +153,6 @@ func NewAuthproxyTraceContext(tctx *TraceContext, atctx *ActionTraceContext) *au
 	if atctx != nil {
 		return &authproxy_grpc_pb.TraceContext{
 			TraceId:         atctx.TraceId,
-			ActionName:      atctx.ActionName,
 			UserName:        atctx.UserName,
 			RoleName:        atctx.RoleName,
 			ProjectName:     atctx.ProjectName,
@@ -191,6 +192,11 @@ func NewGrpcAuthproxyTraceContext(host string, app string, ctx context.Context, 
 	}
 
 	return tctx
+}
+
+func SetErrorTraceContext(tctx *authproxy_grpc_pb.TraceContext, statusCode int64, data interface{}) {
+	tctx.StatusCode = statusCode
+	tctx.Err = codes.GetMsg(statusCode, data)
 }
 
 func Init() {
@@ -330,7 +336,7 @@ func EndTrace(tctx *TraceContext, startTime time.Time, err error, depth int) {
 	tctx.Func = getFunc(depth)
 	tctx.Metadata["Latency"] = strconv.FormatInt(time.Now().Sub(startTime).Nanoseconds()/1000000, 10)
 	if err != nil {
-		Logger.Print(timePrefix() + " Level=\"" + errorLog + "\" Msg=\"EndTrace\"" + convertTags(tctx))
+		Logger.Print(timePrefix() + " Level=\"" + errorLog + "\" Msg=\"EndTrace\" Err=\"" + err.Error() + "\"" + convertTags(tctx))
 	} else {
 		Logger.Print(timePrefix() + " Level=\"" + infoLog + "\" Msg=\"EndTrace\"" + convertTags(tctx))
 	}
