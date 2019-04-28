@@ -12,7 +12,7 @@ type ResourceCtl struct {
 }
 
 func New(ctl *config.Config, authproxy *core.Authproxy) *ResourceCtl {
-	client := authproxy_client.New(&config.Conf, "Resource.Physical", authproxy)
+	client := authproxy_client.New(&config.Conf, "Resource", authproxy)
 
 	return &ResourceCtl{
 		ctl:    ctl,

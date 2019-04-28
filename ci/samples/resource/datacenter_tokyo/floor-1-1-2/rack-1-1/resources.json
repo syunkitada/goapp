@@ -1,10 +1,10 @@
 {
   "Kind": "Pdu",
   "Name": "floor-1-1-2-rack-1-1-pdu01",
+  "Datacenter": "tokyo",
+  "Rack": "floor-1-1-2-rack-1-1",
   "Spec": {
     "Kind": "Pdu",
-    "Datacenter": "tokyo",
-    "Rack": "floor-1-1-2-rack-1-1",
     "Model": "Unknown-pdu1",
     "RackPosition": 1,
     "PowerLinks": [
@@ -21,18 +21,12 @@
 {
   "Kind": "PhysicalResource",
   "Name": "floor-1-1-2-floor-leaf-router01",
+  "Datacenter": "tokyo",
+  "Rack": "floor-1-1-2-rack-1-1",
   "Spec": {
     "Kind": "FloorLeafRouter",
-    "Datacenter": "tokyo",
-    "Rack": "floor-1-1-2-rack-1-1",
     "Model": "Arista-7324",
-    "RackPosition": 4,
-    "NetLinks": [
-      "floor-1-1-2-rack-spine-router01",
-      "floor-1-1-2-rack-spine-router02",
-      "floor-1-1-2-rack-spine-router03",
-      "floor-1-1-2-rack-spine-router04"
-    ]
+    "RackPosition": 4
   }
 }
 
@@ -41,17 +35,11 @@
 {
   "Kind": "PhysicalResource",
   "Name": "floor-1-1-2-floor-leaf-router02",
+  "Datacenter": "tokyo",
+  "Rack": "floor-1-1-2-rack-1-1",
   "Spec": {
     "Kind": "FloorLeafRouter",
-    "Datacenter": "tokyo",
-    "Rack": "floor-1-1-2-rack-1-1",
     "Model": "Arista-7324",
-    "RackPosition": 18,
-    "NetLinks": [
-      "floor-1-1-2-rack-spine-router01",
-      "floor-1-1-2-rack-spine-router02",
-      "floor-1-1-2-rack-spine-router03",
-      "floor-1-1-2-rack-spine-router04"
-    ]
+    "RackPosition": 18
   }
 }

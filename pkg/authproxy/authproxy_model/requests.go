@@ -14,11 +14,6 @@ type TokenAuthRequest struct {
 type ActionRequest struct {
 	ProjectName string
 	ServiceName string
-	Queries     []Query
-}
-
-type Query struct {
-	Kind      string
-	StrParams map[string]string
-	NumParams map[string]int64
+	Name        string
+	Data        string
 }

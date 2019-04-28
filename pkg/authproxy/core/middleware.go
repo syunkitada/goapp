@@ -67,7 +67,7 @@ func (authproxy *Authproxy) ValidateHeaders() gin.HandlerFunc {
 			}
 			if !isGoodHost {
 				c.JSON(http.StatusForbidden, gin.H{
-					"Err": fmt.Sprintf("Bad host name: %s", c.Request.Host),
+					"err": fmt.Sprintf("Bad host name: %s", c.Request.Host),
 				})
 				c.Abort()
 				return
@@ -76,7 +76,7 @@ func (authproxy *Authproxy) ValidateHeaders() gin.HandlerFunc {
 		// If there was an error, do not continue request
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
-				"Err": fmt.Sprintf("Failed to check allowed hosts"),
+				"err": fmt.Sprintf("Failed to check allowed hosts"),
 			})
 			c.Abort()
 			return
@@ -113,7 +113,7 @@ func (authproxy *Authproxy) AuthRequired() gin.HandlerFunc {
 
 		if err := c.ShouldBindWith(&tokenAuthRequest, binding.JSON); err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{
-				"Err": "Invalid Auth Request: You need to login.",
+				"Err": "Invalid Auth Request",
 			})
 			c.Abort()
 			return
@@ -127,7 +127,7 @@ func (authproxy *Authproxy) AuthRequired() gin.HandlerFunc {
 		claims, err := authproxy.Token.ParseToken(tokenAuthRequest)
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{
-				"Err": "Invalid Auth Token: You need to login.",
+				"Err": "Invalid Auth Token",
 			})
 			c.Abort()
 			return
@@ -137,7 +137,7 @@ func (authproxy *Authproxy) AuthRequired() gin.HandlerFunc {
 		userAuthority, getUserAuthorityErr := authproxy.AuthproxyModelApi.GetUserAuthority(tctx, username, &tokenAuthRequest.Action)
 		if getUserAuthorityErr != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{
-				"Err": "Invalid AuthAction: This request is not allowed.",
+				"Err": "Invalid Auth Action",
 			})
 			c.Abort()
 			return
@@ -150,12 +150,11 @@ func (authproxy *Authproxy) AuthRequired() gin.HandlerFunc {
 }
 
 func (authproxy *Authproxy) WsAuthRequired() gin.HandlerFunc {
-	// FIXME
 	return func(c *gin.Context) {
 		token := c.Request.Header["X-Auth-Token"]
 		projectName := c.Request.Header["X-Auth-Project"]
 		serviceName := c.Request.Header["X-Auth-Service"]
-		// actionName := c.Request.Header["X-Auth-Action"]
+		actionName := c.Request.Header["X-Auth-Action"]
 
 		traceId := c.GetString("TraceId")
 		tctx := logger.NewTraceContextWithTraceId(traceId, authproxy.host, authproxy.name)
@@ -165,7 +164,7 @@ func (authproxy *Authproxy) WsAuthRequired() gin.HandlerFunc {
 			Action: authproxy_model.ActionRequest{
 				ProjectName: projectName[0],
 				ServiceName: serviceName[0],
-				// Name:        actionName[0],
+				Name:        actionName[0],
 			},
 		}
 

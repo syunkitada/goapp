@@ -1,9 +1,0 @@
-{
-  "Kind": "Datacenter",
-  "Name": "Osaka",
-  "Spec": {
-    "Kind": "Private",
-    "Region": "Kansai",
-    "DomainSuffix": ".osk.phy.example.com"
-  }
-}

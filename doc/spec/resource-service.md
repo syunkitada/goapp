@@ -171,10 +171,6 @@
     * Datacenterは複数のFloorから構成され、Floorには複数のRackが収容される
     * PhysicalResourceの収容場所を管理するために利用される
     * 管理データとして存在するのみで、Datacenterごとに特別なAPIなどはない
-* PhysicalResource
-    * 物理リソースの管理単位
-    * 物理リソースのメタ情報や、物理的な依存関係を管理する
-    * 状態は持たず、静的な情報のみを管理する
 * Cluster
     * Clusterは仮想リソースの所属単位でDatacenterに所属する
     * ClusterごとにAPIがあり、そのクラスタに所属するリソースを操作するために利用される
@@ -182,13 +178,7 @@
 * NetworkAvailabilityZone
     * Clusterのネットワーク冗長を考慮し、L3管理レイヤ(コアルータ、アグリゲートルータなど)ごとに分割する
 * NodeAvailabilityZone
-    * Clusterのラック冗長、電源冗長を考慮し、Nodeの管理レイヤごとに分割する
-* Node
-    * Clusterに属し、PhysicalResourceを一対一で管理するためのリソース
-    * Status、Stateといった動的に変化する状態を持つ
-    * 仮想リソースが実体化される場合、このNodeに紐好いて管理される
-* 仮想リソース
-    * Compute, Network, Imageなどのリソース
+    * Clusterのラック冗長、電源冗長を考慮し、ノードの管理レイヤごとに分割する
 
 
 ## 処理フローの概要
