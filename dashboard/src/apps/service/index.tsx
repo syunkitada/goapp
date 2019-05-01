@@ -1,28 +1,34 @@
 import * as React from 'react';
-import { connect } from 'react-redux';
+import {connect} from 'react-redux';
 
-import Dashboard from '../../components/Dashboard'
-import Index from './components/Index'
+import Dashboard from '../../components/Dashboard';
+import Index from './components/Index';
 
-import actions from '../../actions'
-import logger from '../../lib/logger'
+import actions from '../../actions';
+import logger from '../../lib/logger';
 
+interface IService {
+  match;
+  history;
+  auth;
+  startBackgroundSync;
+}
 
-class Service extends React.Component {
+class Service extends React.Component<IService> {
   componentWillMount() {
-    logger.info("Service", "componentWillMount()")
-    this.props.startBackgroundSync()
+    logger.info(['Service', 'componentWillMount()']);
+    this.props.startBackgroundSync();
   }
 
   componentWillUnmount() {
-    logger.info("Service", "componentWillUnmount()")
+    logger.info(['Service', 'componentWillUnmount()']);
   }
 
   render() {
-    const {match, history, auth} = this.props
+    const {match, history, auth} = this.props;
 
     if (!auth.user) {
-      return null
+      return null;
     }
 
     return (
@@ -34,24 +40,24 @@ class Service extends React.Component {
 }
 
 function mapStateToProps(state, ownProps) {
-  const auth = state.auth
-  const match = ownProps.match
+  const auth = state.auth;
+  const match = ownProps.match;
 
   return {
     match: match,
     auth: auth,
-  }
+  };
 }
 
 function mapDispatchToProps(dispatch, ownProps) {
   return {
     startBackgroundSync: () => {
-      dispatch(actions.service.serviceStartBackgroundSync())
-    }
-  }
+      dispatch(actions.service.serviceStartBackgroundSync());
+    },
+  };
 }
 
 export default connect(
   mapStateToProps,
   mapDispatchToProps,
-)(Service)
+)(Service);

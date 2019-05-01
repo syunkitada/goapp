@@ -86,16 +86,16 @@ function* sync(action) {
     while (true) {
       const serviceState = Object.assign({}, store.getState().service);
       if (serviceState.syncAction) {
-        logger.info('saga', 'sync', 'syncAction');
+        logger.info(['saga', 'sync', 'syncAction']);
         yield call(post, serviceState.syncAction);
       } else {
-        logger.info('saga', 'sync', 'syncAction is null');
+        logger.info(['saga', 'sync', 'syncAction is null']);
       }
       yield delay(serviceState.syncDelay);
     }
   } finally {
     if (yield cancelled()) {
-      logger.info('saga', 'sync', 'finally');
+      logger.info(['saga', 'sync', 'finally']);
       // yield put(actions.requestFailure('Sync cancelled!'))
     }
   }

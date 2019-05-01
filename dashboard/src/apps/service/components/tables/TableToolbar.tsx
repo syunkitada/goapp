@@ -129,8 +129,6 @@ class TableToolbar extends React.Component<ITableToolbar> {
           actionButtons.push(
             <Tooltip key={i} title={action.Name}>
               <IconButton
-                variant="outlined"
-                size="small"
                 color="secondary"
                 className={classes.marginButton}
                 onClick={e => onActionClick(e, action.Name)}>
@@ -147,8 +145,6 @@ class TableToolbar extends React.Component<ITableToolbar> {
           actionButtons.push(
             <Tooltip key={i} title={action.Name}>
               <IconButton
-                variant="outlined"
-                size="small"
                 color="primary"
                 className={classes.marginButton}
                 onClick={e => onActionClick(e, action.Name)}>
@@ -207,4 +203,4 @@ function mapDispatchToProps(dispatch, ownProps) {
 export default connect(
   mapStateToProps,
   mapDispatchToProps,
-)(withStyles(style, {withTheme: true})(TableToolbar));
+)(withStyles(styles, {withTheme: true})(TableToolbar));

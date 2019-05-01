@@ -11,14 +11,14 @@ interface IAuth {
 }
 
 class Auth extends React.Component<IAuth> {
-  componentWillMount() {
+  public componentWillMount() {
     if (!this.props.auth.isSyncState) {
       logger.info(['Auth', 'componentWillMount()']);
       this.props.syncState();
     }
   }
 
-  render() {
+  public render() {
     const {children} = this.props;
 
     return <div>{children}</div>;
@@ -29,10 +29,7 @@ function mapStateToProps(state, ownProps) {
   const auth = state.auth;
   const children = ownProps.children;
 
-  return {
-    auth: auth,
-    children: children,
-  };
+  return {auth, children};
 }
 
 function mapDispatchToProps(dispatch, ownProps) {

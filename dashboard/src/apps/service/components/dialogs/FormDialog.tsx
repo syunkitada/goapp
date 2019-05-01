@@ -13,10 +13,10 @@ interface IFormDialog {
 }
 
 class FormDialog extends React.Component<IFormDialog> {
-  render() {
+  public render() {
     const {data, open, action, onClose} = this.props;
-    let title = action.Name + ' ' + action.DataKind;
-    let queryKind = action.Name + action.DataKind;
+    const title = action.Name + ' ' + action.DataKind;
+    const queryKind = action.Name + action.DataKind;
 
     return (
       <div>

@@ -1,5 +1,11 @@
 import * as React from 'react';
-// import PropTypes from 'prop-types';
+
+import {Theme} from '@material-ui/core/styles/createMuiTheme';
+import withStyles, {
+  WithStyles,
+  StyleRules,
+} from '@material-ui/core/styles/withStyles';
+import createStyles from '@material-ui/core/styles/createStyles';
 
 import classNames from 'classnames';
 import CheckCircleIcon from '@material-ui/icons/CheckCircle';
@@ -12,7 +18,6 @@ import IconButton from '@material-ui/core/IconButton';
 import Snackbar from '@material-ui/core/Snackbar';
 import SnackbarContent from '@material-ui/core/SnackbarContent';
 import WarningIcon from '@material-ui/icons/Warning';
-import {withStyles} from '@material-ui/core/styles';
 
 const variantIcon = {
   success: CheckCircleIcon,
@@ -21,34 +26,34 @@ const variantIcon = {
   info: InfoIcon,
 };
 
-const styles = theme => ({
-  success: {
-    backgroundColor: green[600],
-  },
-  error: {
-    backgroundColor: theme.palette.error.dark,
-  },
-  info: {
-    backgroundColor: theme.palette.primary.dark,
-  },
-  warning: {
-    backgroundColor: amber[700],
-  },
-  icon: {
-    fontSize: 20,
-  },
-  iconVariant: {
-    opacity: 0.9,
-    marginRight: theme.spacing.unit,
-  },
-  message: {
-    display: 'flex',
-    alignItems: 'center',
-  },
-});
+const styles = (theme: Theme): StyleRules =>
+  createStyles({
+    success: {
+      backgroundColor: green[600],
+    },
+    error: {
+      backgroundColor: theme.palette.error.dark,
+    },
+    info: {
+      backgroundColor: theme.palette.primary.dark,
+    },
+    warning: {
+      backgroundColor: amber[700],
+    },
+    icon: {
+      fontSize: 20,
+    },
+    iconVariant: {
+      opacity: 0.9,
+      marginRight: theme.spacing.unit,
+    },
+    message: {
+      display: 'flex',
+      alignItems: 'center',
+    },
+  });
 
-interface IMsgSnackbar {
-  classes;
+interface IMsgSnackbar extends WithStyles<typeof styles> {
   open;
   onClose;
   variant;
@@ -61,7 +66,6 @@ class MsgSnackbar extends React.Component<IMsgSnackbar> {
   render() {
     const {
       classes,
-      className,
       open,
       onClose,
       variant,
@@ -81,7 +85,7 @@ class MsgSnackbar extends React.Component<IMsgSnackbar> {
           'aria-describedby': 'message-id',
         }}>
         <SnackbarContent
-          className={classNames(classes[variant], className)}
+          className={classNames(classes[variant])}
           aria-describedby="client-snackbar"
           message={
             <span id="client-snackbar" className={classes.message}>

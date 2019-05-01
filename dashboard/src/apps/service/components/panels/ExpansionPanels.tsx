@@ -26,12 +26,12 @@ interface IExpansionPanels extends WithStyles<typeof styles> {
 }
 
 class ExpansionPanels extends React.Component<IExpansionPanels> {
-  state = {
+  public state = {
     expanded: null,
     expandedUrl: null,
   };
 
-  componentWillMount() {
+  public componentWillMount() {
     const {routes, index, data} = this.props;
     let route = routes.slice(-1)[0];
     let beforeRoute = routes.slice(-2)[0];
@@ -62,14 +62,7 @@ class ExpansionPanels extends React.Component<IExpansionPanels> {
     }
   }
 
-  handleChange = (expandedPath, expandedUrl) => {
-    this.setState({
-      expanded: expandedPath,
-      expandedUrl: expandedUrl,
-    });
-  };
-
-  render() {
+  public render() {
     const {classes, render, routes, data, index} = this.props;
     let {expanded, expandedUrl} = this.state;
 
@@ -117,6 +110,13 @@ class ExpansionPanels extends React.Component<IExpansionPanels> {
       </div>
     );
   }
+
+  private handleChange = (expandedPath, expandedUrl) => {
+    this.setState({
+      expanded: expandedPath,
+      expandedUrl: expandedUrl,
+    });
+  };
 }
 
 const styles = (theme: Theme): StyleRules =>

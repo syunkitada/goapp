@@ -11,15 +11,7 @@ interface IGetMsgSnackbar {
 }
 
 class GetMsgSnackbar extends React.Component<IGetMsgSnackbar> {
-  handleClose = (event, reason) => {
-    // if (reason === 'clickaway') {
-    //   return;
-    // }
-
-    this.props.onClose();
-  };
-
-  render() {
+  public render() {
     const {open, tctx} = this.props;
 
     if (!tctx) {
@@ -51,6 +43,14 @@ class GetMsgSnackbar extends React.Component<IGetMsgSnackbar> {
       />
     );
   }
+
+  private handleClose = (event, reason) => {
+    // if (reason === 'clickaway') {
+    //   return;
+    // }
+
+    this.props.onClose();
+  };
 }
 
 function mapStateToProps(state, ownProps) {

@@ -1,23 +1,29 @@
 import * as React from 'react';
-import { connect } from 'react-redux'
-import { Route, Redirect } from 'react-router-dom';
+import {connect} from 'react-redux';
+import {Route, Redirect} from 'react-router-dom';
 
 import logger from '../lib/logger';
 
-class AuthRoute extends React.Component {
+interface IAuthRoute {
+  component;
+  auth;
+}
+
+class AuthRoute extends React.Component<IAuthRoute> {
   render() {
-    const { component: React.Component, auth, ...rest } = this.props
-    logger.info('AuthRoute', 'render()')
+    const {component: Component, auth, ...rest} = this.props;
+    logger.info(['AuthRoute', 'render()']);
     return (
-      <Route {...rest}
+      <Route
+        {...rest}
         render={props =>
           auth.user ? (
-            <React.Component {...props} />
+            <Component {...props} />
           ) : (
             <Redirect
               to={{
                 pathname: '/login',
-                state: { from: props.location }
+                state: {from: props.location},
               }}
             />
           )
@@ -28,13 +34,11 @@ class AuthRoute extends React.Component {
 }
 
 function mapStateToProps(state, ownProps) {
-  const auth = state.auth
+  const auth = state.auth;
 
   return {
     auth: auth,
-  }
+  };
 }
 
-export default connect(
-  mapStateToProps,
-)(AuthRoute)
+export default connect(mapStateToProps)(AuthRoute);

@@ -25,7 +25,7 @@ interface IRouteTabs extends WithStyles<typeof styles> {
   index;
 }
 
-class RouteTabs extends React.Component {
+class RouteTabs extends React.Component<IRouteTabs> {
   render() {
     const {classes, render, routes, data, index} = this.props;
 

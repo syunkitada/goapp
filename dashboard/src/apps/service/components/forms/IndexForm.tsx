@@ -9,7 +9,7 @@ interface IIndexForm {
 }
 
 class IndexForm extends React.Component<IIndexForm> {
-  render() {
+  public render() {
     const {data, index} = this.props;
 
     let rawData = data[index.DataKey];

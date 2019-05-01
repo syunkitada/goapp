@@ -4,70 +4,60 @@ function syncState() {
   const body = JSON.stringify({});
 
   return fetch(process.env.REACT_APP_AUTHPROXY_URL + '/dashboard/state', {
-    method: 'POST',
+    body,
     credentials: 'include',
+    method: 'POST',
     mode: 'cors',
-    body: body,
   })
     .then(res => res.json())
-    .then(function(payload) {
+    .then(payload => {
       return {
-        payload: payload,
+        payload,
       };
     })
-    .catch(function(error) {
-      return {
-        error: error,
-      };
+    .catch(error => {
+      return {error};
     });
 }
 
-function login({name, password}) {
+function login({username, password}) {
   const body = JSON.stringify({
-    username: name,
-    password: password,
+    password,
+    username,
   });
 
   return fetch(process.env.REACT_APP_AUTHPROXY_URL + '/dashboard/login', {
+    body,
+    credentials: 'include',
     method: 'POST',
     mode: 'cors',
-    credentials: 'include',
-    body: body,
   })
     .then(res => res.json())
-    .then(function(payload) {
-      return {
-        payload: payload,
-      };
+    .then(payload => {
+      return {payload};
     })
-    .catch(function(error) {
-      return {
-        error: error,
-      };
+    .catch(error => {
+      return {error};
     });
 }
 
 function logout() {
   return fetch(process.env.REACT_APP_AUTHPROXY_URL + '/dashboard/logout', {
+    credentials: 'include',
     method: 'POST',
     mode: 'cors',
-    credentials: 'include',
   })
     .then(res => res.json())
-    .then(function(payload) {
-      return {
-        payload: payload,
-      };
+    .then(payload => {
+      return {payload};
     })
-    .catch(function(error) {
-      return {
-        error: error,
-      };
+    .catch(error => {
+      return {error};
     });
 }
 
 export default {
-  syncState,
   login,
   logout,
+  syncState,
 };

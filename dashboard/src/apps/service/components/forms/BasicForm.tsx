@@ -2,21 +2,21 @@ import * as React from 'react';
 import {connect} from 'react-redux';
 
 import {Theme} from '@material-ui/core/styles/createMuiTheme';
-import withStyles, {
-  WithStyles,
-  StyleRules,
-} from '@material-ui/core/styles/withStyles';
 import createStyles from '@material-ui/core/styles/createStyles';
+import withStyles, {
+  StyleRules,
+  WithStyles,
+} from '@material-ui/core/styles/withStyles';
 
 import Button from '@material-ui/core/Button';
-import TextField from '@material-ui/core/TextField';
+import CircularProgress from '@material-ui/core/CircularProgress';
 import DialogActions from '@material-ui/core/DialogActions';
-import Grid from '@material-ui/core/Grid';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
+import Grid from '@material-ui/core/Grid';
+import TextField from '@material-ui/core/TextField';
 
-import CircularProgress from '@material-ui/core/CircularProgress';
 import green from '@material-ui/core/colors/green';
 import red from '@material-ui/core/colors/red';
 
@@ -36,95 +36,11 @@ interface IBasicForm extends WithStyles<typeof styles> {
 }
 
 class BasicForm extends React.Component<IBasicForm> {
-  state = {
+  public state = {
     fieldMap: {},
   };
 
-  handleTextFieldChange = (event, field) => {
-    const {fieldMap} = this.state;
-    let text = event.target.value;
-    let error = '';
-    let re = new RegExp(field.RegExp);
-    let len = text.length;
-
-    if (len < field.Min) {
-      error += `Please enter ${field.Min} or more charactors. `;
-    } else if (len > field.Max) {
-      error += `Please enter ${field.Max} or less charactors. `;
-    }
-    if (!re.test(text)) {
-      if (field.RegExpMsg) {
-        error += field.RegExpMsg + ' ';
-      } else {
-        error += 'Invalid characters. ';
-      }
-    }
-
-    fieldMap[field.Name] = {
-      value: event.target.value,
-      error: error,
-      type: field.Type,
-    };
-
-    this.setState({fieldMap: fieldMap});
-  };
-
-  handleSelectFieldChange = (event, field) => {
-    const {fieldMap} = this.state;
-    fieldMap[field.Name] = {
-      value: event.target.value,
-      error: null,
-      type: field.Type,
-    };
-    this.setState({fieldMap: fieldMap});
-  };
-
-  handleActionSubmit = () => {
-    const {index, routes, targets, submitQueries} = this.props;
-    const {fieldMap} = this.state;
-    let route = routes.slice(-1)[0];
-
-    // Validate
-    // フォーム入力がなく、デフォルト値がある場合はセットする
-    for (let i = 0, len = index.Fields.length; i < len; i++) {
-      let field = index.Fields[i];
-      switch (field.Type) {
-        case 'text':
-          if (field.Require) {
-            if (!fieldMap[field.Name] || fieldMap[field.Name] === '') {
-              fieldMap[field.Name] = {
-                value: '',
-                error: 'This is required',
-                type: field.Type,
-              };
-            }
-          }
-          break;
-        case 'select':
-          if (!fieldMap[field.Name]) {
-            fieldMap[field.Name] = {
-              value: field.Options[0],
-              error: null,
-              type: field.Type,
-            };
-          }
-          break;
-        default:
-          break;
-      }
-    }
-
-    for (let key in fieldMap) {
-      if (fieldMap[key].error && fieldMap[key].error !== '') {
-        this.setState({fieldMap: fieldMap});
-        return;
-      }
-    }
-
-    submitQueries(index, fieldMap, targets, route.match.params);
-  };
-
-  render() {
+  public render() {
     const {
       classes,
       data,
@@ -139,8 +55,8 @@ class BasicForm extends React.Component<IBasicForm> {
 
     const fields: JSX.Element[] = [];
     for (let i = 0, len = index.Fields.length; i < len; i++) {
-      let field = index.Fields[i];
-      let fieldState = fieldMap[field.Name];
+      const field = index.Fields[i];
+      const fieldState = fieldMap[field.Name];
       let isError = false;
       let helperText = '';
       if (fieldState) {
@@ -169,15 +85,13 @@ class BasicForm extends React.Component<IBasicForm> {
           fields.push(
             <TextField
               id={field.Name}
-              key={field.Name}
+              key={i}
               label={field.Name}
               autoFocus={autoFocus}
               margin="dense"
               type={field.Type}
-              fullWidth
-              onChange={event => {
-                this.handleTextFieldChange(event, field);
-              }}
+              fullWidth={true}
+              onChange={this.handleTextFieldChange}
               value={value}
               helperText={helperText}
               error={isError}
@@ -188,7 +102,7 @@ class BasicForm extends React.Component<IBasicForm> {
           let options = field.Options;
           if (!options) {
             options = [];
-            let d = data[field.DataKey];
+            const d = data[field.DataKey];
             if (d) {
               for (let j = 0, l = d.length; j < l; j++) {
                 options.push(d[j].Name);
@@ -203,23 +117,21 @@ class BasicForm extends React.Component<IBasicForm> {
 
           fields.push(
             <TextField
-              select
-              key={field.Name}
+              select={true}
+              key={i}
               label={field.Name}
               className={classes.textField}
               value={value}
-              onChange={event => {
-                this.handleSelectFieldChange(event, field);
-              }}
+              onChange={this.handleSelectFieldChange}
               SelectProps={{
-                native: true,
                 MenuProps: {
                   className: classes.menu,
                 },
+                native: true,
               }}
               helperText="Please select"
               margin="normal"
-              fullWidth>
+              fullWidth={true}>
               {options.map(option => (
                 <option key={option} value={option}>
                   {option}
@@ -243,15 +155,15 @@ class BasicForm extends React.Component<IBasicForm> {
         </DialogContent>
         <DialogActions>
           <div className={classes.wrapper} style={{width: '100%'}}>
-            <Grid container>
-              <Grid container item xs={4} justify="flex-start">
+            <Grid container={true}>
+              <Grid container={true} item={true} xs={4} justify="flex-start">
                 {onClose && (
                   <Button onClick={onClose} disabled={isSubmitting}>
                     Cancel
                   </Button>
                 )}
               </Grid>
-              <Grid container item xs={4} justify="center">
+              <Grid container={true} item={true} xs={4} justify="center">
                 {isSubmitting && (
                   <CircularProgress
                     size={24}
@@ -259,7 +171,7 @@ class BasicForm extends React.Component<IBasicForm> {
                   />
                 )}
               </Grid>
-              <Grid container item xs={4} justify="flex-end">
+              <Grid container={true} item={true} xs={4} justify="flex-end">
                 <Button
                   variant="contained"
                   color="primary"
@@ -274,13 +186,102 @@ class BasicForm extends React.Component<IBasicForm> {
       </div>
     );
   }
+
+  private handleTextFieldChange = event => {
+    const {fieldMap} = this.state;
+    const {index} = this.props;
+
+    const field = index.Fields[event.target.key];
+    const text = event.target.value;
+    let error = '';
+    const re = new RegExp(field.RegExp);
+    const len = text.length;
+
+    if (len < field.Min) {
+      error += `Please enter ${field.Min} or more charactors. `;
+    } else if (len > field.Max) {
+      error += `Please enter ${field.Max} or less charactors. `;
+    }
+    if (!re.test(text)) {
+      if (field.RegExpMsg) {
+        error += field.RegExpMsg + ' ';
+      } else {
+        error += 'Invalid characters. ';
+      }
+    }
+
+    fieldMap[field.Name] = {
+      error,
+      type: field.Type,
+      value: event.target.value,
+    };
+
+    this.setState({fieldMap});
+  };
+
+  private handleSelectFieldChange = event => {
+    const {fieldMap} = this.state;
+    const {index} = this.props;
+    const field = index.Fields[event.target.key];
+    fieldMap[field.Name] = {
+      error: null,
+      type: field.Type,
+      value: event.target.value,
+    };
+    this.setState({fieldMap});
+  };
+
+  private handleActionSubmit = () => {
+    const {index, routes, targets, submitQueries} = this.props;
+    const {fieldMap} = this.state;
+    const route = routes.slice(-1)[0];
+
+    // Validate
+    // フォーム入力がなく、デフォルト値がある場合はセットする
+    for (let i = 0, len = index.Fields.length; i < len; i++) {
+      const field = index.Fields[i];
+      switch (field.Type) {
+        case 'text':
+          if (field.Require) {
+            if (!fieldMap[field.Name] || fieldMap[field.Name] === '') {
+              fieldMap[field.Name] = {
+                error: 'This is required',
+                type: field.Type,
+                value: '',
+              };
+            }
+          }
+          break;
+        case 'select':
+          if (!fieldMap[field.Name]) {
+            fieldMap[field.Name] = {
+              error: null,
+              type: field.Type,
+              value: field.Options[0],
+            };
+          }
+          break;
+        default:
+          break;
+      }
+    }
+
+    for (const key in fieldMap) {
+      if (fieldMap[key].error && fieldMap[key].error !== '') {
+        this.setState({fieldMap});
+        return;
+      }
+    }
+
+    submitQueries(index, fieldMap, targets, route.match.params);
+  };
 }
 
 function mapStateToProps(state, ownProps) {
   const {isSubmitting, isSubmitSuccess} = state.service;
   return {
-    isSubmitting: isSubmitting,
-    isSubmitSuccess: isSubmitSuccess,
+    isSubmitSuccess,
+    isSubmitting,
   };
 }
 
@@ -290,11 +291,11 @@ function mapDispatchToProps(dispatch, ownProps) {
     submitQueries: (index, fieldMap, targets, params) => {
       dispatch(
         actions.service.serviceSubmitQueries({
-          queryKind: queryKind,
           action: index,
-          fieldMap: fieldMap,
-          targets: targets,
-          params: params,
+          fieldMap,
+          params,
+          queryKind,
+          targets,
         }),
       );
     },
@@ -303,39 +304,39 @@ function mapDispatchToProps(dispatch, ownProps) {
 
 const styles = (theme: Theme): StyleRules =>
   createStyles({
+    buttonFailed: {
+      '&:hover': {
+        backgroundColor: red[700],
+      },
+      backgroundColor: red[500],
+    },
+    buttonProgress: {
+      color: green[500],
+      left: '50%',
+      marginLeft: -12,
+      marginTop: -12,
+      position: 'absolute',
+      top: '50%',
+    },
+    buttonSuccess: {
+      '&:hover': {
+        backgroundColor: green[700],
+      },
+      backgroundColor: green[500],
+    },
+    fabProgress: {
+      color: green[500],
+      left: -6,
+      position: 'absolute',
+      top: -6,
+      zIndex: 1,
+    },
     root: {
       width: '100%',
     },
     wrapper: {
       margin: theme.spacing.unit,
       position: 'relative',
-    },
-    buttonSuccess: {
-      backgroundColor: green[500],
-      '&:hover': {
-        backgroundColor: green[700],
-      },
-    },
-    buttonFailed: {
-      backgroundColor: red[500],
-      '&:hover': {
-        backgroundColor: red[700],
-      },
-    },
-    fabProgress: {
-      color: green[500],
-      position: 'absolute',
-      top: -6,
-      left: -6,
-      zIndex: 1,
-    },
-    buttonProgress: {
-      color: green[500],
-      position: 'absolute',
-      top: '50%',
-      left: '50%',
-      marginTop: -12,
-      marginLeft: -12,
     },
   });
 

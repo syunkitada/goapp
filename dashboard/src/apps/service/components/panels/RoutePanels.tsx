@@ -13,7 +13,7 @@ interface IRoutePanels {
 }
 
 class RoutePanels extends React.Component<IRoutePanels> {
-  render() {
+  public render() {
     const {render, routes, data, index} = this.props;
 
     let beforeRoute = routes.slice(-1)[0];

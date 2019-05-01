@@ -3,18 +3,18 @@ import {reducerWithInitialState} from 'typescript-fsa-reducers';
 import actions from '../../actions';
 
 const defaultState = {
-  isSyncState: false,
-  isFetching: false,
-  redirectToReferrer: false,
   error: null,
+  isFetching: false,
+  isSyncState: false,
+  redirectToReferrer: false,
   user: null,
 };
 
 export default reducerWithInitialState(defaultState)
   .case(actions.auth.authSyncState, state =>
     Object.assign({}, state, {
-      isSyncState: true,
       isFetching: true,
+      isSyncState: true,
     }),
   )
   .case(actions.auth.authLogin, state =>
