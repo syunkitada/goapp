@@ -10,21 +10,21 @@ interface IRequestErrSnackbar {
 }
 
 class RequestErrSnackbar extends React.Component<IRequestErrSnackbar> {
-  render() {
+  public render() {
     const {error} = this.props;
 
     if (!error) {
       return null;
     }
 
-    let variant = 'error';
-    let vertical = 'bottom';
-    let horizontal = 'left';
-    let msg = error.errCode + ': ' + error.err;
+    const variant = 'error';
+    const vertical = 'bottom';
+    const horizontal = 'left';
+    const msg = error.errCode + ': ' + error.err;
 
     return (
       <MsgSnackbar
-        open
+        open={true}
         onClose={this.props.onClose}
         vertical={vertical}
         horizontal={horizontal}
@@ -39,7 +39,7 @@ function mapStateToProps(state, ownProps) {
   const {error} = state.service;
 
   return {
-    error: error,
+    error,
   };
 }
 

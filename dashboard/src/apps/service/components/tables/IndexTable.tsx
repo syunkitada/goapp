@@ -2,30 +2,32 @@ import * as React from 'react';
 import {connect} from 'react-redux';
 
 import {Theme} from '@material-ui/core/styles/createMuiTheme';
-import withStyles, {
-  WithStyles,
-  StyleRules,
-} from '@material-ui/core/styles/withStyles';
 import createStyles from '@material-ui/core/styles/createStyles';
+import withStyles, {
+  StyleRules,
+  WithStyles,
+} from '@material-ui/core/styles/withStyles';
 
+import Button from '@material-ui/core/Button';
+import Checkbox from '@material-ui/core/Checkbox';
+import ListItemIcon from '@material-ui/core/ListItemIcon';
+import ListItemText from '@material-ui/core/ListItemText';
+import Menu from '@material-ui/core/Menu';
+import MenuItem from '@material-ui/core/MenuItem';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableRow from '@material-ui/core/TableRow';
-import Checkbox from '@material-ui/core/Checkbox';
-import Button from '@material-ui/core/Button';
-import Menu from '@material-ui/core/Menu';
-import MenuItem from '@material-ui/core/MenuItem';
-import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown';
-import ListItemIcon from '@material-ui/core/ListItemIcon';
-import ListItemText from '@material-ui/core/ListItemText';
 
+import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown';
+
+import FormDialog from '../dialogs/FormDialog';
 import IndexTableHead from './IndexTableHead';
 import TableToolbar from './TableToolbar';
-import FormDialog from '../dialogs/FormDialog';
-import sort_utils from '../../../../modules/sort_utils';
-import icon_utils from '../../../../modules/icon_utils';
+
 import actions from '../../../../actions';
+import icon_utils from '../../../../modules/icon_utils';
+import sort_utils from '../../../../modules/sort_utils';
 
 interface IIndexTable extends WithStyles<typeof styles> {
   routes;
@@ -47,113 +49,19 @@ interface IState {
 }
 
 class IndexTable extends React.Component<IIndexTable> {
-  state: IState = {
+  public state: IState = {
+    actionName: null,
+    anchorEl: null,
+    data: [],
     order: 'asc',
     orderBy: 0,
-    selected: [],
-    data: [],
     page: 0,
     rowsPerPage: 5,
     searchRegExp: null,
-    anchorEl: null,
-    actionName: null,
+    selected: [],
   };
 
-  isSelected = id => {
-    return this.state.selected.indexOf(id) !== -1;
-  };
-
-  handleSelectClick = (event, id) => {
-    const {selected} = this.state;
-    const selectedIndex = selected.indexOf(id);
-    let newSelected: any[] = [];
-
-    if (selectedIndex === -1) {
-      newSelected = newSelected.concat(selected, id);
-    } else if (selectedIndex === 0) {
-      newSelected = newSelected.concat(selected.slice(1));
-    } else if (selectedIndex === selected.length - 1) {
-      newSelected = newSelected.concat(selected.slice(0, -1));
-    } else if (selectedIndex > 0) {
-      newSelected = newSelected.concat(
-        selected.slice(0, selectedIndex),
-        selected.slice(selectedIndex + 1),
-      );
-    }
-
-    this.setState({selected: newSelected});
-  };
-
-  handleSelectAllClick = event => {
-    const {index, data} = this.props;
-    const columns = index.Columns;
-    const keyColumn = columns[0].Name;
-    let rawData = data[index.DataKey];
-    if (event.target.checked) {
-      this.setState(state => ({selected: rawData.map(n => n[keyColumn])}));
-      return;
-    }
-
-    this.setState({selected: []});
-  };
-
-  handleRequestSort = (event, property) => {
-    const orderBy = property;
-    let order = 'desc';
-
-    if (this.state.orderBy === property && this.state.order === 'desc') {
-      order = 'asc';
-    }
-
-    this.setState({order, orderBy});
-  };
-
-  handleChangePage = (event, page) => {
-    this.setState({page});
-  };
-
-  handleChangeRowsPerPage = event => {
-    this.setState({rowsPerPage: event.target.value});
-  };
-
-  handleChangeSearchInput = event => {
-    let searchRegExp: any = null;
-    if (event.target.value !== '') {
-      searchRegExp = new RegExp(event.target.value, 'i');
-    }
-    this.setState({searchRegExp: searchRegExp});
-  };
-
-  handleActionMenuClick = (event, key) => {
-    this.setState({anchorEl: event.currentTarget, actionTarget: key});
-  };
-
-  handleClose = () => {
-    this.setState({anchorEl: null});
-  };
-
-  handleActionClick = (event, actionName) => {
-    this.setState({actionName: actionName});
-  };
-
-  handleActionDialogClose = () => {
-    this.setState({actionName: null});
-  };
-
-  handleLinkClick = (event, link, value, column) => {
-    const {routes} = this.props;
-    let route = routes[routes.length - 1];
-    const params = route.match.params;
-    params[column.LinkParam] = value;
-    this.props.getQueries(
-      column.LinkGetQueries,
-      column.LinkSync,
-      route.match.params,
-    );
-    route.history.push(link);
-  };
-
-  render() {
+  public render() {
     const {routes, classes, index, data} = this.props;
     const {
       selected,
@@ -166,7 +74,7 @@ class IndexTable extends React.Component<IIndexTable> {
       actionName,
     } = this.state;
 
-    let columns = index.Columns;
+    const columns = index.Columns;
     let rawData = data[index.DataKey];
 
     if (!rawData) {
@@ -178,10 +86,10 @@ class IndexTable extends React.Component<IIndexTable> {
       isSelectActions = true;
     }
 
-    let currentRoute = routes.slice(-1)[0];
-    let beforeRoute = routes.slice(-2)[0];
+    const currentRoute = routes.slice(-1)[0];
+    const beforeRoute = routes.slice(-2)[0];
 
-    let searchColumns: any[] = [];
+    const searchColumns: any[] = [];
     for (let i = 0, len = columns.length; i < len; i++) {
       if (columns[i].IsSearch) {
         searchColumns.push(columns[i].Name);
@@ -191,9 +99,9 @@ class IndexTable extends React.Component<IIndexTable> {
     let isSkip = true;
     const tableData: any[] = [];
     for (let i = 0, len = rawData.length; i < len; i++) {
-      let d = rawData[i];
+      const d = rawData[i];
       if (searchRegExp != null) {
-        for (let c of searchColumns) {
+        for (const c of searchColumns) {
           if (searchRegExp.exec(d[c])) {
             isSkip = false;
             break;
@@ -205,11 +113,11 @@ class IndexTable extends React.Component<IIndexTable> {
         isSkip = true;
       }
 
-      let row: any[] = [];
-      for (let column of columns) {
-        let c = d[column.Name];
+      const row: any[] = [];
+      for (const column of columns) {
+        const c = d[column.Name];
         if (column.Type === 'Time') {
-          let time = new Date(c.seconds * 1000);
+          const time = new Date(c.seconds * 1000);
           row.push(time.toISOString());
         } else if (column.Type === 'Action') {
           row.push('');
@@ -224,16 +132,16 @@ class IndexTable extends React.Component<IIndexTable> {
       columns[i].id = i;
     }
 
-    let columnActions: any[] = [];
+    const columnActions: any[] = [];
     if (index.ColumnActions != null) {
       for (let i = 0, len = index.ColumnActions.length; i < len; i++) {
-        let action = index.ColumnActions[i];
+        const columnAction = index.ColumnActions[i];
         columnActions.push(
           <MenuItem
-            key={action.Name}
-            onClick={event => this.handleActionClick(event, action.Name)}>
-            <ListItemIcon>{icon_utils.getIcon(action.Icon)}</ListItemIcon>
-            <ListItemText inset primary={action.Name} />
+            key={columnAction.Name}
+            onClick={event => this.handleActionClick(event, columnAction.Name)}>
+            <ListItemIcon>{icon_utils.getIcon(columnAction.Icon)}</ListItemIcon>
+            <ListItemText inset={true} primary={columnAction.Name} />
           </MenuItem>,
         );
       }
@@ -242,14 +150,14 @@ class IndexTable extends React.Component<IIndexTable> {
     let action: any = null;
     let actionDialog: any = null;
     if (actionName !== null) {
-      for (let a of index.Actions) {
+      for (const a of index.Actions) {
         if (a.Name === actionName) {
           action = a;
           break;
         }
       }
       if (action === null) {
-        for (let a of index.ColumnActions) {
+        for (const a of index.ColumnActions) {
           if (a.Name === actionName) {
             action = a;
             break;
@@ -330,18 +238,22 @@ class IndexTable extends React.Component<IIndexTable> {
                   for (let i = 0, len = columns.length; i < len; i++) {
                     if (columns[i].Link) {
                       let link = columns[i].Link;
-                      let splitedLink = link.split('/');
-                      let splitedNextLink: any[] = [];
-                      let baseUrl = beforeRoute.match.url;
-                      for (let j = 0, len = splitedLink.length; j < len; j++) {
+                      const splitedLink = link.split('/');
+                      const splitedNextLink: any[] = [];
+                      const baseUrl = beforeRoute.match.url;
+                      for (
+                        let j = 0, linkLen = splitedLink.length;
+                        j < linkLen;
+                        j++
+                      ) {
                         let path = splitedLink[j];
                         if (path.indexOf(':') === 0) {
-                          let key = path.slice(1);
-                          let tmppath = currentRoute.match.params[key];
+                          const pathKey = path.slice(1);
+                          const tmppath = currentRoute.match.params[pathKey];
                           if (tmppath) {
                             path = tmppath;
                           } else {
-                            path = n[parseInt(key, 10)];
+                            path = n[parseInt(pathKey, 10)];
                           }
                         }
                         splitedNextLink.push(path);
@@ -382,7 +294,7 @@ class IndexTable extends React.Component<IIndexTable> {
                     }
                   }
                   return (
-                    <TableRow hover tabIndex={-1} key={key}>
+                    <TableRow hover={true} tabIndex={-1} key={key}>
                       {cells}
                     </TableRow>
                   );
@@ -408,28 +320,119 @@ class IndexTable extends React.Component<IIndexTable> {
       </div>
     );
   }
+
+  private isSelected = id => {
+    return this.state.selected.indexOf(id) !== -1;
+  };
+
+  private handleSelectClick = (event, id) => {
+    const {selected} = this.state;
+    const selectedIndex = selected.indexOf(id);
+    let newSelected: any[] = [];
+
+    if (selectedIndex === -1) {
+      newSelected = newSelected.concat(selected, id);
+    } else if (selectedIndex === 0) {
+      newSelected = newSelected.concat(selected.slice(1));
+    } else if (selectedIndex === selected.length - 1) {
+      newSelected = newSelected.concat(selected.slice(0, -1));
+    } else if (selectedIndex > 0) {
+      newSelected = newSelected.concat(
+        selected.slice(0, selectedIndex),
+        selected.slice(selectedIndex + 1),
+      );
+    }
+
+    this.setState({selected: newSelected});
+  };
+
+  private handleSelectAllClick = event => {
+    const {index, data} = this.props;
+    const columns = index.Columns;
+    const keyColumn = columns[0].Name;
+    const rawData = data[index.DataKey];
+    if (event.target.checked) {
+      this.setState(state => ({selected: rawData.map(n => n[keyColumn])}));
+      return;
+    }
+
+    this.setState({selected: []});
+  };
+
+  private handleRequestSort = (event, property) => {
+    const orderBy = property;
+    let order = 'desc';
+
+    if (this.state.orderBy === property && this.state.order === 'desc') {
+      order = 'asc';
+    }
+
+    this.setState({order, orderBy});
+  };
+
+  private handleChangePage = (event, page) => {
+    this.setState({page});
+  };
+
+  private handleChangeRowsPerPage = event => {
+    this.setState({rowsPerPage: event.target.value});
+  };
+
+  private handleChangeSearchInput = event => {
+    let searchRegExp: any = null;
+    if (event.target.value !== '') {
+      searchRegExp = new RegExp(event.target.value, 'i');
+    }
+    this.setState({searchRegExp});
+  };
+
+  private handleActionMenuClick = (event, key) => {
+    this.setState({anchorEl: event.currentTarget, actionTarget: key});
+  };
+
+  private handleClose = () => {
+    this.setState({anchorEl: null});
+  };
+
+  private handleActionClick = (event, actionName) => {
+    this.setState({actionName});
+  };
+
+  private handleActionDialogClose = () => {
+    this.setState({actionName: null});
+  };
+
+  private handleLinkClick = (event, link, value, column) => {
+    const {routes} = this.props;
+    const route = routes[routes.length - 1];
+    const params = route.match.params;
+    params[column.LinkParam] = value;
+    this.props.getQueries(
+      column.LinkGetQueries,
+      column.LinkSync,
+      route.match.params,
+    );
+    route.history.push(link);
+  };
 }
 
 const styles = (theme: Theme): StyleRules =>
   createStyles({
+    actions: {
+      color: theme.palette.text.secondary,
+    },
     root: {
       // margin: theme.spacing.unit * 2,
       width: '100%',
+    },
+    spacer: {
+      flex: '1 1 100%',
     },
     table: {
       width: '100%',
     },
     tableWrapper: {
       overflowX: 'auto',
-    },
-    margin: {
-      // margin: theme.spacing.unit,
-    },
-    spacer: {
-      flex: '1 1 100%',
-    },
-    actions: {
-      color: theme.palette.text.secondary,
     },
     title: {
       flex: '0 0 auto',
@@ -440,7 +443,7 @@ function mapStateToProps(state, ownProps) {
   const auth = state.auth;
 
   return {
-    auth: auth,
+    auth,
   };
 }
 
@@ -449,9 +452,9 @@ function mapDispatchToProps(dispatch, ownProps) {
     getQueries: (queries, isSync, params) => {
       dispatch(
         actions.service.serviceGetQueries({
-          queries: queries,
-          isSync: isSync,
-          params: params,
+          isSync,
+          params,
+          queries,
         }),
       );
     },

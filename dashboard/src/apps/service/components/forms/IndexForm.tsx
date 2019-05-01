@@ -12,12 +12,12 @@ class IndexForm extends React.Component<IIndexForm> {
   public render() {
     const {data, index} = this.props;
 
-    let rawData = data[index.DataKey];
+    const rawData = data[index.DataKey];
     if (!rawData) {
       return null;
     }
 
-    let queryKind = index.SubmitAction + index.DataKey;
+    const queryKind = index.SubmitAction + index.DataKey;
     return (
       <BasicForm
         data={data}

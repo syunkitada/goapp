@@ -3,6 +3,7 @@ import {connect} from 'react-redux';
 import {Route} from 'react-router-dom';
 
 import ExpansionPanels from './ExpansionPanels';
+
 import logger from '../../../../lib/logger';
 
 interface IRoutePanels {
@@ -16,19 +17,17 @@ class RoutePanels extends React.Component<IRoutePanels> {
   public render() {
     const {render, routes, data, index} = this.props;
 
-    let beforeRoute = routes.slice(-1)[0];
+    const beforeRoute = routes.slice(-1)[0];
     logger.info(['RoutePanels', 'render()', beforeRoute]);
-    console.log(index.Panels);
 
     return (
       <div>
         {index.Panels.map(v => (
           <Route
-            exact
+            exact={true}
             path={beforeRoute.match.path + v.Route}
             key={v.Name}
             render={props => {
-              console.log(v.Route);
               const newRoutes = routes.slice(0);
               newRoutes.push(props);
               return (

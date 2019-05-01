@@ -19,8 +19,8 @@ class GetMsgSnackbar extends React.Component<IGetMsgSnackbar> {
     }
 
     let variant = 'info';
-    let vertical = 'bottom';
-    let horizontal = 'left';
+    const vertical = 'bottom';
+    const horizontal = 'left';
     let msg = '';
     if (tctx.StatusCode >= 500) {
       variant = 'error';

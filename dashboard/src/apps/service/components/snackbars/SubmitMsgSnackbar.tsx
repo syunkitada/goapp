@@ -12,24 +12,16 @@ interface ISubmitMsgSnackbar {
 }
 
 class SubmitMsgSnackbar extends React.Component<ISubmitMsgSnackbar> {
-  handleClose = (event, reason) => {
-    // if (reason === 'clickaway') {
-    //   return;
-    // }
-
-    this.props.onClose();
-  };
-
-  render() {
+  public render() {
     const {open, tctx} = this.props;
 
     if (!tctx) {
       return null;
     }
 
+    const vertical = 'top';
+    const horizontal = 'center';
     let variant = 'info';
-    let vertical = 'top';
-    let horizontal = 'center';
     let msg = '';
     if (tctx.StatusCode >= 500) {
       variant = 'error';
@@ -55,6 +47,14 @@ class SubmitMsgSnackbar extends React.Component<ISubmitMsgSnackbar> {
       />
     );
   }
+
+  private handleClose = (event, reason) => {
+    // if (reason === 'clickaway') {
+    //   return;
+    // }
+
+    this.props.onClose();
+  };
 }
 
 function mapStateToProps(state, ownProps) {

@@ -1,15 +1,15 @@
 import * as React from 'react';
 import {connect} from 'react-redux';
 
-import actions from '../../../actions';
 import IndexForm from './forms/IndexForm';
-import IndexTable from './tables/IndexTable';
 import RoutePanels from './panels/RoutePanels';
-import Tabs from './tabs/Tabs';
-import RequestErrSnackbar from './snackbars/RequestErrSnackbar';
 import GetMsgSnackbar from './snackbars/GetMsgSnackbar';
+import RequestErrSnackbar from './snackbars/RequestErrSnackbar';
 import SubmitMsgSnackbar from './snackbars/SubmitMsgSnackbar';
+import IndexTable from './tables/IndexTable';
+import Tabs from './tabs/Tabs';
 
+import actions from '../../../actions';
 import logger from '../../../lib/logger';
 
 function renderIndex(routes, data, index) {
@@ -51,22 +51,18 @@ interface IIndex {
 }
 
 class Index extends React.Component<IIndex> {
-  state = {
+  public state = {
     openAlertSnackbar: true,
     traceMsgMap: {},
   };
 
-  componentWillMount() {
+  public componentWillMount() {
     logger.info(['Index', 'componentWillMount()']);
     const {match, getIndex} = this.props;
     getIndex(match.params);
   }
 
-  handleCloseAlertSnackbar = () => {
-    this.setState({openAlertSnackbar: false});
-  };
-
-  render() {
+  public render() {
     const {match, service, serviceName, projectName, getIndex} = this.props;
     logger.info(['Index', 'render', projectName, serviceName]);
 
@@ -89,10 +85,8 @@ class Index extends React.Component<IIndex> {
       return <div>Fetching...</div>;
     }
 
-    console.log('DEBUG HOGElwlwlw');
-
     const routes = [this.props];
-    let html = renderIndex(routes, state.Data, state.Index);
+    const html = renderIndex(routes, state.Data, state.Index);
 
     return (
       <div>
@@ -111,11 +105,11 @@ function mapStateToProps(state, ownProps) {
   const service = state.service;
 
   return {
-    match: match,
-    auth: auth,
-    service: service,
-    serviceName: match.params.service,
+    auth,
+    match,
     projectName: match.params.project,
+    service,
+    serviceName: match.params.service,
   };
 }
 
