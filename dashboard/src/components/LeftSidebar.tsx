@@ -1,31 +1,32 @@
-import {connect} from 'react-redux';
 import * as React from 'react';
+import {connect} from 'react-redux';
+import {NavLink} from 'react-router-dom';
 
 import {Theme} from '@material-ui/core/styles/createMuiTheme';
-import withStyles, {
-  WithStyles,
-  StyleRules,
-} from '@material-ui/core/styles/withStyles';
 import createStyles from '@material-ui/core/styles/createStyles';
+import withStyles, {
+  StyleRules,
+  WithStyles,
+} from '@material-ui/core/styles/withStyles';
 
+import Collapse from '@material-ui/core/Collapse';
 import Divider from '@material-ui/core/Divider';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
-import DashboardIcon from '@material-ui/icons/Dashboard';
-import ChatIcon from '@material-ui/icons/Chat';
-import ReceiptIcon from '@material-ui/icons/Receipt';
-import HomeIcon from '@material-ui/icons/Home';
-import NoteAddIcon from '@material-ui/icons/NoteAdd';
-import LayersIcon from '@material-ui/icons/Layers';
-import CloudQueueIcon from '@material-ui/icons/CloudQueue';
-import CloudIcon from '@material-ui/icons/Cloud';
+
 import AssessmentIcon from '@material-ui/icons/Assessment';
-import Collapse from '@material-ui/core/Collapse';
+import ChatIcon from '@material-ui/icons/Chat';
+import CloudIcon from '@material-ui/icons/Cloud';
+import CloudQueueIcon from '@material-ui/icons/CloudQueue';
+import DashboardIcon from '@material-ui/icons/Dashboard';
 import ExpandLess from '@material-ui/icons/ExpandLess';
 import ExpandMore from '@material-ui/icons/ExpandMore';
-import {NavLink} from 'react-router-dom';
+import HomeIcon from '@material-ui/icons/Home';
+import LayersIcon from '@material-ui/icons/Layers';
+import NoteAddIcon from '@material-ui/icons/NoteAdd';
+import ReceiptIcon from '@material-ui/icons/Receipt';
 
 const styles = (theme: Theme): StyleRules =>
   createStyles({
@@ -42,21 +43,11 @@ interface ILeftSidebar extends WithStyles<typeof styles> {
 }
 
 class LeftSidebar extends React.Component<ILeftSidebar> {
-  state = {
+  public state = {
     openProjects: false,
   };
 
-  handleOpenProjectsClick = () => {
-    this.setState(state => ({openProjects: !this.state.openProjects}));
-  };
-
-  handleProjectClick = (event, path) => {
-    const {history} = this.props;
-    history.push(path);
-    this.setState({openProjects: false});
-  };
-
-  render() {
+  public render() {
     const {classes, auth, match} = this.props;
 
     if (!auth.user) {
@@ -64,41 +55,41 @@ class LeftSidebar extends React.Component<ILeftSidebar> {
     }
 
     // https://material.io/tools/icons/?style=baseline
-    var serviceLinks: any[] = [
-      ['Chat', <ChatIcon />],
-      ['Wiki', <ReceiptIcon />],
-      ['Ticket', <NoteAddIcon />],
-      ['Datacenter', <LayersIcon />],
-      ['Home.Project', <HomeIcon />],
-      ['Resource.Physical', <CloudIcon />],
-      ['Resource.Virtual', <CloudQueueIcon />],
-      ['Monitor', <AssessmentIcon />],
+    const serviceLinks: any[] = [
+      ['Chat', <ChatIcon key={'Chat'} />],
+      ['Wiki', <ReceiptIcon key={'Wiki'} />],
+      ['Ticket', <NoteAddIcon key={'Ticket'} />],
+      ['Datacenter', <LayersIcon key={'Datacenter'} />],
+      ['Home.Project', <HomeIcon key={'Home.Project'} />],
+      ['Resource.Physical', <CloudIcon key={'Resource.Physical'} />],
+      ['Resource.Virtual', <CloudQueueIcon key={'Resource.Virtual'} />],
+      ['Monitor', <AssessmentIcon key={'Monitor'} />],
     ];
 
-    var services: any[] = [];
-    var serviceMap: any = null;
-    var projectText: any = null;
-    var prefixPath: any = null;
+    const services: any[] = [];
+    let serviceMap: any = null;
+    let projectText: any = null;
+    let prefixPath: any = null;
     if (match.params.project) {
       prefixPath = '/Project/' + match.params.project + '/';
       projectText = match.params.project;
       serviceMap =
-        auth.user.Authority.ProjectServiceMap[match.params.project].ServiceMap;
+        auth.user.authority.ProjectServiceMap[match.params.project].ServiceMap;
     } else {
       prefixPath = '/Service/';
       projectText = 'Projects';
-      serviceMap = auth.user.Authority.ServiceMap;
+      serviceMap = auth.user.authority.ServiceMap;
     }
 
-    for (let serviceLink of serviceLinks) {
+    for (const serviceLink of serviceLinks) {
       if (serviceLink[0] in serviceMap) {
-        let path = prefixPath + serviceLink[0];
+        const path = prefixPath + serviceLink[0];
         services.push(
           <NavLink
             key={serviceLink[0]}
             to={path}
             style={{textDecoration: 'none', color: 'unset'}}>
-            <ListItem button selected={match.url === path}>
+            <ListItem button={true} selected={match.url === path}>
               <ListItemIcon>{serviceLink[1]}</ListItemIcon>
               <ListItemText primary={serviceLink[0]} />
             </ListItem>
@@ -107,19 +98,19 @@ class LeftSidebar extends React.Component<ILeftSidebar> {
       }
     }
 
-    var projects: any[] = [];
-    for (let project in auth.user.Authority.ProjectServiceMap) {
-      let path = '/Project/' + project + '/Home.Project';
+    const projects: any[] = [];
+    for (const project of Object.keys(auth.user.authority.ProjectServiceMap)) {
+      const path = '/Project/' + project + '/Home.Project';
       projects.push(
-        <List key={project} disablePadding>
+        <List key={project} disablePadding={true}>
           <ListItem
-            button
+            button={true}
             className={classes.nested}
             onClick={event => this.handleProjectClick(event, path)}>
             <ListItemIcon>
               <DashboardIcon />
             </ListItemIcon>
-            <ListItemText inset primary={project} />
+            <ListItemText inset={true} primary={project} />
           </ListItem>
         </List>,
       );
@@ -132,7 +123,7 @@ class LeftSidebar extends React.Component<ILeftSidebar> {
           <NavLink
             to="/Service/Home"
             style={{textDecoration: 'none', color: 'unset'}}>
-            <ListItem button selected={match.url === '/Service/Home'}>
+            <ListItem button={true} selected={match.url === '/Service/Home'}>
               <ListItemIcon>
                 <HomeIcon />
               </ListItemIcon>
@@ -140,14 +131,17 @@ class LeftSidebar extends React.Component<ILeftSidebar> {
             </ListItem>
           </NavLink>
 
-          <ListItem button onClick={this.handleOpenProjectsClick}>
+          <ListItem button={true} onClick={this.handleOpenProjectsClick}>
             <ListItemIcon>
               <DashboardIcon />
             </ListItemIcon>
-            <ListItemText inset primary={projectText} />
+            <ListItemText inset={true} primary={projectText} />
             {this.state.openProjects ? <ExpandLess /> : <ExpandMore />}
           </ListItem>
-          <Collapse in={this.state.openProjects} timeout="auto" unmountOnExit>
+          <Collapse
+            in={this.state.openProjects}
+            timeout="auto"
+            unmountOnExit={true}>
             {projects}
           </Collapse>
         </List>
@@ -157,14 +151,22 @@ class LeftSidebar extends React.Component<ILeftSidebar> {
       </div>
     );
   }
+
+  private handleOpenProjectsClick = () => {
+    this.setState(state => ({openProjects: !this.state.openProjects}));
+  };
+
+  private handleProjectClick = (event, path) => {
+    const {history} = this.props;
+    history.push(path);
+    this.setState({openProjects: false});
+  };
 }
 
 function mapStateToProps(state, ownProps) {
   const auth = state.auth;
 
-  return {
-    auth: auth,
-  };
+  return {auth};
 }
 
 export default connect(mapStateToProps)(withStyles(styles)(LeftSidebar));

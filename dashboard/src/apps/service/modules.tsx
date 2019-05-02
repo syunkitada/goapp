@@ -13,47 +13,47 @@ function post({
 }): Promise<IResponse> {
   const body = JSON.stringify({
     Action: {
-      ServiceName: serviceName,
       Name: actionName,
       ProjectName: projectName,
       Queries: queries,
+      ServiceName: serviceName,
     },
   });
 
   return fetch(process.env.REACT_APP_AUTHPROXY_URL + '/' + serviceName, {
-    method: 'POST',
+    body,
     credentials: 'include',
+    method: 'POST',
     mode: 'cors',
-    body: body,
   })
-    .then(function(resp) {
+    .then(resp => {
       if (!resp.ok) {
-        return resp.json().then(function(payload) {
+        return resp.json().then(payload => {
           const result: IResponse = {
-            payload: null,
             error: {
-              errCode: resp.status,
               err: payload.Err,
+              errCode: resp.status,
             },
+            payload: null,
           };
           return result;
         });
       }
 
-      return resp.json().then(function(payload) {
+      return resp.json().then(payload => {
         const result: IResponse = {
-          payload: payload,
           error: null,
+          payload,
         };
         return result;
       });
     })
-    .catch(function(error) {
+    .catch(error => {
       const result: IResponse = {
-        payload: null,
         error: {
           err: error,
         },
+        payload: null,
       };
       return result;
     });

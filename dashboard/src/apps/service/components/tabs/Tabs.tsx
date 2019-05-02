@@ -2,25 +2,25 @@ import * as React from 'react';
 import {connect} from 'react-redux';
 
 import {Theme} from '@material-ui/core/styles/createMuiTheme';
-import withStyles, {
-  WithStyles,
-  StyleRules,
-} from '@material-ui/core/styles/withStyles';
 import createStyles from '@material-ui/core/styles/createStyles';
+import withStyles, {
+  StyleRules,
+  WithStyles,
+} from '@material-ui/core/styles/withStyles';
 
-import Typography from '@material-ui/core/Typography';
-import CoreTabs from '@material-ui/core/Tabs';
-import Tab from '@material-ui/core/Tab';
 import AppBar from '@material-ui/core/AppBar';
+import Tab from '@material-ui/core/Tab';
+import CoreTabs from '@material-ui/core/Tabs';
+import Typography from '@material-ui/core/Typography';
 
 import logger from '../../../../lib/logger';
 
 const styles = (theme: Theme): StyleRules =>
   createStyles({
     root: {
+      backgroundColor: theme.palette.background.paper,
       flexGrow: 1,
       width: '100%',
-      backgroundColor: theme.palette.background.paper,
     },
   });
 
@@ -33,38 +33,22 @@ interface ITabs extends WithStyles<typeof styles> {
 }
 
 class Tabs extends React.Component<ITabs> {
-  state = {
-    tabRoute: null,
+  public state = {
     tabId: null,
+    tabRoute: null,
   };
 
-  handleChange = (event, tabId) => {
-    const {index, routes} = this.props;
-    let route = routes[routes.length - 1];
-    let splitedPath = route.match.path.split('/');
-    let splitedUrl = route.match.url.split('/');
-    splitedUrl[splitedPath.indexOf(':' + index.TabParam)] =
-      index.Tabs[tabId].Name;
-
-    let lastIndex =
-      route.match.path.split(index.Route)[0].split('/').length +
-      index.Route.split('/').length;
-    splitedUrl = splitedUrl.slice(0, lastIndex - 1);
-
-    route.history.push(splitedUrl.join('/'));
-  };
-
-  render() {
+  public render() {
     const {classes, render, routes, data, index} = this.props;
     logger.info(['Tabs', 'render()', routes]);
 
-    let route = routes[routes.length - 1];
+    const route = routes[routes.length - 1];
 
-    let tabs: any[] = [];
+    const tabs: any[] = [];
     let tabContainer: any = null;
     let tabId = 0;
     for (let i = 0, len = index.Tabs.length; i < len; i++) {
-      let tab = index.Tabs[i];
+      const tab = index.Tabs[i];
       if (route.match.params[index.TabParam] === tab.Name) {
         tabId = i;
         tabContainer = (
@@ -91,6 +75,22 @@ class Tabs extends React.Component<ITabs> {
       </div>
     );
   }
+
+  private handleChange = (event, tabId) => {
+    const {index, routes} = this.props;
+    const route = routes[routes.length - 1];
+    const splitedPath = route.match.path.split('/');
+    let splitedUrl = route.match.url.split('/');
+    splitedUrl[splitedPath.indexOf(':' + index.TabParam)] =
+      index.Tabs[tabId].Name;
+
+    const lastIndex =
+      route.match.path.split(index.Route)[0].split('/').length +
+      index.Route.split('/').length;
+    splitedUrl = splitedUrl.slice(0, lastIndex - 1);
+
+    route.history.push(splitedUrl.join('/'));
+  };
 }
 
 function mapStateToProps(state, ownProps) {

@@ -3,11 +3,11 @@ import {connect} from 'react-redux';
 import {Route} from 'react-router-dom';
 
 import {Theme} from '@material-ui/core/styles/createMuiTheme';
-import withStyles, {
-  WithStyles,
-  StyleRules,
-} from '@material-ui/core/styles/withStyles';
 import createStyles from '@material-ui/core/styles/createStyles';
+import withStyles, {
+  StyleRules,
+  WithStyles,
+} from '@material-ui/core/styles/withStyles';
 
 import Tabs from './Tabs';
 
@@ -26,10 +26,10 @@ interface IRouteTabs extends WithStyles<typeof styles> {
 }
 
 class RouteTabs extends React.Component<IRouteTabs> {
-  render() {
+  public render() {
     const {classes, render, routes, data, index} = this.props;
 
-    let beforeRoute = routes.slice(-1)[0];
+    const beforeRoute = routes.slice(-1)[0];
 
     return (
       <div className={classes.root}>

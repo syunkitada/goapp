@@ -1,6 +1,6 @@
 import * as React from 'react';
 import {connect} from 'react-redux';
-import {Route, Redirect} from 'react-router-dom';
+import {Redirect, Route} from 'react-router-dom';
 
 import logger from '../lib/logger';
 
@@ -10,7 +10,7 @@ interface IAuthRoute {
 }
 
 class AuthRoute extends React.Component<IAuthRoute> {
-  render() {
+  public render() {
     const {component: Component, auth, ...rest} = this.props;
     logger.info(['AuthRoute', 'render()']);
     return (
@@ -37,7 +37,7 @@ function mapStateToProps(state, ownProps) {
   const auth = state.auth;
 
   return {
-    auth: auth,
+    auth,
   };
 }
 

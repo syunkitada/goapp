@@ -110,8 +110,8 @@ class Login extends React.Component<ILogin> {
             <Typography variant="headline">Sign in</Typography>
             <form className={classes.form} onSubmit={onSubmit}>
               <FormControl margin="normal" required={true} fullWidth={true}>
-                <InputLabel htmlFor="name">Name</InputLabel>
-                <Input id="name" name="name" autoFocus={true} />
+                <InputLabel htmlFor="username">Name</InputLabel>
+                <Input id="username" name="username" autoFocus={true} />
               </FormControl>
               <FormControl margin="normal" required={true} fullWidth={true}>
                 <InputLabel htmlFor="password">Password</InputLabel>
@@ -152,9 +152,9 @@ function mapDispatchToProps(dispatch, ownProps) {
   return {
     onSubmit: e => {
       e.preventDefault();
-      const name = e.target.name.value.trim();
+      const username = e.target.username.value.trim();
       const password = e.target.password.value.trim();
-      dispatch(actions.auth.authLogin(name, password));
+      dispatch(actions.auth.authLogin({username, password}));
     },
   };
 }

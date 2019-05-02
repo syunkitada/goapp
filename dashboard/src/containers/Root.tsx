@@ -12,7 +12,7 @@ import Login from '../apps/auth/components/Login';
 import Service from '../apps/service';
 
 export default class Root extends React.Component {
-  render() {
+  public render() {
     return (
       <Provider store={store}>
         <Auth>

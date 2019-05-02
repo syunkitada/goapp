@@ -26,6 +26,8 @@ function login({username, password}) {
     username,
   });
 
+  console.log('debug login', username, password);
+
   return fetch(process.env.REACT_APP_AUTHPROXY_URL + '/dashboard/login', {
     body,
     credentials: 'include',

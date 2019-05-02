@@ -2,76 +2,63 @@ import * as React from 'react';
 import {connect} from 'react-redux';
 
 import {Theme} from '@material-ui/core/styles/createMuiTheme';
-import withStyles, {
-  WithStyles,
-  StyleRules,
-} from '@material-ui/core/styles/withStyles';
 import createStyles from '@material-ui/core/styles/createStyles';
-
-import Toolbar from '@material-ui/core/Toolbar';
-import {lighten} from '@material-ui/core/styles/colorManipulator';
+import withStyles, {
+  StyleRules,
+  WithStyles,
+} from '@material-ui/core/styles/withStyles';
 
 import {fade} from '@material-ui/core/styles/colorManipulator';
+import {lighten} from '@material-ui/core/styles/colorManipulator';
 
+import Button from '@material-ui/core/Button';
+import FormControl from '@material-ui/core/FormControl';
+import Grid from '@material-ui/core/Grid';
+import IconButton from '@material-ui/core/IconButton';
 import Input from '@material-ui/core/Input';
 import InputAdornment from '@material-ui/core/InputAdornment';
-import FormControl from '@material-ui/core/FormControl';
+import Toolbar from '@material-ui/core/Toolbar';
 import Tooltip from '@material-ui/core/Tooltip';
-import SearchIcon from '@material-ui/icons/Search';
-import Button from '@material-ui/core/Button';
-import IconButton from '@material-ui/core/IconButton';
 
-import Grid from '@material-ui/core/Grid';
+import SearchIcon from '@material-ui/icons/Search';
 
 import icon_utils from '../../../../modules/icon_utils';
 import TablePagination from './TablePagination';
 
 const styles = (theme: Theme): StyleRules =>
   createStyles({
-    root: {
-      width: '100%',
-    },
-    table: {
-      minWidth: 1020,
-    },
-    tableWrapper: {
-      overflowX: 'auto',
-    },
-    margin: {
-      margin: theme.spacing.unit * 2,
+    actions: {
+      color: theme.palette.text.secondary,
     },
     buttonMargin: {
-      marginTop: theme.spacing.unit * 2,
       marginBottom: theme.spacing.unit * 2,
+      marginTop: theme.spacing.unit * 2,
     },
     highlight:
       theme.palette.type === 'light'
         ? {
-            color: theme.palette.secondary.main,
             backgroundColor: lighten(theme.palette.secondary.light, 0.85),
+            color: theme.palette.secondary.main,
           }
         : {
-            color: theme.palette.text.primary,
             backgroundColor: theme.palette.secondary.dark,
+            color: theme.palette.text.primary,
           },
-    spacer: {
-      flex: '1 1 100%',
+    margin: {
+      margin: theme.spacing.unit * 2,
     },
-    actions: {
-      color: theme.palette.text.secondary,
-    },
-    title: {
-      flex: '0 0 auto',
+    root: {
+      width: '100%',
     },
     search: {
-      position: 'relative',
-      borderRadius: theme.shape.borderRadius,
-      backgroundColor: fade(theme.palette.common.white, 0.15),
       '&:hover': {
         backgroundColor: fade(theme.palette.common.white, 0.25),
       },
-      marginRight: theme.spacing.unit * 2,
+      backgroundColor: fade(theme.palette.common.white, 0.15),
+      borderRadius: theme.shape.borderRadius,
       marginLeft: 0,
+      marginRight: theme.spacing.unit * 2,
+      position: 'relative',
       width: '100%',
       [theme.breakpoints.up('sm')]: {
         marginLeft: theme.spacing.unit * 3,
@@ -79,13 +66,25 @@ const styles = (theme: Theme): StyleRules =>
       },
     },
     searchIcon: {
-      width: theme.spacing.unit * 9,
-      height: '100%',
-      position: 'absolute',
-      pointerEvents: 'none',
-      display: 'flex',
       alignItems: 'center',
+      display: 'flex',
+      height: '100%',
       justifyContent: 'center',
+      pointerEvents: 'none',
+      position: 'absolute',
+      width: theme.spacing.unit * 9,
+    },
+    spacer: {
+      flex: '1 1 100%',
+    },
+    table: {
+      minWidth: 1020,
+    },
+    tableWrapper: {
+      overflowX: 'auto',
+    },
+    title: {
+      flex: '0 0 auto',
     },
   });
 
@@ -102,7 +101,7 @@ interface ITableToolbar extends WithStyles<typeof styles> {
 }
 
 class TableToolbar extends React.Component<ITableToolbar> {
-  render() {
+  public render() {
     const {
       classes,
       index,
@@ -125,7 +124,7 @@ class TableToolbar extends React.Component<ITableToolbar> {
           </Button>,
         );
         for (let i = 0, len = index.SelectActions.length; i < len; i++) {
-          let action = index.SelectActions[i];
+          const action = index.SelectActions[i];
           actionButtons.push(
             <Tooltip key={i} title={action.Name}>
               <IconButton
@@ -141,7 +140,7 @@ class TableToolbar extends React.Component<ITableToolbar> {
     } else {
       if (index.Actions != null) {
         for (let i = 0, len = index.Actions.length; i < len; i++) {
-          let action = index.Actions[i];
+          const action = index.Actions[i];
           actionButtons.push(
             <Tooltip key={i} title={action.Name}>
               <IconButton
@@ -158,8 +157,8 @@ class TableToolbar extends React.Component<ITableToolbar> {
 
     return (
       <Toolbar>
-        <Grid container justify="space-between" spacing={24}>
-          <Grid item>
+        <Grid container={true} justify="space-between" spacing={24}>
+          <Grid item={true}>
             <div>
               <FormControl className={classes.margin}>
                 <Input
@@ -175,9 +174,9 @@ class TableToolbar extends React.Component<ITableToolbar> {
               </FormControl>
             </div>
           </Grid>
-          <Grid item>{actionButtons}</Grid>
+          <Grid item={true}>{actionButtons}</Grid>
 
-          <Grid item>
+          <Grid item={true}>
             <TablePagination
               count={count}
               rowsPerPage={rowsPerPage}

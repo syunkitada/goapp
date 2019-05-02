@@ -116,7 +116,7 @@ function mapStateToProps(state, ownProps) {
 function mapDispatchToProps(dispatch, ownProps) {
   return {
     getIndex: params => {
-      dispatch(actions.service.serviceGetIndex(params));
+      dispatch(actions.service.serviceGetIndex({params}));
     },
   };
 }

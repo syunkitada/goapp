@@ -1,12 +1,12 @@
 import * as React from 'react';
 import {connect} from 'react-redux';
 
+import Checkbox from '@material-ui/core/Checkbox';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import TableSortLabel from '@material-ui/core/TableSortLabel';
 import Tooltip from '@material-ui/core/Tooltip';
-import Checkbox from '@material-ui/core/Checkbox';
 
 interface IIndexTableHead {
   index;
@@ -20,11 +20,7 @@ interface IIndexTableHead {
 }
 
 class IndexTableHead extends React.Component<IIndexTableHead> {
-  createSortHandler = property => event => {
-    this.props.onRequestSort(event, property);
-  };
-
-  render() {
+  public render() {
     const {
       index,
       order,
@@ -73,6 +69,10 @@ class IndexTableHead extends React.Component<IIndexTableHead> {
       </TableHead>
     );
   }
+
+  private createSortHandler = property => event => {
+    this.props.onRequestSort(event, property);
+  };
 }
 
 function mapStateToProps(state, ownProps) {

@@ -14,7 +14,7 @@ interface ITablePagination {
 }
 
 class TablePagination extends React.Component<ITablePagination> {
-  render() {
+  public render() {
     const {
       count,
       rowsPerPage,

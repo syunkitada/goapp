@@ -1,32 +1,34 @@
-import {connect} from 'react-redux';
 import * as React from 'react';
+import {connect} from 'react-redux';
+import {Link} from 'react-router-dom';
 
 import {Theme} from '@material-ui/core/styles/createMuiTheme';
-import withStyles, {
-  WithStyles,
-  StyleRules,
-} from '@material-ui/core/styles/withStyles';
 import createStyles from '@material-ui/core/styles/createStyles';
+import withStyles, {
+  StyleRules,
+  WithStyles,
+} from '@material-ui/core/styles/withStyles';
 
-import {fade} from '@material-ui/core/styles/colorManipulator';
+import AppBar from '@material-ui/core/AppBar';
+import ClickAwayListener from '@material-ui/core/ClickAwayListener';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import Drawer from '@material-ui/core/Drawer';
-import AppBar from '@material-ui/core/AppBar';
-import Toolbar from '@material-ui/core/Toolbar';
-import Hidden from '@material-ui/core/Hidden';
-import Typography from '@material-ui/core/Typography';
-import IconButton from '@material-ui/core/IconButton';
-import MenuIcon from '@material-ui/icons/Menu';
-import AccountCircle from '@material-ui/icons/AccountCircle';
-import MenuItem from '@material-ui/core/MenuItem';
-import LeftSidebar from './LeftSidebar';
-import ClickAwayListener from '@material-ui/core/ClickAwayListener';
 import Grow from '@material-ui/core/Grow';
+import Hidden from '@material-ui/core/Hidden';
+import IconButton from '@material-ui/core/IconButton';
+import MenuItem from '@material-ui/core/MenuItem';
+import MenuList from '@material-ui/core/MenuList';
 import Paper from '@material-ui/core/Paper';
 import Popper from '@material-ui/core/Popper';
-import MenuList from '@material-ui/core/MenuList';
+import Toolbar from '@material-ui/core/Toolbar';
+import Typography from '@material-ui/core/Typography';
 
-import {Link} from 'react-router-dom';
+import {fade} from '@material-ui/core/styles/colorManipulator';
+
+import AccountCircle from '@material-ui/icons/AccountCircle';
+import MenuIcon from '@material-ui/icons/Menu';
+
+import LeftSidebar from './LeftSidebar';
 
 import actions from '../actions';
 
@@ -34,33 +36,30 @@ const drawerWidth = 240;
 
 const styles = (theme: Theme): StyleRules =>
   createStyles({
-    root: {
-      display: 'flex',
-    },
-    grow: {
-      flexGrow: 1,
-    },
-    toolbar: {
-      paddingRight: 24, // keep right padding when drawer closed
-    },
-    toolbarIcon: {
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'flex-end',
-      padding: '0 8px',
-      ...theme.mixins.toolbar,
-    },
     appBar: {
-      position: 'absolute',
       marginLeft: drawerWidth,
+      position: 'absolute',
       [theme.breakpoints.up('md')]: {
         width: `calc(100% - ${drawerWidth}px)`,
       },
     },
-    navIconHide: {
-      [theme.breakpoints.up('md')]: {
-        display: 'none',
-      },
+    appBarShift: {
+      marginLeft: drawerWidth,
+      transition: theme.transitions.create(['width', 'margin'], {
+        duration: theme.transitions.duration.enteringScreen,
+        easing: theme.transitions.easing.sharp,
+      }),
+      width: `calc(100% - ${drawerWidth}px)`,
+    },
+    appBarSpacer: theme.mixins.toolbar,
+    chartContainer: {
+      marginLeft: -22,
+    },
+    content: {
+      flexGrow: 1,
+      height: '100vh',
+      overflow: 'auto',
+      padding: theme.spacing.unit,
     },
     drawerPaper: {
       width: drawerWidth,
@@ -68,13 +67,23 @@ const styles = (theme: Theme): StyleRules =>
         position: 'relative',
       },
     },
-    appBarShift: {
-      marginLeft: drawerWidth,
-      width: `calc(100% - ${drawerWidth}px)`,
-      transition: theme.transitions.create(['width', 'margin'], {
-        easing: theme.transitions.easing.sharp,
-        duration: theme.transitions.duration.enteringScreen,
-      }),
+    grow: {
+      flexGrow: 1,
+    },
+    inputInput: {
+      paddingBottom: theme.spacing.unit,
+      paddingLeft: theme.spacing.unit * 10,
+      paddingRight: theme.spacing.unit,
+      paddingTop: theme.spacing.unit,
+      transition: theme.transitions.create('width'),
+      width: '100%',
+      [theme.breakpoints.up('md')]: {
+        width: 200,
+      },
+    },
+    inputRoot: {
+      color: 'inherit',
+      width: '100%',
     },
     menuButton: {
       marginLeft: 12,
@@ -83,18 +92,23 @@ const styles = (theme: Theme): StyleRules =>
     menuButtonHidden: {
       display: 'none',
     },
-    title: {
-      flexGrow: 1,
+    navIconHide: {
+      [theme.breakpoints.up('md')]: {
+        display: 'none',
+      },
+    },
+    root: {
+      display: 'flex',
     },
     search: {
-      position: 'relative',
-      borderRadius: theme.shape.borderRadius,
-      backgroundColor: fade(theme.palette.common.white, 0.15),
       '&:hover': {
         backgroundColor: fade(theme.palette.common.white, 0.25),
       },
-      marginRight: theme.spacing.unit * 2,
+      backgroundColor: fade(theme.palette.common.white, 0.15),
+      borderRadius: theme.shape.borderRadius,
       marginLeft: 0,
+      marginRight: theme.spacing.unit * 2,
+      position: 'relative',
       width: '100%',
       [theme.breakpoints.up('sm')]: {
         marginLeft: theme.spacing.unit * 3,
@@ -102,41 +116,13 @@ const styles = (theme: Theme): StyleRules =>
       },
     },
     searchIcon: {
-      width: theme.spacing.unit * 9,
-      height: '100%',
-      position: 'absolute',
-      pointerEvents: 'none',
-      display: 'flex',
       alignItems: 'center',
+      display: 'flex',
+      height: '100%',
       justifyContent: 'center',
-    },
-    inputRoot: {
-      color: 'inherit',
-      width: '100%',
-    },
-    inputInput: {
-      paddingTop: theme.spacing.unit,
-      paddingRight: theme.spacing.unit,
-      paddingBottom: theme.spacing.unit,
-      paddingLeft: theme.spacing.unit * 10,
-      transition: theme.transitions.create('width'),
-      width: '100%',
-      [theme.breakpoints.up('md')]: {
-        width: 200,
-      },
-    },
-    appBarSpacer: theme.mixins.toolbar,
-    content: {
-      flexGrow: 1,
-      padding: theme.spacing.unit,
-      height: '100vh',
-      overflow: 'auto',
-    },
-    chartContainer: {
-      marginLeft: -22,
-    },
-    tableContainer: {
-      height: 320,
+      pointerEvents: 'none',
+      position: 'absolute',
+      width: theme.spacing.unit * 9,
     },
     sectionDesktop: {
       display: 'none',
@@ -150,6 +136,22 @@ const styles = (theme: Theme): StyleRules =>
         display: 'none',
       },
     },
+    tableContainer: {
+      height: 320,
+    },
+    title: {
+      flexGrow: 1,
+    },
+    toolbar: {
+      paddingRight: 24, // keep right padding when drawer closed
+    },
+    toolbarIcon: {
+      alignItems: 'center',
+      display: 'flex',
+      justifyContent: 'flex-end',
+      padding: '0 8px',
+      ...theme.mixins.toolbar,
+    },
   });
 
 interface IDashboard extends WithStyles<typeof styles> {
@@ -162,33 +164,13 @@ interface IDashboard extends WithStyles<typeof styles> {
 }
 
 class Dashboard extends React.Component<IDashboard> {
-  state = {
-    open: true,
-    mobileOpen: false,
+  public state = {
     anchorEl: null,
+    mobileOpen: false,
+    open: true,
   };
 
-  handleDrawerToggle = () => {
-    this.setState(state => ({mobileOpen: !this.state.mobileOpen}));
-  };
-
-  handleDrawerOpen = () => {
-    this.setState({open: true});
-  };
-
-  handleDrawerClose = () => {
-    this.setState({open: false});
-  };
-
-  handleMenuOpen = event => {
-    this.setState({anchorEl: event.currentTarget});
-  };
-
-  handleMenuClose = () => {
-    this.setState({anchorEl: null});
-  };
-
-  render() {
+  public render() {
     const {anchorEl} = this.state;
     const {
       classes,
@@ -226,7 +208,7 @@ class Dashboard extends React.Component<IDashboard> {
                 className={classes.navIconHide}>
                 <MenuIcon />
               </IconButton>
-              <Typography variant="title" color="inherit" noWrap>
+              <Typography variant="title" color="inherit" noWrap={true}>
                 {title}
               </Typography>
 
@@ -244,8 +226,8 @@ class Dashboard extends React.Component<IDashboard> {
               <Popper
                 open={isMenuOpen}
                 anchorEl={anchorEl}
-                transition
-                disablePortal>
+                transition={true}
+                disablePortal={true}>
                 {({TransitionProps, placement}) => (
                   <Grow
                     {...TransitionProps}
@@ -259,10 +241,10 @@ class Dashboard extends React.Component<IDashboard> {
                           <Link
                             to="/User"
                             style={{
-                              textDecoration: 'none',
-                              display: 'block',
                               backgroundColor: 'none',
                               border: 'none',
+                              display: 'block',
+                              textDecoration: 'none',
                             }}>
                             <MenuItem onClick={this.handleMenuClose}>
                               User Settings
@@ -278,7 +260,7 @@ class Dashboard extends React.Component<IDashboard> {
             </Toolbar>
           </AppBar>
 
-          <Hidden mdUp>
+          <Hidden mdUp={true}>
             <Drawer
               variant="temporary"
               anchor={'left'}
@@ -293,10 +275,10 @@ class Dashboard extends React.Component<IDashboard> {
               {drawer}
             </Drawer>
           </Hidden>
-          <Hidden smDown implementation="css">
+          <Hidden smDown={true} implementation="css">
             <Drawer
               variant="permanent"
-              open
+              open={true}
               classes={{
                 paper: classes.drawerPaper,
               }}>
@@ -312,14 +294,24 @@ class Dashboard extends React.Component<IDashboard> {
       </React.Fragment>
     );
   }
+
+  private handleDrawerToggle = () => {
+    this.setState(state => ({mobileOpen: !this.state.mobileOpen}));
+  };
+
+  private handleMenuOpen = event => {
+    this.setState({anchorEl: event.currentTarget});
+  };
+
+  private handleMenuClose = () => {
+    this.setState({anchorEl: null});
+  };
 }
 
 function mapStateToProps(state, ownProps) {
   const auth = state.auth;
 
-  return {
-    auth: auth,
-  };
+  return {auth};
 }
 
 function mapDispatchToProps(dispatch, ownProps) {

@@ -13,14 +13,10 @@ function* syncState(action) {
   } else {
     const user = {
       authority: payload.Authority,
-      name: payload.Name,
+      username: payload.Name,
     };
     yield put(actions.auth.authLoginSuccess(user));
   }
-}
-
-function* watchSyncState() {
-  yield takeEvery(actions.auth.authSyncState, syncState);
 }
 
 function* login(action) {
@@ -33,14 +29,10 @@ function* login(action) {
   } else {
     const user = {
       authority: payload.Authority,
-      name: payload.Name,
+      username: payload.Name,
     };
     yield put(actions.auth.authLoginSuccess(user));
   }
-}
-
-function* watchLogin() {
-  yield takeEvery(actions.auth.authLogin, login);
 }
 
 function* logout(action) {
@@ -51,6 +43,14 @@ function* logout(action) {
   } else {
     yield put(actions.auth.authLogoutSuccess());
   }
+}
+
+function* watchLogin() {
+  yield takeEvery(actions.auth.authLogin, login);
+}
+
+function* watchSyncState() {
+  yield takeEvery(actions.auth.authSyncState, syncState);
 }
 
 function* watchLogout() {

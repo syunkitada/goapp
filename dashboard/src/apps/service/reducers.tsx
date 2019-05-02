@@ -16,29 +16,29 @@ const defaultState = {
 
   error: null,
   payloadError: null,
+
   index: {Index: null, Data: null},
-  datacenterIndex: null,
-  serviceName: null,
   projectName: null,
+  serviceName: null,
 
   syncAction: null,
   syncDelay: 10000,
 
-  serviceMap: {},
   projectServiceMap: {},
+  serviceMap: {},
 };
 
 export default reducerWithInitialState(defaultState)
   .case(actions.service.serviceGetIndex, (state, payload) => {
     logger.info(['reducers', 'serviceGetIndex', payload.params]);
-    let service = payload.params.serviceName;
-    let project = payload.params.projectName;
-    let newState = Object.assign({}, state, {
-      serviceName: service,
-      projectName: project,
+    const service = payload.params.service;
+    const project = payload.params.project;
+    const newState = Object.assign({}, state, {
       getIndexTctx: {
         fetching: true,
       },
+      projectName: project,
+      serviceName: service,
       syncAction: null,
       syncDelay: 10000,
     });
@@ -64,7 +64,7 @@ export default reducerWithInitialState(defaultState)
       }
     }
 
-    logger.info(['reducers', 'serviceGetIndex', newState]);
+    logger.info(['reducers', 'serviceGetIndex: newState', newState]);
 
     return newState;
   })
@@ -88,12 +88,12 @@ export default reducerWithInitialState(defaultState)
   .case(actions.service.serviceSubmitQueries, state => {
     logger.info(['reducers', 'serviceSubmitQueries']);
     return Object.assign({}, state, {
+      isFetching: true,
+      isSubmitting: true,
+      openSubmitQueriesTctx: false,
       submitQueriesTctx: {
         fetching: true,
       },
-      openSubmitQueriesTctx: false,
-      isFetching: true,
-      isSubmitting: true,
     });
   })
   .case(actions.service.serviceCloseErr, state => {
@@ -116,7 +116,7 @@ export default reducerWithInitialState(defaultState)
   })
   .case(actions.service.servicePostSuccess, (state, payload) => {
     logger.info(['reducers', 'servicePostSuccess', payload.action.type]);
-    let newState = Object.assign({}, state, {
+    const newState = Object.assign({}, state, {
       isFetching: false,
       redirectToReferrer: true,
     });
@@ -157,20 +157,20 @@ export default reducerWithInitialState(defaultState)
       newState.syncAction = null;
     }
 
-    let index = payload.data.Index;
+    const index = payload.data.Index;
     if (index) {
       if (index.SyncDelay && index.SyncDelay > 1000) {
         newState.syncDelay = index.SyncDelay;
       }
     }
 
-    let service = payload.action.payload.serviceName;
-    let project = payload.action.payload.projectName;
+    const service = payload.action.payload.serviceName;
+    const project = payload.action.payload.projectName;
     if (project) {
       newState.projectServiceMap[project][service].isFetching = false;
       newState.projectServiceMap[project][service].Index = payload.data.Index;
       if (newState.projectServiceMap[project][service].Data) {
-        for (let key in payload.data.Data) {
+        for (const key of Object.keys(payload.data.Data)) {
           newState.projectServiceMap[project][service].Data[key] =
             payload.data.Data[key];
         }
@@ -181,7 +181,7 @@ export default reducerWithInitialState(defaultState)
       newState.serviceMap[service].isFetching = false;
       newState.serviceMap[service].Index = payload.data.Index;
       if (newState.serviceMap[service].Data) {
-        for (let key in payload.data.Data) {
+        for (const key of Object.keys(payload.data.Data)) {
           newState.serviceMap[service].Data[key] = payload.data.Data[key];
         }
       } else {
@@ -193,9 +193,9 @@ export default reducerWithInitialState(defaultState)
     return newState;
   })
   .case(actions.service.servicePostFailure, (state, payload) => {
-    let newState = Object.assign({}, state, {
-      isFetching: false,
+    const newState = Object.assign({}, state, {
       error: payload.error,
+      isFetching: false,
     });
 
     if (payload.action.type === 'SERVICE_SUBMIT_QUERIES') {
@@ -204,8 +204,8 @@ export default reducerWithInitialState(defaultState)
       });
     }
 
-    let service = payload.action.payload.serviceName;
-    let project = payload.action.payload.projectName;
+    const service = payload.action.payload.serviceName;
+    const project = payload.action.payload.projectName;
     if (project) {
       newState.projectServiceMap[project][service].isFetching = false;
     } else {

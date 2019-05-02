@@ -8,23 +8,23 @@ import actions from '../../actions';
 import logger from '../../lib/logger';
 
 interface IService {
-  match;
-  history;
   auth;
+  history;
+  match;
   startBackgroundSync;
 }
 
 class Service extends React.Component<IService> {
-  componentWillMount() {
+  public componentWillMount() {
     logger.info(['Service', 'componentWillMount()']);
     this.props.startBackgroundSync();
   }
 
-  componentWillUnmount() {
+  public componentWillUnmount() {
     logger.info(['Service', 'componentWillUnmount()']);
   }
 
-  render() {
+  public render() {
     const {match, history, auth} = this.props;
 
     if (!auth.user) {
@@ -44,8 +44,8 @@ function mapStateToProps(state, ownProps) {
   const match = ownProps.match;
 
   return {
-    match: match,
-    auth: auth,
+    auth,
+    match,
   };
 }
 
