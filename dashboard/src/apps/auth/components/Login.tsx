@@ -20,8 +20,10 @@ import Typography from '@material-ui/core/Typography';
 
 import LockOutlinedIcon from '@material-ui/icons/LockOutlined';
 
-import actions from '../../../actions';
 import MsgSnackbar from '../../../components/snackbars/MsgSnackbar';
+
+import actions from '../../../actions';
+import logger from '../../../lib/logger';
 
 const styles = (theme: Theme): StyleRules =>
   createStyles({
@@ -67,6 +69,8 @@ class Login extends React.Component<ILogin> {
   public render() {
     const {classes, auth, history, onSubmit} = this.props;
     const {from} = history.location.state || {from: {pathname: '/'}};
+
+    logger.info('Login', 'render');
 
     if (auth.redirectToReferrer) {
       return <Redirect to={from} />;
@@ -125,7 +129,7 @@ class Login extends React.Component<ILogin> {
               <Button
                 type="submit"
                 fullWidth={true}
-                variant="raised"
+                variant="contained"
                 color="primary"
                 className={classes.submit}>
                 Sign in

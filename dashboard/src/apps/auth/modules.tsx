@@ -16,6 +16,7 @@ function syncState() {
       };
     })
     .catch(error => {
+      console.log('DEBUG err syncState');
       return {error};
     });
 }

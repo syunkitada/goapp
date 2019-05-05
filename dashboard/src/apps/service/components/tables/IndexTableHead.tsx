@@ -47,7 +47,7 @@ class IndexTableHead extends React.Component<IIndexTableHead> {
             column => (
               <TableCell
                 key={column.id}
-                align={column.numeric ? 'right' : 'left'}
+                align={'right'}
                 padding={column.disablePadding ? 'none' : 'default'}
                 sortDirection={orderBy === column.id ? order : false}>
                 <Tooltip

@@ -7,15 +7,16 @@ function* syncState(action) {
   const {payload, error} = yield call(modules.auth.syncState);
 
   if (error) {
-    yield put(actions.auth.authLoginFailure(error.message));
+    yield put(actions.auth.authLoginFailure({error: error.message}));
   } else if (payload.Err && payload.Err !== '') {
-    yield put(actions.auth.authLoginFailure(payload.Err));
+    yield put(actions.auth.authLoginFailure({error: payload.Err}));
   } else {
-    const user = {
-      authority: payload.Authority,
-      username: payload.Name,
-    };
-    yield put(actions.auth.authLoginSuccess(user));
+    yield put(
+      actions.auth.authLoginSuccess({
+        authority: payload.Authority,
+        username: payload.Name,
+      }),
+    );
   }
 }
 

@@ -1,6 +1,6 @@
 const IS_DEVELOP = true;
 
-function debug(args: any[]) {
+function debug(...args: any[]) {
   if (!IS_DEVELOP) {
     return;
   }
@@ -9,7 +9,7 @@ function debug(args: any[]) {
   console.error(now.toISOString() + ' DEBUG', args);
 }
 
-function info(args: any[]) {
+function info(...args: any[]) {
   if (!IS_DEVELOP) {
     return;
   }
@@ -18,7 +18,7 @@ function info(args: any[]) {
   console.info(now.toISOString() + ' INFO', args);
 }
 
-function warn(args: any[]) {
+function warn(...args: any[]) {
   if (!IS_DEVELOP) {
     return;
   }
@@ -27,7 +27,7 @@ function warn(args: any[]) {
   console.info(now.toISOString() + ' WARN', args);
 }
 
-function error(args: any[]) {
+function error(...args: any[]) {
   if (!IS_DEVELOP) {
     return;
   }

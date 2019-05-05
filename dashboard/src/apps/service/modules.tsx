@@ -1,7 +1,7 @@
 import fetch from 'cross-fetch';
 
 interface IResponse {
-  payload: any;
+  result: any;
   error: any;
 }
 
@@ -34,7 +34,7 @@ function post({
               err: payload.Err,
               errCode: resp.status,
             },
-            payload: null,
+            result: null,
           };
           return result;
         });
@@ -43,7 +43,7 @@ function post({
       return resp.json().then(payload => {
         const result: IResponse = {
           error: null,
-          payload,
+          result: payload,
         };
         return result;
       });
@@ -53,7 +53,7 @@ function post({
         error: {
           err: error,
         },
-        payload: null,
+        result: null,
       };
       return result;
     });

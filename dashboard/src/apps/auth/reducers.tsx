@@ -31,8 +31,8 @@ export default reducerWithInitialState(defaultState)
   )
   .case(actions.auth.authLoginFailure, (state, payload) =>
     Object.assign({}, defaultState, {
+      error: payload.error,
       isFetching: false,
-      // error: payload.action.payload.error,
     }),
   )
   .case(actions.auth.authLogout, state =>
@@ -47,7 +47,7 @@ export default reducerWithInitialState(defaultState)
   )
   .case(actions.auth.authLogoutFailure, (state, payload) =>
     Object.assign({}, state, {
+      error: payload.error,
       isFetching: false,
-      // error: payload.action.payload.error,
     }),
   );

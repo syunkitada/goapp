@@ -13,7 +13,7 @@ interface IAuth {
 class Auth extends React.Component<IAuth> {
   public componentWillMount() {
     if (!this.props.auth.isSyncState) {
-      logger.info(['Auth', 'componentWillMount()']);
+      logger.info('Auth', 'componentWillMount()');
       this.props.syncState();
     }
   }

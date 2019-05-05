@@ -71,7 +71,7 @@ class ExpansionPanels extends React.Component<IExpansionPanels> {
     const {classes, render, routes, data, index} = this.props;
     const {expanded, expandedUrl} = this.state;
 
-    logger.info(['ExpansionPanels', 'render()', routes]);
+    logger.info('ExpansionPanels', 'render()', routes);
 
     const route = routes.slice(-1)[0];
     const beforeRoute = routes.slice(-2)[0];
@@ -98,7 +98,12 @@ class ExpansionPanels extends React.Component<IExpansionPanels> {
         <ExpansionPanel
           key={i}
           expanded={expandedPath === beforeRoute.match.path + panel.Route}
-          onChange={this.handleChange}>
+          onChange={() =>
+            this.handleChange(
+              beforeRoute.match.path + panel.Route,
+              route.match.url,
+            )
+          }>
           <ExpansionPanelSummary expandIcon={<ExpandMoreIcon />}>
             <Typography variant="title">
               {panel.Name} {route.match.params[panel.Subname]}
@@ -114,16 +119,10 @@ class ExpansionPanels extends React.Component<IExpansionPanels> {
     return <div className={classes.root}>{panels}</div>;
   }
 
-  private handleChange = event => {
-    const {routes, index} = this.props;
-
-    const route = routes.slice(-1)[0];
-    const beforeRoute = routes.slice(-2)[0];
-    const panel = index.Panels[event.target.key];
-
+  private handleChange = (expandedPath, expandedUrl) => {
     this.setState({
-      expanded: beforeRoute.match.path + panel.Route,
-      expandedUrl: route.match.url,
+      expanded: expandedPath,
+      expandedUrl,
     });
   };
 }

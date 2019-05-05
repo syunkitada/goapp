@@ -40,7 +40,7 @@ class Tabs extends React.Component<ITabs> {
 
   public render() {
     const {classes, render, routes, data, index} = this.props;
-    logger.info(['Tabs', 'render()', routes]);
+    logger.info('Tabs', 'render()', routes);
 
     const route = routes[routes.length - 1];
 

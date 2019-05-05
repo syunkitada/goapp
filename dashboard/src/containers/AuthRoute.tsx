@@ -12,7 +12,7 @@ interface IAuthRoute {
 class AuthRoute extends React.Component<IAuthRoute> {
   public render() {
     const {component: Component, auth, ...rest} = this.props;
-    logger.info(['AuthRoute', 'render()']);
+    logger.info('AuthRoute', 'render()');
     return (
       <Route
         {...rest}

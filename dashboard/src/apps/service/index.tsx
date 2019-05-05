@@ -16,12 +16,12 @@ interface IService {
 
 class Service extends React.Component<IService> {
   public componentWillMount() {
-    logger.info(['Service', 'componentWillMount()']);
+    logger.info('Service', 'componentWillMount()');
     this.props.startBackgroundSync();
   }
 
   public componentWillUnmount() {
-    logger.info(['Service', 'componentWillUnmount()']);
+    logger.info('Service', 'componentWillUnmount()');
   }
 
   public render() {

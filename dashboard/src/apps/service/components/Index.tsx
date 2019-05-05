@@ -16,7 +16,7 @@ function renderIndex(routes, data, index) {
   if (!index) {
     return <div>Not Found</div>;
   }
-  logger.info(['Index', 'renderIndex:', index.Kind, index.Name]);
+  logger.info('Index', 'renderIndex:', index.Kind, index.Name);
   switch (index.Kind) {
     case 'Msg':
       return <div>{index.Name}</div>;
@@ -57,14 +57,14 @@ class Index extends React.Component<IIndex> {
   };
 
   public componentWillMount() {
-    logger.info(['Index', 'componentWillMount()']);
+    logger.info('Index', 'componentWillMount()');
     const {match, getIndex} = this.props;
     getIndex(match.params);
   }
 
   public render() {
     const {match, service, serviceName, projectName, getIndex} = this.props;
-    logger.info(['Index', 'render', projectName, serviceName]);
+    logger.info('Index', 'render', projectName, serviceName);
 
     if (
       service.serviceName !== serviceName ||

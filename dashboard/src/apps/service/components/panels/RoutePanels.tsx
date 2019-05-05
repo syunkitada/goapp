@@ -18,7 +18,7 @@ class RoutePanels extends React.Component<IRoutePanels> {
     const {render, routes, data, index} = this.props;
 
     const beforeRoute = routes.slice(-1)[0];
-    logger.info(['RoutePanels', 'render()', beforeRoute]);
+    logger.info('RoutePanels', 'render()', beforeRoute);
 
     return (
       <div>

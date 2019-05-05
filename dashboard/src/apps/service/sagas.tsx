@@ -15,7 +15,6 @@ import modules from '../../modules';
 import store from '../../store';
 
 function* post(action) {
-  console.log('DEBUG post', action);
   const dataQueries: any[] = [];
   const {
     queries,
@@ -32,7 +31,7 @@ function* post(action) {
     case 'SERVICE_GET_INDEX':
       payload = {
         projectName: params.project,
-        queries: [{Kind: 'GetIndex', StrParams: action.payload}],
+        queries: [{Kind: 'GetIndex', StrParams: params}],
         serviceName: params.service,
         stateKey: 'index',
       };
@@ -147,9 +146,9 @@ function* post(action) {
   const {result, error} = yield call(modules.service.post, payload);
 
   if (error) {
-    yield put(actions.service.servicePostFailure(action, error));
+    yield put(actions.service.servicePostFailure({action, error}));
   } else {
-    yield put(actions.service.servicePostSuccess(action, result));
+    yield put(actions.service.servicePostSuccess({action, result}));
   }
 }
 
@@ -158,16 +157,16 @@ function* sync(action) {
     while (true) {
       const serviceState = Object.assign({}, store.getState().service);
       if (serviceState.syncAction) {
-        logger.info(['saga', 'sync', 'syncAction']);
+        logger.info('saga', 'sync', 'syncAction');
         yield call(post, serviceState.syncAction);
       } else {
-        logger.info(['saga', 'sync', 'syncAction is null']);
+        logger.info('saga', 'sync', 'syncAction is null');
       }
       yield delay(serviceState.syncDelay);
     }
   } finally {
     if (yield cancelled()) {
-      logger.info(['saga', 'sync', 'finally']);
+      logger.info('saga', 'sync', 'finally');
       // yield put(actions.requestFailure('Sync cancelled!'))
     }
   }

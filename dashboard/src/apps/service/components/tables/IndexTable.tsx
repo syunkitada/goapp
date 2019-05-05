@@ -261,10 +261,12 @@ class IndexTable extends React.Component<IIndexTable> {
                       link = baseUrl + '/' + splitedNextLink.join('/');
                       cells.push(
                         <TableCell
+                          align="right"
                           key={i}
                           component="th"
                           scope="row"
                           padding="none"
+                          style={{cursor: 'pointer'}}
                           onClick={e => {
                             this.handleLinkClick(e, link, n[i], columns[i]);
                           }}>

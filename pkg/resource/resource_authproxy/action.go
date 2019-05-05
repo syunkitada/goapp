@@ -108,6 +108,9 @@ func (resource *Resource) PhysicalAction(c *gin.Context) {
 							"Route":   "/Racks",
 							"Kind":    "Table",
 							"DataKey": "Racks",
+							"SelectActions": []interface{}{
+								gin.H{"Name": "Delete", "Icon": "Delete"},
+							},
 							"Columns": []interface{}{
 								gin.H{"Name": "Name", "IsSearch": true},
 								gin.H{"Name": "Kind"},
@@ -120,6 +123,9 @@ func (resource *Resource) PhysicalAction(c *gin.Context) {
 							"Route":   "/Floors",
 							"Kind":    "Table",
 							"DataKey": "Floors",
+							"SelectActions": []interface{}{
+								gin.H{"Name": "Delete", "Icon": "Delete"},
+							},
 							"Columns": []interface{}{
 								gin.H{"Name": "Name", "IsSearch": true},
 								gin.H{"Name": "Kind"},
@@ -146,6 +152,12 @@ func (resource *Resource) PhysicalAction(c *gin.Context) {
 												"FloorLeafRouter", "FloorSpineRouter", "GatewayRouter",
 											}},
 									},
+								},
+							},
+							"SelectActions": []interface{}{
+								gin.H{"Name": "Delete", "Icon": "Delete",
+									"Kind":     "Form",
+									"DataKind": "PhysicalModel",
 								},
 							},
 							"ColumnActions": []interface{}{
