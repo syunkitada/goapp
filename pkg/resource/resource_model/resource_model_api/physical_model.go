@@ -28,6 +28,11 @@ func (modelApi *ResourceModelApi) CreatePhysicalModel(tctx *logger.TraceContext,
 		return err, codes.ClientBadRequest
 	}
 
+	if len(specs) == 0 {
+		err = error_utils.NewInvalidRequestError("Specs is empty")
+		return err, codes.ClientBadRequest
+	}
+
 	for _, spec := range specs {
 		if err = modelApi.validate.Struct(&spec); err != nil {
 			return err, codes.ClientBadRequest
@@ -55,6 +60,35 @@ func (modelApi *ResourceModelApi) CreatePhysicalModel(tctx *logger.TraceContext,
 	}
 
 	return nil, codes.OkCreated
+}
+
+func (modelApi *ResourceModelApi) DeletePhysicalModel(tctx *logger.TraceContext, tx *gorm.DB, query *resource_api_grpc_pb.Query) (error, int64) {
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	strSpecs, ok := query.StrParams["Specs"]
+	if !ok {
+		err = error_utils.NewInvalidRequestError("NotFound Specs")
+		return error_utils.NewInvalidRequestError("NotFound Specs"), codes.ClientBadRequest
+	}
+
+	var specs []resource_model.NameSpec
+	if err = json.Unmarshal([]byte(strSpecs), &specs); err != nil {
+		return err, codes.ClientBadRequest
+	}
+
+	for _, spec := range specs {
+		if err = modelApi.validate.Struct(&spec); err != nil {
+			return err, codes.ClientBadRequest
+		}
+
+		if err = tx.Delete(&resource_model.PhysicalModel{}, "name = ?", spec.Name).Error; err != nil {
+			return err, codes.RemoteDbError
+		}
+	}
+
+	return nil, codes.OkDeleted
 }
 
 func (modelApi *ResourceModelApi) convertPhysicalModel(tctx *logger.TraceContext, physicalModel resource_model.PhysicalModel) *resource_api_grpc_pb.PhysicalModel {

@@ -75,7 +75,7 @@ func (resource *Resource) PhysicalAction(c *gin.Context) {
 									"Name": "Create", "Icon": "Create", "Kind": "Form",
 									"DataKind": "PhysicalResource",
 									"Fields": []interface{}{
-										gin.H{"Name": "Name", "Type": "text", "Require": true, "Min": 5, "Max": 200, "RegExp": "[0-9a-Z]*"},
+										gin.H{"Name": "Name", "Type": "text", "Require": true, "Min": 5, "Max": 200, "RegExp": "^[0-9a-zA-Z]+$"},
 										gin.H{"Name": "Kind", "Type": "select", "Require": true,
 											"Options": []string{
 												"Server", "Pdu", "RackSpineRouter",
@@ -89,7 +89,11 @@ func (resource *Resource) PhysicalAction(c *gin.Context) {
 								},
 							},
 							"SelectActions": []interface{}{
-								gin.H{"Name": "Delete", "Icon": "Delete"},
+								gin.H{"Name": "Delete", "Icon": "Delete",
+									"Kind":      "Form",
+									"DataKind":  "PhysicalResource",
+									"SelectKey": "Name",
+								},
 							},
 							"ColumnActions": []interface{}{
 								gin.H{"Name": "Detail", "Icon": "Detail"},
@@ -108,6 +112,13 @@ func (resource *Resource) PhysicalAction(c *gin.Context) {
 							"Route":   "/Racks",
 							"Kind":    "Table",
 							"DataKey": "Racks",
+							"SelectActions": []interface{}{
+								gin.H{"Name": "Delete", "Icon": "Delete",
+									"Kind":      "Form",
+									"DataKind":  "Rack",
+									"SelectKey": "Name",
+								},
+							},
 							"Columns": []interface{}{
 								gin.H{"Name": "Name", "IsSearch": true},
 								gin.H{"Name": "Kind"},
@@ -120,6 +131,13 @@ func (resource *Resource) PhysicalAction(c *gin.Context) {
 							"Route":   "/Floors",
 							"Kind":    "Table",
 							"DataKey": "Floors",
+							"SelectActions": []interface{}{
+								gin.H{"Name": "Delete", "Icon": "Delete",
+									"Kind":      "Form",
+									"DataKind":  "Floor",
+									"SelectKey": "Name",
+								},
+							},
 							"Columns": []interface{}{
 								gin.H{"Name": "Name", "IsSearch": true},
 								gin.H{"Name": "Kind"},
@@ -146,6 +164,13 @@ func (resource *Resource) PhysicalAction(c *gin.Context) {
 												"FloorLeafRouter", "FloorSpineRouter", "GatewayRouter",
 											}},
 									},
+								},
+							},
+							"SelectActions": []interface{}{
+								gin.H{"Name": "Delete", "Icon": "Delete",
+									"Kind":      "Form",
+									"DataKind":  "PhysicalModel",
+									"SelectKey": "Name",
 								},
 							},
 							"ColumnActions": []interface{}{

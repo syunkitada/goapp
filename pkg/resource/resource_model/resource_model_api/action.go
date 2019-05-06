@@ -126,19 +126,29 @@ func (modelApi *ResourceModelApi) Action(tctx *logger.TraceContext, req *resourc
 				return
 			}
 			rep.PhysicalModels = modelApi.convertPhysicalModels(tctx, physicalModels)
+
 		case "CreatePhysicalResource":
 			if err, statusCode = modelApi.CreatePhysicalResource(tctx, db, query); err != nil {
 				rep.Tctx.Err = err.Error()
 				rep.Tctx.StatusCode = statusCode
 				return
 			}
+
 		case "CreatePhysicalModel":
 			if err, statusCode = modelApi.CreatePhysicalModel(tctx, tx, query); err != nil {
 				rep.Tctx.Err = err.Error()
 				rep.Tctx.StatusCode = statusCode
 				return
 			}
+
+		case "DeletePhysicalModel":
+			if err, statusCode = modelApi.DeletePhysicalModel(tctx, tx, query); err != nil {
+				rep.Tctx.Err = err.Error()
+				rep.Tctx.StatusCode = statusCode
+				return
+			}
 		}
+
 	}
 
 	tx.Commit()
