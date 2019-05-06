@@ -327,11 +327,15 @@ class BasicForm extends React.Component<IBasicForm> {
     }
 
     const items: any[] = [];
-    if (selected) {
+    if (index.SelectKey && selected) {
       for (let i = 0, len = selected.length; i < len; i++) {
         const item = {};
         item[index.SelectKey] = selected[i];
         items.push(item);
+      }
+      if (items.length === 0) {
+        // TODO handle unknown error
+        return;
       }
     } else {
       items.push({});

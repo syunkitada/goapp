@@ -17,8 +17,8 @@ import store from '../../store';
 function* post(action) {
   const dataQueries: any[] = [];
   const {
-    queries,
     params,
+    queries,
     isSync,
     queryKind,
     items,
@@ -38,8 +38,12 @@ function* post(action) {
       };
       break;
     case 'SERVICE_GET_QUERIES':
+      const syncQueryMap: any[] = [];
       for (let i = 0, len = queries.length; i < len; i++) {
         dataQueries.push({Kind: queries[i], StrParams: params});
+        if (isSync) {
+          syncQueryMap[queries[i]] = {Kind: queries[i], StrParams: params};
+        }
       }
       payload = {
         actionName: 'UserQuery',
@@ -48,6 +52,7 @@ function* post(action) {
         queries: dataQueries,
         serviceName: params.service,
         stateKey: 'index',
+        syncQueryMap,
       };
 
       break;
@@ -102,61 +107,14 @@ function* post(action) {
       return {};
   }
 
-  // SERVICE_GET_QUERIES: (queries, isSync, params) => {
-  //   let dataQueries = [];
-  //   for (let i = 0, len = queries.length; i < len; i ++) {
-  //     dataQueries.push({Kind: queries[i], StrParams: params})
-  //   }
-  //   return {
-  //     stateKey: 'index',
-  //     serviceName: params.service,
-  //     actionName: 'UserQuery',
-  //     projectName: params.project,
-  //     queries: dataQueries,
-  //     isSync: isSync,
-  //   }
-  // },
-
-  // SERVICE_SUBMIT_QUERIES: (queryKind, action, fieldMap, targets, params) => {
-  //   let dataQueries = [];
-  //   let strParams = Object.assign({}, params)
-  //   let numParams = {}
-
-  //   let spec = Object.assign({}, params)
-  //   for (let key in fieldMap) {
-  //     let field = fieldMap[key]
-  //     spec[key] = field.value
-  //   }
-  //   let specsStr = JSON.stringify([spec])
-  //   strParams['Specs'] = specsStr
-
-  //   if (targets) {
-  //     for (let i = 0, len = targets.length; i < len; i ++) {
-  //       let target = targets[i]
-  //       strParams.Target = target
-  //       dataQueries.push({Kind: queryKind, StrParams: strParams, NumParams: numParams})
-  //     }
-  //   } else {
-  //     dataQueries.push({Kind: queryKind, StrParams: strParams, NumParams: numParams})
-  //   }
-
-  //   return {
-  //     stateKey: 'index',
-  //     serviceName: params.service,
-  //     actionName: 'UserQuery',
-  //     projectName: params.project,
-  //     queries: dataQueries,
-  //   }
-  // },
-
   console.log('DEBUG post2', payload);
 
   const {result, error} = yield call(modules.service.post, payload);
 
   if (error) {
-    yield put(actions.service.servicePostFailure({action, error}));
+    yield put(actions.service.servicePostFailure({action, payload, error}));
   } else {
-    yield put(actions.service.servicePostSuccess({action, result}));
+    yield put(actions.service.servicePostSuccess({action, payload, result}));
   }
 }
 
@@ -164,9 +122,47 @@ function* sync(action) {
   try {
     while (true) {
       const serviceState = Object.assign({}, store.getState().service);
-      if (serviceState.syncAction) {
-        logger.info('saga', 'sync', 'syncAction');
-        yield call(post, serviceState.syncAction);
+      if (serviceState.syncQueryMap) {
+        const queries: any[] = [];
+        console.log(serviceState.syncQueryMap);
+        for (const key of Object.keys(serviceState.syncQueryMap)) {
+          queries.push(serviceState.syncQueryMap[key]);
+        }
+        const postAction = {
+          payload: {
+            params: {
+              project: serviceState.projectName,
+              service: serviceState.serviceName,
+            },
+          },
+          type: 'SERVICE_GET_QUERIES',
+        };
+        const payload = {
+          actionName: 'SERVICE_GET_QUERIES',
+          projectName: serviceState.projectName,
+          queries,
+          serviceName: serviceState.serviceName,
+        };
+        logger.info('saga', 'sync', 'syncAction', action);
+
+        const {result, error} = yield call(modules.service.post, payload);
+        if (error) {
+          yield put(
+            actions.service.servicePostFailure({
+              action: postAction,
+              error,
+              payload,
+            }),
+          );
+        } else {
+          yield put(
+            actions.service.servicePostSuccess({
+              action: postAction,
+              payload,
+              result,
+            }),
+          );
+        }
       } else {
         logger.info('saga', 'sync', 'syncAction is null');
       }

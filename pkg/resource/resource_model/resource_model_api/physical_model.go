@@ -28,6 +28,11 @@ func (modelApi *ResourceModelApi) CreatePhysicalModel(tctx *logger.TraceContext,
 		return err, codes.ClientBadRequest
 	}
 
+	if len(specs) == 0 {
+		err = error_utils.NewInvalidRequestError("Specs is empty")
+		return err, codes.ClientBadRequest
+	}
+
 	for _, spec := range specs {
 		if err = modelApi.validate.Struct(&spec); err != nil {
 			return err, codes.ClientBadRequest

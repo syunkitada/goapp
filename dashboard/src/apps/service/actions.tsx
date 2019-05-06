@@ -31,9 +31,13 @@ export const serviceCloseGetQueriesTctx = actionCreator(
 export const serviceCloseSubmitQueriesTctx = actionCreator(
   'SERVICE_CLOSE_SUBMIT_QUERIES_TCTX',
 );
-export const servicePostSuccess = actionCreator<{action: any; result: any}>(
-  'SERVICE_POST_SUCCESS',
-);
-export const servicePostFailure = actionCreator<{action: any; error: any}>(
-  'SERVICE_POST_FAILURE',
-);
+export const servicePostSuccess = actionCreator<{
+  action: any;
+  payload: any;
+  result: any;
+}>('SERVICE_POST_SUCCESS');
+export const servicePostFailure = actionCreator<{
+  action: any;
+  payload: any;
+  error: any;
+}>('SERVICE_POST_FAILURE');

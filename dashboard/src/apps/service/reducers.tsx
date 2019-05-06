@@ -23,6 +23,7 @@ const defaultState = {
 
   syncAction: null,
   syncDelay: 10000,
+  syncQueryMap: {},
 
   projectServiceMap: {},
   serviceMap: {},
@@ -41,6 +42,7 @@ export default reducerWithInitialState(defaultState)
       serviceName: service,
       syncAction: null,
       syncDelay: 10000,
+      syncQueryMap: {},
     });
 
     if (project) {
@@ -144,6 +146,7 @@ export default reducerWithInitialState(defaultState)
         newState.openSubmitQueriesTctx = true;
         break;
       default:
+        console.log('DEBUG unknownaction', actionType);
         break;
     }
     if (tctx.StatusCode >= 300) {
@@ -154,7 +157,14 @@ export default reducerWithInitialState(defaultState)
 
     if (payload.action.payload.isSync) {
       newState.syncAction = payload.action;
+      console.log('DEBUG reducer query', payload.action.payload.syncQueryMap);
+      newState.syncQueryMap = Object.assign(
+        {},
+        state.syncQueryMap,
+        payload.payload.syncQueryMap,
+      );
     } else {
+      // FIXME
       newState.syncAction = null;
     }
 
