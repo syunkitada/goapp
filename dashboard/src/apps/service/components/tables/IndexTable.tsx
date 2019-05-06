@@ -26,6 +26,7 @@ import IndexTableHead from './IndexTableHead';
 import TableToolbar from './TableToolbar';
 
 import actions from '../../../../actions';
+import logger from '../../../../lib/logger';
 import icon_utils from '../../../../modules/icon_utils';
 import sort_utils from '../../../../modules/sort_utils';
 
@@ -73,6 +74,7 @@ class IndexTable extends React.Component<IIndexTable> {
       searchRegExp,
       actionName,
     } = this.state;
+    logger.info('IndexTable', 'render', actionName, routes);
 
     const columns = index.Columns;
     let rawData = data[index.DataKey];
@@ -147,15 +149,25 @@ class IndexTable extends React.Component<IIndexTable> {
       }
     }
 
-    let action: any = null;
     let actionDialog: any = null;
     if (actionName !== null) {
+      let action: any = null;
       for (const a of index.Actions) {
         if (a.Name === actionName) {
           action = a;
           break;
         }
       }
+
+      if (action === null) {
+        for (const a of index.SelectActions) {
+          if (a.Name === actionName) {
+            action = a;
+            break;
+          }
+        }
+      }
+
       if (action === null) {
         for (const a of index.ColumnActions) {
           if (a.Name === actionName) {
@@ -164,6 +176,7 @@ class IndexTable extends React.Component<IIndexTable> {
           }
         }
       }
+
       if (action === null) {
         actionDialog = null;
       } else {
@@ -173,6 +186,7 @@ class IndexTable extends React.Component<IIndexTable> {
               <FormDialog
                 open={true}
                 data={data}
+                selected={selected}
                 action={action}
                 routes={routes}
                 onClose={this.handleActionDialogClose}
@@ -397,6 +411,7 @@ class IndexTable extends React.Component<IIndexTable> {
   };
 
   private handleActionClick = (event, actionName) => {
+    console.log('DEBUG handleAction', actionName);
     this.setState({actionName});
   };
 

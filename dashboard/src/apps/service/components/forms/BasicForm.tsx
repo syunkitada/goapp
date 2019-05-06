@@ -17,15 +17,25 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 import Grid from '@material-ui/core/Grid';
 import TextField from '@material-ui/core/TextField';
 
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import ListItemIcon from '@material-ui/core/ListItemIcon';
+import ListItemText from '@material-ui/core/ListItemText';
+import DoneIcon from '@material-ui/icons/Done';
+
 import green from '@material-ui/core/colors/green';
 import red from '@material-ui/core/colors/red';
 
 import actions from '../../../../actions';
+import logger from '../../../../lib/logger';
+
+import Icon from '../../../../components/icons/Icon';
 
 interface IBasicForm extends WithStyles<typeof styles> {
   targets;
   routes;
   data;
+  selected;
   index;
   onClose;
   isSubmitting;
@@ -43,17 +53,85 @@ class BasicForm extends React.Component<IBasicForm> {
   public render() {
     const {
       classes,
-      data,
       index,
-      onClose,
+      selected,
       isSubmitting,
       title,
-      rawData,
       submitButtonName,
+      onClose,
     } = this.props;
-    const {fieldMap} = this.state;
+    logger.info('BasicForm', 'render', index, selected);
 
+    const fields = this.renderFields();
+
+    return (
+      <div className={classes.root}>
+        {title && <DialogTitle id="form-dialog-title">{title}</DialogTitle>}
+        <DialogContent>
+          <DialogContentText>{index.Description}</DialogContentText>
+          {fields}
+        </DialogContent>
+        <DialogActions>
+          <div className={classes.wrapper} style={{width: '100%'}}>
+            <Grid container={true}>
+              <Grid container={true} item={true} xs={6} justify="flex-start">
+                {onClose && (
+                  <Button onClick={onClose} disabled={isSubmitting}>
+                    Cancel
+                  </Button>
+                )}
+              </Grid>
+              <Grid container={true} item={true} xs={6} justify="flex-end">
+                {isSubmitting ? (
+                  <CircularProgress
+                    size={24}
+                    className={classes.buttonProgress}
+                  />
+                ) : (
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    disabled={isSubmitting}
+                    className={classes.button}
+                    onClick={this.handleActionSubmit}>
+                    <Icon kind={index.Icon} marginDirection={'right'} />
+                    {submitButtonName}
+                  </Button>
+                )}
+              </Grid>
+            </Grid>
+          </div>
+        </DialogActions>
+      </div>
+    );
+  }
+
+  private renderFields = () => {
+    const {classes, data, selected, index, rawData} = this.props;
+    const {fieldMap} = this.state;
     const fields: JSX.Element[] = [];
+
+    if (selected) {
+      const listItems: JSX.Element[] = [];
+      for (let i = 0, len = selected.length; i < len; i++) {
+        const s = selected[i];
+        listItems.push(
+          <ListItem key={s}>
+            <ListItemIcon>
+              <DoneIcon />
+            </ListItemIcon>
+            <ListItemText primary={s} />
+          </ListItem>,
+        );
+      }
+
+      fields.push(<List key={'selected'}>{listItems}</List>);
+    }
+
+    if (!index.Fields) {
+      return fields;
+    }
+
     for (let i = 0, len = index.Fields.length; i < len; i++) {
       const field = index.Fields[i];
       const fieldState = fieldMap[field.Name];
@@ -91,7 +169,9 @@ class BasicForm extends React.Component<IBasicForm> {
               margin="dense"
               type={field.Type}
               fullWidth={true}
-              onChange={this.handleTextFieldChange}
+              onChange={event => {
+                this.handleTextFieldChange(event, field);
+              }}
               value={value}
               helperText={helperText}
               error={isError}
@@ -122,7 +202,9 @@ class BasicForm extends React.Component<IBasicForm> {
               label={field.Name}
               className={classes.textField}
               value={value}
-              onChange={this.handleSelectFieldChange}
+              onChange={event => {
+                this.handleSelectFieldChange(event, field);
+              }}
               SelectProps={{
                 MenuProps: {
                   className: classes.menu,
@@ -146,67 +228,32 @@ class BasicForm extends React.Component<IBasicForm> {
       }
     }
 
-    return (
-      <div className={classes.root}>
-        {title && <DialogTitle id="form-dialog-title">{title}</DialogTitle>}
-        <DialogContent>
-          <DialogContentText>{index.Description}</DialogContentText>
-          {fields}
-        </DialogContent>
-        <DialogActions>
-          <div className={classes.wrapper} style={{width: '100%'}}>
-            <Grid container={true}>
-              <Grid container={true} item={true} xs={4} justify="flex-start">
-                {onClose && (
-                  <Button onClick={onClose} disabled={isSubmitting}>
-                    Cancel
-                  </Button>
-                )}
-              </Grid>
-              <Grid container={true} item={true} xs={4} justify="center">
-                {isSubmitting && (
-                  <CircularProgress
-                    size={24}
-                    className={classes.buttonProgress}
-                  />
-                )}
-              </Grid>
-              <Grid container={true} item={true} xs={4} justify="flex-end">
-                <Button
-                  variant="contained"
-                  color="primary"
-                  disabled={isSubmitting}
-                  onClick={this.handleActionSubmit}>
-                  {submitButtonName}
-                </Button>
-              </Grid>
-            </Grid>
-          </div>
-        </DialogActions>
-      </div>
-    );
-  }
+    return fields;
+  };
 
-  private handleTextFieldChange = event => {
+  private handleTextFieldChange = (event, field) => {
     const {fieldMap} = this.state;
-    const {index} = this.props;
 
-    const field = index.Fields[event.target.key];
     const text = event.target.value;
     let error = '';
-    const re = new RegExp(field.RegExp);
     const len = text.length;
 
-    if (len < field.Min) {
-      error += `Please enter ${field.Min} or more charactors. `;
-    } else if (len > field.Max) {
-      error += `Please enter ${field.Max} or less charactors. `;
+    if (field.Min) {
+      if (len < field.Min) {
+        error += `Please enter ${field.Min} or more charactors. `;
+      } else if (len > field.Max) {
+        error += `Please enter ${field.Max} or less charactors. `;
+      }
     }
-    if (!re.test(text)) {
-      if (field.RegExpMsg) {
-        error += field.RegExpMsg + ' ';
-      } else {
-        error += 'Invalid characters. ';
+
+    if (field.RegExp) {
+      const re = new RegExp(field.RegExp);
+      if (!re.test(text)) {
+        if (field.RegExpMsg) {
+          error += field.RegExpMsg + ' ';
+        } else {
+          error += 'Invalid characters. ';
+        }
       }
     }
 
@@ -219,10 +266,8 @@ class BasicForm extends React.Component<IBasicForm> {
     this.setState({fieldMap});
   };
 
-  private handleSelectFieldChange = event => {
+  private handleSelectFieldChange = (event, field) => {
     const {fieldMap} = this.state;
-    const {index} = this.props;
-    const field = index.Fields[event.target.key];
     fieldMap[field.Name] = {
       error: null,
       type: field.Type,
@@ -232,38 +277,64 @@ class BasicForm extends React.Component<IBasicForm> {
   };
 
   private handleActionSubmit = () => {
-    const {index, routes, targets, submitQueries} = this.props;
+    const {index, data, selected, routes, targets, submitQueries} = this.props;
     const {fieldMap} = this.state;
     const route = routes.slice(-1)[0];
 
-    // Validate
-    // フォーム入力がなく、デフォルト値がある場合はセットする
-    for (let i = 0, len = index.Fields.length; i < len; i++) {
-      const field = index.Fields[i];
-      switch (field.Type) {
-        case 'text':
-          if (field.Require) {
-            if (!fieldMap[field.Name] || fieldMap[field.Name] === '') {
+    if (index.Fields) {
+      // Validate
+      // フォーム入力がなく、デフォルト値がある場合はセットする
+      for (let i = 0, len = index.Fields.length; i < len; i++) {
+        const field = index.Fields[i];
+        switch (field.Type) {
+          case 'text':
+            if (field.Require) {
+              if (!fieldMap[field.Name] || fieldMap[field.Name] === '') {
+                fieldMap[field.Name] = {
+                  error: 'This is required',
+                  type: field.Type,
+                  value: '',
+                };
+              }
+            }
+            break;
+          case 'select':
+            if (!fieldMap[field.Name]) {
+              let options = field.Options;
+              if (!options) {
+                options = [];
+                const d = data[field.DataKey];
+                if (d) {
+                  for (let j = 0, l = d.length; j < l; j++) {
+                    options.push(d[j].Name);
+                  }
+                } else {
+                  options.push('');
+                }
+              }
+
               fieldMap[field.Name] = {
-                error: 'This is required',
+                error: null,
                 type: field.Type,
-                value: '',
+                value: options[0],
               };
             }
-          }
-          break;
-        case 'select':
-          if (!fieldMap[field.Name]) {
-            fieldMap[field.Name] = {
-              error: null,
-              type: field.Type,
-              value: field.Options[0],
-            };
-          }
-          break;
-        default:
-          break;
+            break;
+          default:
+            break;
+        }
       }
+    }
+
+    const items: any[] = [];
+    if (selected) {
+      for (let i = 0, len = selected.length; i < len; i++) {
+        const item = {};
+        item[index.SelectKey] = selected[i];
+        items.push(item);
+      }
+    } else {
+      items.push({});
     }
 
     for (const key in fieldMap) {
@@ -273,7 +344,7 @@ class BasicForm extends React.Component<IBasicForm> {
       }
     }
 
-    submitQueries(index, fieldMap, targets, route.match.params);
+    submitQueries(index, items, fieldMap, targets, route.match.params);
   };
 }
 
@@ -288,11 +359,12 @@ function mapStateToProps(state, ownProps) {
 function mapDispatchToProps(dispatch, ownProps) {
   const {queryKind} = ownProps;
   return {
-    submitQueries: (index, fieldMap, targets, params) => {
+    submitQueries: (index, items, fieldMap, targets, params) => {
       dispatch(
         actions.service.serviceSubmitQueries({
           action: index,
           fieldMap,
+          items,
           params,
           queryKind,
           targets,
@@ -304,6 +376,9 @@ function mapDispatchToProps(dispatch, ownProps) {
 
 const styles = (theme: Theme): StyleRules =>
   createStyles({
+    button: {
+      margin: theme.spacing.unit,
+    },
     buttonFailed: {
       '&:hover': {
         backgroundColor: red[700],

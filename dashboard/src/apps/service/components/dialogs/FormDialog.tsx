@@ -7,6 +7,8 @@ import BasicForm from '../forms/BasicForm';
 
 interface IFormDialog {
   data;
+  routes;
+  selected;
   open;
   action;
   onClose;
@@ -14,7 +16,7 @@ interface IFormDialog {
 
 class FormDialog extends React.Component<IFormDialog> {
   public render() {
-    const {data, open, action, onClose} = this.props;
+    const {data, routes, selected, open, action, onClose} = this.props;
     const title = action.Name + ' ' + action.DataKind;
     const queryKind = action.Name + action.DataKind;
 
@@ -27,6 +29,8 @@ class FormDialog extends React.Component<IFormDialog> {
           <BasicForm
             onClose={onClose}
             data={data}
+            routes={routes}
+            selected={selected}
             index={action}
             title={title}
             queryKind={queryKind}

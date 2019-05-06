@@ -16,7 +16,7 @@ function renderIndex(routes, data, index) {
   if (!index) {
     return <div>Not Found</div>;
   }
-  logger.info('Index', 'renderIndex:', index.Kind, index.Name);
+  logger.info('Index', 'renderIndex:', index.Kind, index.Name, routes);
   switch (index.Kind) {
     case 'Msg':
       return <div>{index.Name}</div>;

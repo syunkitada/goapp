@@ -11,6 +11,8 @@ import withStyles, {
 
 import Tabs from './Tabs';
 
+import logger from '../../../../lib/logger';
+
 const styles = (theme: Theme): StyleRules =>
   createStyles({
     root: {
@@ -28,6 +30,7 @@ interface IRouteTabs extends WithStyles<typeof styles> {
 class RouteTabs extends React.Component<IRouteTabs> {
   public render() {
     const {classes, render, routes, data, index} = this.props;
+    logger.info('RouteTabs', 'render', routes);
 
     const beforeRoute = routes.slice(-1)[0];
 

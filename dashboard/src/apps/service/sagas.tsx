@@ -21,6 +21,7 @@ function* post(action) {
     params,
     isSync,
     queryKind,
+    items,
     fieldMap,
     targets,
   } = action.payload;
@@ -54,13 +55,19 @@ function* post(action) {
     case 'SERVICE_SUBMIT_QUERIES':
       const strParams = Object.assign({}, params);
       const numParams = {};
+      const specs: any[] = [];
 
       const spec = Object.assign({}, params);
       for (const key of Object.keys(fieldMap)) {
         const field = fieldMap[key];
         spec[key] = field.value;
       }
-      const specsStr = JSON.stringify([spec]);
+
+      for (let i = 0, len = items.length; i < len; i++) {
+        specs.push(Object.assign({}, spec, items[i]));
+      }
+
+      const specsStr = JSON.stringify(specs);
       strParams.Specs = specsStr;
 
       if (targets) {
@@ -80,6 +87,7 @@ function* post(action) {
           StrParams: strParams,
         });
       }
+      console.log('DEBUG Query', dataQueries);
 
       payload = {
         actionName: 'UserQuery',

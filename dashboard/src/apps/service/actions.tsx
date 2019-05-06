@@ -20,6 +20,7 @@ export const serviceSubmitQueries = actionCreator<{
   queryKind: any;
   action: any;
   fieldMap: any;
+  items: any;
   targets: any;
   params: any;
 }>('SERVICE_SUBMIT_QUERIES');
