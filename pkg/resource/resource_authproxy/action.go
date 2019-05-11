@@ -192,7 +192,7 @@ func (resource *Resource) PhysicalAction(c *gin.Context) {
 							},
 							"Columns": []interface{}{
 								gin.H{"Name": "Name", "IsSearch": true,
-									"Link":           "Datacenters/:datacenter/Resources/Models/Detail/:0",
+									"Link":           "Datacenters/:datacenter/Resources/Models/Detail/:0/View",
 									"LinkParam":      "resource",
 									"LinkSync":       false,
 									"LinkGetQueries": []string{"GetPhysicalModel"}},
@@ -205,27 +205,47 @@ func (resource *Resource) PhysicalAction(c *gin.Context) {
 					}, // Tabs
 				},
 				gin.H{
-					"Name":         "Resource",
-					"Subname":      "resource",
-					"Route":        "/Datacenters/:datacenter/Resources/:kind/Detail/:resource",
-					"Kind":         "Form",
-					"DataKey":      "PhysicalModel",
-					"SubmitAction": "Update",
+					"Name":     "Resource",
+					"Subname":  "resource",
+					"Route":    "/Datacenters/:datacenter/Resources/:kind/Detail/:resource/:subkind",
+					"TabParam": "subkind",
+					"Kind":     "RouteTabs",
 					"GetQueries": []string{
 						"GetPhysicalModel",
 						"GetPhysicalResources", "GetRacks", "GetFloors", "GetPhysicalModels"},
 					"ExpectedDataKeys": []string{"PhysicalModel"},
-					"Fields": []interface{}{
-						gin.H{"Name": "Name", "Type": "text", "Require": true,
-							"Updatable": false,
-							"Min":       5, "Max": 200, "RegExp": "^[0-9a-zA-Z]+$",
-							"RegExpMsg": "Please enter alphanumeric characters."},
-						gin.H{"Name": "Kind", "Type": "select", "Require": true,
-							"Updatable": true,
-							"Options": []string{
-								"Server", "Pdu", "RackSpineRouter",
-								"FloorLeafRouter", "FloorSpineRouter", "GatewayRouter",
-							}},
+					"IsSync":           true,
+					"Tabs": []interface{}{
+						gin.H{
+							"Name":    "View",
+							"Route":   "/View",
+							"Kind":    "View",
+							"DataKey": "PhysicalModel",
+							"Fields": []interface{}{
+								gin.H{"Name": "Name", "Type": "text"},
+								gin.H{"Name": "Kind", "Type": "select"},
+							},
+						},
+						gin.H{
+							"Name":         "Edit",
+							"Route":        "/Edit",
+							"Kind":         "Form",
+							"DataKey":      "PhysicalModel",
+							"SubmitAction": "Update",
+							"Icon":         "Update",
+							"Fields": []interface{}{
+								gin.H{"Name": "Name", "Type": "text", "Require": false,
+									"Updatable": false,
+									"Min":       5, "Max": 200, "RegExp": "^[0-9a-zA-Z]+$",
+									"RegExpMsg": "Please enter alphanumeric characters."},
+								gin.H{"Name": "Kind", "Type": "select", "Require": true,
+									"Updatable": true,
+									"Options": []string{
+										"Server", "Pdu", "RackSpineRouter",
+										"FloorLeafRouter", "FloorSpineRouter", "GatewayRouter",
+									}},
+							},
+						},
 					},
 				},
 			},

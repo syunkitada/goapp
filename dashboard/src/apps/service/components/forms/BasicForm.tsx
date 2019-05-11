@@ -149,12 +149,17 @@ class BasicForm extends React.Component<IBasicForm> {
         autoFocus = true;
       }
 
+      let disabled = false;
+
       let value = '';
       if (fieldState) {
         value = fieldState.value;
       } else {
         if (rawData) {
           value = rawData[field.Name];
+          if (!field.Updatable) {
+            disabled = true;
+          }
         }
       }
 
@@ -164,6 +169,7 @@ class BasicForm extends React.Component<IBasicForm> {
             <TextField
               id={field.Name}
               key={i}
+              disabled={disabled}
               label={field.Name}
               autoFocus={autoFocus}
               margin="dense"
@@ -201,6 +207,7 @@ class BasicForm extends React.Component<IBasicForm> {
               key={i}
               label={field.Name}
               className={classes.textField}
+              disabled={disabled}
               value={value}
               onChange={event => {
                 this.handleSelectFieldChange(event, field);

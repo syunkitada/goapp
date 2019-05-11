@@ -8,6 +8,7 @@ import RequestErrSnackbar from './snackbars/RequestErrSnackbar';
 import SubmitMsgSnackbar from './snackbars/SubmitMsgSnackbar';
 import IndexTable from './tables/IndexTable';
 import Tabs from './tabs/Tabs';
+import IndexView from './views/IndexView';
 
 import actions from '../../../actions';
 import logger from '../../../lib/logger';
@@ -35,6 +36,8 @@ function renderIndex(routes, data, index) {
       );
     case 'Table':
       return <IndexTable routes={routes} index={index} data={data} />;
+    case 'View':
+      return <IndexView routes={routes} index={index} data={data} />;
     case 'Form':
       return <IndexForm routes={routes} index={index} data={data} />;
     default:
