@@ -15,6 +15,11 @@ import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import Grid from '@material-ui/core/Grid';
 
+import Table from '@material-ui/core/Table';
+import TableBody from '@material-ui/core/TableBody';
+import TableCell from '@material-ui/core/TableCell';
+import TableRow from '@material-ui/core/TableRow';
+
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
@@ -55,7 +60,9 @@ class BasicView extends React.Component<IBasicView> {
         {title && <DialogTitle id="form-dialog-title">{title}</DialogTitle>}
         <DialogContent>
           <DialogContentText>{index.Description}</DialogContentText>
-          {fields}
+          <Table className={classes.table}>
+            <TableBody>{fields}</TableBody>
+          </Table>
         </DialogContent>
         <DialogActions>
           <div className={classes.wrapper} style={{width: '100%'}}>
@@ -117,16 +124,18 @@ class BasicView extends React.Component<IBasicView> {
       switch (field.Type) {
         case 'text':
           fields.push(
-            <div key={field.Name}>
-              {field.Name} {value}
-            </div>,
+            <TableRow key={field.Name}>
+              <TableCell>{field.Name}</TableCell>
+              <TableCell style={{width: '100%'}}>{value}</TableCell>
+            </TableRow>,
           );
           break;
         case 'select':
           fields.push(
-            <div key={field.Name}>
-              {field.Name} {value}
-            </div>,
+            <TableRow key={field.Name}>
+              <TableCell>{field.Name}</TableCell>
+              <TableCell style={{width: '100%'}}>{value}</TableCell>
+            </TableRow>,
           );
           break;
         default:
