@@ -121,7 +121,7 @@ class BasicView extends React.Component<IBasicView> {
         }
       }
 
-      switch (field.Type) {
+      switch (field.Kind) {
         case 'text':
           fields.push(
             <TableRow key={field.Name}>

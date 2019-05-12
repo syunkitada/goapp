@@ -36,14 +36,6 @@ func (modelApi *ResourceModelApi) Action(tctx *logger.TraceContext, req *resourc
 		switch query.Kind {
 		case "GetPhysicalModel":
 			errStrs := []string{}
-			datacenter, ok := query.StrParams["datacenter"]
-			if !ok {
-				errStrs = append(errStrs, "datacenter is None")
-			}
-			project, ok := query.StrParams["project"]
-			if !ok {
-				errStrs = append(errStrs, "project is None")
-			}
 			resource, ok := query.StrParams["resource"]
 			if !ok {
 				errStrs = append(errStrs, "resource is None")

@@ -1,16 +1,11 @@
-package resource_model_api
+package resource_authproxy
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/golang/protobuf/ptypes"
 	"github.com/syunkitada/goapp/pkg/authproxy/index_model"
-	"github.com/syunkitada/goapp/pkg/lib/logger"
-	"github.com/syunkitada/goapp/pkg/resource/resource_api/resource_api_grpc_pb"
-	"github.com/syunkitada/goapp/pkg/resource/resource_model"
 )
 
-func (modelApi *ResourceModelApi) GetPhysicalIndex() interface{} {
-
+func (resource *Resource) getIndex() interface{} {
 	return index_model.Panels{
 		Name:      "Root",
 		Kind:      "RoutePanels",
@@ -83,97 +78,106 @@ func (modelApi *ResourceModelApi) GetPhysicalIndex() interface{} {
 							index_model.Action{Name: "Update", Icon: "Update"},
 						},
 						Columns: []index_model.TableColumn{
-							index_model.TableColumn{
-								Name: "Name", IsSearch: true,
-								Link:           "Datacenters/:datacenter/Resources/PhysicalResources/Detail/:0/View",
-								LinkParam:      "resource",
-								LinkSync:       false,
-								LinkGetQueries: []string{"GetPhysicalResource"}},
+							index_model.TableColumn{Name: "Name", IsSearch: true},
 							index_model.TableColumn{Name: "Kind"},
 							index_model.TableColumn{Name: "UpdatedAt", Kind: "Time"},
 							index_model.TableColumn{Name: "CreatedAt", Kind: "Time"},
 							index_model.TableColumn{Name: "Action", Kind: "Action"},
 						},
 					},
-					index_model.Table{
-						Name:    "Racks",
-						Route:   "/Racks",
-						Kind:    "Table",
-						DataKey: "Racks",
-						SelectActions: []index_model.Action{
-							index_model.Action{Name: "Delete", Icon: "Delete",
-								Kind:      "Form",
-								DataKind:  "Rack",
-								SelectKey: "Name",
+					gin.H{
+						"Name":    "Racks",
+						"Route":   "/Racks",
+						"Kind":    "Table",
+						"DataKey": "Racks",
+						"SelectActions": []interface{}{
+							gin.H{"Name": "Delete", "Icon": "Delete",
+								"Kind":      "Form",
+								"DataKind":  "Rack",
+								"SelectKey": "Name",
 							},
 						},
-						Columns: []index_model.TableColumn{
-							index_model.TableColumn{Name: "Name", IsSearch: true},
-							index_model.TableColumn{Name: "Kind"},
-							index_model.TableColumn{Name: "UpdatedAt", Kind: "Time"},
-							index_model.TableColumn{Name: "CreatedAt", Kind: "Time"},
+						"Columns": []interface{}{
+							gin.H{"Name": "Name", "IsSearch": true},
+							gin.H{"Name": "Kind"},
+							gin.H{"Name": "UpdatedAt", "Kind": "Time"},
+							gin.H{"Name": "CreatedAt", "Kind": "Time"},
 						},
 					},
-					index_model.Table{
-						Name:    "Floors",
-						Route:   "/Floors",
-						Kind:    "Table",
-						DataKey: "Floors",
-						SelectActions: []index_model.Action{
-							index_model.Action{Name: "Delete", Icon: "Delete",
-								Kind:      "Form",
-								DataKind:  "Floor",
-								SelectKey: "Name",
+					gin.H{
+						"Name":    "Floors",
+						"Route":   "/Floors",
+						"Kind":    "Table",
+						"DataKey": "Floors",
+						"SelectActions": []interface{}{
+							gin.H{"Name": "Delete", "Icon": "Delete",
+								"Kind":      "Form",
+								"DataKind":  "Floor",
+								"SelectKey": "Name",
 							},
 						},
-						Columns: []index_model.TableColumn{
-							index_model.TableColumn{Name: "Name", IsSearch: true},
-							index_model.TableColumn{Name: "Kind"},
-							index_model.TableColumn{Name: "UpdatedAt", Kind: "Time"},
-							index_model.TableColumn{Name: "CreatedAt", Kind: "Time"},
+						"Columns": []interface{}{
+							gin.H{"Name": "Name", "IsSearch": true},
+							gin.H{"Name": "Kind"},
+							gin.H{"Name": "UpdatedAt", "Kind": "Time"},
+							gin.H{"Name": "CreatedAt", "Kind": "Time"},
 						},
 					},
-					index_model.Table{
-						Name:    "Models",
-						Route:   "/Models",
-						Kind:    "Table",
-						DataKey: "PhysicalModels",
-						Actions: []index_model.Action{
-							index_model.Action{
-								Name: "Create", Icon: "Create", Kind: "Form",
-								DataKind: "PhysicalModel",
-								Fields: []index_model.Field{
-									index_model.Field{Name: "Name", Kind: "text", Require: true,
-										Min: 5, Max: 200, RegExp: "^[0-9a-zA-Z]+$",
-										RegExpMsg: "Please enter alphanumeric characters."},
-									index_model.Field{Name: "Kind", Kind: "select", Require: true,
-										Options: []string{
+					gin.H{
+						"Name":    "Models",
+						"Route":   "/Models",
+						"Kind":    "Table",
+						"DataKey": "PhysicalModels",
+						"Actions": []interface{}{
+							gin.H{
+								"Name": "Create", "Icon": "Create", "Kind": "Form",
+								"DataKind": "PhysicalModel",
+								"Fields": []interface{}{
+									gin.H{"Name": "Name", "Kind": "text", "Require": true,
+										"Min": 5, "Max": 200, "RegExp": "^[0-9a-zA-Z]+$",
+										"RegExpMsg": "Please enter alphanumeric characters."},
+									gin.H{"Name": "Kind", "Kind": "select", "Require": true,
+										"Options": []string{
 											"Server", "Pdu", "RackSpineRouter",
 											"FloorLeafRouter", "FloorSpineRouter", "GatewayRouter",
 										}},
 								},
 							},
 						},
-						SelectActions: []index_model.Action{
-							index_model.Action{Name: "Delete", Icon: "Delete",
-								Kind:      "Form",
-								DataKind:  "PhysicalModel",
-								SelectKey: "Name",
+						"SelectActions": []interface{}{
+							gin.H{"Name": "Delete", "Icon": "Delete",
+								"Kind":      "Form",
+								"DataKind":  "PhysicalModel",
+								"SelectKey": "Name",
 							},
 						},
-						ColumnActions: []index_model.Action{
-							index_model.Action{Name: "Detail", Icon: "Detail"},
+						"ColumnActions": []interface{}{
+							gin.H{"Name": "Detail", "Icon": "Detail"},
+							gin.H{
+								"Name": "Update", "Icon": "Update", "Kind": "Form",
+								"GetQueries": []string{"GetPhysicalModel"},
+								"DataKind":   "PhysicalModel",
+								"Fields": []interface{}{
+									gin.H{"Name": "Name", "Kind": "text", "Require": true,
+										"Min": 5, "Max": 200, "RegExp": "^[0-9a-zA-Z]+$",
+										"RegExpMsg": "Please enter alphanumeric characters."},
+									gin.H{"Name": "Kind", "Kind": "select", "Require": true,
+										"Options": []string{
+											"Server", "Pdu", "RackSpineRouter",
+											"FloorLeafRouter", "FloorSpineRouter", "GatewayRouter",
+										}},
+								}},
 						},
-						Columns: []index_model.TableColumn{
-							index_model.TableColumn{Name: "Name", IsSearch: true,
-								Link:           "Datacenters/:datacenter/Resources/Models/Detail/:0/View",
-								LinkParam:      "resource",
-								LinkSync:       false,
-								LinkGetQueries: []string{"GetPhysicalModel"}},
-							index_model.TableColumn{Name: "Kind"},
-							index_model.TableColumn{Name: "UpdatedAt", Kind: "Time", Sort: "desc"},
-							index_model.TableColumn{Name: "CreatedAt", Kind: "Time"},
-							index_model.TableColumn{Name: "Action", Kind: "Action"},
+						"Columns": []interface{}{
+							gin.H{"Name": "Name", "IsSearch": true,
+								"Link":           "Datacenters/:datacenter/Resources/Models/Detail/:0/View",
+								"LinkParam":      "resource",
+								"LinkSync":       false,
+								"LinkGetQueries": []string{"GetPhysicalModel"}},
+							gin.H{"Name": "Kind"},
+							gin.H{"Name": "UpdatedAt", "Kind": "Time", "Sort": "desc"},
+							gin.H{"Name": "CreatedAt", "Kind": "Time"},
+							gin.H{"Name": "Action", "Kind": "Action"},
 						},
 					},
 				}, // Tabs
@@ -224,32 +228,4 @@ func (modelApi *ResourceModelApi) GetPhysicalIndex() interface{} {
 			},
 		},
 	}
-}
-
-func (modelApi *ResourceModelApi) convertDatacenters(tctx *logger.TraceContext, datacenters []resource_model.Datacenter) []*resource_api_grpc_pb.Datacenter {
-	pbDatacenters := make([]*resource_api_grpc_pb.Datacenter, len(datacenters))
-	for i, datacenter := range datacenters {
-		updatedAt, err := ptypes.TimestampProto(datacenter.Model.UpdatedAt)
-		if err != nil {
-			logger.Warningf(tctx, err,
-				"Failed ptypes.TimestampProto: %v", datacenter.Model.UpdatedAt)
-			continue
-		}
-		createdAt, err := ptypes.TimestampProto(datacenter.Model.CreatedAt)
-		if err != nil {
-			logger.Warningf(tctx, err,
-				"Failed ptypes.TimestampProto: %v", datacenter.Model.CreatedAt)
-			continue
-		}
-
-		pbDatacenters[i] = &resource_api_grpc_pb.Datacenter{
-			Region:    datacenter.Region,
-			Name:      datacenter.Name,
-			Kind:      datacenter.Kind,
-			UpdatedAt: updatedAt,
-			CreatedAt: createdAt,
-		}
-	}
-
-	return pbDatacenters
 }

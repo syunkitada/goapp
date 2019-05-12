@@ -163,7 +163,7 @@ class BasicForm extends React.Component<IBasicForm> {
         }
       }
 
-      switch (field.Type) {
+      switch (field.Kind) {
         case 'text':
           fields.push(
             <TextField
@@ -173,7 +173,7 @@ class BasicForm extends React.Component<IBasicForm> {
               label={field.Name}
               autoFocus={autoFocus}
               margin="dense"
-              type={field.Type}
+              type={field.Kind}
               fullWidth={true}
               onChange={event => {
                 this.handleTextFieldChange(event, field);
@@ -266,7 +266,7 @@ class BasicForm extends React.Component<IBasicForm> {
 
     fieldMap[field.Name] = {
       error,
-      type: field.Type,
+      type: field.Kind,
       value: event.target.value,
     };
 
@@ -277,7 +277,7 @@ class BasicForm extends React.Component<IBasicForm> {
     const {fieldMap} = this.state;
     fieldMap[field.Name] = {
       error: null,
-      type: field.Type,
+      type: field.Kind,
       value: event.target.value,
     };
     this.setState({fieldMap});
@@ -313,13 +313,13 @@ class BasicForm extends React.Component<IBasicForm> {
           }
         }
 
-        switch (field.Type) {
+        switch (field.Kind) {
           case 'text':
             if (field.Require) {
               if (!value || value === '') {
                 fieldMap[field.Name] = {
                   error: 'This is required',
-                  type: field.Type,
+                  type: field.Kind,
                   value: '',
                 };
               }
