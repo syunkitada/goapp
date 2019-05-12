@@ -78,106 +78,117 @@ func (resource *Resource) getIndex() interface{} {
 							index_model.Action{Name: "Update", Icon: "Update"},
 						},
 						Columns: []index_model.TableColumn{
-							index_model.TableColumn{Name: "Name", IsSearch: true},
+							index_model.TableColumn{
+								Name: "Name", IsSearch: true,
+								Link:           "Datacenters/:datacenter/Resources/PhysicalResources/Detail/:0/View",
+								LinkParam:      "resource",
+								LinkSync:       false,
+								LinkGetQueries: []string{"GetPhysicalResource"},
+							},
 							index_model.TableColumn{Name: "Kind"},
 							index_model.TableColumn{Name: "UpdatedAt", Kind: "Time"},
 							index_model.TableColumn{Name: "CreatedAt", Kind: "Time"},
 							index_model.TableColumn{Name: "Action", Kind: "Action"},
 						},
 					},
-					gin.H{
-						"Name":    "Racks",
-						"Route":   "/Racks",
-						"Kind":    "Table",
-						"DataKey": "Racks",
-						"SelectActions": []interface{}{
-							gin.H{"Name": "Delete", "Icon": "Delete",
-								"Kind":      "Form",
-								"DataKind":  "Rack",
-								"SelectKey": "Name",
+					index_model.Table{
+						Name:    "Racks",
+						Route:   "/Racks",
+						Kind:    "Table",
+						DataKey: "Racks",
+						SelectActions: []index_model.Action{
+							index_model.Action{
+								Name:      "Delete",
+								Icon:      "Delete",
+								Kind:      "Form",
+								DataKind:  "Rack",
+								SelectKey: "Name",
 							},
 						},
-						"Columns": []interface{}{
-							gin.H{"Name": "Name", "IsSearch": true},
-							gin.H{"Name": "Kind"},
-							gin.H{"Name": "UpdatedAt", "Kind": "Time"},
-							gin.H{"Name": "CreatedAt", "Kind": "Time"},
+						Columns: []index_model.TableColumn{
+							index_model.TableColumn{
+								Name: "Name", IsSearch: true,
+								Link:           "Datacenters/:datacenter/Resources/Racks/Detail/:0/View",
+								LinkParam:      "resource",
+								LinkSync:       false,
+								LinkGetQueries: []string{"GetRack"},
+							},
+							index_model.TableColumn{Name: "Kind"},
+							index_model.TableColumn{Name: "UpdatedAt", Kind: "Time"},
+							index_model.TableColumn{Name: "CreatedAt", Kind: "Time"},
 						},
 					},
-					gin.H{
-						"Name":    "Floors",
-						"Route":   "/Floors",
-						"Kind":    "Table",
-						"DataKey": "Floors",
-						"SelectActions": []interface{}{
-							gin.H{"Name": "Delete", "Icon": "Delete",
-								"Kind":      "Form",
-								"DataKind":  "Floor",
-								"SelectKey": "Name",
+					index_model.Table{
+						Name:    "Floors",
+						Route:   "/Floors",
+						Kind:    "Table",
+						DataKey: "Floors",
+						SelectActions: []index_model.Action{
+							index_model.Action{
+								Name:      "Delete",
+								Icon:      "Delete",
+								Kind:      "Form",
+								DataKind:  "Floor",
+								SelectKey: "Name",
 							},
 						},
-						"Columns": []interface{}{
-							gin.H{"Name": "Name", "IsSearch": true},
-							gin.H{"Name": "Kind"},
-							gin.H{"Name": "UpdatedAt", "Kind": "Time"},
-							gin.H{"Name": "CreatedAt", "Kind": "Time"},
+						Columns: []index_model.TableColumn{
+							index_model.TableColumn{
+								Name: "Name", IsSearch: true,
+								Link:           "Datacenters/:datacenter/Resources/Floors/Detail/:0/View",
+								LinkParam:      "resource",
+								LinkSync:       false,
+								LinkGetQueries: []string{"GetFloor"},
+							},
+							index_model.TableColumn{Name: "Kind"},
+							index_model.TableColumn{Name: "UpdatedAt", Kind: "Time"},
+							index_model.TableColumn{Name: "CreatedAt", Kind: "Time"},
 						},
 					},
-					gin.H{
-						"Name":    "Models",
-						"Route":   "/Models",
-						"Kind":    "Table",
-						"DataKey": "PhysicalModels",
-						"Actions": []interface{}{
-							gin.H{
-								"Name": "Create", "Icon": "Create", "Kind": "Form",
-								"DataKind": "PhysicalModel",
-								"Fields": []interface{}{
-									gin.H{"Name": "Name", "Kind": "text", "Require": true,
-										"Min": 5, "Max": 200, "RegExp": "^[0-9a-zA-Z]+$",
-										"RegExpMsg": "Please enter alphanumeric characters."},
-									gin.H{"Name": "Kind", "Kind": "select", "Require": true,
-										"Options": []string{
+					index_model.Table{
+						Name:    "Models",
+						Route:   "/Models",
+						Kind:    "Table",
+						DataKey: "PhysicalModels",
+						Actions: []index_model.Action{
+							index_model.Action{
+								Name: "Create", Icon: "Create", Kind: "Form",
+								DataKind: "PhysicalModel",
+								Fields: []index_model.Field{
+									index_model.Field{Name: "Name", Kind: "text", Require: true,
+										Min: 5, Max: 200, RegExp: "^[0-9a-zA-Z]+$",
+										RegExpMsg: "Please enter alphanumeric characters."},
+									index_model.Field{Name: "Kind", Kind: "select", Require: true,
+										Options: []string{
 											"Server", "Pdu", "RackSpineRouter",
 											"FloorLeafRouter", "FloorSpineRouter", "GatewayRouter",
 										}},
 								},
 							},
 						},
-						"SelectActions": []interface{}{
-							gin.H{"Name": "Delete", "Icon": "Delete",
-								"Kind":      "Form",
-								"DataKind":  "PhysicalModel",
-								"SelectKey": "Name",
+						SelectActions: []index_model.Action{
+							index_model.Action{
+								Name: "Delete", Icon: "Delete",
+								Kind:      "Form",
+								DataKind:  "PhysicalModel",
+								SelectKey: "Name",
 							},
 						},
-						"ColumnActions": []interface{}{
-							gin.H{"Name": "Detail", "Icon": "Detail"},
-							gin.H{
-								"Name": "Update", "Icon": "Update", "Kind": "Form",
-								"GetQueries": []string{"GetPhysicalModel"},
-								"DataKind":   "PhysicalModel",
-								"Fields": []interface{}{
-									gin.H{"Name": "Name", "Kind": "text", "Require": true,
-										"Min": 5, "Max": 200, "RegExp": "^[0-9a-zA-Z]+$",
-										"RegExpMsg": "Please enter alphanumeric characters."},
-									gin.H{"Name": "Kind", "Kind": "select", "Require": true,
-										"Options": []string{
-											"Server", "Pdu", "RackSpineRouter",
-											"FloorLeafRouter", "FloorSpineRouter", "GatewayRouter",
-										}},
-								}},
+						ColumnActions: []index_model.Action{
+							index_model.Action{Name: "Detail", Icon: "Detail"},
 						},
-						"Columns": []interface{}{
-							gin.H{"Name": "Name", "IsSearch": true,
-								"Link":           "Datacenters/:datacenter/Resources/Models/Detail/:0/View",
-								"LinkParam":      "resource",
-								"LinkSync":       false,
-								"LinkGetQueries": []string{"GetPhysicalModel"}},
-							gin.H{"Name": "Kind"},
-							gin.H{"Name": "UpdatedAt", "Kind": "Time", "Sort": "desc"},
-							gin.H{"Name": "CreatedAt", "Kind": "Time"},
-							gin.H{"Name": "Action", "Kind": "Action"},
+						Columns: []index_model.TableColumn{
+							index_model.TableColumn{
+								Name:           "Name",
+								IsSearch:       true,
+								Link:           "Datacenters/:datacenter/Resources/Models/Detail/:0/View",
+								LinkParam:      "resource",
+								LinkSync:       false,
+								LinkGetQueries: []string{"GetPhysicalModel"}},
+							index_model.TableColumn{Name: "Kind"},
+							index_model.TableColumn{Name: "UpdatedAt", Kind: "Time", Sort: "desc"},
+							index_model.TableColumn{Name: "CreatedAt", Kind: "Time"},
+							index_model.TableColumn{Name: "Action", Kind: "Action"},
 						},
 					},
 				}, // Tabs
