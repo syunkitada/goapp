@@ -284,29 +284,51 @@ class BasicForm extends React.Component<IBasicForm> {
   };
 
   private handleActionSubmit = () => {
-    const {index, data, selected, routes, targets, submitQueries} = this.props;
+    const {
+      index,
+      data,
+      rawData,
+      selected,
+      routes,
+      targets,
+      submitQueries,
+    } = this.props;
     const {fieldMap} = this.state;
     const route = routes.slice(-1)[0];
+    const fieldData = {};
 
     if (index.Fields) {
       // Validate
       // フォーム入力がなく、デフォルト値がある場合はセットする
       for (let i = 0, len = index.Fields.length; i < len; i++) {
         const field = index.Fields[i];
+
+        const fieldState = fieldMap[field.Name];
+        let value = '';
+        if (fieldState) {
+          value = fieldState.value;
+        } else {
+          if (rawData) {
+            value = rawData[field.Name];
+          }
+        }
+
         switch (field.Type) {
           case 'text':
             if (field.Require) {
-              if (!fieldMap[field.Name] || fieldMap[field.Name] === '') {
+              if (!value || value === '') {
                 fieldMap[field.Name] = {
                   error: 'This is required',
                   type: field.Type,
                   value: '',
                 };
               }
+              fieldData[field.Name] = {value};
             }
             break;
+
           case 'select':
-            if (!fieldMap[field.Name]) {
+            if (!value) {
               let options = field.Options;
               if (!options) {
                 options = [];
@@ -319,13 +341,9 @@ class BasicForm extends React.Component<IBasicForm> {
                   options.push('');
                 }
               }
-
-              fieldMap[field.Name] = {
-                error: null,
-                type: field.Type,
-                value: options[0],
-              };
+              value = options[0];
             }
+            fieldData[field.Name] = {value};
             break;
           default:
             break;
@@ -355,7 +373,7 @@ class BasicForm extends React.Component<IBasicForm> {
       }
     }
 
-    submitQueries(index, items, fieldMap, targets, route.match.params);
+    submitQueries(index, items, fieldData, targets, route.match.params);
   };
 }
 

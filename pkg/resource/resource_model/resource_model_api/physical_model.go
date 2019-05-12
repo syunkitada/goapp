@@ -12,10 +12,13 @@ import (
 	"github.com/syunkitada/goapp/pkg/resource/resource_model"
 )
 
-func (modelApi *ResourceModelApi) CreatePhysicalModel(tctx *logger.TraceContext, tx *gorm.DB, query *resource_api_grpc_pb.Query) (error, int64) {
+func (modelApi *ResourceModelApi) CreatePhysicalModel(tctx *logger.TraceContext, db *gorm.DB, query *resource_api_grpc_pb.Query) (error, int64) {
 	var err error
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	tx := db.Begin()
+	defer tx.Rollback()
 
 	strSpecs, ok := query.StrParams["Specs"]
 	if !ok {
@@ -59,13 +62,61 @@ func (modelApi *ResourceModelApi) CreatePhysicalModel(tctx *logger.TraceContext,
 		}
 	}
 
+	tx.Commit()
+
 	return nil, codes.OkCreated
 }
 
-func (modelApi *ResourceModelApi) DeletePhysicalModel(tctx *logger.TraceContext, tx *gorm.DB, query *resource_api_grpc_pb.Query) (error, int64) {
+func (modelApi *ResourceModelApi) UpdatePhysicalModel(tctx *logger.TraceContext, db *gorm.DB, query *resource_api_grpc_pb.Query) (error, int64) {
 	var err error
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	tx := db.Begin()
+	defer tx.Rollback()
+
+	strSpecs, ok := query.StrParams["Specs"]
+	if !ok {
+		err = error_utils.NewInvalidRequestError("NotFound Specs")
+		return error_utils.NewInvalidRequestError("NotFound Specs"), codes.ClientBadRequest
+	}
+
+	var specs []resource_model.PhysicalModelSpecData
+	if err = json.Unmarshal([]byte(strSpecs), &specs); err != nil {
+		return err, codes.ClientBadRequest
+	}
+
+	if len(specs) == 0 {
+		err = error_utils.NewInvalidRequestError("Specs is empty")
+		return err, codes.ClientBadRequest
+	}
+
+	for _, spec := range specs {
+		if err = modelApi.validate.Struct(&spec); err != nil {
+			return err, codes.ClientBadRequest
+		}
+		physicalModel := &resource_model.PhysicalModel{
+			Kind:        spec.Kind,
+			Description: spec.Description,
+			Unit:        spec.Unit,
+		}
+		if err = tx.Model(physicalModel).Where("name = ?", spec.Name).Updates(physicalModel).Error; err != nil {
+			return err, codes.RemoteDbError
+		}
+	}
+
+	tx.Commit()
+
+	return nil, codes.OkUpdated
+}
+
+func (modelApi *ResourceModelApi) DeletePhysicalModel(tctx *logger.TraceContext, db *gorm.DB, query *resource_api_grpc_pb.Query) (error, int64) {
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	tx := db.Begin()
+	defer tx.Rollback()
 
 	strSpecs, ok := query.StrParams["Specs"]
 	if !ok {
@@ -87,6 +138,8 @@ func (modelApi *ResourceModelApi) DeletePhysicalModel(tctx *logger.TraceContext,
 			return err, codes.RemoteDbError
 		}
 	}
+
+	tx.Commit()
 
 	return nil, codes.OkDeleted
 }

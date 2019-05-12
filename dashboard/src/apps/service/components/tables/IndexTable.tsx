@@ -67,8 +67,6 @@ class IndexTable extends React.Component<IIndexTable> {
     const {
       selected,
       anchorEl,
-      order,
-      orderBy,
       rowsPerPage,
       page,
       searchRegExp,
@@ -92,9 +90,16 @@ class IndexTable extends React.Component<IIndexTable> {
     const beforeRoute = routes.slice(-2)[0];
 
     const searchColumns: any[] = [];
+    let order = 'asc';
+    let orderBy = 0;
     for (let i = 0, len = columns.length; i < len; i++) {
-      if (columns[i].IsSearch) {
+      const column = columns[i];
+      if (column.IsSearch) {
         searchColumns.push(columns[i].Name);
+      }
+      if (column.Sort) {
+        order = column.Sort;
+        orderBy = i;
       }
     }
 

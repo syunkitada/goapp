@@ -31,7 +31,6 @@ func (modelApi *ResourceModelApi) Action(tctx *logger.TraceContext, req *resourc
 	tx := db.Begin()
 	defer tx.Rollback()
 
-	fmt.Println("DEBUG Queries")
 	for _, query := range req.Queries {
 		fmt.Println(query)
 		switch query.Kind {
@@ -50,12 +49,11 @@ func (modelApi *ResourceModelApi) Action(tctx *logger.TraceContext, req *resourc
 				errStrs = append(errStrs, "resource is None")
 			}
 			if len(errStrs) > 0 {
-				fmt.Println("DEBUG errStrs")
 				rep.Tctx.Err = strings.Join(errStrs, ", ")
 				rep.Tctx.StatusCode = codes.ClientBadRequest
 				return
 			}
-			fmt.Println("DEBUG PhysicalModel", datacenter, project, resource)
+
 			var physicalModel resource_model.PhysicalModel
 			if err = db.Where(&resource_model.PhysicalModel{
 				Name: resource,
@@ -135,14 +133,21 @@ func (modelApi *ResourceModelApi) Action(tctx *logger.TraceContext, req *resourc
 			}
 
 		case "CreatePhysicalModel":
-			if err, statusCode = modelApi.CreatePhysicalModel(tctx, tx, query); err != nil {
+			if err, statusCode = modelApi.CreatePhysicalModel(tctx, db, query); err != nil {
+				rep.Tctx.Err = err.Error()
+				rep.Tctx.StatusCode = statusCode
+				return
+			}
+
+		case "UpdatePhysicalModel":
+			if err, statusCode = modelApi.UpdatePhysicalModel(tctx, db, query); err != nil {
 				rep.Tctx.Err = err.Error()
 				rep.Tctx.StatusCode = statusCode
 				return
 			}
 
 		case "DeletePhysicalModel":
-			if err, statusCode = modelApi.DeletePhysicalModel(tctx, tx, query); err != nil {
+			if err, statusCode = modelApi.DeletePhysicalModel(tctx, db, query); err != nil {
 				rep.Tctx.Err = err.Error()
 				rep.Tctx.StatusCode = statusCode
 				return

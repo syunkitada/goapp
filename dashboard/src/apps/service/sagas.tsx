@@ -92,7 +92,13 @@ function* post(action) {
           StrParams: strParams,
         });
       }
-      console.log('DEBUG Query', dataQueries);
+
+      const serviceState = Object.assign({}, store.getState().service);
+      if (serviceState.syncQueryMap) {
+        for (const key of Object.keys(serviceState.syncQueryMap)) {
+          dataQueries.push(serviceState.syncQueryMap[key]);
+        }
+      }
 
       payload = {
         actionName: 'UserQuery',
@@ -107,9 +113,8 @@ function* post(action) {
       return {};
   }
 
-  console.log('DEBUG post2', payload);
-
   const {result, error} = yield call(modules.service.post, payload);
+  console.log('DEBUG Query', dataQueries, result);
 
   if (error) {
     yield put(actions.service.servicePostFailure({action, payload, error}));
@@ -143,7 +148,7 @@ function* sync(action) {
           queries,
           serviceName: serviceState.serviceName,
         };
-        logger.info('saga', 'sync', 'syncAction', action);
+        logger.info('saga', 'sync', 'syncAction', action, postAction, payload);
 
         const {result, error} = yield call(modules.service.post, payload);
         if (error) {
