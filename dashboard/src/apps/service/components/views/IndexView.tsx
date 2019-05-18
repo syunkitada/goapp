@@ -13,6 +13,7 @@ class IndexView extends React.Component<IIndexView> {
   public render() {
     const {routes, data, index} = this.props;
 
+    console.log('DEBUG render IndexView', data, index);
     const rawData = data[index.DataKey];
     if (!rawData) {
       return null;

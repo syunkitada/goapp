@@ -36,6 +36,7 @@ class ExpansionPanels extends React.Component<IExpansionPanels> {
     const {routes, index, data} = this.props;
     const route = routes.slice(-1)[0];
     const beforeRoute = routes.slice(-2)[0];
+    console.log('DEBUG: ExpansionPanels.componentWillMount');
 
     for (let i = 0, len = index.Panels.length; i < len; i++) {
       const panel = index.Panels[i];

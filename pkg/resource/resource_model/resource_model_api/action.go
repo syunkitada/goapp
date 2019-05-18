@@ -34,6 +34,35 @@ func (modelApi *ResourceModelApi) Action(tctx *logger.TraceContext, req *resourc
 	for _, query := range req.Queries {
 		fmt.Println(query)
 		switch query.Kind {
+		case "GetPhysicalResource":
+			errStrs := []string{}
+			resource, ok := query.StrParams["resource"]
+			if !ok {
+				errStrs = append(errStrs, "resource is None")
+			}
+			if len(errStrs) > 0 {
+				rep.Tctx.Err = strings.Join(errStrs, ", ")
+				rep.Tctx.StatusCode = codes.ClientBadRequest
+				return
+			}
+
+			var physicalResource resource_model.PhysicalResource
+			if err = db.Where(&resource_model.PhysicalResource{
+				Name: resource,
+			}).First(&physicalResource).Error; err != nil {
+				rep.Tctx.Err = err.Error()
+				rep.Tctx.StatusCode = codes.RemoteDbError
+				return
+			}
+			var pbPhysicalResource *resource_api_grpc_pb.PhysicalResource
+			pbPhysicalResource, err = modelApi.convertPhysicalResource(tctx, physicalResource)
+			if err != nil {
+				rep.Tctx.Err = err.Error()
+				rep.Tctx.StatusCode = codes.RemoteDbError
+				return
+			}
+			rep.PhysicalResource = pbPhysicalResource
+
 		case "GetPhysicalModel":
 			errStrs := []string{}
 			resource, ok := query.StrParams["resource"]
@@ -152,33 +181,6 @@ func (modelApi *ResourceModelApi) Action(tctx *logger.TraceContext, req *resourc
 	fmt.Println("DEBUG OK Queries", rep.PhysicalModel)
 
 	rep.Tctx.StatusCode = statusCode
-}
-
-func (modelApi *ResourceModelApi) convertPhysicalResources(tctx *logger.TraceContext, physicalResourcess []resource_model.PhysicalResource) []*resource_api_grpc_pb.PhysicalResource {
-	pbPhysicalResources := make([]*resource_api_grpc_pb.PhysicalResource, len(physicalResourcess))
-	for i, physicalResources := range physicalResourcess {
-		updatedAt, err := ptypes.TimestampProto(physicalResources.Model.UpdatedAt)
-		if err != nil {
-			logger.Warningf(tctx, err,
-				"Failed ptypes.TimestampProto: %v", physicalResources.Model.UpdatedAt)
-			continue
-		}
-		createdAt, err := ptypes.TimestampProto(physicalResources.Model.CreatedAt)
-		if err != nil {
-			logger.Warningf(tctx, err,
-				"Failed ptypes.TimestampProto: %v", physicalResources.Model.CreatedAt)
-			continue
-		}
-
-		pbPhysicalResources[i] = &resource_api_grpc_pb.PhysicalResource{
-			Name:      physicalResources.Name,
-			Kind:      physicalResources.Kind,
-			UpdatedAt: updatedAt,
-			CreatedAt: createdAt,
-		}
-	}
-
-	return pbPhysicalResources
 }
 
 func (modelApi *ResourceModelApi) convertFloors(tctx *logger.TraceContext, floorss []resource_model.Floor) []*resource_api_grpc_pb.Floor {

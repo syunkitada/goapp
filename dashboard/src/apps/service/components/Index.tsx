@@ -3,6 +3,7 @@ import {connect} from 'react-redux';
 
 import IndexForm from './forms/IndexForm';
 import RoutePanels from './panels/RoutePanels';
+import Panes from './panes/Panes';
 import GetMsgSnackbar from './snackbars/GetMsgSnackbar';
 import RequestErrSnackbar from './snackbars/RequestErrSnackbar';
 import SubmitMsgSnackbar from './snackbars/SubmitMsgSnackbar';
@@ -33,6 +34,10 @@ function renderIndex(routes, data, index) {
     case 'RouteTabs':
       return (
         <Tabs render={renderIndex} routes={routes} data={data} index={index} />
+      );
+    case 'RoutePanes':
+      return (
+        <Panes render={renderIndex} routes={routes} data={data} index={index} />
       );
     case 'Table':
       return <IndexTable routes={routes} index={index} data={data} />;

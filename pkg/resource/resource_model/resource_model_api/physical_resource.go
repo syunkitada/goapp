@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"strings"
 
+	"github.com/golang/protobuf/ptypes"
 	"github.com/jinzhu/gorm"
 	"github.com/syunkitada/goapp/pkg/lib/codes"
 	"github.com/syunkitada/goapp/pkg/lib/error_utils"
@@ -63,4 +64,49 @@ func (modelApi *ResourceModelApi) CreatePhysicalResource(tctx *logger.TraceConte
 	tx.Commit()
 
 	return nil, codes.Ok
+}
+
+func (modelApi *ResourceModelApi) convertPhysicalResource(tctx *logger.TraceContext, physicalResource resource_model.PhysicalResource) (*resource_api_grpc_pb.PhysicalResource, error) {
+	updatedAt, err := ptypes.TimestampProto(physicalResource.Model.UpdatedAt)
+	if err != nil {
+		return nil, err
+	}
+	createdAt, err := ptypes.TimestampProto(physicalResource.Model.CreatedAt)
+	if err != nil {
+		return nil, err
+	}
+
+	return &resource_api_grpc_pb.PhysicalResource{
+		Name:      physicalResource.Name,
+		Kind:      physicalResource.Kind,
+		UpdatedAt: updatedAt,
+		CreatedAt: createdAt,
+	}, nil
+}
+
+func (modelApi *ResourceModelApi) convertPhysicalResources(tctx *logger.TraceContext, physicalResourcess []resource_model.PhysicalResource) []*resource_api_grpc_pb.PhysicalResource {
+	pbPhysicalResources := make([]*resource_api_grpc_pb.PhysicalResource, len(physicalResourcess))
+	for i, physicalResources := range physicalResourcess {
+		updatedAt, err := ptypes.TimestampProto(physicalResources.Model.UpdatedAt)
+		if err != nil {
+			logger.Warningf(tctx, err,
+				"Failed ptypes.TimestampProto: %v", physicalResources.Model.UpdatedAt)
+			continue
+		}
+		createdAt, err := ptypes.TimestampProto(physicalResources.Model.CreatedAt)
+		if err != nil {
+			logger.Warningf(tctx, err,
+				"Failed ptypes.TimestampProto: %v", physicalResources.Model.CreatedAt)
+			continue
+		}
+
+		pbPhysicalResources[i] = &resource_api_grpc_pb.PhysicalResource{
+			Name:      physicalResources.Name,
+			Kind:      physicalResources.Kind,
+			UpdatedAt: updatedAt,
+			CreatedAt: createdAt,
+		}
+	}
+
+	return pbPhysicalResources
 }
