@@ -2,6 +2,7 @@ package resource_model_api
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/golang/protobuf/ptypes"
 	"github.com/jinzhu/gorm"
@@ -12,36 +13,69 @@ import (
 	"github.com/syunkitada/goapp/pkg/resource/resource_model"
 )
 
-func (modelApi *ResourceModelApi) CreatePhysicalModel(tctx *logger.TraceContext, tx *gorm.DB, query *resource_api_grpc_pb.Query) (error, int64) {
+func (modelApi *ResourceModelApi) GetPhysicalModel(tctx *logger.TraceContext,
+	db *gorm.DB, query *resource_api_grpc_pb.Query, rep *resource_api_grpc_pb.PhysicalActionReply) (int64, error) {
+	var err error
+	resource, ok := query.StrParams["resource"]
+	if !ok {
+		return codes.ClientBadRequest, fmt.Errorf("resource is None")
+	}
+
+	var physicalModel resource_model.PhysicalModel
+	if err = db.Where(&resource_model.PhysicalModel{
+		Name: resource,
+	}).First(&physicalModel).Error; err != nil {
+		return codes.RemoteDbError, err
+	}
+	rep.PhysicalModel = modelApi.convertPhysicalModel(tctx, &physicalModel)
+	return codes.OkRead, nil
+}
+
+func (modelApi *ResourceModelApi) GetPhysicalModels(tctx *logger.TraceContext,
+	db *gorm.DB, query *resource_api_grpc_pb.Query, rep *resource_api_grpc_pb.PhysicalActionReply) (int64, error) {
+	var err error
+	var physicalModels []resource_model.PhysicalModel
+	if err = db.Find(&physicalModels).Error; err != nil {
+		return codes.RemoteDbError, err
+	}
+	rep.PhysicalModels = modelApi.convertPhysicalModels(tctx, physicalModels)
+	return codes.OkRead, nil
+}
+
+func (modelApi *ResourceModelApi) CreatePhysicalModel(tctx *logger.TraceContext,
+	db *gorm.DB, query *resource_api_grpc_pb.Query) (int64, error) {
 	var err error
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
+	tx := db.Begin()
+	defer tx.Rollback()
+
 	strSpecs, ok := query.StrParams["Specs"]
 	if !ok {
 		err = error_utils.NewInvalidRequestError("NotFound Specs")
-		return error_utils.NewInvalidRequestError("NotFound Specs"), codes.ClientBadRequest
+		return codes.ClientBadRequest, err
 	}
 
 	var specs []resource_model.PhysicalModelSpecData
 	if err = json.Unmarshal([]byte(strSpecs), &specs); err != nil {
-		return err, codes.ClientBadRequest
+		return codes.ClientBadRequest, err
 	}
 
 	if len(specs) == 0 {
 		err = error_utils.NewInvalidRequestError("Specs is empty")
-		return err, codes.ClientBadRequest
+		return codes.ClientBadRequest, err
 	}
 
 	for _, spec := range specs {
 		if err = modelApi.validate.Struct(&spec); err != nil {
-			return err, codes.ClientBadRequest
+			return codes.ClientBadRequest, err
 		}
 
 		var data resource_model.PhysicalModel
 		if err = tx.Where("name = ?", spec.Name).First(&data).Error; err != nil {
 			if !gorm.IsRecordNotFoundError(err) {
-				return err, codes.RemoteDbError
+				return codes.RemoteDbError, err
 			}
 
 			data = resource_model.PhysicalModel{
@@ -51,47 +85,95 @@ func (modelApi *ResourceModelApi) CreatePhysicalModel(tctx *logger.TraceContext,
 				Unit:        spec.Unit,
 			}
 			if err = tx.Create(&data).Error; err != nil {
-				return err, codes.RemoteDbError
+				return codes.RemoteDbError, err
 			}
 		} else {
 			err = error_utils.NewConflictAlreadyExistsError(spec.Name)
-			return err, codes.ClientAlreadyExists
+			return codes.ClientAlreadyExists, err
 		}
 	}
 
-	return nil, codes.OkCreated
+	tx.Commit()
+	return codes.OkCreated, nil
 }
 
-func (modelApi *ResourceModelApi) DeletePhysicalModel(tctx *logger.TraceContext, tx *gorm.DB, query *resource_api_grpc_pb.Query) (error, int64) {
+func (modelApi *ResourceModelApi) UpdatePhysicalModel(tctx *logger.TraceContext, db *gorm.DB, query *resource_api_grpc_pb.Query) (int64, error) {
 	var err error
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
+	tx := db.Begin()
+	defer tx.Rollback()
+
 	strSpecs, ok := query.StrParams["Specs"]
-	if !ok {
-		err = error_utils.NewInvalidRequestError("NotFound Specs")
-		return error_utils.NewInvalidRequestError("NotFound Specs"), codes.ClientBadRequest
+	if !ok || len(strSpecs) == 0 {
+		err = error_utils.NewInvalidRequestEmptyError("Specs")
+		return codes.ClientBadRequest, err
 	}
 
-	var specs []resource_model.NameSpec
+	var specs []resource_model.PhysicalModelSpecData
 	if err = json.Unmarshal([]byte(strSpecs), &specs); err != nil {
-		return err, codes.ClientBadRequest
+		return codes.ClientBadRequest, err
+	}
+
+	if len(specs) == 0 {
+		err = error_utils.NewInvalidRequestEmptyError("Specs")
+		return codes.ClientBadRequest, err
 	}
 
 	for _, spec := range specs {
 		if err = modelApi.validate.Struct(&spec); err != nil {
-			return err, codes.ClientBadRequest
+			return codes.ClientBadRequest, err
 		}
-
-		if err = tx.Delete(&resource_model.PhysicalModel{}, "name = ?", spec.Name).Error; err != nil {
-			return err, codes.RemoteDbError
+		physicalModel := &resource_model.PhysicalModel{
+			Kind:        spec.Kind,
+			Description: spec.Description,
+			Unit:        spec.Unit,
+		}
+		if err = tx.Model(physicalModel).Where("name = ?", spec.Name).Updates(physicalModel).Error; err != nil {
+			return codes.RemoteDbError, err
 		}
 	}
 
-	return nil, codes.OkDeleted
+	tx.Commit()
+	return codes.OkUpdated, nil
 }
 
-func (modelApi *ResourceModelApi) convertPhysicalModel(tctx *logger.TraceContext, physicalModel resource_model.PhysicalModel) *resource_api_grpc_pb.PhysicalModel {
+func (modelApi *ResourceModelApi) DeletePhysicalModel(tctx *logger.TraceContext, db *gorm.DB, query *resource_api_grpc_pb.Query) (int64, error) {
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	tx := db.Begin()
+	defer tx.Rollback()
+
+	strSpecs, ok := query.StrParams["Specs"]
+	if !ok || len(strSpecs) == 0 {
+		err = error_utils.NewInvalidRequestEmptyError("Specs")
+		return codes.ClientBadRequest, err
+	}
+
+	var specs []resource_model.NameSpec
+	if err = json.Unmarshal([]byte(strSpecs), &specs); err != nil {
+		return codes.ClientBadRequest, err
+	}
+
+	for _, spec := range specs {
+		if err = modelApi.validate.Struct(&spec); err != nil {
+			return codes.ClientBadRequest, err
+		}
+
+		if err = tx.Delete(&resource_model.PhysicalModel{}, "name = ?", spec.Name).Error; err != nil {
+			return codes.RemoteDbError, err
+		}
+	}
+
+	tx.Commit()
+	return codes.OkDeleted, nil
+}
+
+func (modelApi *ResourceModelApi) convertPhysicalModel(tctx *logger.TraceContext,
+	physicalModel *resource_model.PhysicalModel) *resource_api_grpc_pb.PhysicalModel {
 	updatedAt, err := ptypes.TimestampProto(physicalModel.Model.UpdatedAt)
 	if err != nil {
 		logger.Warningf(tctx, err,
@@ -103,38 +185,21 @@ func (modelApi *ResourceModelApi) convertPhysicalModel(tctx *logger.TraceContext
 			"Failed ptypes.TimestampProto: %v", physicalModel.Model.CreatedAt)
 	}
 
-	pbPhysicalModel := &resource_api_grpc_pb.PhysicalModel{
-		Name:      physicalModel.Name,
-		Kind:      physicalModel.Kind,
-		UpdatedAt: updatedAt,
-		CreatedAt: createdAt,
+	return &resource_api_grpc_pb.PhysicalModel{
+		Name:        physicalModel.Name,
+		Kind:        physicalModel.Kind,
+		Description: physicalModel.Description,
+		Unit:        uint32(physicalModel.Unit),
+		UpdatedAt:   updatedAt,
+		CreatedAt:   createdAt,
 	}
-
-	return pbPhysicalModel
 }
 
-func (modelApi *ResourceModelApi) convertPhysicalModels(tctx *logger.TraceContext, physicalModels []resource_model.PhysicalModel) []*resource_api_grpc_pb.PhysicalModel {
+func (modelApi *ResourceModelApi) convertPhysicalModels(tctx *logger.TraceContext,
+	physicalModels []resource_model.PhysicalModel) []*resource_api_grpc_pb.PhysicalModel {
 	pbPhysicalModels := make([]*resource_api_grpc_pb.PhysicalModel, len(physicalModels))
 	for i, physicalModel := range physicalModels {
-		updatedAt, err := ptypes.TimestampProto(physicalModel.Model.UpdatedAt)
-		if err != nil {
-			logger.Warningf(tctx, err,
-				"Failed ptypes.TimestampProto: %v", physicalModel.Model.UpdatedAt)
-			continue
-		}
-		createdAt, err := ptypes.TimestampProto(physicalModel.Model.CreatedAt)
-		if err != nil {
-			logger.Warningf(tctx, err,
-				"Failed ptypes.TimestampProto: %v", physicalModel.Model.CreatedAt)
-			continue
-		}
-
-		pbPhysicalModels[i] = &resource_api_grpc_pb.PhysicalModel{
-			Name:      physicalModel.Name,
-			Kind:      physicalModel.Kind,
-			UpdatedAt: updatedAt,
-			CreatedAt: createdAt,
-		}
+		pbPhysicalModels[i] = modelApi.convertPhysicalModel(tctx, &physicalModel)
 	}
 
 	return pbPhysicalModels

@@ -1,18 +1,14 @@
 package resource_model_api
 
 import (
-	"fmt"
-	"strings"
-
-	"github.com/golang/protobuf/ptypes"
 	"github.com/jinzhu/gorm"
 	"github.com/syunkitada/goapp/pkg/lib/codes"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/resource/resource_api/resource_api_grpc_pb"
-	"github.com/syunkitada/goapp/pkg/resource/resource_model"
 )
 
-func (modelApi *ResourceModelApi) Action(tctx *logger.TraceContext, req *resource_api_grpc_pb.ActionRequest, rep *resource_api_grpc_pb.ActionReply) {
+func (modelApi *ResourceModelApi) PhysicalAction(tctx *logger.TraceContext,
+	req *resource_api_grpc_pb.PhysicalActionRequest, rep *resource_api_grpc_pb.PhysicalActionReply) {
 	var err error
 	var statusCode int64
 	startTime := logger.StartTrace(tctx)
@@ -26,214 +22,122 @@ func (modelApi *ResourceModelApi) Action(tctx *logger.TraceContext, req *resourc
 	}
 	defer func() { err = db.Close() }()
 
-	statusCode = codes.OkRead
-
-	tx := db.Begin()
-	defer tx.Rollback()
-
-	fmt.Println("DEBUG Queries")
+	statusCode = codes.Unknown
 	for _, query := range req.Queries {
-		fmt.Println(query)
 		switch query.Kind {
-		case "GetPhysicalModel":
-			errStrs := []string{}
-			datacenter, ok := query.StrParams["datacenter"]
-			if !ok {
-				errStrs = append(errStrs, "datacenter is None")
-			}
-			project, ok := query.StrParams["project"]
-			if !ok {
-				errStrs = append(errStrs, "project is None")
-			}
-			resource, ok := query.StrParams["resource"]
-			if !ok {
-				errStrs = append(errStrs, "resource is None")
-			}
-			if len(errStrs) > 0 {
-				fmt.Println("DEBUG errStrs")
-				rep.Tctx.Err = strings.Join(errStrs, ", ")
-				rep.Tctx.StatusCode = codes.ClientBadRequest
-				return
-			}
-			fmt.Println("DEBUG PhysicalModel", datacenter, project, resource)
-			var physicalModel resource_model.PhysicalModel
-			if err = db.Where(&resource_model.PhysicalModel{
-				Name: resource,
-			}).First(&physicalModel).Error; err != nil {
-				rep.Tctx.Err = err.Error()
-				rep.Tctx.StatusCode = codes.RemoteDbError
-				return
-			}
-			rep.PhysicalModel = modelApi.convertPhysicalModel(tctx, physicalModel)
+		case "GetDatacenter":
+			statusCode, err = modelApi.GetDatacenter(tctx, db, query, rep)
+		case "GetDatacenters", "GetIndex":
+			statusCode, err = modelApi.GetDatacenters(tctx, db, query, rep)
+		case "CreateDatacenter":
+			statusCode, err = modelApi.CreateDatacenter(tctx, db, query)
+		case "UpdateDatacenter":
+			statusCode, err = modelApi.UpdateDatacenter(tctx, db, query)
+		case "DeleteDatacenter":
+			statusCode, err = modelApi.DeleteDatacenter(tctx, db, query)
 
-		case "GetIndex":
-			var datacenters []resource_model.Datacenter
-			if err = db.Find(&datacenters).Error; err != nil {
-				rep.Tctx.Err = err.Error()
-				rep.Tctx.StatusCode = codes.RemoteDbError
-				return
-			}
-			rep.Datacenters = modelApi.convertDatacenters(tctx, datacenters)
-		case "GetDatacenters":
-			var datacenters []resource_model.Datacenter
-			if err = db.Find(&datacenters).Error; err != nil {
-				rep.Tctx.Err = err.Error()
-				rep.Tctx.StatusCode = codes.RemoteDbError
-				return
-			}
-			rep.Datacenters = modelApi.convertDatacenters(tctx, datacenters)
+		case "GetFloor":
+			statusCode, err = modelApi.GetFloor(tctx, db, query, rep)
 		case "GetFloors":
-			datacenter, ok := query.StrParams["datacenter"]
-			if !ok {
-				continue
-			}
-			var floors []resource_model.Floor
-			if err = db.Where("datacenter = ?", datacenter).Find(&floors).Error; err != nil {
-				rep.Tctx.Err = err.Error()
-				rep.Tctx.StatusCode = codes.RemoteDbError
-				return
-			}
-			rep.Floors = modelApi.convertFloors(tctx, floors)
+			statusCode, err = modelApi.GetFloors(tctx, db, query, rep)
+		case "CreateFloor":
+			statusCode, err = modelApi.CreateFloor(tctx, db, query)
+		case "UpdateFloor":
+			statusCode, err = modelApi.UpdateFloor(tctx, db, query)
+		case "DeleteFloor":
+			statusCode, err = modelApi.DeleteFloor(tctx, db, query)
+
+		case "GetRack":
+			statusCode, err = modelApi.GetRack(tctx, db, query, rep)
 		case "GetRacks":
-			datacenter, ok := query.StrParams["datacenter"]
-			if !ok {
-				continue
-			}
-			var racks []resource_model.Rack
-			if err = db.Where("datacenter = ?", datacenter).Find(&racks).Error; err != nil {
-				rep.Tctx.Err = err.Error()
-				rep.Tctx.StatusCode = codes.RemoteDbError
-				return
-			}
-			rep.Racks = modelApi.convertRacks(tctx, racks)
+			statusCode, err = modelApi.GetRacks(tctx, db, query, rep)
+		case "CreateRack":
+			statusCode, err = modelApi.CreateRack(tctx, db, query)
+		case "UpdateRack":
+			statusCode, err = modelApi.UpdateRack(tctx, db, query)
+		case "DeleteRack":
+			statusCode, err = modelApi.DeleteRack(tctx, db, query)
+
+		case "GetPhysicalResource":
+			statusCode, err = modelApi.GetPhysicalResource(tctx, db, query, rep)
 		case "GetPhysicalResources":
-			datacenter, ok := query.StrParams["datacenter"]
-			if !ok {
-				continue
-			}
-			var physicalResources []resource_model.PhysicalResource
-			if err = db.Where("datacenter = ?", datacenter).Find(&physicalResources).Error; err != nil {
-				rep.Tctx.Err = err.Error()
-				rep.Tctx.StatusCode = codes.RemoteDbError
-				return
-			}
-			rep.PhysicalResources = modelApi.convertPhysicalResources(tctx, physicalResources)
-		case "GetPhysicalModels":
-			var physicalModels []resource_model.PhysicalModel
-			if err = db.Find(&physicalModels).Error; err != nil {
-				rep.Tctx.Err = err.Error()
-				rep.Tctx.StatusCode = codes.RemoteDbError
-				return
-			}
-			rep.PhysicalModels = modelApi.convertPhysicalModels(tctx, physicalModels)
-
+			statusCode, err = modelApi.GetPhysicalResources(tctx, db, query, rep)
 		case "CreatePhysicalResource":
-			if err, statusCode = modelApi.CreatePhysicalResource(tctx, db, query); err != nil {
-				rep.Tctx.Err = err.Error()
-				rep.Tctx.StatusCode = statusCode
-				return
-			}
+			statusCode, err = modelApi.CreatePhysicalResource(tctx, db, query)
+		case "UpdatePhysicalResource":
+			statusCode, err = modelApi.UpdatePhysicalResource(tctx, db, query)
+		case "DeletePhysicalResource":
+			statusCode, err = modelApi.DeletePhysicalResource(tctx, db, query)
 
+		case "GetPhysicalModel":
+			statusCode, err = modelApi.GetPhysicalModel(tctx, db, query, rep)
+		case "GetPhysicalModels":
+			statusCode, err = modelApi.GetPhysicalModels(tctx, db, query, rep)
 		case "CreatePhysicalModel":
-			if err, statusCode = modelApi.CreatePhysicalModel(tctx, tx, query); err != nil {
-				rep.Tctx.Err = err.Error()
-				rep.Tctx.StatusCode = statusCode
-				return
-			}
-
+			statusCode, err = modelApi.CreatePhysicalModel(tctx, db, query)
+		case "UpdatePhysicalModel":
+			statusCode, err = modelApi.UpdatePhysicalModel(tctx, db, query)
 		case "DeletePhysicalModel":
-			if err, statusCode = modelApi.DeletePhysicalModel(tctx, tx, query); err != nil {
-				rep.Tctx.Err = err.Error()
-				rep.Tctx.StatusCode = statusCode
-				return
-			}
+			statusCode, err = modelApi.DeletePhysicalModel(tctx, db, query)
 		}
 
+		if err != nil {
+			rep.Tctx.Err = err.Error()
+			rep.Tctx.StatusCode = statusCode
+			return
+		}
 	}
-
-	tx.Commit()
-	fmt.Println("DEBUG OK Queries", rep.PhysicalModel)
 
 	rep.Tctx.StatusCode = statusCode
 }
 
-func (modelApi *ResourceModelApi) convertPhysicalResources(tctx *logger.TraceContext, physicalResourcess []resource_model.PhysicalResource) []*resource_api_grpc_pb.PhysicalResource {
-	pbPhysicalResources := make([]*resource_api_grpc_pb.PhysicalResource, len(physicalResourcess))
-	for i, physicalResources := range physicalResourcess {
-		updatedAt, err := ptypes.TimestampProto(physicalResources.Model.UpdatedAt)
-		if err != nil {
-			logger.Warningf(tctx, err,
-				"Failed ptypes.TimestampProto: %v", physicalResources.Model.UpdatedAt)
-			continue
-		}
-		createdAt, err := ptypes.TimestampProto(physicalResources.Model.CreatedAt)
-		if err != nil {
-			logger.Warningf(tctx, err,
-				"Failed ptypes.TimestampProto: %v", physicalResources.Model.CreatedAt)
-			continue
+func (modelApi *ResourceModelApi) VirtualAction(tctx *logger.TraceContext,
+	req *resource_api_grpc_pb.VirtualActionRequest, rep *resource_api_grpc_pb.VirtualActionReply) {
+	var err error
+	var statusCode int64
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	var db *gorm.DB
+	if db, err = modelApi.open(tctx); err != nil {
+		rep.Tctx.Err = err.Error()
+		rep.Tctx.StatusCode = codes.RemoteDbError
+		return
+	}
+	defer func() { err = db.Close() }()
+
+	statusCode = codes.Unknown
+	for _, query := range req.Queries {
+		switch query.Kind {
+		case "GetCluster":
+			statusCode, err = modelApi.GetCluster(tctx, db, query, rep)
+		case "GetClusters", "GetIndex":
+			statusCode, err = modelApi.GetClusters(tctx, db, query, rep)
+		case "CreateCluster":
+			statusCode, err = modelApi.CreateCluster(tctx, db, query)
+		case "UpdateCluster":
+			statusCode, err = modelApi.UpdateCluster(tctx, db, query)
+		case "DeleteCluster":
+			statusCode, err = modelApi.DeleteCluster(tctx, db, query)
+
+		case "GetCompute":
+			statusCode, err = modelApi.GetCompute(tctx, db, query, rep)
+		case "GetComputes":
+			statusCode, err = modelApi.GetComputes(tctx, db, query, rep)
+		case "CreateCompute":
+			statusCode, err = modelApi.CreateCompute(tctx, db, query)
+		case "UpdateCompute":
+			statusCode, err = modelApi.UpdateCompute(tctx, db, query)
+		case "DeleteCompute":
+			statusCode, err = modelApi.DeleteCompute(tctx, db, query)
 		}
 
-		pbPhysicalResources[i] = &resource_api_grpc_pb.PhysicalResource{
-			Name:      physicalResources.Name,
-			Kind:      physicalResources.Kind,
-			UpdatedAt: updatedAt,
-			CreatedAt: createdAt,
+		if err != nil {
+			rep.Tctx.Err = err.Error()
+			rep.Tctx.StatusCode = statusCode
+			return
 		}
 	}
 
-	return pbPhysicalResources
-}
-
-func (modelApi *ResourceModelApi) convertFloors(tctx *logger.TraceContext, floorss []resource_model.Floor) []*resource_api_grpc_pb.Floor {
-	pbFloors := make([]*resource_api_grpc_pb.Floor, len(floorss))
-	for i, floors := range floorss {
-		updatedAt, err := ptypes.TimestampProto(floors.Model.UpdatedAt)
-		if err != nil {
-			logger.Warningf(tctx, err,
-				"Failed ptypes.TimestampProto: %v", floors.Model.UpdatedAt)
-			continue
-		}
-		createdAt, err := ptypes.TimestampProto(floors.Model.CreatedAt)
-		if err != nil {
-			logger.Warningf(tctx, err,
-				"Failed ptypes.TimestampProto: %v", floors.Model.CreatedAt)
-			continue
-		}
-
-		pbFloors[i] = &resource_api_grpc_pb.Floor{
-			Name:      floors.Name,
-			Kind:      floors.Kind,
-			UpdatedAt: updatedAt,
-			CreatedAt: createdAt,
-		}
-	}
-
-	return pbFloors
-}
-
-func (modelApi *ResourceModelApi) convertRacks(tctx *logger.TraceContext, rackss []resource_model.Rack) []*resource_api_grpc_pb.Rack {
-	pbRacks := make([]*resource_api_grpc_pb.Rack, len(rackss))
-	for i, racks := range rackss {
-		updatedAt, err := ptypes.TimestampProto(racks.Model.UpdatedAt)
-		if err != nil {
-			logger.Warningf(tctx, err,
-				"Failed ptypes.TimestampProto: %v", racks.Model.UpdatedAt)
-			continue
-		}
-		createdAt, err := ptypes.TimestampProto(racks.Model.CreatedAt)
-		if err != nil {
-			logger.Warningf(tctx, err,
-				"Failed ptypes.TimestampProto: %v", racks.Model.CreatedAt)
-			continue
-		}
-
-		pbRacks[i] = &resource_api_grpc_pb.Rack{
-			Name:      racks.Name,
-			Kind:      racks.Kind,
-			UpdatedAt: updatedAt,
-			CreatedAt: createdAt,
-		}
-	}
-
-	return pbRacks
+	rep.Tctx.StatusCode = statusCode
 }

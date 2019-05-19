@@ -3,11 +3,13 @@ import {connect} from 'react-redux';
 
 import IndexForm from './forms/IndexForm';
 import RoutePanels from './panels/RoutePanels';
+import Panes from './panes/Panes';
 import GetMsgSnackbar from './snackbars/GetMsgSnackbar';
 import RequestErrSnackbar from './snackbars/RequestErrSnackbar';
 import SubmitMsgSnackbar from './snackbars/SubmitMsgSnackbar';
 import IndexTable from './tables/IndexTable';
 import Tabs from './tabs/Tabs';
+import IndexView from './views/IndexView';
 
 import actions from '../../../actions';
 import logger from '../../../lib/logger';
@@ -33,8 +35,14 @@ function renderIndex(routes, data, index) {
       return (
         <Tabs render={renderIndex} routes={routes} data={data} index={index} />
       );
+    case 'RoutePanes':
+      return (
+        <Panes render={renderIndex} routes={routes} data={data} index={index} />
+      );
     case 'Table':
       return <IndexTable routes={routes} index={index} data={data} />;
+    case 'View':
+      return <IndexView routes={routes} index={index} data={data} />;
     case 'Form':
       return <IndexForm routes={routes} index={index} data={data} />;
     default:

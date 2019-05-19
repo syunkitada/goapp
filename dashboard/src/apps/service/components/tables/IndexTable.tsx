@@ -67,8 +67,6 @@ class IndexTable extends React.Component<IIndexTable> {
     const {
       selected,
       anchorEl,
-      order,
-      orderBy,
       rowsPerPage,
       page,
       searchRegExp,
@@ -92,9 +90,16 @@ class IndexTable extends React.Component<IIndexTable> {
     const beforeRoute = routes.slice(-2)[0];
 
     const searchColumns: any[] = [];
+    let order = 'asc';
+    let orderBy = 0;
     for (let i = 0, len = columns.length; i < len; i++) {
-      if (columns[i].IsSearch) {
+      const column = columns[i];
+      if (column.IsSearch) {
         searchColumns.push(columns[i].Name);
+      }
+      if (column.Sort) {
+        order = column.Sort;
+        orderBy = i;
       }
     }
 
@@ -118,10 +123,10 @@ class IndexTable extends React.Component<IIndexTable> {
       const row: any[] = [];
       for (const column of columns) {
         const c = d[column.Name];
-        if (column.Type === 'Time') {
+        if (column.Kind === 'Time') {
           const time = new Date(c.seconds * 1000);
           row.push(time.toISOString());
-        } else if (column.Type === 'Action') {
+        } else if (column.Kind === 'Action') {
           row.push('');
         } else {
           row.push(c);
@@ -287,7 +292,7 @@ class IndexTable extends React.Component<IIndexTable> {
                           {n[i]}
                         </TableCell>,
                       );
-                    } else if (columns[i].Type === 'Action') {
+                    } else if (columns[i].Kind === 'Action') {
                       cells.push(
                         <TableCell key={i} align="right">
                           <Button
