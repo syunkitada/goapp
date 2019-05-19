@@ -5,7 +5,7 @@ import (
 	"github.com/syunkitada/goapp/pkg/authproxy/index_model"
 )
 
-func (resource *Resource) getIndex() interface{} {
+func (resource *Resource) getPhysicalIndex() interface{} {
 	return index_model.Panels{
 		Name:      "Root",
 		Kind:      "RoutePanels",

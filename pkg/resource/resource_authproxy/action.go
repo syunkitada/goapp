@@ -19,8 +19,7 @@ func (resource *Resource) PhysicalAction(c *gin.Context) {
 		return
 	}
 
-	resp, err := resource.resourceApiClient.Action(tctx)
-
+	resp, err := resource.resourceApiClient.PhysicalAction(tctx)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"TraceId": tctx.TraceId,
@@ -29,14 +28,11 @@ func (resource *Resource) PhysicalAction(c *gin.Context) {
 		return
 	}
 
-	ginResp := gin.H{
-		"Data": resp,
-	}
-
+	ginResp := gin.H{"Data": resp}
 	for _, query := range tctx.Queries {
 		switch query.Kind {
 		case "GetIndex":
-			ginResp["Index"] = resource.getIndex()
+			ginResp["Index"] = resource.getPhysicalIndex()
 			break
 		default:
 			break
@@ -58,8 +54,7 @@ func (resource *Resource) VirtualAction(c *gin.Context) {
 		return
 	}
 
-	resp, err := resource.resourceApiClient.Action(tctx)
-
+	resp, err := resource.resourceApiClient.VirtualAction(tctx)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"TraceId": tctx.TraceId,
@@ -68,5 +63,16 @@ func (resource *Resource) VirtualAction(c *gin.Context) {
 		return
 	}
 
-	c.JSON(200, resp)
+	ginResp := gin.H{"Data": resp}
+	for _, query := range tctx.Queries {
+		switch query.Kind {
+		case "GetIndex":
+			ginResp["Index"] = resource.getVirtualIndex()
+			break
+		default:
+			break
+		}
+	}
+
+	c.JSON(200, ginResp)
 }

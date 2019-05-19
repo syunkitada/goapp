@@ -46,7 +46,7 @@ func (cli *ResourceApiClient) Status(tctx *logger.TraceContext) (*resource_api_g
 	return rep, err
 }
 
-func (cli *ResourceApiClient) Action(tctx *logger.ActionTraceContext) (*resource_api_grpc_pb.ActionReply, error) {
+func (cli *ResourceApiClient) PhysicalAction(tctx *logger.ActionTraceContext) (*resource_api_grpc_pb.PhysicalActionReply, error) {
 	var err error
 	startTime := logger.StartTrace(&tctx.TraceContext)
 	defer func() { logger.EndTrace(&tctx.TraceContext, startTime, err, 1) }()
@@ -60,7 +60,7 @@ func (cli *ResourceApiClient) Action(tctx *logger.ActionTraceContext) (*resource
 		})
 	}
 
-	req := resource_api_grpc_pb.ActionRequest{
+	req := resource_api_grpc_pb.PhysicalActionRequest{
 		Tctx:    logger.NewAuthproxyTraceContext(nil, tctx),
 		Queries: queries,
 	}
@@ -74,12 +74,51 @@ func (cli *ResourceApiClient) Action(tctx *logger.ActionTraceContext) (*resource
 	ctx, cancel := cli.GetContext()
 	defer cancel()
 
-	var rep *resource_api_grpc_pb.ActionReply
+	var rep *resource_api_grpc_pb.PhysicalActionReply
 	if cli.conf.Default.EnableTest {
-		rep, err = cli.localServer.Action(ctx, &req)
+		rep, err = cli.localServer.PhysicalAction(ctx, &req)
 	} else {
 		grpcClient := resource_api_grpc_pb.NewResourceApiClient(conn)
-		rep, err = grpcClient.Action(ctx, &req)
+		rep, err = grpcClient.PhysicalAction(ctx, &req)
+	}
+
+	return rep, err
+}
+
+func (cli *ResourceApiClient) VirtualAction(tctx *logger.ActionTraceContext) (*resource_api_grpc_pb.VirtualActionReply, error) {
+	var err error
+	startTime := logger.StartTrace(&tctx.TraceContext)
+	defer func() { logger.EndTrace(&tctx.TraceContext, startTime, err, 1) }()
+
+	queries := []*resource_api_grpc_pb.Query{}
+	for _, query := range tctx.Queries {
+		queries = append(queries, &resource_api_grpc_pb.Query{
+			Kind:      query.Kind,
+			StrParams: query.StrParams,
+			NumParams: query.NumParams,
+		})
+	}
+
+	req := resource_api_grpc_pb.VirtualActionRequest{
+		Tctx:    logger.NewAuthproxyTraceContext(nil, tctx),
+		Queries: queries,
+	}
+
+	conn, err := cli.NewClientConnection()
+	if err != nil {
+		return nil, err
+	}
+	defer func() { err = conn.Close() }()
+
+	ctx, cancel := cli.GetContext()
+	defer cancel()
+
+	var rep *resource_api_grpc_pb.VirtualActionReply
+	if cli.conf.Default.EnableTest {
+		rep, err = cli.localServer.VirtualAction(ctx, &req)
+	} else {
+		grpcClient := resource_api_grpc_pb.NewResourceApiClient(conn)
+		rep, err = grpcClient.VirtualAction(ctx, &req)
 	}
 
 	return rep, err

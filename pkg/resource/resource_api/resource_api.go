@@ -1,8 +1,6 @@
 package resource_api
 
 import (
-	"fmt"
-
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 
@@ -58,15 +56,26 @@ func (srv *ResourceApiServer) UpdateNode(ctx context.Context, req *resource_api_
 //
 // Action
 //
-func (srv *ResourceApiServer) Action(ctx context.Context, req *resource_api_grpc_pb.ActionRequest) (*resource_api_grpc_pb.ActionReply, error) {
+func (srv *ResourceApiServer) PhysicalAction(ctx context.Context,
+	req *resource_api_grpc_pb.PhysicalActionRequest) (*resource_api_grpc_pb.PhysicalActionReply, error) {
 	var err error
-	rep := &resource_api_grpc_pb.ActionReply{Tctx: req.Tctx}
+	rep := &resource_api_grpc_pb.PhysicalActionReply{Tctx: req.Tctx}
 	tctx := logger.NewGrpcAuthproxyTraceContext(srv.Host, srv.Name, ctx, req.Tctx)
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
-	srv.resourceModelApi.Action(tctx, req, rep)
-	fmt.Println("DEBUG ACTION", rep.PhysicalModel)
+	srv.resourceModelApi.PhysicalAction(tctx, req, rep)
+	return rep, nil
+}
 
+func (srv *ResourceApiServer) VirtualAction(ctx context.Context,
+	req *resource_api_grpc_pb.VirtualActionRequest) (*resource_api_grpc_pb.VirtualActionReply, error) {
+	var err error
+	rep := &resource_api_grpc_pb.VirtualActionReply{Tctx: req.Tctx}
+	tctx := logger.NewGrpcAuthproxyTraceContext(srv.Host, srv.Name, ctx, req.Tctx)
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	srv.resourceModelApi.VirtualAction(tctx, req, rep)
 	return rep, nil
 }

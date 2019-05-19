@@ -3,8 +3,11 @@ package codes
 import "fmt"
 
 const (
+	// 100 Unknown
+	Unknown int64 = 100
+
 	// 2xx Success
-	Ok               int64 = 100
+	Ok               int64 = 1
 	OkRead           int64 = 200
 	OkCreated        int64 = 201
 	OkUpdated        int64 = 202

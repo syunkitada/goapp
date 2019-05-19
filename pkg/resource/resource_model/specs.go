@@ -14,6 +14,8 @@ type DatacenterSpec struct {
 
 type DatacenterSpecData struct {
 	Kind         string `validate:"required"`
+	Name         string `validate:"required"`
+	Description  string `validate:"required"`
 	Region       string `validate:"required"`
 	DomainSuffix string `validate:"required"`
 	Spec         interface{}
@@ -26,6 +28,8 @@ type ClusterSpec struct {
 
 type ClusterSpecData struct {
 	Kind         string `validate:"required"`
+	Name         string `validate:"required"`
+	Description  string `validate:"required"`
 	Datacenter   string `validate:"required"`
 	DomainSuffix string `validate:"required"`
 	Spec         interface{}
@@ -38,6 +42,7 @@ type FloorSpec struct {
 
 type FloorSpecData struct {
 	Kind       string `validate:"required"`
+	Name       string `validate:"required"`
 	Datacenter string `validate:"required"`
 	Zone       string `validate:"required"`
 	Floor      uint8  `validate:"required"`
@@ -51,8 +56,10 @@ type RackSpec struct {
 
 type RackSpecData struct {
 	Kind       string `validate:"required"`
+	Name       string `validate:"required"`
 	Datacenter string `validate:"required"`
 	Floor      string `validate:"required"`
+	Unit       uint8
 	Spec       interface{}
 }
 
@@ -106,14 +113,14 @@ type ComputeSpec struct {
 }
 
 type ComputeSpecData struct {
-	Domain     string `validate:"required"`
-	Kind       string `validate:"required"`
-	Vcpus      int    `validate:"required"`
-	MemorySize int    `validate:"required"`
-	DiskSize   int    `validate:"required"`
-	Image      string `validate:"required"`
-	Network    string `validate:"required"`
-	Networks   []string
+	Kind        string `validate:"required"`
+	Name        string `validate:"required"`
+	Cluster     string `validate:"required"`
+	Description string `validate:"required"`
+	Domain      string `validate:"required"`
+	Image       string `validate:"required"`
+	Network     string `validate:"required"`
+	Networks    []string
 }
 
 type ContainerSpec struct {
@@ -135,8 +142,10 @@ type ImageSpec struct {
 }
 
 type ImageSpecData struct {
-	Kind string `validate:"required"`
-	Url  string `validate:"required"`
+	Kind    string `validate:"required"`
+	Cluster string `validate:"required"`
+	Name    string `validate:"required"`
+	Url     string `validate:"required"`
 }
 
 type VolumeSpec struct {

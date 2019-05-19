@@ -14,7 +14,8 @@ import "authproxy/authproxy_grpc_pb/authproxy_grpc_pb.proto";
 service ResourceApi {
   rpc Status(StatusRequest) returns (StatusReply) {}
 
-  rpc Action(ActionRequest) returns (ActionReply) {}
+  rpc PhysicalAction(PhysicalActionRequest) returns (PhysicalActionReply) {}
+  rpc VirtualAction(VirtualActionRequest) returns (VirtualActionReply) {}
 
   rpc UpdateNode(UpdateNodeRequest) returns (UpdateNodeReply) {}
 }
@@ -28,7 +29,12 @@ message StatusReply {
 //
 // Action
 //
-message ActionRequest {
+message PhysicalActionRequest {
+    authproxy_grpc_pb.TraceContext Tctx = 1;
+    repeated Query Queries = 2;
+}
+
+message VirtualActionRequest {
     authproxy_grpc_pb.TraceContext Tctx = 1;
     repeated Query Queries = 2;
 }
@@ -39,7 +45,7 @@ message Query {
     map<string, int64> NumParams = 3;
 }
 
-message ActionReply {
+message PhysicalActionReply {
     authproxy_grpc_pb.TraceContext Tctx = 1;
     string index = 2;
     repeated Datacenter Datacenters = 3;
@@ -60,6 +66,22 @@ message ActionReply {
     Rack Rack = 24;
     PhysicalResource PhysicalResource = 25;
     PhysicalModel PhysicalModel = 26;
+}
+
+message VirtualActionReply {
+    authproxy_grpc_pb.TraceContext Tctx = 1;
+    string index = 2;
+    repeated Cluster Clusters = 10;
+    repeated Node Nodes = 11;
+    repeated Compute Computes = 12;
+    repeated Network Networks = 13;
+    repeated Image Images = 14;
+
+    Cluster Cluster = 20;
+    Node Node = 21;
+    Compute Compute = 22;
+    Network Network = 23;
+    Image Image = 24;
 }
 
 //
@@ -83,7 +105,9 @@ message Datacenter {
     google.protobuf.Timestamp CreatedAt = 2;
     string Name = 3;
     string Kind = 4;
-    string Region = 5;
+    string Description = 5;
+    string Region = 6;
+    string DomainSuffix = 7;
 }
 
 message Floor {
@@ -124,12 +148,18 @@ message PhysicalModel {
     google.protobuf.Timestamp CreatedAt = 2;
     string Name = 3;
     string Kind = 4;
+    string Description = 5;
+    uint32 Unit = 6;
 }
 
 message Cluster {
     google.protobuf.Timestamp UpdatedAt = 1;
     google.protobuf.Timestamp CreatedAt = 2;
     string Name = 3;
+    string Kind = 4;
+    string Description = 5;
+    string Datacenter = 6;
+    string DomainSuffix = 7;
 }
 
 message Node {
@@ -154,10 +184,11 @@ message Compute {
     string Kind = 5;
     string Name = 6;
     string FullName = 7;
-    string Labels = 8;
-    string Status = 9;
-    string StatusReason = 10;
-    string Spec = 11;
+    string Description = 8;
+    string Labels = 9;
+    string Status = 10;
+    string StatusReason = 11;
+    string Spec = 12;
 }
 
 message Network {
