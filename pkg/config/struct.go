@@ -66,12 +66,13 @@ type DashboardConfig struct {
 }
 
 type HttpServerConfig struct {
-	Listen          string
-	AllowedHosts    []string
-	CertFile        string
-	KeyFile         string
-	GracefulTimeout int
-	TestHandler     http.Handler
+	Listen                   string
+	AllowedHosts             []string
+	AccessControlAllowOrigin string
+	CertFile                 string
+	KeyFile                  string
+	GracefulTimeout          int
+	TestHandler              http.Handler
 }
 
 type DatabaseConfig struct {
@@ -95,26 +96,22 @@ func newConfig(defaultConfig *DefaultConfig) *Config {
 		},
 		Authproxy: AuthproxyConfig{
 			HttpServer: HttpServerConfig{
-				Listen: "0.0.0.0:8000",
-				AllowedHosts: []string{
-					"127.0.0.1:8000",
-					"localhost:8000",
-					"192.168.10.103:3000",
-					"192.168.10.103:8000",
-				},
-				CertFile:        "tls-assets/server.pem",
-				KeyFile:         "tls-assets/server.key",
-				GracefulTimeout: 10,
+				Listen:                   "0.0.0.0:8000",
+				AllowedHosts:             []string{"127.0.0.1:8000"},
+				AccessControlAllowOrigin: "127.0.0.1:3000",
+				CertFile:                 "tls-assets/server.pem",
+				KeyFile:                  "tls-assets/server.key",
+				GracefulTimeout:          10,
 			},
 			Database: DatabaseConfig{
-				Connection: "admin:adminpass@tcp(localhost:3306)/goapp_authproxy?charset=utf8&parseTime=true",
+				Connection: "goapp:goapppass@tcp(127.0.0.1:3306)/goapp_authproxy?charset=utf8&parseTime=true",
 			},
 		},
 		Dashboard: DashboardConfig{
 			HttpServer: HttpServerConfig{
 				Listen: "0.0.0.0:7000",
 				AllowedHosts: []string{
-					"localhost:7000",
+					"127.0.0.1:7000",
 					"192.168.10.103:7000",
 				},
 				CertFile:        "tls-assets/server.pem",

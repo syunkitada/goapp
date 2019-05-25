@@ -100,7 +100,7 @@ func (authproxy *Authproxy) ValidateHeaders() gin.HandlerFunc {
 		c.Writer.Header().Add("X-Frame-Options", "DENY")
 
 		// Allow Origin
-		c.Writer.Header().Add("Access-Control-Allow-Origin", "http://192.168.10.103:3000")
+		c.Writer.Header().Add("Access-Control-Allow-Origin", authproxy.AccessControlAllowOrigin)
 		c.Writer.Header().Add("Access-Control-Allow-Credentials", "true")
 	}
 }
@@ -176,7 +176,6 @@ func (authproxy *Authproxy) WsAuthRequired() gin.HandlerFunc {
 
 		claims, err := authproxy.Token.ParseToken(tokenAuthRequest)
 		if err != nil {
-			fmt.Println("hogelwlwlwlwbbb")
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"Err": "Invalid Auth Token",
 			})

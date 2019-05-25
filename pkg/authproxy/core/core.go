@@ -17,19 +17,20 @@ import (
 )
 
 type Authproxy struct {
-	host              string
-	name              string
-	conf              *config.Config
-	Listen            string
-	AllowedHosts      []string
-	CertFilePath      string
-	KeyFilePath       string
-	GracefulTimeout   time.Duration
-	AuthproxyModelApi *authproxy_model_api.AuthproxyModelApi
-	Token             *auth.Token
-	Auth              *auth.Auth
-	Dashboard         *dashboard.Dashboard
-	Monitor           *monitor.Monitor
+	host                     string
+	name                     string
+	conf                     *config.Config
+	Listen                   string
+	AllowedHosts             []string
+	AccessControlAllowOrigin string
+	CertFilePath             string
+	KeyFilePath              string
+	GracefulTimeout          time.Duration
+	AuthproxyModelApi        *authproxy_model_api.AuthproxyModelApi
+	Token                    *auth.Token
+	Auth                     *auth.Auth
+	Dashboard                *dashboard.Dashboard
+	Monitor                  *monitor.Monitor
 }
 
 func NewAuthproxy(conf *config.Config) *Authproxy {
@@ -37,19 +38,20 @@ func NewAuthproxy(conf *config.Config) *Authproxy {
 	token := auth.NewToken(conf, authproxyModelApi)
 
 	authproxy := &Authproxy{
-		host:              conf.Default.Host,
-		name:              "authproxy",
-		conf:              conf,
-		Listen:            conf.Authproxy.HttpServer.Listen,
-		AllowedHosts:      conf.Authproxy.HttpServer.AllowedHosts,
-		CertFilePath:      conf.Path(conf.Authproxy.HttpServer.CertFile),
-		KeyFilePath:       conf.Path(conf.Authproxy.HttpServer.KeyFile),
-		GracefulTimeout:   time.Duration(conf.Authproxy.HttpServer.GracefulTimeout) * time.Second,
-		AuthproxyModelApi: authproxyModelApi,
-		Token:             token,
-		Auth:              auth.NewAuth(conf, authproxyModelApi, token),
-		Dashboard:         dashboard.NewDashboard(conf, authproxyModelApi, token),
-		Monitor:           monitor.NewMonitor(conf),
+		host:                     conf.Default.Host,
+		name:                     "authproxy",
+		conf:                     conf,
+		Listen:                   conf.Authproxy.HttpServer.Listen,
+		AllowedHosts:             conf.Authproxy.HttpServer.AllowedHosts,
+		AccessControlAllowOrigin: conf.Authproxy.HttpServer.AccessControlAllowOrigin,
+		CertFilePath:             conf.Path(conf.Authproxy.HttpServer.CertFile),
+		KeyFilePath:              conf.Path(conf.Authproxy.HttpServer.KeyFile),
+		GracefulTimeout:          time.Duration(conf.Authproxy.HttpServer.GracefulTimeout) * time.Second,
+		AuthproxyModelApi:        authproxyModelApi,
+		Token:                    token,
+		Auth:                     auth.NewAuth(conf, authproxyModelApi, token),
+		Dashboard:                dashboard.NewDashboard(conf, authproxyModelApi, token),
+		Monitor:                  monitor.NewMonitor(conf),
 	}
 
 	return authproxy
