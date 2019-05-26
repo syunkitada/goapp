@@ -6,12 +6,12 @@ mkdir -p ~/.goapp/etc
 
 cp -r ci/etc/goapp/* ~/.goapp/etc/
 
-GO111MODULE=off
-go get github.com/golangci/golangci-lint
-
-go get golang.org/x/lint/golint
-go get github.com/alecthomas/gometalinter
-GO111MODULE=on
+# GO111MODULE=off
+# go get github.com/golangci/golangci-lint
+# 
+# go get golang.org/x/lint/golint
+# go get github.com/alecthomas/gometalinter
+# GO111MODULE=on
 
 OS_RELEASE=""
 if grep "Ubuntu" /etc/os-release > /dev/null; then

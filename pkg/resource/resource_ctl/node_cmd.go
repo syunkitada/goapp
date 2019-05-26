@@ -35,7 +35,7 @@ var getNodeCmd = &cobra.Command{
 		}
 
 		ctl := New(&config.Conf, nil)
-		if _, err := ctl.GetNode(getCmdClusterFlag, target); err != nil {
+		if _, err := ctl.GetNode("", target); err != nil {
 			glog.Fatal(err)
 		}
 	},
@@ -52,9 +52,9 @@ func (ctl *ResourceCtl) GetNode(cluster string, target string) (*ResponseGetNode
 		return nil, err
 	}
 
-	req := resource_api_grpc_pb.ActionRequest{
-		Cluster: cluster,
-		Target:  target,
+	req := resource_api_grpc_pb.VirtualActionRequest{
+		// Cluster: cluster,
+		// Target:  target,
 	}
 	var resp ResponseGetNode
 	if err = ctl.client.Request(tctx, token, "GetNode", &req, &resp); err != nil {

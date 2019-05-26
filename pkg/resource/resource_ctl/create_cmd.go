@@ -62,8 +62,8 @@ func (ctl *ResourceCtl) CreateResource(resourceType string, filePaths []string) 
 	}
 	fmt.Println(string(dataBytes))
 
-	req := resource_api_grpc_pb.ActionRequest{
-		Spec: string(dataBytes),
+	req := resource_api_grpc_pb.PhysicalActionRequest{
+		// Spec: string(dataBytes),
 	}
 
 	var token *authproxy_client.ResponseIssueToken

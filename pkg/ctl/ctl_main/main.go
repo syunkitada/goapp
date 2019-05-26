@@ -1,15 +1,24 @@
 package ctl_main
 
 import (
+	"fmt"
+
 	"github.com/spf13/cobra"
 
 	"github.com/syunkitada/goapp/pkg/config"
-	"github.com/syunkitada/goapp/pkg/ctl/ctl_main/monitor"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
-	"github.com/syunkitada/goapp/pkg/resource/resource_ctl"
 )
 
-var rootCmd = &cobra.Command{}
+var rootCmd = &cobra.Command{
+	Use:   "",
+	Short: "",
+	Run: func(cmd *cobra.Command, args []string) {
+		ctl := New(&config.Conf)
+		if err := ctl.Index(args); err != nil {
+			fmt.Println(err)
+		}
+	},
+}
 
 func Main() {
 	if err := rootCmd.Execute(); err != nil {
@@ -21,6 +30,5 @@ func init() {
 	cobra.OnInitialize(config.InitConfig, logger.Init)
 	config.InitFlags(rootCmd)
 
-	rootCmd.AddCommand(resource_ctl.RootCmd)
-	rootCmd.AddCommand(monitor.RootCmd)
+	// rootCmd.AddCommand(resource_ctl.RootCmd)
 }
