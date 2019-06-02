@@ -5,9 +5,14 @@ type Base struct {
 	Kind string
 }
 
-type Panels struct {
-	Name      string
-	Kind      string
+type Index struct {
 	SyncDelay uint
-	Panels    []interface{}
+	Cmd       interface{}
+	View      interface{}
+}
+
+type Panels struct {
+	Name   string
+	Kind   string
+	Panels []interface{}
 }

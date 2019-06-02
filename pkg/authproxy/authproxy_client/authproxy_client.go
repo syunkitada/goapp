@@ -45,7 +45,7 @@ func New(conf *config.Config, authproxy *core.Authproxy) *AuthproxyClient {
 	return client
 }
 
-func (client *AuthproxyClient) Request(tctx *logger.TraceContext, token *ResponseIssueToken, action string, reqData interface{}, resp interface{}) error {
+func (client *AuthproxyClient) Request(tctx *logger.TraceContext, responseLogin *ResponseLogin, action string, reqData interface{}, resp interface{}) error {
 	var err error
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
@@ -57,7 +57,7 @@ func (client *AuthproxyClient) Request(tctx *logger.TraceContext, token *Respons
 	fmt.Println(reqDataJson)
 
 	req := authproxy_model.TokenAuthRequest{
-		Token: token.Token,
+		Token: responseLogin.Token,
 		Action: authproxy_model.ActionRequest{
 			ProjectName: client.conf.Ctl.Project,
 			ServiceName: client.serviceName,

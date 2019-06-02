@@ -58,6 +58,8 @@ func (authproxy *Authproxy) ValidateHeaders() gin.HandlerFunc {
 		// Check AllowedHosts
 		var err error
 		if len(authproxy.AllowedHosts) > 0 {
+			fmt.Println(authproxy.AllowedHosts)
+			fmt.Println(c.Request.Host)
 			isGoodHost := false
 			for _, allowedHost := range authproxy.AllowedHosts {
 				if strings.EqualFold(allowedHost, c.Request.Host) {
@@ -134,7 +136,8 @@ func (authproxy *Authproxy) AuthRequired() gin.HandlerFunc {
 		}
 
 		username := claims["Username"].(string)
-		userAuthority, getUserAuthorityErr := authproxy.AuthproxyModelApi.GetUserAuthority(tctx, username, &tokenAuthRequest.Action)
+		userAuthority, getUserAuthorityErr := authproxy.AuthproxyModelApi.GetUserAuthority(
+			tctx, username, &tokenAuthRequest.Action)
 		if getUserAuthorityErr != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"Err": "Invalid AuthAction: This request is not allowed.",

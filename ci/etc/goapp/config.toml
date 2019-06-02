@@ -1,4 +1,12 @@
 #
+# Authproxy
+#
+[Authproxy.HttpServer]
+AllowedHosts = ["127.0.0.1:8000"]
+AccessControlAllowOrigin = "http://127.0.0.1:3000"
+
+
+#
 # Monitor
 #
 [Monitor.ApiApp]

@@ -11,35 +11,23 @@ import (
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
 
-func (auth *Auth) IssueToken(c *gin.Context) {
-	var err error
+func (auth *Auth) Login(c *gin.Context) {
 	var authRequest authproxy_model.AuthRequest
-	tmpTraceId, traceIdOk := c.Get("TraceId")
-	if !traceIdOk {
-		c.JSON(500, gin.H{
-			"err": "Invalid request",
-		})
-		c.Abort()
-	}
-	traceId := tmpTraceId.(string)
+	traceId := c.GetString("TraceId")
 
-	if err = c.ShouldBindWith(&authRequest, binding.JSON); err != nil {
-		glog.Errorf("Failed IssueToken for user=%v: Failed ShouldBindJSON: %v", authRequest.Username, err)
+	if err := c.ShouldBindWith(&authRequest, binding.JSON); err != nil {
+		glog.Warningf("Invalid AuthRequest: Failed ShouldBindJSON: %v", err)
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"error": "Invalid AuthRequest",
 		})
 		c.Abort()
 		return
 	}
-	tctx := logger.NewTraceContextWithTraceId(auth.host, auth.name, traceId)
-	tctx.Metadata["Username"] = authRequest.Username
-	startTime := logger.StartTrace(tctx)
-	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
-	var token string
-	token, err = auth.token.AuthAndIssueToken(tctx, &authRequest)
+	tctx := logger.NewTraceContextWithTraceId(traceId, auth.host, auth.name)
+	token, err := auth.token.AuthAndIssueToken(tctx, &authRequest)
 	if err != nil {
-		glog.Errorf("Failed IssueToken for user=%v: Failed AuthAndIssueToken: %v", authRequest.Username, err)
+		glog.Error("Failed AuthAndIssueToken", err)
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"error": "Failed IssueToken",
 		})
@@ -47,9 +35,18 @@ func (auth *Auth) IssueToken(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"Token": token,
-	})
+	userAuthority, getUserAuthorityErr := auth.authproxyModelApi.GetUserAuthority(
+		tctx, authRequest.Username, &authRequest.Action)
+	if getUserAuthorityErr != nil {
+		glog.Error(getUserAuthorityErr)
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "Invalid AuthRequest",
+		})
+	}
 
-	return
+	c.JSON(http.StatusOK, gin.H{
+		"Name":      authRequest.Username,
+		"Authority": userAuthority,
+		"Token":     token,
+	})
 }

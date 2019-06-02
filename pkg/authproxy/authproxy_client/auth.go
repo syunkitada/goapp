@@ -5,11 +5,13 @@ import (
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
 
-type ResponseIssueToken struct {
-	Token string
+type ResponseLogin struct {
+	Token     string
+	Name      string
+	Authority *authproxy_model.UserAuthority
 }
 
-func (client *AuthproxyClient) IssueToken(tctx *logger.TraceContext) (*ResponseIssueToken, error) {
+func (client *AuthproxyClient) Login(tctx *logger.TraceContext, serviceName string) (*ResponseLogin, error) {
 	var err error
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
@@ -19,7 +21,7 @@ func (client *AuthproxyClient) IssueToken(tctx *logger.TraceContext) (*ResponseI
 		Password: client.conf.Ctl.Password,
 	}
 
-	var resp ResponseIssueToken
-	err = client.request(tctx, "token", &req, &resp)
+	var resp ResponseLogin
+	err = client.request(tctx, "auth/login", &req, &resp)
 	return &resp, err
 }
