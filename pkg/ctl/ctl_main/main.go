@@ -9,9 +9,12 @@ import (
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
 
+var flagMap map[string]string
+
 var rootCmd = &cobra.Command{
-	Use:   "",
-	Short: "",
+	Use:                "",
+	Short:              "",
+	DisableFlagParsing: true,
 	Run: func(cmd *cobra.Command, args []string) {
 		ctl := New(&config.Conf)
 		if err := ctl.Index(args); err != nil {
@@ -27,6 +30,9 @@ func Main() {
 }
 
 func init() {
+	// flagMap
+	// rootCmd.PersistentFlags().StringVarP(&Source, "source", "s", "", "Source directory to read from")
+
 	cobra.OnInitialize(config.InitConfig, logger.Init)
 	config.InitFlags(rootCmd)
 

@@ -7,8 +7,14 @@ type Base struct {
 
 type Index struct {
 	SyncDelay uint
-	Cmd       interface{}
+	CmdMap    map[string]Cmd
 	View      interface{}
+}
+
+type Cmd struct {
+	Arg     string
+	ArgType string
+	Help    string
 }
 
 type Panels struct {

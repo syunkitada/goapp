@@ -8,9 +8,16 @@ import (
 func (resource *Resource) getPhysicalIndex() interface{} {
 	return index_model.Index{
 		SyncDelay: 20000,
-		Cmd: map[string]interface{}{
-			"Create": map[string]interface{}{
-				"Cluster": "dummy",
+		CmdMap: map[string]index_model.Cmd{
+			"CreateDatacenter": index_model.Cmd{
+				Arg:     "required",
+				ArgType: "file",
+				Help:    "helptext",
+			},
+			"GetDatacenter": index_model.Cmd{
+				Arg:     "optional",
+				ArgType: "string",
+				Help:    "helptext",
 			},
 		},
 		View: index_model.Panels{
