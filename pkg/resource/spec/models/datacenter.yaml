@@ -1,0 +1,40 @@
+Datacenter:
+  Queries: [Create, Update, Get, GetDetail, Delete]
+  Fields:
+    Name:
+      Type: string
+      Gorm: not null;size:50;unique_index;
+      Option:
+        Create: required
+        Get: optional
+        GetDetail: required
+    Kind:
+      Type: string
+      Gorm: not null;size:25;
+      Option:
+        Create: required
+        Update: optional
+        Get: optional
+        GetDetail: optional
+    Description:
+      Type: string
+      Gorm: not null;size:200;
+      Option:
+        Create: optional
+        Update: optional
+    Region:
+      Type: string
+      Gorm: not null;size:50;unique_index;
+      Option:
+        Create: required
+    DomainSuffix:
+      Type: string
+      Gorm: not null;size:255;unique;
+      Option:
+        Create: required
+    Spec:
+      Type: string
+      Gorm: not null;size:100000;
+      Option:
+        Create: required
+        Update: required

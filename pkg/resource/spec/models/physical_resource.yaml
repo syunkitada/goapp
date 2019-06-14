@@ -1,0 +1,38 @@
+PhysicalResource:
+  Fields:
+    Datacenter:
+      Type: string
+      Gorm: not null;size:50;index;
+    Rack:
+      Type: string
+      Gorm: not null;size:50;index;
+    Cluster:
+      Type: string
+      Gorm: not null;size:50;index; # 仮想リソースを扱う場合はClusterに紐図かせる
+    Name:
+      Type: string
+      Gorm: not null;size:200;index; # Datacenter内でユニーク
+    Kind:
+      Type: string
+      Gorm: not null;size:25; # Server, Pdu, L2Switch, L3Switch, RootSwitch
+    PhysicalModel:
+      Type: string
+      Gorm: not null;size:200;
+    RackPosition:
+      Type: uint8
+      Gorm: not null;
+    Status:
+      Type: string
+      Gorm: not null;size:25;
+    StatusReason:
+      Type: string
+      Gorm: not null;size:50;
+    PowerLinks:
+      Type: string
+      Gorm: not null;size:5000;
+    NetLinks:
+      Type: string
+      Gorm: not null;size:5000;
+    Spec:
+      Type: string
+      Gorm: not null;size:5000;

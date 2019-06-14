@@ -97,6 +97,7 @@ func (ctl *CtlMain) Index(args []string) error {
 	cmdQuery := ""
 	var cmdInfo index_model.Cmd
 	lastArg := ""
+	helpMsg := ""
 	for query, cmd := range indexResp.Index.CmdMap {
 		args := []rune{}
 		for i, c := range query {
@@ -111,6 +112,16 @@ func (ctl *CtlMain) Index(args []string) error {
 		argsStr := string(args)
 		argsMap[argsStr] = cmd
 
+		if cmd.Arg != "" {
+			helpMsg += fmt.Sprintf("%s [%s:%s]  :%s\n", argsStr, cmd.ArgType, cmd.Arg, cmd.Help)
+		} else {
+			helpMsg += fmt.Sprintf("%s  :%s\n", argsStr, cmd.Help)
+		}
+
+		if len(cmdArgs) < 2 {
+			continue
+		}
+
 		splitedArgs := strings.Split(argsStr, " ")
 		if len(cmdArgs)+1 >= len(splitedArgs) {
 			isMatch := true
@@ -124,7 +135,14 @@ func (ctl *CtlMain) Index(args []string) error {
 				cmdQuery = query
 				cmdInfo = cmd
 				if len(cmdArgs)+1 > len(splitedArgs) {
-					lastArg = cmdArgs[len(splitedArgs)+1]
+					if len(cmdArgs) > len(splitedArgs)+2 {
+						lastArg = cmdArgs[len(splitedArgs)+1]
+					}
+
+					if cmd.Arg == "required" && lastArg == "" {
+						fmt.Printf("%s [%s:%s]  :%s\n", argsStr, cmd.ArgType, cmd.Arg, cmd.Help)
+						return nil
+					}
 				}
 				break
 			}
@@ -132,7 +150,8 @@ func (ctl *CtlMain) Index(args []string) error {
 	}
 
 	if cmdQuery == "" {
-		fmt.Println("Invalid Cmd")
+		fmt.Printf("# Available Commands\n-----------------------\n")
+		fmt.Println(helpMsg)
 		return nil
 	}
 
