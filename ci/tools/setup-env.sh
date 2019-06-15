@@ -6,6 +6,15 @@ mkdir -p ~/.goapp/etc
 
 cp -r ci/etc/goapp/* ~/.goapp/etc/
 
+go get -u github.com/golang/protobuf/protoc-gen-go
+
+if [ -ne /usr/local/bin/protoc ]; then
+    cd /tmp
+    wget https://github.com/protocolbuffers/protobuf/releases/download/v3.8.0/protoc-3.8.0-linux-x86_64.zip
+    sudo unzip protoc-3.8.0-linux-x86_64.zip -d /usr/local
+    cd -
+fi
+
 # GO111MODULE=off
 # go get github.com/golangci/golangci-lint
 # 

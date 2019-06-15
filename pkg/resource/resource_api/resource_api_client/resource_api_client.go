@@ -1,6 +1,7 @@
 package resource_api_client
 
 import (
+	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_grpc_pb"
 	"github.com/syunkitada/goapp/pkg/base"
 	"github.com/syunkitada/goapp/pkg/config"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
@@ -46,21 +47,21 @@ func (cli *ResourceApiClient) Status(tctx *logger.TraceContext) (*resource_api_g
 	return rep, err
 }
 
-func (cli *ResourceApiClient) PhysicalAction(tctx *logger.ActionTraceContext) (*resource_api_grpc_pb.PhysicalActionReply, error) {
+func (cli *ResourceApiClient) PhysicalAction(tctx *logger.ActionTraceContext) (*authproxy_grpc_pb.ActionReply, error) {
 	var err error
 	startTime := logger.StartTrace(&tctx.TraceContext)
 	defer func() { logger.EndTrace(&tctx.TraceContext, startTime, err, 1) }()
 
-	queries := []*resource_api_grpc_pb.Query{}
+	queries := []*authproxy_grpc_pb.Query{}
 	for _, query := range tctx.Queries {
-		queries = append(queries, &resource_api_grpc_pb.Query{
+		queries = append(queries, &authproxy_grpc_pb.Query{
 			Kind:      query.Kind,
 			StrParams: query.StrParams,
 			NumParams: query.NumParams,
 		})
 	}
 
-	req := resource_api_grpc_pb.PhysicalActionRequest{
+	req := authproxy_grpc_pb.ActionRequest{
 		Tctx:    logger.NewAuthproxyTraceContext(nil, tctx),
 		Queries: queries,
 	}
@@ -74,7 +75,7 @@ func (cli *ResourceApiClient) PhysicalAction(tctx *logger.ActionTraceContext) (*
 	ctx, cancel := cli.GetContext()
 	defer cancel()
 
-	var rep *resource_api_grpc_pb.PhysicalActionReply
+	var rep *authproxy_grpc_pb.ActionReply
 	if cli.conf.Default.EnableTest {
 		rep, err = cli.localServer.PhysicalAction(ctx, &req)
 	} else {
@@ -85,21 +86,21 @@ func (cli *ResourceApiClient) PhysicalAction(tctx *logger.ActionTraceContext) (*
 	return rep, err
 }
 
-func (cli *ResourceApiClient) VirtualAction(tctx *logger.ActionTraceContext) (*resource_api_grpc_pb.VirtualActionReply, error) {
+func (cli *ResourceApiClient) VirtualAction(tctx *logger.ActionTraceContext) (*authproxy_grpc_pb.ActionReply, error) {
 	var err error
 	startTime := logger.StartTrace(&tctx.TraceContext)
 	defer func() { logger.EndTrace(&tctx.TraceContext, startTime, err, 1) }()
 
-	queries := []*resource_api_grpc_pb.Query{}
+	queries := []*authproxy_grpc_pb.Query{}
 	for _, query := range tctx.Queries {
-		queries = append(queries, &resource_api_grpc_pb.Query{
+		queries = append(queries, &authproxy_grpc_pb.Query{
 			Kind:      query.Kind,
 			StrParams: query.StrParams,
 			NumParams: query.NumParams,
 		})
 	}
 
-	req := resource_api_grpc_pb.VirtualActionRequest{
+	req := authproxy_grpc_pb.ActionRequest{
 		Tctx:    logger.NewAuthproxyTraceContext(nil, tctx),
 		Queries: queries,
 	}
@@ -113,7 +114,7 @@ func (cli *ResourceApiClient) VirtualAction(tctx *logger.ActionTraceContext) (*r
 	ctx, cancel := cli.GetContext()
 	defer cancel()
 
-	var rep *resource_api_grpc_pb.VirtualActionReply
+	var rep *authproxy_grpc_pb.ActionReply
 	if cli.conf.Default.EnableTest {
 		rep, err = cli.localServer.VirtualAction(ctx, &req)
 	} else {

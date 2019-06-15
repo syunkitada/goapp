@@ -1,12 +1,82 @@
-package resource_authproxy
+package resource_model_api
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/jinzhu/gorm"
+	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_grpc_pb"
+	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_model"
+	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_utils"
 	"github.com/syunkitada/goapp/pkg/authproxy/index_model"
+	"github.com/syunkitada/goapp/pkg/lib/codes"
+	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
 
-func (resource *Resource) getVirtualIndex() interface{} {
-	return index_model.Index{
+func (modelApi *ResourceModelApi) VirtualAction(tctx *logger.TraceContext,
+	req *authproxy_grpc_pb.ActionRequest, rep *authproxy_grpc_pb.ActionReply) {
+	var err error
+	var statusCode int64
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	response := authproxy_model.ActionResponse{
+		Tctx: *req.Tctx,
+	}
+
+	var db *gorm.DB
+	if db, err = modelApi.open(tctx); err != nil {
+		authproxy_utils.MergeResponse(rep, &response, nil, err, codes.RemoteDbError)
+		return
+	}
+	defer func() {
+		tmpErr := db.Close()
+		if tmpErr != nil {
+			logger.Error(tctx, tmpErr)
+		}
+	}()
+
+	data := map[string]interface{}{}
+	statusCode = codes.Unknown
+	for _, query := range req.Queries {
+		switch query.Kind {
+		case "GetIndex":
+			response.Index = *modelApi.getVirtualIndex()
+		case "GetDashboardIndex":
+			response.Index = *modelApi.getVirtualIndex()
+			statusCode, err = modelApi.GetClusters(tctx, db, query, data)
+
+		case "GetCluster":
+			statusCode, err = modelApi.GetCluster(tctx, db, query, data)
+		case "GetClusters":
+			statusCode, err = modelApi.GetClusters(tctx, db, query, data)
+		case "CreateCluster":
+			statusCode, err = modelApi.CreateCluster(tctx, db, query)
+		case "UpdateCluster":
+			statusCode, err = modelApi.UpdateCluster(tctx, db, query)
+		case "DeleteCluster":
+			statusCode, err = modelApi.DeleteCluster(tctx, db, query)
+
+		case "GetCompute":
+			statusCode, err = modelApi.GetCompute(tctx, db, query, data)
+		case "GetComputes":
+			statusCode, err = modelApi.GetComputes(tctx, db, query, data)
+		case "CreateCompute":
+			statusCode, err = modelApi.CreateCompute(tctx, db, query)
+		case "UpdateCompute":
+			statusCode, err = modelApi.UpdateCompute(tctx, db, query)
+		case "DeleteCompute":
+			statusCode, err = modelApi.DeleteCompute(tctx, db, query)
+		}
+
+		if err != nil {
+			break
+		}
+	}
+
+	authproxy_utils.MergeResponse(rep, &response, data, err, statusCode)
+}
+
+func (modelApi *ResourceModelApi) getVirtualIndex() *index_model.Index {
+	return &index_model.Index{
 		SyncDelay: 20000,
 		View: index_model.Panels{
 			Name: "Root",

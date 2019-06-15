@@ -6,6 +6,7 @@ import (
 
 	"github.com/golang/protobuf/ptypes"
 	"github.com/jinzhu/gorm"
+	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_grpc_pb"
 	"github.com/syunkitada/goapp/pkg/lib/codes"
 	"github.com/syunkitada/goapp/pkg/lib/error_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
@@ -14,7 +15,7 @@ import (
 )
 
 func (modelApi *ResourceModelApi) GetPhysicalResource(tctx *logger.TraceContext,
-	db *gorm.DB, query *resource_api_grpc_pb.Query, rep *resource_api_grpc_pb.PhysicalActionReply) (int64, error) {
+	db *gorm.DB, query *authproxy_grpc_pb.Query, data map[string]interface{}) (int64, error) {
 	var err error
 	resource, ok := query.StrParams["resource"]
 	if !ok {
@@ -27,12 +28,12 @@ func (modelApi *ResourceModelApi) GetPhysicalResource(tctx *logger.TraceContext,
 	}).First(&physicalModel).Error; err != nil {
 		return codes.RemoteDbError, err
 	}
-	rep.PhysicalResource = modelApi.convertPhysicalResource(tctx, &physicalModel)
+	data["PhysicalResource"] = physicalModel
 	return codes.OkRead, nil
 }
 
 func (modelApi *ResourceModelApi) GetPhysicalResources(tctx *logger.TraceContext,
-	db *gorm.DB, query *resource_api_grpc_pb.Query, rep *resource_api_grpc_pb.PhysicalActionReply) (int64, error) {
+	db *gorm.DB, query *authproxy_grpc_pb.Query, data map[string]interface{}) (int64, error) {
 	var err error
 	datacenter, ok := query.StrParams["datacenter"]
 	if !ok || datacenter == "" {
@@ -43,12 +44,12 @@ func (modelApi *ResourceModelApi) GetPhysicalResources(tctx *logger.TraceContext
 	if err = db.Where("datacenter = ?", datacenter).Find(&physicalResources).Error; err != nil {
 		return codes.RemoteDbError, err
 	}
-	rep.PhysicalResources = modelApi.convertPhysicalResources(tctx, physicalResources)
+	data["PhysicalResources"] = physicalResources
 	return codes.OkRead, nil
 }
 
 func (modelApi *ResourceModelApi) CreatePhysicalResource(tctx *logger.TraceContext,
-	db *gorm.DB, query *resource_api_grpc_pb.Query) (int64, error) {
+	db *gorm.DB, query *authproxy_grpc_pb.Query) (int64, error) {
 	var err error
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
@@ -59,7 +60,7 @@ func (modelApi *ResourceModelApi) CreatePhysicalResource(tctx *logger.TraceConte
 		return codes.ClientBadRequest, err
 	}
 
-	var specs []resource_model.PhysicalResourceSpecData
+	var specs []resource_model.PhysicalResourceSpec
 	if err = json.Unmarshal([]byte(strSpecs), &specs); err != nil {
 		return codes.ClientBadRequest, err
 	}
@@ -101,7 +102,7 @@ func (modelApi *ResourceModelApi) CreatePhysicalResource(tctx *logger.TraceConte
 	return codes.Ok, nil
 }
 
-func (modelApi *ResourceModelApi) UpdatePhysicalResource(tctx *logger.TraceContext, db *gorm.DB, query *resource_api_grpc_pb.Query) (int64, error) {
+func (modelApi *ResourceModelApi) UpdatePhysicalResource(tctx *logger.TraceContext, db *gorm.DB, query *authproxy_grpc_pb.Query) (int64, error) {
 	var err error
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
@@ -115,7 +116,7 @@ func (modelApi *ResourceModelApi) UpdatePhysicalResource(tctx *logger.TraceConte
 		return codes.ClientBadRequest, err
 	}
 
-	var specs []resource_model.PhysicalResourceSpecData
+	var specs []resource_model.PhysicalResourceSpec
 	if err = json.Unmarshal([]byte(strSpecs), &specs); err != nil {
 		return codes.ClientBadRequest, err
 	}
@@ -149,7 +150,7 @@ func (modelApi *ResourceModelApi) UpdatePhysicalResource(tctx *logger.TraceConte
 	return codes.OkUpdated, nil
 }
 
-func (modelApi *ResourceModelApi) DeletePhysicalResource(tctx *logger.TraceContext, db *gorm.DB, query *resource_api_grpc_pb.Query) (int64, error) {
+func (modelApi *ResourceModelApi) DeletePhysicalResource(tctx *logger.TraceContext, db *gorm.DB, query *authproxy_grpc_pb.Query) (int64, error) {
 	var err error
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()

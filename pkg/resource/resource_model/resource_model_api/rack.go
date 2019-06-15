@@ -5,6 +5,7 @@ import (
 
 	"github.com/golang/protobuf/ptypes"
 	"github.com/jinzhu/gorm"
+	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_grpc_pb"
 	"github.com/syunkitada/goapp/pkg/lib/codes"
 	"github.com/syunkitada/goapp/pkg/lib/error_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
@@ -13,41 +14,41 @@ import (
 )
 
 func (modelApi *ResourceModelApi) GetRack(tctx *logger.TraceContext,
-	db *gorm.DB, query *resource_api_grpc_pb.Query, rep *resource_api_grpc_pb.PhysicalActionReply) (int64, error) {
+	db *gorm.DB, query *authproxy_grpc_pb.Query, data map[string]interface{}) (int64, error) {
 	var err error
 	resource, ok := query.StrParams["resource"]
 	if !ok {
 		return codes.ClientBadRequest, error_utils.NewInvalidRequestError("resource is None")
 	}
 
-	var floor resource_model.Rack
+	var rack resource_model.Rack
 	if err = db.Where(&resource_model.Rack{
 		Name: resource,
-	}).First(&floor).Error; err != nil {
+	}).First(&rack).Error; err != nil {
 		return codes.RemoteDbError, err
 	}
-	rep.Rack = modelApi.convertRack(tctx, &floor)
+	data["Rack"] = rack
 	return codes.OkRead, nil
 }
 
 func (modelApi *ResourceModelApi) GetRacks(tctx *logger.TraceContext,
-	db *gorm.DB, query *resource_api_grpc_pb.Query, rep *resource_api_grpc_pb.PhysicalActionReply) (int64, error) {
+	db *gorm.DB, query *authproxy_grpc_pb.Query, data map[string]interface{}) (int64, error) {
 	var err error
 	datacenter, ok := query.StrParams["datacenter"]
 	if !ok || datacenter == "" {
 		return codes.ClientBadRequest, error_utils.NewInvalidRequestError("datacenter is None")
 	}
 
-	var floors []resource_model.Rack
-	if err = db.Where("datacenter = ?", datacenter).Find(&floors).Error; err != nil {
+	var racks []resource_model.Rack
+	if err = db.Where("datacenter = ?", datacenter).Find(&racks).Error; err != nil {
 		return codes.RemoteDbError, err
 	}
-	rep.Racks = modelApi.convertRacks(tctx, floors)
+	data["Racks"] = racks
 	return codes.OkRead, nil
 }
 
 func (modelApi *ResourceModelApi) CreateRack(tctx *logger.TraceContext,
-	db *gorm.DB, query *resource_api_grpc_pb.Query) (int64, error) {
+	db *gorm.DB, query *authproxy_grpc_pb.Query) (int64, error) {
 	var err error
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
@@ -58,7 +59,7 @@ func (modelApi *ResourceModelApi) CreateRack(tctx *logger.TraceContext,
 		return codes.ClientBadRequest, err
 	}
 
-	var specs []resource_model.RackSpecData
+	var specs []resource_model.RackSpec
 	if err = json.Unmarshal([]byte(strSpecs), &specs); err != nil {
 		return codes.ClientBadRequest, err
 	}
@@ -95,7 +96,7 @@ func (modelApi *ResourceModelApi) CreateRack(tctx *logger.TraceContext,
 	return codes.Ok, nil
 }
 
-func (modelApi *ResourceModelApi) UpdateRack(tctx *logger.TraceContext, db *gorm.DB, query *resource_api_grpc_pb.Query) (int64, error) {
+func (modelApi *ResourceModelApi) UpdateRack(tctx *logger.TraceContext, db *gorm.DB, query *authproxy_grpc_pb.Query) (int64, error) {
 	var err error
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
@@ -109,7 +110,7 @@ func (modelApi *ResourceModelApi) UpdateRack(tctx *logger.TraceContext, db *gorm
 		return codes.ClientBadRequest, err
 	}
 
-	var specs []resource_model.RackSpecData
+	var specs []resource_model.RackSpec
 	if err = json.Unmarshal([]byte(strSpecs), &specs); err != nil {
 		return codes.ClientBadRequest, err
 	}
@@ -138,7 +139,7 @@ func (modelApi *ResourceModelApi) UpdateRack(tctx *logger.TraceContext, db *gorm
 	return codes.OkUpdated, nil
 }
 
-func (modelApi *ResourceModelApi) DeleteRack(tctx *logger.TraceContext, db *gorm.DB, query *resource_api_grpc_pb.Query) (int64, error) {
+func (modelApi *ResourceModelApi) DeleteRack(tctx *logger.TraceContext, db *gorm.DB, query *authproxy_grpc_pb.Query) (int64, error) {
 	var err error
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()

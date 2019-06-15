@@ -7,6 +7,7 @@ import (
 	"github.com/golang/protobuf/ptypes"
 	"github.com/jinzhu/gorm"
 
+	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_grpc_pb"
 	"github.com/syunkitada/goapp/pkg/lib/codes"
 	"github.com/syunkitada/goapp/pkg/lib/error_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
@@ -15,7 +16,7 @@ import (
 )
 
 func (modelApi *ResourceModelApi) GetCluster(tctx *logger.TraceContext, db *gorm.DB,
-	query *resource_api_grpc_pb.Query, rep *resource_api_grpc_pb.VirtualActionReply) (int64, error) {
+	query *authproxy_grpc_pb.Query, data map[string]interface{}) (int64, error) {
 	var err error
 	resource, ok := query.StrParams["resource"]
 	if !ok {
@@ -28,23 +29,23 @@ func (modelApi *ResourceModelApi) GetCluster(tctx *logger.TraceContext, db *gorm
 	}).First(&cluster).Error; err != nil {
 		return codes.RemoteDbError, err
 	}
-	rep.Cluster = modelApi.convertCluster(tctx, &cluster)
+	data["Cluster"] = cluster
 	return codes.OkRead, nil
 }
 
 func (modelApi *ResourceModelApi) GetClusters(tctx *logger.TraceContext, db *gorm.DB,
-	query *resource_api_grpc_pb.Query, rep *resource_api_grpc_pb.VirtualActionReply) (int64, error) {
+	query *authproxy_grpc_pb.Query, data map[string]interface{}) (int64, error) {
 	var err error
 	var clusters []resource_model.Cluster
 	if err = db.Find(&clusters).Error; err != nil {
 		return codes.RemoteDbError, err
 	}
-	rep.Clusters = modelApi.convertClusters(tctx, clusters)
+	data["Clusters"] = clusters
 	return codes.OkRead, nil
 }
 
 func (modelApi *ResourceModelApi) CreateCluster(tctx *logger.TraceContext, db *gorm.DB,
-	query *resource_api_grpc_pb.Query) (int64, error) {
+	query *authproxy_grpc_pb.Query) (int64, error) {
 	var err error
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
@@ -58,7 +59,7 @@ func (modelApi *ResourceModelApi) CreateCluster(tctx *logger.TraceContext, db *g
 		return codes.ClientBadRequest, err
 	}
 
-	var specs []resource_model.ClusterSpecData
+	var specs []resource_model.ClusterSpec
 	if err = json.Unmarshal([]byte(strSpecs), &specs); err != nil {
 		return codes.ClientBadRequest, err
 	}
@@ -100,7 +101,7 @@ func (modelApi *ResourceModelApi) CreateCluster(tctx *logger.TraceContext, db *g
 }
 
 func (modelApi *ResourceModelApi) UpdateCluster(tctx *logger.TraceContext, db *gorm.DB,
-	query *resource_api_grpc_pb.Query) (int64, error) {
+	query *authproxy_grpc_pb.Query) (int64, error) {
 	var err error
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
@@ -114,7 +115,7 @@ func (modelApi *ResourceModelApi) UpdateCluster(tctx *logger.TraceContext, db *g
 		return codes.ClientBadRequest, err
 	}
 
-	var specs []resource_model.ClusterSpecData
+	var specs []resource_model.ClusterSpec
 	if err = json.Unmarshal([]byte(strSpecs), &specs); err != nil {
 		return codes.ClientBadRequest, err
 	}
@@ -144,7 +145,7 @@ func (modelApi *ResourceModelApi) UpdateCluster(tctx *logger.TraceContext, db *g
 }
 
 func (modelApi *ResourceModelApi) DeleteCluster(tctx *logger.TraceContext, db *gorm.DB,
-	query *resource_api_grpc_pb.Query) (int64, error) {
+	query *authproxy_grpc_pb.Query) (int64, error) {
 	var err error
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()

@@ -1,7 +1,7 @@
 {
   "Kind": "Datacenter",
-  "Name": "Tokyo",
   "Spec": {
+    "Name": "Tokyo",
     "Kind": "Private",
     "Region": "Kanto",
     "DomainSuffix": ".tky.phy.example.com"

@@ -14,8 +14,8 @@ import "authproxy/authproxy_grpc_pb/authproxy_grpc_pb.proto";
 service ResourceApi {
   rpc Status(StatusRequest) returns (StatusReply) {}
 
-  rpc PhysicalAction(PhysicalActionRequest) returns (PhysicalActionReply) {}
-  rpc VirtualAction(VirtualActionRequest) returns (VirtualActionReply) {}
+  rpc PhysicalAction(authproxy_grpc_pb.ActionRequest) returns (authproxy_grpc_pb.ActionReply) {}
+  rpc VirtualAction(authproxy_grpc_pb.ActionRequest) returns (authproxy_grpc_pb.ActionReply) {}
 
   rpc UpdateNode(UpdateNodeRequest) returns (UpdateNodeReply) {}
 }
@@ -47,7 +47,8 @@ message Query {
 
 message PhysicalActionReply {
     authproxy_grpc_pb.TraceContext Tctx = 1;
-    string index = 2;
+    string response = 2;
+
     repeated Datacenter Datacenters = 3;
     repeated Cluster Clusters = 4;
     repeated Floor Floors = 5;

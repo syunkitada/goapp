@@ -114,3 +114,22 @@ func (client *AuthproxyClient) request(tctx *logger.TraceContext, path string, r
 
 	return nil
 }
+
+func (client *AuthproxyClient) Action(tctx *logger.TraceContext, token string, serviceName string, queries []authproxy_model.Query) (*authproxy_model.ActionResponse, error) {
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	req := authproxy_model.TokenAuthRequest{
+		Token: token,
+		Action: authproxy_model.ActionRequest{
+			ProjectName: client.conf.Ctl.Project,
+			ServiceName: serviceName,
+			Queries:     queries,
+		},
+	}
+
+	var resp authproxy_model.ActionResponse
+	err = client.request(tctx, serviceName, &req, &resp)
+	return &resp, err
+}

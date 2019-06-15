@@ -7,6 +7,7 @@ import (
 	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_client"
 	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_model"
 	"github.com/syunkitada/goapp/pkg/authproxy/index_model"
+	"github.com/syunkitada/goapp/pkg/lib/json_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
 
@@ -15,6 +16,7 @@ func (ctl *CtlMain) Index(args []string) error {
 	tctx := logger.NewCtlTraceContext(ctl.name)
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+	fmt.Println("HOGE")
 
 	var ok bool
 	var serviceName string
@@ -96,7 +98,7 @@ func (ctl *CtlMain) Index(args []string) error {
 	argsMap := map[string]index_model.Cmd{}
 	cmdQuery := ""
 	var cmdInfo index_model.Cmd
-	lastArg := ""
+	lastArgs := []string{}
 	helpMsg := ""
 	for query, cmd := range indexResp.Index.CmdMap {
 		args := []rune{}
@@ -135,11 +137,11 @@ func (ctl *CtlMain) Index(args []string) error {
 				cmdQuery = query
 				cmdInfo = cmd
 				if len(cmdArgs)+1 > len(splitedArgs) {
-					if len(cmdArgs) > len(splitedArgs)+2 {
-						lastArg = cmdArgs[len(splitedArgs)+1]
+					if len(cmdArgs) > len(splitedArgs)+1 {
+						lastArgs = cmdArgs[len(splitedArgs)+1:]
 					}
 
-					if cmd.Arg == "required" && lastArg == "" {
+					if cmd.Arg == "required" && len(lastArgs) == 0 {
 						fmt.Printf("%s [%s:%s]  :%s\n", argsStr, cmd.ArgType, cmd.Arg, cmd.Help)
 						return nil
 					}
@@ -155,8 +157,53 @@ func (ctl *CtlMain) Index(args []string) error {
 		return nil
 	}
 
-	fmt.Println(cmdQuery, lastArg, cmdInfo)
-	fmt.Println(flagMap)
+	if cmdInfo.ArgType == "file" && len(lastArgs) > 0 {
+		data, err := json_utils.ReadFilesFromMultiPath(lastArgs)
+		if err != nil {
+			return err
+		}
+
+		specs := []interface{}{}
+		for _, d := range data {
+			if d["Kind"].(string) == cmdInfo.ArgKind {
+				specs = append(specs, d["Spec"])
+			}
+		}
+
+		specsBytes, err := json_utils.Marshal(specs)
+		if err != nil {
+			return err
+		}
+
+		queries := []authproxy_model.Query{
+			authproxy_model.Query{
+				Kind: cmdQuery,
+				StrParams: map[string]string{
+					"Specs": string(specsBytes),
+				},
+			},
+		}
+
+		var tmpResp *authproxy_model.ActionResponse
+		if tmpResp, err = ctl.client.Action(tctx, resp.Token, serviceName, queries); err != nil {
+			return err
+		}
+
+		ctl.output(&cmdInfo, tmpResp, flagMap)
+		return nil
+	}
+
+	queries := []authproxy_model.Query{
+		authproxy_model.Query{
+			Kind: cmdQuery,
+		},
+	}
+
+	var tmpResp *authproxy_model.ActionResponse
+	if tmpResp, err = ctl.client.Action(tctx, resp.Token, serviceName, queries); err != nil {
+		return err
+	}
+	ctl.output(&cmdInfo, tmpResp, flagMap)
 
 	return nil
 }

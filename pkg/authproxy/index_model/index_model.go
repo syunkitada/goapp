@@ -12,9 +12,12 @@ type Index struct {
 }
 
 type Cmd struct {
-	Arg     string
-	ArgType string
-	Help    string
+	Arg         string
+	ArgType     string
+	ArgKind     string
+	FlagMap     map[string]string
+	TableHeader []string
+	Help        string
 }
 
 type Panels struct {
