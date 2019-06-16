@@ -43,8 +43,12 @@ var FloorCmd map[string]index_model.Cmd = map[string]index_model.Cmd{
 		Arg:     index_model.ArgOptional,
 		ArgType: index_model.ArgTypeString,
 		ArgKind: FloorKind,
-		FlagMap: map[string]string{
-			"datacenter": index_model.ArgRequired,
+		FlagMap: map[string]index_model.Flag{
+			"datacenter": index_model.Flag{
+				Flag:     index_model.ArgRequired,
+				FlagType: index_model.ArgTypeString,
+				Help:     "datacenter",
+			},
 		},
 		Help:        "helptext",
 		TableHeader: []string{"Name", "Kind", "Datacenter", "Zone", "Floor"},

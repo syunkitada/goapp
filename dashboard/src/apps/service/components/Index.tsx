@@ -94,7 +94,6 @@ class Index extends React.Component<IIndex> {
     }
 
     const routes = [this.props];
-    console.log('DEBUG state', state);
     let html: any = null;
     if (state.Index) {
       html = renderIndex(routes, state.Data, state.Index.View);

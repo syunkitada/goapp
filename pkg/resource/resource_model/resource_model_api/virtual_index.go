@@ -9,6 +9,7 @@ import (
 	"github.com/syunkitada/goapp/pkg/authproxy/index_model"
 	"github.com/syunkitada/goapp/pkg/lib/codes"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
+	"github.com/syunkitada/goapp/pkg/resource/resource_model"
 )
 
 func (modelApi *ResourceModelApi) VirtualAction(tctx *logger.TraceContext,
@@ -76,8 +77,19 @@ func (modelApi *ResourceModelApi) VirtualAction(tctx *logger.TraceContext,
 }
 
 func (modelApi *ResourceModelApi) getVirtualIndex() *index_model.Index {
+	cmdMap := map[string]index_model.Cmd{}
+	cmdMaps := []map[string]index_model.Cmd{
+		resource_model.ClusterCmd,
+	}
+	for _, tmpCmdMap := range cmdMaps {
+		for key, cmd := range tmpCmdMap {
+			cmdMap[key] = cmd
+		}
+	}
+
 	return &index_model.Index{
 		SyncDelay: 20000,
+		CmdMap:    cmdMap,
 		View: index_model.Panels{
 			Name: "Root",
 			Kind: "RoutePanels",

@@ -1,7 +1,7 @@
 {
   "Kind": "PhysicalModel",
-  "Name": "Arista-7280CR-48",
   "Spec": {
+    "Name": "Arista-7280CR-48",
     "Kind": "RackSpineRouter",
     "Unit": 2,
     "Description": "https://www.arista.com/jp/products/platforms",

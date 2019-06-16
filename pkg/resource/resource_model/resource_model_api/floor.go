@@ -93,7 +93,7 @@ func (modelApi *ResourceModelApi) CreateFloor(tctx *logger.TraceContext,
 	}
 
 	tx.Commit()
-	return codes.Ok, nil
+	return codes.OkCreated, nil
 }
 
 func (modelApi *ResourceModelApi) UpdateFloor(tctx *logger.TraceContext, db *gorm.DB, query *authproxy_grpc_pb.Query) (int64, error) {

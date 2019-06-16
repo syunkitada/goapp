@@ -44,13 +44,27 @@ var RackCmd map[string]index_model.Cmd = map[string]index_model.Cmd{
 		ArgType:     index_model.ArgTypeString,
 		ArgKind:     RackKind,
 		Help:        "helptext",
-		TableHeader: []string{"Name", "Kind", "Datacenter", "Zone", "Rack"},
+		TableHeader: []string{"Name", "Kind", "Datacenter", "Floor", "Unit"},
+		FlagMap: map[string]index_model.Flag{
+			"datacenter": index_model.Flag{
+				Flag:     index_model.ArgRequired,
+				FlagType: index_model.ArgTypeString,
+				Help:     "datacenter",
+			},
+		},
 	},
 	"GetRack": index_model.Cmd{
 		Arg:     index_model.ArgRequired,
 		ArgType: index_model.ArgTypeString,
 		ArgKind: RackKind,
 		Help:    "helptext",
+		FlagMap: map[string]index_model.Flag{
+			"datacenter": index_model.Flag{
+				Flag:     index_model.ArgRequired,
+				FlagType: index_model.ArgTypeString,
+				Help:     "datacenter",
+			},
+		},
 	},
 	"DeleteRack": index_model.Cmd{
 		Arg:     index_model.ArgRequired,

@@ -54,7 +54,14 @@ var PhysicalResourceCmd map[string]index_model.Cmd = map[string]index_model.Cmd{
 		ArgType:     index_model.ArgTypeString,
 		ArgKind:     PhysicalResourceKind,
 		Help:        "helptext",
-		TableHeader: []string{"Name", "Kind", "Datacenter", "Zone", "PhysicalResource"},
+		TableHeader: []string{"Name", "Kind", "Datacenter"},
+		FlagMap: map[string]index_model.Flag{
+			"datacenter": index_model.Flag{
+				Flag:     index_model.ArgRequired,
+				FlagType: index_model.ArgTypeString,
+				Help:     "datacenter",
+			},
+		},
 	},
 	"GetPhysicalResource": index_model.Cmd{
 		Arg:     index_model.ArgRequired,

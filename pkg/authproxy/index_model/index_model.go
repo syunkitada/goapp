@@ -15,9 +15,15 @@ type Cmd struct {
 	Arg         string
 	ArgType     string
 	ArgKind     string
-	FlagMap     map[string]string
+	FlagMap     map[string]Flag
 	TableHeader []string
 	Help        string
+}
+
+type Flag struct {
+	Flag     string
+	FlagType string
+	Help     string
 }
 
 type Panels struct {

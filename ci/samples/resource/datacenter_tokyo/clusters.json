@@ -12,9 +12,9 @@
 ---
 
 {
-  "Name": "tokyo2",
+  "Kind": "Cluster",
   "Spec": {
-    "Kind": "Cluster",
+    "Name": "tokyo2",
     "Kind": "Private",
     "Datacenter": "tokyo",
     "DomainSuffix": ".tokyo2.vir.example.com",

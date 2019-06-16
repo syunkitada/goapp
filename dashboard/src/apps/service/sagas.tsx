@@ -32,7 +32,7 @@ function* post(action) {
     case 'SERVICE_GET_INDEX':
       payload = {
         projectName: params.project,
-        queries: [{Kind: 'GetIndex', StrParams: params}],
+        queries: [{Kind: 'GetDashboardIndex', StrParams: params}],
         serviceName: params.service,
         stateKey: 'index',
       };
@@ -114,7 +114,6 @@ function* post(action) {
   }
 
   const {result, error} = yield call(modules.service.post, payload);
-  console.log('DEBUG Query', dataQueries, result);
 
   if (error) {
     yield put(actions.service.servicePostFailure({action, payload, error}));
@@ -129,7 +128,6 @@ function* sync(action) {
       const serviceState = Object.assign({}, store.getState().service);
       if (serviceState.syncQueryMap) {
         const queries: any[] = [];
-        console.log(serviceState.syncQueryMap);
         for (const key of Object.keys(serviceState.syncQueryMap)) {
           queries.push(serviceState.syncQueryMap[key]);
         }

@@ -16,7 +16,6 @@ func (ctl *CtlMain) Index(args []string) error {
 	tctx := logger.NewCtlTraceContext(ctl.name)
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
-	fmt.Println("HOGE")
 
 	var ok bool
 	var serviceName string
@@ -98,6 +97,7 @@ func (ctl *CtlMain) Index(args []string) error {
 	argsMap := map[string]index_model.Cmd{}
 	cmdQuery := ""
 	var cmdInfo index_model.Cmd
+	argsStr := ""
 	lastArgs := []string{}
 	helpMsg := ""
 	for query, cmd := range indexResp.Index.CmdMap {
@@ -111,7 +111,7 @@ func (ctl *CtlMain) Index(args []string) error {
 			}
 			args = append(args, c)
 		}
-		argsStr := string(args)
+		argsStr = string(args)
 		argsMap[argsStr] = cmd
 
 		if cmd.Arg != "" {
@@ -142,7 +142,7 @@ func (ctl *CtlMain) Index(args []string) error {
 					}
 
 					if cmd.Arg == "required" && len(lastArgs) == 0 {
-						fmt.Printf("%s [%s:%s]  :%s\n", argsStr, cmd.ArgType, cmd.Arg, cmd.Help)
+						ctl.outputCmdHelp(argsStr, cmd)
 						return nil
 					}
 				}
@@ -157,6 +157,22 @@ func (ctl *CtlMain) Index(args []string) error {
 		return nil
 	}
 
+	strParams := map[string]string{}
+	if cmdInfo.FlagMap != nil {
+		for key, flag := range cmdInfo.FlagMap {
+			cmdFlag, ok := flagMap[key]
+			if flag.Flag == index_model.ArgRequired {
+				if !ok {
+					ctl.outputCmdHelp(argsStr, cmdInfo)
+					return nil
+				}
+			}
+			if flag.FlagType == index_model.ArgTypeString {
+				strParams[key] = cmdFlag.(string)
+			}
+		}
+	}
+
 	if cmdInfo.ArgType == "file" && len(lastArgs) > 0 {
 		data, err := json_utils.ReadFilesFromMultiPath(lastArgs)
 		if err != nil {
@@ -165,8 +181,10 @@ func (ctl *CtlMain) Index(args []string) error {
 
 		specs := []interface{}{}
 		for _, d := range data {
-			if d["Kind"].(string) == cmdInfo.ArgKind {
-				specs = append(specs, d["Spec"])
+			if _, ok := d["Kind"]; ok && d["Kind"].(string) == cmdInfo.ArgKind {
+				if spec, ok := d["Spec"]; ok {
+					specs = append(specs, spec)
+				}
 			}
 		}
 
@@ -195,7 +213,8 @@ func (ctl *CtlMain) Index(args []string) error {
 
 	queries := []authproxy_model.Query{
 		authproxy_model.Query{
-			Kind: cmdQuery,
+			Kind:      cmdQuery,
+			StrParams: strParams,
 		},
 	}
 

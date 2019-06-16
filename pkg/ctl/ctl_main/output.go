@@ -9,8 +9,27 @@ import (
 	"github.com/syunkitada/goapp/pkg/authproxy/index_model"
 )
 
+func (ctl *CtlMain) outputCmdHelp(cmd string, cmdInfo index_model.Cmd) {
+	cmdHelp := cmd
+	if cmdInfo.Arg != "" {
+		cmdHelp += fmt.Sprintf(" [%s:%s]", cmdInfo.ArgType, cmdInfo.Arg)
+	}
+	table := tablewriter.NewWriter(os.Stdout)
+	table.SetBorder(false)
+	table.SetRowLine(false)
+	table.SetColumnSeparator("")
+	table.SetCenterSeparator("")
+	for key, flag := range cmdInfo.FlagMap {
+		table.Append([]string{cmdHelp, cmdInfo.Help})
+		table.Append([]string{fmt.Sprintf("--%s [%s:%s]", key, flag.FlagType, flag.Flag), flag.Help})
+	}
+	table.Render()
+
+	// fmt.Printf("Invalid args: %s %s %v :%s\n", cmd, cmdInfo.Arg, cmdInfo.FlagMap, cmdInfo.Help)
+}
+
 func (ctl *CtlMain) output(cmdInfo *index_model.Cmd, resp *authproxy_model.ActionResponse, flagMap map[string]interface{}) {
-	fmt.Println(resp.Tctx.StatusCode, resp.Tctx.Err)
+	fmt.Printf("ResponseStatus: %d %s\n", resp.Tctx.StatusCode, resp.Tctx.Err)
 	for key, data := range resp.Data {
 		fmt.Printf("# %s\n", key)
 
@@ -26,7 +45,7 @@ func (ctl *CtlMain) output(cmdInfo *index_model.Cmd, resp *authproxy_model.Actio
 					r := make([]string, len(tableHeader))
 					for i, head := range tableHeader {
 						if v, ok := raw[head]; ok {
-							r[i] = v.(string)
+							r[i] = fmt.Sprint(v)
 						} else {
 							r[i] = "None"
 						}

@@ -99,7 +99,7 @@ func (modelApi *ResourceModelApi) CreatePhysicalResource(tctx *logger.TraceConte
 	}
 
 	tx.Commit()
-	return codes.Ok, nil
+	return codes.OkCreated, nil
 }
 
 func (modelApi *ResourceModelApi) UpdatePhysicalResource(tctx *logger.TraceContext, db *gorm.DB, query *authproxy_grpc_pb.Query) (int64, error) {

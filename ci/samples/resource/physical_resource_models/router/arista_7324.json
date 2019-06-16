@@ -1,7 +1,7 @@
 {
   "Kind": "PhysicalModel",
-  "Name": "Arista-7324",
   "Spec": {
+    "Name": "Arista-7324",
     "Kind": "FloorLeafRouter",
     "Unit": 8,
     "Description": "https://www.arista.com/jp/products/platforms",

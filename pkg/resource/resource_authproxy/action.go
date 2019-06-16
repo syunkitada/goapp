@@ -28,6 +28,7 @@ func (resource *Resource) PhysicalAction(c *gin.Context) {
 		return
 	}
 
+	c.Writer.Header().Set("Content-Type", " application/json; charset=utf-8")
 	c.String(200, resp.Response)
 }
 
@@ -52,5 +53,6 @@ func (resource *Resource) VirtualAction(c *gin.Context) {
 		return
 	}
 
+	c.Writer.Header().Set("Content-Type", " application/json; charset=utf-8")
 	c.String(200, resp.Response)
 }

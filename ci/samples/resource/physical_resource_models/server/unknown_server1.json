@@ -1,7 +1,7 @@
 {
   "Kind": "PhysicalModel",
-  "Name": "Unknown-server1",
   "Spec": {
+    "Name": "Unknown-server1",
     "Kind": "Server",
     "Unit": 1,
     "Description": "test用",
