@@ -1,4 +1,12 @@
 #
+# Authproxy
+#
+[Authproxy.HttpServer]
+AllowedHosts = ["127.0.0.1:8000"]
+AccessControlAllowOrigin = "http://127.0.0.1:3000"
+
+
+#
 # Monitor
 #
 [Monitor.ApiApp]
@@ -10,19 +18,19 @@ CertFile = "server.pem"
 KeyFile = "server.key"
 CaFile = "ca.pem"
 ServerHostOverride = "x.test.youtube.com"
-Listen = "localhost:13200"
-Targets = ["localhost:13200"]
+Listen = "127.0.0.1:13200"
+Targets = ["127.0.0.1:13200"]
 
 [Monitor.Database]
-Connection = "admin:adminpass@tcp(localhost:3306)/goapp_monitor?charset=utf8&parseTime=true"
+Connection = "goapp:goapppass@tcp(127.0.0.1:3306)/goapp_monitor?charset=utf8&parseTime=true"
 
 [[Monitor.Indexers]]
 Driver = "influxdb"
 Indexes = ["cluster1"]
-AlertDatabases = ["goapp:goapppass@http://localhost:8086@goapp_monitor_alerts"]
-LogDatabases = ["goapp:goapppass@http://localhost:8086@goapp_monitor_logs"]
-MetricDatabases = ["goapp:goapppass@http://localhost:8086@goapp_monitor_metrics"]
-PercistentDatabases = ["goapp:goapppass@http://localhost:8086@goapp_monitor_percistent"]
+AlertDatabases = ["goapp:goapppass@http://127.0.0.1:8086@goapp_monitor_alerts"]
+LogDatabases = ["goapp:goapppass@http://127.0.0.1:8086@goapp_monitor_logs"]
+MetricDatabases = ["goapp:goapppass@http://127.0.0.1:8086@goapp_monitor_metrics"]
+PercistentDatabases = ["goapp:goapppass@http://127.0.0.1:8086@goapp_monitor_percistent"]
 
 [Monitor.AlertManagerApp]
 Name = "alert-manager"
@@ -33,8 +41,8 @@ CertFile = "server.pem"
 KeyFile = "server.key"
 CaFile = "ca.pem"
 ServerHostOverride = "x.test.youtube.com"
-Listen = "localhost:13201"
-Targets = ["localhost:13201"]
+Listen = "127.0.0.1:13201"
+Targets = ["127.0.0.1:13201"]
 
 [Monitor.AgentApp]
 Name = "agent"
@@ -45,8 +53,8 @@ CertFile = "server.pem"
 KeyFile = "server.key"
 CaFile = "ca.pem"
 ServerHostOverride = "x.test.youtube.com"
-Listen = "localhost:13202"
-Targets = ["localhost:13202"]
+Listen = "127.0.0.1:13202"
+Targets = ["127.0.0.1:13202"]
 LogReaderRefreshSpan = 3
 ReportIndex = "cluster1"
 ReportProject = "admin"
@@ -85,8 +93,8 @@ CertFile = "server.pem"
 KeyFile = "server.key"
 CaFile = "ca.pem"
 ServerHostOverride = "x.test.youtube.com"
-Listen = "localhost:13300"
-Targets = ["localhost:13300"]
+Listen = "127.0.0.1:13300"
+Targets = ["127.0.0.1:13300"]
 
 [Resource.ControllerApp]
 Name = "api"
@@ -98,11 +106,11 @@ CertFile = "server.pem"
 KeyFile = "server.key"
 CaFile = "ca.pem"
 ServerHostOverride = "x.test.youtube.com"
-Listen = "localhost:13301"
-Targets = ["localhost:13301"]
+Listen = "127.0.0.1:13301"
+Targets = ["127.0.0.1:13301"]
 
 [Resource.Database]
-Connection = "admin:adminpass@tcp(localhost:3306)/goapp_resource?charset=utf8&parseTime=true"
+Connection = "goapp:goapppass@tcp(127.0.0.1:3306)/goapp_resource?charset=utf8&parseTime=true"
 
 [Resource.ClusterMap."cluster1".ApiApp]
 Name = "api"
@@ -113,8 +121,8 @@ CertFile = "server.pem"
 KeyFile = "server.key"
 CaFile = "ca.pem"
 ServerHostOverride = "x.test.youtube.com"
-Listen = "localhost:13310"
-Targets = ["localhost:13310"]
+Listen = "127.0.0.1:13310"
+Targets = ["127.0.0.1:13310"]
 
 [Resource.ClusterMap."cluster1".ControllerApp]
 Name = "api"
@@ -125,8 +133,8 @@ CertFile = "server.pem"
 KeyFile = "server.key"
 CaFile = "ca.pem"
 ServerHostOverride = "x.test.youtube.com"
-Listen = "localhost:13311"
-Targets = ["localhost:13311"]
+Listen = "127.0.0.1:13311"
+Targets = ["127.0.0.1:13311"]
 
 [Resource.ClusterMap."cluster1".AgentApp]
 Name = "api"
@@ -137,11 +145,11 @@ CertFile = "server.pem"
 KeyFile = "server.key"
 CaFile = "ca.pem"
 ServerHostOverride = "x.test.youtube.com"
-Listen = "localhost:13312"
-Targets = ["localhost:13312"]
+Listen = "127.0.0.1:13312"
+Targets = ["127.0.0.1:13312"]
 
 [Resource.ClusterMap."cluster1".Database]
-Connection = "admin:adminpass@tcp(localhost:3306)/goapp_resource_cluster1?charset=utf8&parseTime=true"
+Connection = "goapp:goapppass@tcp(127.0.0.1:3306)/goapp_resource_cluster1?charset=utf8&parseTime=true"
 
 [Resource.Node]
 ClusterName = "cluster1"

@@ -116,7 +116,7 @@ func (modelApi *ResourceModelApi) bootstrapClusters(tctx *logger.TraceContext) e
 			}
 			glog.V(2).Infof("Resource Cluster: Created: cluster=%v, conf=%v", clusterName, clusterConf)
 		} else {
-			glog.V(2).Infof("Resource Cluster: Already Exists: cluster=%v", clusterName, clusterConf)
+			glog.V(2).Infof("Resource Cluster: Already Exists: cluster=%v", clusterName)
 		}
 	}
 

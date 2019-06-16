@@ -44,7 +44,7 @@ func (dashboard *Dashboard) Login(c *gin.Context) {
 		})
 	}
 
-	c.SetCookie("token", token, 3600, "/", "192.168.10.103", true, true)
+	c.SetCookie("token", token, 3600, "/", c.Request.Host, true, true)
 	c.JSON(http.StatusOK, gin.H{
 		"Name":      authRequest.Username,
 		"Authority": userAuthority,
@@ -63,7 +63,7 @@ func (dashboard *Dashboard) Logout(c *gin.Context) {
 		return
 	}
 
-	c.SetCookie("token", "", 0, "/", "192.168.10.103", true, true)
+	c.SetCookie("token", "", 0, "/", c.Request.Host, true, true)
 	c.JSON(200, gin.H{})
 
 	glog.Info("Success Logout: ", username)

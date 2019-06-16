@@ -7,6 +7,7 @@ import (
 
 	"github.com/golang/protobuf/ptypes"
 	"github.com/jinzhu/gorm"
+	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_grpc_pb"
 	"github.com/syunkitada/goapp/pkg/lib/codes"
 	"github.com/syunkitada/goapp/pkg/lib/error_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
@@ -16,7 +17,7 @@ import (
 )
 
 func (modelApi *ResourceModelApi) GetCompute(tctx *logger.TraceContext, db *gorm.DB,
-	query *resource_api_grpc_pb.Query, rep *resource_api_grpc_pb.VirtualActionReply) (int64, error) {
+	query *authproxy_grpc_pb.Query, data map[string]interface{}) (int64, error) {
 	var err error
 	resource, ok := query.StrParams["resource"]
 	if !ok {
@@ -29,23 +30,23 @@ func (modelApi *ResourceModelApi) GetCompute(tctx *logger.TraceContext, db *gorm
 	}).First(&compute).Error; err != nil {
 		return codes.RemoteDbError, err
 	}
-	rep.Compute = modelApi.convertCompute(tctx, &compute)
+	data["Compute"] = compute
 	return codes.OkRead, nil
 }
 
 func (modelApi *ResourceModelApi) GetComputes(tctx *logger.TraceContext, db *gorm.DB,
-	query *resource_api_grpc_pb.Query, rep *resource_api_grpc_pb.VirtualActionReply) (int64, error) {
+	query *authproxy_grpc_pb.Query, data map[string]interface{}) (int64, error) {
 	var err error
 	var computes []resource_model.Compute
 	if err = db.Find(&computes).Error; err != nil {
 		return codes.RemoteDbError, err
 	}
-	rep.Computes = modelApi.convertComputes(tctx, computes)
+	data["Computes"] = computes
 	return codes.OkRead, nil
 }
 
 func (modelApi *ResourceModelApi) CreateCompute(tctx *logger.TraceContext, db *gorm.DB,
-	query *resource_api_grpc_pb.Query) (int64, error) {
+	query *authproxy_grpc_pb.Query) (int64, error) {
 	var err error
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
@@ -101,7 +102,7 @@ func (modelApi *ResourceModelApi) CreateCompute(tctx *logger.TraceContext, db *g
 }
 
 func (modelApi *ResourceModelApi) UpdateCompute(tctx *logger.TraceContext, db *gorm.DB,
-	query *resource_api_grpc_pb.Query) (int64, error) {
+	query *authproxy_grpc_pb.Query) (int64, error) {
 	var err error
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
@@ -145,7 +146,7 @@ func (modelApi *ResourceModelApi) UpdateCompute(tctx *logger.TraceContext, db *g
 }
 
 func (modelApi *ResourceModelApi) DeleteCompute(tctx *logger.TraceContext, db *gorm.DB,
-	query *resource_api_grpc_pb.Query) (int64, error) {
+	query *authproxy_grpc_pb.Query) (int64, error) {
 	var err error
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()

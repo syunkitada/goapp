@@ -1,9 +1,9 @@
 {
   "Kind": "Datacenter",
-  "Name": "Hokkaido",
   "Spec": {
+    "Name": "hokkaido",
     "Kind": "Private",
-    "Region": "Hokkaido",
+    "Region": "hokkaido",
     "DomainSuffix": ".hkd.phy.example.com"
   }
 }
@@ -12,10 +12,10 @@
 
 {
   "Kind": "Datacenter",
-  "Name": "Hukuoka",
   "Spec": {
+    "Name": "hukuoka",
     "Kind": "Private",
-    "Region": "Kyushu",
+    "Region": "kyushu",
     "DomainSuffix": ".hkt.phy.example.com"
   }
 }
@@ -24,10 +24,10 @@
 
 {
   "Kind": "Datacenter",
-  "Name": "Washington",
   "Spec": {
+    "Name": "washington",
     "Kind": "Shared",
-    "Region": "Washington",
+    "Region": "washington",
     "DomainSuffix": ".wst.phy.example.com"
   }
 }
@@ -36,10 +36,10 @@
 
 {
   "Kind": "Datacenter",
-  "Name": "Singapore",
   "Spec": {
+    "Name": "singapore",
     "Kind": "Shared",
-    "Region": "Singapore",
+    "Region": "singapore",
     "DomainSuffix": ".sgp.phy.example.com"
   }
 }

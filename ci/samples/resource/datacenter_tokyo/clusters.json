@@ -1,7 +1,7 @@
 {
   "Kind": "Cluster",
-  "Name": "tokyo1",
   "Spec": {
+    "Name": "tokyo1",
     "Kind": "Private",
     "Datacenter": "tokyo",
     "DomainSuffix": ".tokyo1.vir.example.com",
@@ -13,8 +13,8 @@
 
 {
   "Kind": "Cluster",
-  "Name": "tokyo2",
   "Spec": {
+    "Name": "tokyo2",
     "Kind": "Private",
     "Datacenter": "tokyo",
     "DomainSuffix": ".tokyo2.vir.example.com",

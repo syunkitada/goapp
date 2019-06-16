@@ -1,7 +1,7 @@
 {
   "Kind": "PhysicalModel",
-  "Name": "Arista-7280TR",
   "Spec": {
+    "Name": "Arista-7280TR",
     "Kind": "RackLeafRouter",
     "Unit": 1,
     "Description": "https://www.arista.com/jp/products/platforms",

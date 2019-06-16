@@ -16,7 +16,7 @@ func (authproxy *Authproxy) NewHandler() http.Handler {
 		handler.Use(authproxy.ValidateHeaders())
 	}
 
-	handler.POST("/token", authproxy.Auth.IssueToken)
+	handler.POST("/auth/login", authproxy.Auth.Login)
 	handler.POST("/dashboard/login", authproxy.Dashboard.Login)
 
 	ws_authorized := handler.Group("/ws")

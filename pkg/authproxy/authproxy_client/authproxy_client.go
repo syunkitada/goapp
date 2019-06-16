@@ -24,7 +24,7 @@ type AuthproxyClient struct {
 	serviceName  string
 }
 
-func New(conf *config.Config, serviceName string, authproxy *core.Authproxy) *AuthproxyClient {
+func New(conf *config.Config, authproxy *core.Authproxy) *AuthproxyClient {
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}
@@ -33,10 +33,9 @@ func New(conf *config.Config, serviceName string, authproxy *core.Authproxy) *Au
 	}
 
 	client := &AuthproxyClient{
-		conf:        conf,
-		httpClient:  httpClient,
-		apiUrl:      conf.Ctl.ApiUrl,
-		serviceName: serviceName,
+		conf:       conf,
+		httpClient: httpClient,
+		apiUrl:     conf.Ctl.ApiUrl,
 	}
 
 	if conf.Default.EnableTest {
@@ -46,7 +45,7 @@ func New(conf *config.Config, serviceName string, authproxy *core.Authproxy) *Au
 	return client
 }
 
-func (client *AuthproxyClient) Request(tctx *logger.TraceContext, token *ResponseIssueToken, action string, reqData interface{}, resp interface{}) error {
+func (client *AuthproxyClient) Request(tctx *logger.TraceContext, responseLogin *ResponseLogin, action string, reqData interface{}, resp interface{}) error {
 	var err error
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
@@ -55,14 +54,14 @@ func (client *AuthproxyClient) Request(tctx *logger.TraceContext, token *Respons
 	if reqDataJson, err = json.Marshal(reqData); err != nil {
 		return err
 	}
+	fmt.Println(reqDataJson)
 
 	req := authproxy_model.TokenAuthRequest{
-		Token: token.Token,
+		Token: responseLogin.Token,
 		Action: authproxy_model.ActionRequest{
 			ProjectName: client.conf.Ctl.Project,
 			ServiceName: client.serviceName,
-			Name:        action,
-			Data:        string(reqDataJson),
+			Queries:     []authproxy_model.Query{},
 		},
 	}
 
@@ -114,4 +113,23 @@ func (client *AuthproxyClient) request(tctx *logger.TraceContext, path string, r
 	}
 
 	return nil
+}
+
+func (client *AuthproxyClient) Action(tctx *logger.TraceContext, token string, serviceName string, queries []authproxy_model.Query) (*authproxy_model.ActionResponse, error) {
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	req := authproxy_model.TokenAuthRequest{
+		Token: token,
+		Action: authproxy_model.ActionRequest{
+			ProjectName: client.conf.Ctl.Project,
+			ServiceName: serviceName,
+			Queries:     queries,
+		},
+	}
+
+	var resp authproxy_model.ActionResponse
+	err = client.request(tctx, serviceName, &req, &resp)
+	return &resp, err
 }

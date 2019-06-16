@@ -124,7 +124,7 @@ class IndexTable extends React.Component<IIndexTable> {
       for (const column of columns) {
         const c = d[column.Name];
         if (column.Kind === 'Time') {
-          const time = new Date(c.seconds * 1000);
+          const time = new Date(c);
           row.push(time.toISOString());
         } else if (column.Kind === 'Action') {
           row.push('');

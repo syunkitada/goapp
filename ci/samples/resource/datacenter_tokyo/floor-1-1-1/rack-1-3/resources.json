@@ -1,7 +1,7 @@
 {
   "Kind": "Pdu",
-  "Name": "floor-1-1-1-rack-1-3-pdu01",
   "Spec": {
+    "Name": "floor-1-1-1-rack-1-3-pdu01",
     "Kind": "Pdu",
     "Datacenter": "tokyo",
     "Rack": "floor-1-1-1-rack-1-3",
@@ -20,8 +20,8 @@
 
 {
   "Kind": "PhysicalResource",
-  "Name": "root-1-floor-spine-router01",
   "Spec": {
+    "Name": "root-1-floor-spine-router01",
     "Kind": "FloorSpineRouter",
     "Datacenter": "tokyo",
     "Rack": "floor-1-1-1-rack-1-3",
@@ -40,8 +40,8 @@
 
 {
   "Kind": "PhysicalResource",
-  "Name": "root-2-floor-spine-router01",
   "Spec": {
+    "Name": "root-2-floor-spine-router01",
     "Kind": "FloorSpineRouter",
     "Datacenter": "tokyo",
     "Rack": "floor-1-1-1-rack-1-3",

@@ -67,9 +67,9 @@ func (modelApi *AuthproxyModelApi) Bootstrap(tctx *logger.TraceContext) error {
 	userAdminServices := []string{"Datacenter", "Home"}
 	projectTenantServices := []string{"Resource.Physical", "Resource.Virtual", "Monitor", "Home.Project"}
 	actionMap := map[string][]string{}
-	actionMap["Resource.Virtual"] = []string{"UserQuery"}
+	actionMap["Resource.Virtual"] = []string{"UserQuery", "GetDashboardIndex"}
 	actionMap["Resource.Physical"] = []string{
-		"GetIndex",
+		"GetDashboardIndex", "GetIndex",
 		"GetPhysicalIndex", "GetVirtualIndex",
 		"CreatePhysicalResource", "UpdatePhysicalResource",
 		"CreateVirtualResource", "UpdateVirtualResource",
@@ -85,13 +85,13 @@ func (modelApi *AuthproxyModelApi) Bootstrap(tctx *logger.TraceContext) error {
 		"GetLoadbalancer", "CreateLoadbalancer", "UpdateLoadbalancer", "DeleteLoadbalancer",
 	}
 	actionMap["Monitor"] = []string{
-		"GetState", "GetUserState", "GetIndexState", "GetNode", "GetIndex", "GetHost", "GetLog", "GetMetric",
+		"GetState", "GetUserState", "GetIndexState", "GetNode", "GetIndex", "GetDashboardIndex", "GetHost", "GetLog", "GetMetric",
 		"GetIgnoreAlert", "CreateIgnoreAlert", "UpdateIgnoreAlert", "DeleteIgnoreAlert",
 	}
-	actionMap["Home.Project"] = []string{"GetIndex"}
-	actionMap["Home"] = []string{"GetIndex"}
-	actionMap["Chat"] = []string{"GetIndex"}
-	actionMap["Wiki"] = []string{"GetIndex"}
+	actionMap["Home.Project"] = []string{"GetIndex", "GetDashboardIndex"}
+	actionMap["Home"] = []string{"GetIndex", "GetDashboardIndex"}
+	actionMap["Chat"] = []string{"GetIndex", "GetDashboardIndex"}
+	actionMap["Wiki"] = []string{"GetIndex", "GetDashboardIndex"}
 
 	for _, userTenantService := range userTenantServices {
 		if err = modelApi.CreateService(tctx, userTenantService, "user"); err != nil {

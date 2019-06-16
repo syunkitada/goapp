@@ -1,7 +1,7 @@
 {
   "Kind": "PhysicalModel",
-  "Name": "Arista-7328X",
   "Spec": {
+    "Name": "Arista-7328X",
     "Kind": "FloorSpineRouter",
     "Unit": 13,
     "Description": "https://www.arista.com/jp/products/platforms",

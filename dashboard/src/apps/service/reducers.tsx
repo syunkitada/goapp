@@ -127,7 +127,7 @@ export default reducerWithInitialState(defaultState)
     }
 
     const actionType = payload.action.type;
-    const tctx = payload.result.Data.Tctx;
+    const tctx = payload.result.Tctx;
 
     let isGetIndex = false;
     switch (actionType) {
@@ -147,8 +147,13 @@ export default reducerWithInitialState(defaultState)
         console.log('DEBUG unknownaction', actionType);
         break;
     }
+    if (!tctx) {
+      logger.error('reducers', 'servicePostError: not found tctx', newState);
+      return newState;
+    }
+
     if (tctx.StatusCode >= 300) {
-      logger.error('reducers', 'servicePostSuccess: newState', newState);
+      logger.error('reducers', 'servicePostError: newState', newState);
       // TODO handling tctx.Err, tctx.StatusCode
       return newState;
     }

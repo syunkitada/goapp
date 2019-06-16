@@ -5,6 +5,7 @@ import (
 
 	"github.com/golang/protobuf/ptypes"
 	"github.com/jinzhu/gorm"
+	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_grpc_pb"
 	"github.com/syunkitada/goapp/pkg/lib/codes"
 	"github.com/syunkitada/goapp/pkg/lib/error_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
@@ -13,7 +14,7 @@ import (
 )
 
 func (modelApi *ResourceModelApi) GetFloor(tctx *logger.TraceContext,
-	db *gorm.DB, query *resource_api_grpc_pb.Query, rep *resource_api_grpc_pb.PhysicalActionReply) (int64, error) {
+	db *gorm.DB, query *authproxy_grpc_pb.Query, data map[string]interface{}) (int64, error) {
 	var err error
 	resource, ok := query.StrParams["resource"]
 	if !ok {
@@ -26,12 +27,12 @@ func (modelApi *ResourceModelApi) GetFloor(tctx *logger.TraceContext,
 	}).First(&floor).Error; err != nil {
 		return codes.RemoteDbError, err
 	}
-	rep.Floor = modelApi.convertFloor(tctx, &floor)
+	data["Floor"] = floor
 	return codes.OkRead, nil
 }
 
 func (modelApi *ResourceModelApi) GetFloors(tctx *logger.TraceContext,
-	db *gorm.DB, query *resource_api_grpc_pb.Query, rep *resource_api_grpc_pb.PhysicalActionReply) (int64, error) {
+	db *gorm.DB, query *authproxy_grpc_pb.Query, data map[string]interface{}) (int64, error) {
 	var err error
 	datacenter, ok := query.StrParams["datacenter"]
 	if !ok || datacenter == "" {
@@ -42,12 +43,12 @@ func (modelApi *ResourceModelApi) GetFloors(tctx *logger.TraceContext,
 	if err = db.Where("datacenter = ?", datacenter).Find(&floors).Error; err != nil {
 		return codes.RemoteDbError, err
 	}
-	rep.Floors = modelApi.convertFloors(tctx, floors)
+	data["Floors"] = floors
 	return codes.OkRead, nil
 }
 
 func (modelApi *ResourceModelApi) CreateFloor(tctx *logger.TraceContext,
-	db *gorm.DB, query *resource_api_grpc_pb.Query) (int64, error) {
+	db *gorm.DB, query *authproxy_grpc_pb.Query) (int64, error) {
 	var err error
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
@@ -58,7 +59,7 @@ func (modelApi *ResourceModelApi) CreateFloor(tctx *logger.TraceContext,
 		return codes.ClientBadRequest, err
 	}
 
-	var specs []resource_model.FloorSpecData
+	var specs []resource_model.FloorSpec
 	if err = json.Unmarshal([]byte(strSpecs), &specs); err != nil {
 		return codes.ClientBadRequest, err
 	}
@@ -92,10 +93,10 @@ func (modelApi *ResourceModelApi) CreateFloor(tctx *logger.TraceContext,
 	}
 
 	tx.Commit()
-	return codes.Ok, nil
+	return codes.OkCreated, nil
 }
 
-func (modelApi *ResourceModelApi) UpdateFloor(tctx *logger.TraceContext, db *gorm.DB, query *resource_api_grpc_pb.Query) (int64, error) {
+func (modelApi *ResourceModelApi) UpdateFloor(tctx *logger.TraceContext, db *gorm.DB, query *authproxy_grpc_pb.Query) (int64, error) {
 	var err error
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
@@ -109,7 +110,7 @@ func (modelApi *ResourceModelApi) UpdateFloor(tctx *logger.TraceContext, db *gor
 		return codes.ClientBadRequest, err
 	}
 
-	var specs []resource_model.FloorSpecData
+	var specs []resource_model.FloorSpec
 	if err = json.Unmarshal([]byte(strSpecs), &specs); err != nil {
 		return codes.ClientBadRequest, err
 	}
@@ -138,7 +139,7 @@ func (modelApi *ResourceModelApi) UpdateFloor(tctx *logger.TraceContext, db *gor
 	return codes.OkUpdated, nil
 }
 
-func (modelApi *ResourceModelApi) DeleteFloor(tctx *logger.TraceContext, db *gorm.DB, query *resource_api_grpc_pb.Query) (int64, error) {
+func (modelApi *ResourceModelApi) DeleteFloor(tctx *logger.TraceContext, db *gorm.DB, query *authproxy_grpc_pb.Query) (int64, error) {
 	var err error
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()

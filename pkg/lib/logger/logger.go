@@ -31,13 +31,13 @@ var (
 )
 
 const (
-	debugLog   = "D"
-	infoLog    = "I"
-	warningLog = "W"
-	errorLog   = "E"
-	fatalLog   = "F"
-	benchLog   = "B"
-	traceLog   = "T"
+	debugLog   = "DEBUG"
+	infoLog    = "INFO"
+	warningLog = "WARNING"
+	errorLog   = "ERROR"
+	fatalLog   = "FATAL"
+	benchLog   = "BENCH"
+	traceLog   = "TRACE"
 )
 
 type TraceContext struct {

@@ -19,3 +19,19 @@ message TraceContext {
     int64  StatusCode = 9;
     string Err = 10;
 }
+
+message ActionRequest {
+    TraceContext Tctx = 1;
+    repeated Query Queries = 2;
+}
+
+message Query {
+    string Kind = 1;
+    map<string, string> StrParams = 2;
+    map<string, int64> NumParams = 3;
+}
+
+message ActionReply {
+    TraceContext Tctx = 1;
+    string response = 2;
+}

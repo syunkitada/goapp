@@ -28,18 +28,8 @@ func (resource *Resource) PhysicalAction(c *gin.Context) {
 		return
 	}
 
-	ginResp := gin.H{"Data": resp}
-	for _, query := range tctx.Queries {
-		switch query.Kind {
-		case "GetIndex":
-			ginResp["Index"] = resource.getPhysicalIndex()
-			break
-		default:
-			break
-		}
-	}
-
-	c.JSON(200, ginResp)
+	c.Writer.Header().Set("Content-Type", " application/json; charset=utf-8")
+	c.String(200, resp.Response)
 }
 
 func (resource *Resource) VirtualAction(c *gin.Context) {
@@ -63,16 +53,6 @@ func (resource *Resource) VirtualAction(c *gin.Context) {
 		return
 	}
 
-	ginResp := gin.H{"Data": resp}
-	for _, query := range tctx.Queries {
-		switch query.Kind {
-		case "GetIndex":
-			ginResp["Index"] = resource.getVirtualIndex()
-			break
-		default:
-			break
-		}
-	}
-
-	c.JSON(200, ginResp)
+	c.Writer.Header().Set("Content-Type", " application/json; charset=utf-8")
+	c.String(200, resp.Response)
 }

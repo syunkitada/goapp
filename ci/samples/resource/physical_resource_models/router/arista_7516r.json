@@ -1,7 +1,7 @@
 {
   "Kind": "PhysicalModel",
-  "Name": "Arista-7516R",
   "Spec": {
+    "Name": "Arista-7516R",
     "Kind": "GatewayRouter",
     "Unit": 29,
     "Description": "https://www.arista.com/jp/products/platforms",
