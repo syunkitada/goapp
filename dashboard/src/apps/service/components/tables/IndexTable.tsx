@@ -138,6 +138,7 @@ class IndexTable extends React.Component<IIndexTable> {
     for (let i = 0, l = columns.length; i < l; i++) {
       columns[i].id = i;
     }
+    columns[0].disablePadding = true;
 
     const columnActions: any[] = [];
     if (index.ColumnActions != null) {
@@ -280,7 +281,7 @@ class IndexTable extends React.Component<IIndexTable> {
                       link = baseUrl + '/' + splitedNextLink.join('/');
                       cells.push(
                         <TableCell
-                          align="right"
+                          align={i === 0 ? 'left' : 'right'}
                           key={i}
                           component="th"
                           scope="row"
