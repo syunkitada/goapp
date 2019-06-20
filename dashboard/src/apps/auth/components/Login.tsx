@@ -29,18 +29,18 @@ const styles = (theme: Theme): StyleRules =>
   createStyles({
     avatar: {
       backgroundColor: theme.palette.secondary.main,
-      margin: theme.spacing.unit,
+      margin: theme.spacing(1),
     },
     form: {
-      marginTop: theme.spacing.unit,
+      marginTop: theme.spacing(1),
       width: '100%', // Fix IE11 issue.
     },
     layout: {
       display: 'block', // Fix IE11 issue.
-      marginLeft: theme.spacing.unit * 3,
-      marginRight: theme.spacing.unit * 3,
+      marginLeft: theme.spacing(3),
+      marginRight: theme.spacing(3),
       width: 'auto',
-      [theme.breakpoints.up(400 + theme.spacing.unit * 3 * 2)]: {
+      [theme.breakpoints.up(400 + theme.spacing(6))]: {
         marginLeft: 'auto',
         marginRight: 'auto',
         width: 400,
@@ -50,12 +50,13 @@ const styles = (theme: Theme): StyleRules =>
       alignItems: 'center',
       display: 'flex',
       flexDirection: 'column',
-      marginTop: theme.spacing.unit * 8,
-      padding: `${theme.spacing.unit * 2}px ${theme.spacing.unit * 3}px ${theme
-        .spacing.unit * 3}px`,
+      marginTop: theme.spacing(8),
+      padding: `${theme.spacing(2)}px ${theme.spacing(3)}px ${theme.spacing(
+        3,
+      )}px`,
     },
     submit: {
-      marginTop: theme.spacing.unit * 3,
+      marginTop: theme.spacing(3),
     },
   });
 
@@ -111,7 +112,7 @@ class Login extends React.Component<ILogin> {
             <Avatar className={classes.avatar}>
               <LockOutlinedIcon />
             </Avatar>
-            <Typography variant="headline">Sign in</Typography>
+            <Typography variant="h4">Sign in</Typography>
             <form className={classes.form} onSubmit={onSubmit}>
               <FormControl margin="normal" required={true} fullWidth={true}>
                 <InputLabel htmlFor="username">Name</InputLabel>

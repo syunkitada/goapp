@@ -76,3 +76,53 @@ var PhysicalResourceCmd map[string]index_model.Cmd = map[string]index_model.Cmd{
 		Help:    "helptext",
 	},
 }
+
+var PhysicalResourcesTable = index_model.Table{
+	Name:    "Resources",
+	Route:   "PhysicalResources",
+	Kind:    "Table",
+	DataKey: "PhysicalResources",
+	Actions: []index_model.Action{
+		index_model.Action{
+			Name: "Create", Icon: "Create", Kind: "Form",
+			DataKind: "PhysicalResource",
+			Fields: []index_model.Field{
+				index_model.Field{Name: "Name", Kind: "text",
+					Require: true, Min: 5, Max: 200, RegExp: "^[0-9a-zA-Z]+$"},
+				index_model.Field{Name: "Kind", Kind: "select", Require: true,
+					Options: []string{
+						"Server", "Pdu", "RackSpineRouter",
+						"FloorLeafRouter", "FloorSpineRouter", "GatewayRouter",
+					}},
+				index_model.Field{Name: "Rack", Kind: "select", Require: true,
+					DataKey: "Racks"},
+				index_model.Field{Name: "Model", Kind: "select", Require: true,
+					DataKey: "PhysicalModels"},
+			},
+		},
+	},
+	SelectActions: []index_model.Action{
+		index_model.Action{Name: "Delete", Icon: "Delete",
+			Kind:      "Form",
+			DataKind:  "PhysicalResource",
+			SelectKey: "Name",
+		},
+	},
+	ColumnActions: []index_model.Action{
+		index_model.Action{Name: "Detail", Icon: "Detail"},
+		index_model.Action{Name: "Update", Icon: "Update"},
+	},
+	Columns: []index_model.TableColumn{
+		index_model.TableColumn{
+			Name: "Name", IsSearch: true,
+			Link:           "Datacenters/:datacenter/Resources/Resources/Detail/:0/View",
+			LinkParam:      "resource",
+			LinkSync:       false,
+			LinkGetQueries: []string{"GetPhysicalResource"},
+		},
+		index_model.TableColumn{Name: "Kind"},
+		index_model.TableColumn{Name: "UpdatedAt", Kind: "Time"},
+		index_model.TableColumn{Name: "CreatedAt", Kind: "Time"},
+		index_model.TableColumn{Name: "Action", Kind: "Action"},
+	},
+}

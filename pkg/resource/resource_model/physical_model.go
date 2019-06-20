@@ -57,3 +57,50 @@ var PhysicalModelCmd map[string]index_model.Cmd = map[string]index_model.Cmd{
 		Help:    "helptext",
 	},
 }
+
+var ResourceModels = index_model.Table{
+	Name:    "Models",
+	Route:   "/Models",
+	Kind:    "Table",
+	DataKey: "PhysicalModels",
+	Actions: []index_model.Action{
+		index_model.Action{
+			Name: "Create", Icon: "Create", Kind: "Form",
+			DataKind: "PhysicalModel",
+			Fields: []index_model.Field{
+				index_model.Field{Name: "Name", Kind: "text", Require: true,
+					Min: 5, Max: 200, RegExp: "^[0-9a-zA-Z]+$",
+					RegExpMsg: "Please enter alphanumeric characters."},
+				index_model.Field{Name: "Kind", Kind: "select", Require: true,
+					Options: []string{
+						"Server", "Pdu", "RackSpineRouter",
+						"FloorLeafRouter", "FloorSpineRouter", "GatewayRouter",
+					}},
+			},
+		},
+	},
+	SelectActions: []index_model.Action{
+		index_model.Action{
+			Name: "Delete", Icon: "Delete",
+			Kind:      "Form",
+			DataKind:  "PhysicalModel",
+			SelectKey: "Name",
+		},
+	},
+	ColumnActions: []index_model.Action{
+		index_model.Action{Name: "Detail", Icon: "Detail"},
+	},
+	Columns: []index_model.TableColumn{
+		index_model.TableColumn{
+			Name:           "Name",
+			IsSearch:       true,
+			Link:           "Datacenters/:datacenter/Resources/Models/Detail/:0/View",
+			LinkParam:      "resource",
+			LinkSync:       false,
+			LinkGetQueries: []string{"GetPhysicalModel"}},
+		index_model.TableColumn{Name: "Kind"},
+		index_model.TableColumn{Name: "UpdatedAt", Kind: "Time", Sort: "desc"},
+		index_model.TableColumn{Name: "CreatedAt", Kind: "Time"},
+		index_model.TableColumn{Name: "Action", Kind: "Action"},
+	},
+}

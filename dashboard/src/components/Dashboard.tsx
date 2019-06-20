@@ -59,7 +59,7 @@ const styles = (theme: Theme): StyleRules =>
       flexGrow: 1,
       height: '100vh',
       overflow: 'auto',
-      padding: theme.spacing.unit,
+      padding: theme.spacing(1),
     },
     drawerPaper: {
       width: drawerWidth,
@@ -71,10 +71,10 @@ const styles = (theme: Theme): StyleRules =>
       flexGrow: 1,
     },
     inputInput: {
-      paddingBottom: theme.spacing.unit,
-      paddingLeft: theme.spacing.unit * 10,
-      paddingRight: theme.spacing.unit,
-      paddingTop: theme.spacing.unit,
+      paddingBottom: theme.spacing(1),
+      paddingLeft: theme.spacing(10),
+      paddingRight: theme.spacing(1),
+      paddingTop: theme.spacing(1),
       transition: theme.transitions.create('width'),
       width: '100%',
       [theme.breakpoints.up('md')]: {
@@ -107,11 +107,11 @@ const styles = (theme: Theme): StyleRules =>
       backgroundColor: fade(theme.palette.common.white, 0.15),
       borderRadius: theme.shape.borderRadius,
       marginLeft: 0,
-      marginRight: theme.spacing.unit * 2,
+      marginRight: theme.spacing(2),
       position: 'relative',
       width: '100%',
       [theme.breakpoints.up('sm')]: {
-        marginLeft: theme.spacing.unit * 3,
+        marginLeft: theme.spacing(3),
         width: 'auto',
       },
     },
@@ -122,7 +122,7 @@ const styles = (theme: Theme): StyleRules =>
       justifyContent: 'center',
       pointerEvents: 'none',
       position: 'absolute',
-      width: theme.spacing.unit * 9,
+      width: theme.spacing(9),
     },
     sectionDesktop: {
       display: 'none',
@@ -208,7 +208,7 @@ class Dashboard extends React.Component<IDashboard> {
                 className={classes.navIconHide}>
                 <MenuIcon />
               </IconButton>
-              <Typography variant="title" color="inherit" noWrap={true}>
+              <Typography variant="subtitle1" color="inherit" noWrap={true}>
                 {title}
               </Typography>
 

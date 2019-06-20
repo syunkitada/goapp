@@ -66,3 +66,31 @@ var FloorCmd map[string]index_model.Cmd = map[string]index_model.Cmd{
 		Help:    "helptext",
 	},
 }
+
+var FloorsTable = index_model.Table{
+	Name:    "Floors",
+	Route:   "/Floors",
+	Kind:    "Table",
+	DataKey: "Floors",
+	SelectActions: []index_model.Action{
+		index_model.Action{
+			Name:      "Delete",
+			Icon:      "Delete",
+			Kind:      "Form",
+			DataKind:  "Floor",
+			SelectKey: "Name",
+		},
+	},
+	Columns: []index_model.TableColumn{
+		index_model.TableColumn{
+			Name: "Name", IsSearch: true,
+			Link:           "Datacenters/:datacenter/Resources/Floors/Detail/:0/View",
+			LinkParam:      "resource",
+			LinkSync:       false,
+			LinkGetQueries: []string{"GetFloor"},
+		},
+		index_model.TableColumn{Name: "Kind"},
+		index_model.TableColumn{Name: "UpdatedAt", Kind: "Time"},
+		index_model.TableColumn{Name: "CreatedAt", Kind: "Time"},
+	},
+}

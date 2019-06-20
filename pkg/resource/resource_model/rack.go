@@ -73,3 +73,31 @@ var RackCmd map[string]index_model.Cmd = map[string]index_model.Cmd{
 		Help:    "helptext",
 	},
 }
+
+var RacksTable = index_model.Table{
+	Name:    "Racks",
+	Route:   "/Racks",
+	Kind:    "Table",
+	DataKey: "Racks",
+	SelectActions: []index_model.Action{
+		index_model.Action{
+			Name:      "Delete",
+			Icon:      "Delete",
+			Kind:      "Form",
+			DataKind:  "Rack",
+			SelectKey: "Name",
+		},
+	},
+	Columns: []index_model.TableColumn{
+		index_model.TableColumn{
+			Name: "Name", IsSearch: true,
+			Link:           "Datacenters/:datacenter/Resources/Racks/Detail/:0/View",
+			LinkParam:      "resource",
+			LinkSync:       false,
+			LinkGetQueries: []string{"GetRack"},
+		},
+		index_model.TableColumn{Name: "Kind"},
+		index_model.TableColumn{Name: "UpdatedAt", Kind: "Time"},
+		index_model.TableColumn{Name: "CreatedAt", Kind: "Time"},
+	},
+}

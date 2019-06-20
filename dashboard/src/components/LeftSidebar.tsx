@@ -31,7 +31,7 @@ import ReceiptIcon from '@material-ui/icons/Receipt';
 const styles = (theme: Theme): StyleRules =>
   createStyles({
     nested: {
-      paddingLeft: theme.spacing.unit * 4,
+      paddingLeft: theme.spacing(4),
     },
   });
 

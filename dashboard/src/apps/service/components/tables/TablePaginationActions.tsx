@@ -20,7 +20,7 @@ const styles = (theme: Theme): StyleRules =>
     root: {
       color: theme.palette.text.secondary,
       flexShrink: 0,
-      marginLeft: theme.spacing.unit * 2.5,
+      marginLeft: theme.spacing(2.5),
     },
   });
 
