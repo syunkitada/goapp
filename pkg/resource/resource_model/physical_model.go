@@ -58,7 +58,7 @@ var PhysicalModelCmd map[string]index_model.Cmd = map[string]index_model.Cmd{
 	},
 }
 
-var ResourceModels = index_model.Table{
+var PhysicalModelsTable = index_model.Table{
 	Name:    "Models",
 	Route:   "/Models",
 	Kind:    "Table",
@@ -102,5 +102,51 @@ var ResourceModels = index_model.Table{
 		index_model.TableColumn{Name: "UpdatedAt", Kind: "Time", Sort: "desc"},
 		index_model.TableColumn{Name: "CreatedAt", Kind: "Time"},
 		index_model.TableColumn{Name: "Action", Kind: "Action"},
+	},
+}
+
+var PhysicalModelsDetail = index_model.Tabs{
+	Name:            "Models",
+	Kind:            "RouteTabs",
+	RouteParamKey:   "kind",
+	RouteParamValue: "Models",
+	Route:           "/Datacenters/:datacenter/Resources/Models/Detail/:resource/:subkind",
+	TabParam:        "subkind",
+	GetQueries: []string{
+		"GetPhysicalModel",
+		"GetPhysicalResources", "GetRacks", "GetFloors", "GetPhysicalModels"},
+	ExpectedDataKeys: []string{"PhysicalModel"},
+	IsSync:           true,
+	Tabs: []interface{}{
+		index_model.View{
+			Name:    "View",
+			Route:   "/View",
+			Kind:    "View",
+			DataKey: "PhysicalModel",
+			Fields: []index_model.Field{
+				index_model.Field{Name: "Name", Kind: "text"},
+				index_model.Field{Name: "Kind", Kind: "select"},
+			},
+		},
+		index_model.Form{
+			Name:         "Edit",
+			Route:        "/Edit",
+			Kind:         "Form",
+			DataKey:      "PhysicalModel",
+			SubmitAction: "Update",
+			Icon:         "Update",
+			Fields: []index_model.Field{
+				index_model.Field{Name: "Name", Kind: "text", Require: true,
+					Updatable: false,
+					Min:       5, Max: 200, RegExp: "^[0-9a-zA-Z]+$",
+					RegExpMsg: "Please enter alphanumeric characters."},
+				index_model.Field{Name: "Kind", Kind: "select", Require: true,
+					Updatable: true,
+					Options: []string{
+						"Server", "Pdu", "RackSpineRouter",
+						"FloorLeafRouter", "FloorSpineRouter", "GatewayRouter",
+					}},
+			},
+		},
 	},
 }

@@ -126,3 +126,49 @@ var PhysicalResourcesTable = index_model.Table{
 		index_model.TableColumn{Name: "Action", Kind: "Action"},
 	},
 }
+
+var PhysicalResourcesDetail = index_model.Tabs{
+	Name:            "Resources",
+	Kind:            "RouteTabs",
+	RouteParamKey:   "kind",
+	RouteParamValue: "Resources",
+	Route:           "/Datacenters/:datacenter/Resources/Resources/Detail/:resource/:subkind",
+	TabParam:        "subkind",
+	GetQueries: []string{
+		"GetPhysicalResource",
+		"GetPhysicalResources", "GetRacks", "GetFloors", "GetPhysicalModels"},
+	ExpectedDataKeys: []string{"PhysicalResource"},
+	IsSync:           true,
+	Tabs: []interface{}{
+		index_model.View{
+			Name:    "View",
+			Route:   "/View",
+			Kind:    "View",
+			DataKey: "PhysicalResource",
+			Fields: []index_model.Field{
+				index_model.Field{Name: "Name", Kind: "text"},
+				index_model.Field{Name: "Kind", Kind: "select"},
+			},
+		},
+		index_model.Form{
+			Name:         "Edit",
+			Route:        "/Edit",
+			Kind:         "Form",
+			DataKey:      "PhysicalResource",
+			SubmitAction: "Update",
+			Icon:         "Update",
+			Fields: []index_model.Field{
+				index_model.Field{Name: "Name", Kind: "text", Require: true,
+					Updatable: false,
+					Min:       5, Max: 200, RegExp: "^[0-9a-zA-Z]+$",
+					RegExpMsg: "Please enter alphanumeric characters."},
+				index_model.Field{Name: "Kind", Kind: "select", Require: true,
+					Updatable: true,
+					Options: []string{
+						"Server", "Pdu", "RackSpineRouter",
+						"FloorLeafRouter", "FloorSpineRouter", "GatewayRouter",
+					}},
+			},
+		},
+	},
+}

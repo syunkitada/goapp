@@ -145,7 +145,7 @@ func (modelApi *ResourceModelApi) getPhysicalIndex() *index_model.Index {
 						resource_model.PhysicalResourcesTable,
 						resource_model.RacksTable,
 						resource_model.FloorsTable,
-						resource_model.ResourceModels,
+						resource_model.PhysicalModelsTable,
 					}, // Tabs
 				},
 				gin.H{
@@ -155,96 +155,8 @@ func (modelApi *ResourceModelApi) getPhysicalIndex() *index_model.Index {
 					"Kind":      "RoutePanes",
 					"PaneParam": "kind",
 					"Panes": []interface{}{
-						gin.H{
-							"Name":            "Models",
-							"Kind":            "RouteTabs",
-							"RouteParamKey":   "kind",
-							"RouteParamValue": "Models",
-							"Route":           "/Datacenters/:datacenter/Resources/Models/Detail/:resource/:subkind",
-							"TabParam":        "subkind",
-							"GetQueries": []string{
-								"GetPhysicalModel",
-								"GetPhysicalResources", "GetRacks", "GetFloors", "GetPhysicalModels"},
-							"ExpectedDataKeys": []string{"PhysicalModel"},
-							"IsSync":           true,
-							"Tabs": []interface{}{
-								gin.H{
-									"Name":    "View",
-									"Route":   "/View",
-									"Kind":    "View",
-									"DataKey": "PhysicalModel",
-									"Fields": []interface{}{
-										gin.H{"Name": "Name", "Kind": "text"},
-										gin.H{"Name": "Kind", "Kind": "select"},
-									},
-								},
-								gin.H{
-									"Name":         "Edit",
-									"Route":        "/Edit",
-									"Kind":         "Form",
-									"DataKey":      "PhysicalModel",
-									"SubmitAction": "Update",
-									"Icon":         "Update",
-									"Fields": []interface{}{
-										gin.H{"Name": "Name", "Kind": "text", "Require": true,
-											"Updatable": false,
-											"Min":       5, "Max": 200, "RegExp": "^[0-9a-zA-Z]+$",
-											"RegExpMsg": "Please enter alphanumeric characters."},
-										gin.H{"Name": "Kind", "Kind": "select", "Require": true,
-											"Updatable": true,
-											"Options": []string{
-												"Server", "Pdu", "RackSpineRouter",
-												"FloorLeafRouter", "FloorSpineRouter", "GatewayRouter",
-											}},
-									},
-								},
-							},
-						},
-						gin.H{
-							"Name":            "Resources",
-							"Kind":            "RouteTabs",
-							"RouteParamKey":   "kind",
-							"RouteParamValue": "Resources",
-							"Route":           "/Datacenters/:datacenter/Resources/Resources/Detail/:resource/:subkind",
-							"TabParam":        "subkind",
-							"GetQueries": []string{
-								"GetPhysicalResource",
-								"GetPhysicalResources", "GetRacks", "GetFloors", "GetPhysicalModels"},
-							"ExpectedDataKeys": []string{"PhysicalResource"},
-							"IsSync":           true,
-							"Tabs": []interface{}{
-								gin.H{
-									"Name":    "View",
-									"Route":   "/View",
-									"Kind":    "View",
-									"DataKey": "PhysicalResource",
-									"Fields": []interface{}{
-										gin.H{"Name": "Name", "Kind": "text"},
-										gin.H{"Name": "Kind", "Kind": "select"},
-									},
-								},
-								gin.H{
-									"Name":         "Edit",
-									"Route":        "/Edit",
-									"Kind":         "Form",
-									"DataKey":      "PhysicalResource",
-									"SubmitAction": "Update",
-									"Icon":         "Update",
-									"Fields": []interface{}{
-										gin.H{"Name": "Name", "Kind": "text", "Require": true,
-											"Updatable": false,
-											"Min":       5, "Max": 200, "RegExp": "^[0-9a-zA-Z]+$",
-											"RegExpMsg": "Please enter alphanumeric characters."},
-										gin.H{"Name": "Kind", "Kind": "select", "Require": true,
-											"Updatable": true,
-											"Options": []string{
-												"Server", "Pdu", "RackSpineRouter",
-												"FloorLeafRouter", "FloorSpineRouter", "GatewayRouter",
-											}},
-									},
-								},
-							},
-						},
+						resource_model.PhysicalModelsDetail,
+						resource_model.PhysicalResourcesDetail,
 					},
 				},
 			},

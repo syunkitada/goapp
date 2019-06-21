@@ -5,6 +5,8 @@ type Tabs struct {
 	Kind             string
 	Subname          string
 	Route            string
+	RouteParamKey    string
+	RouteParamValue  string
 	TabParam         string
 	GetQueries       []string
 	ExpectedDataKeys []string
