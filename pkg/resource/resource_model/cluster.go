@@ -27,32 +27,32 @@ type ClusterSpec struct {
 }
 
 var ClusterCmd map[string]index_model.Cmd = map[string]index_model.Cmd{
-	"CreateCluster": index_model.Cmd{
+	"create_cluster": index_model.Cmd{
 		Arg:     index_model.ArgRequired,
 		ArgType: index_model.ArgTypeFile,
 		ArgKind: ClusterKind,
 		Help:    "helptext",
 	},
-	"UpdateCluster": index_model.Cmd{
+	"update_cluster": index_model.Cmd{
 		Arg:     index_model.ArgRequired,
 		ArgType: index_model.ArgTypeFile,
 		ArgKind: ClusterKind,
 		Help:    "helptext",
 	},
-	"GetClusters": index_model.Cmd{
+	"get_clusters": index_model.Cmd{
 		Arg:         index_model.ArgOptional,
 		ArgType:     index_model.ArgTypeString,
 		ArgKind:     ClusterKind,
 		Help:        "helptext",
 		TableHeader: []string{"Name", "Kind", "Datacenter", "DomainSuffix"},
 	},
-	"GetCluster": index_model.Cmd{
+	"get_cluster": index_model.Cmd{
 		Arg:     index_model.ArgRequired,
 		ArgType: index_model.ArgTypeString,
 		ArgKind: ClusterKind,
 		Help:    "helptext",
 	},
-	"DeleteCluster": index_model.Cmd{
+	"delete_cluster": index_model.Cmd{
 		Arg:     index_model.ArgRequired,
 		ArgType: index_model.ArgTypeString,
 		ArgKind: ClusterKind,
@@ -74,7 +74,7 @@ var ClustersTable = index_model.Table{
 			LinkParam: "cluster",
 			LinkSync:  true,
 			LinkGetQueries: []string{
-				"GetPhysicalResources", "GetRacks", "GetFloors", "GetPhysicalModels"},
+				"get_physical-resources", "get_racks", "get_floors", "get_physical-models"},
 		},
 		index_model.TableColumn{Name: "Datacenter", IsSearch: true},
 		index_model.TableColumn{Name: "UpdatedAt", Kind: "Time", Sort: "asc"},

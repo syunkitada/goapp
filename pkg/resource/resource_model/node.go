@@ -1,6 +1,11 @@
 package resource_model
 
-import "github.com/jinzhu/gorm"
+import (
+	"github.com/jinzhu/gorm"
+	"github.com/syunkitada/goapp/pkg/authproxy/index_model"
+)
+
+const NodeKind = "Node"
 
 type Node struct {
 	gorm.Model
@@ -11,4 +16,38 @@ type Node struct {
 	StatusReason string `gorm:"not null;size:50;"`
 	State        string `gorm:"not null;size:25;"`
 	StateReason  string `gorm:"not null;size:50;"`
+}
+
+var NodeCmd map[string]index_model.Cmd = map[string]index_model.Cmd{
+	"create_node": index_model.Cmd{
+		Arg:     index_model.ArgRequired,
+		ArgType: index_model.ArgTypeFile,
+		ArgKind: NodeKind,
+		Help:    "create node",
+	},
+	"update_node": index_model.Cmd{
+		Arg:     index_model.ArgRequired,
+		ArgType: index_model.ArgTypeFile,
+		ArgKind: NodeKind,
+		Help:    "update node",
+	},
+	"get_nodes": index_model.Cmd{
+		Arg:         index_model.ArgOptional,
+		ArgType:     index_model.ArgTypeString,
+		ArgKind:     NodeKind,
+		Help:        "get nodes",
+		TableHeader: []string{"Cluster", "Name", "Kind", "Role", "Status", "State"},
+	},
+	"get_node": index_model.Cmd{
+		Arg:     index_model.ArgRequired,
+		ArgType: index_model.ArgTypeString,
+		ArgKind: NodeKind,
+		Help:    "get node",
+	},
+	"delete_node": index_model.Cmd{
+		Arg:     index_model.ArgRequired,
+		ArgType: index_model.ArgTypeString,
+		ArgKind: NodeKind,
+		Help:    "delete node",
+	},
 }

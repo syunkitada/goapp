@@ -5,10 +5,13 @@ import (
 	"github.com/syunkitada/goapp/pkg/authproxy/index_model"
 )
 
+const ComputeKind = "Compute"
+
 type Compute struct {
 	gorm.Model
 	PhysicalResource   PhysicalResource `gorm:"foreignkey:PhysicalResourceID;association_foreignkey:Refer;"`
 	PhysicalResourceID uint             `gorm:"not null;"`
+	Region             string           `gorm:"not null;size:50;"`
 	Cluster            string           `gorm:"not null;size:50;"`
 	Name               string           `gorm:"not null;size:200;"`
 	Description        string           `gorm:"not null;size:200;"`
@@ -19,6 +22,65 @@ type Compute struct {
 	Spec               string           `gorm:"not null;size:5000;"`
 	Domain             string           `gorm:"not null;size:255;"`
 	LinkSpec           string           `gorm:"not null;size:2500;"`
+	Image              string           `gorm:"not null;size:255;"`
+	Vcpus              uint             `gorm:"not null;"`
+	Memory             uint             `gorm:"not null;"`
+	Disk               uint             `gorm:"not null;"`
+}
+
+type ComputeSpec struct {
+	Kind           string `validate:"required"`
+	Name           string `validate:"required"`
+	Region         string `validate:"required"`
+	Cluster        string
+	Description    string
+	Image          string `validate:"required"`
+	DefaultNetwork string `validate:"required"`
+	Networks       []string
+	Vcpus          uint
+	Memory         uint
+	Disk           uint
+}
+
+var ComputeCmd map[string]index_model.Cmd = map[string]index_model.Cmd{
+	"create_compute": index_model.Cmd{
+		Arg:     index_model.ArgRequired,
+		ArgType: index_model.ArgTypeFile,
+		ArgKind: ComputeKind,
+		Help:    "create compute",
+	},
+	"update_compute": index_model.Cmd{
+		Arg:     index_model.ArgRequired,
+		ArgType: index_model.ArgTypeFile,
+		ArgKind: ComputeKind,
+		Help:    "update compute",
+	},
+	"get_computes": index_model.Cmd{
+		Arg:     index_model.ArgOptional,
+		ArgType: index_model.ArgTypeString,
+		ArgKind: ComputeKind,
+		FlagMap: map[string]index_model.Flag{
+			"region": index_model.Flag{
+				Flag:     index_model.ArgRequired,
+				FlagType: index_model.ArgTypeString,
+				Help:     "region",
+			},
+		},
+		Help:        "get computes",
+		TableHeader: []string{"Name", "Kind", "Region", "Image", "Vcpus", "Memory", "Disk", "IP", "Status"},
+	},
+	"get_compute": index_model.Cmd{
+		Arg:     index_model.ArgRequired,
+		ArgType: index_model.ArgTypeString,
+		ArgKind: ComputeKind,
+		Help:    "get compute",
+	},
+	"delete_compute": index_model.Cmd{
+		Arg:     index_model.ArgRequired,
+		ArgType: index_model.ArgTypeString,
+		ArgKind: ComputeKind,
+		Help:    "delete compute",
+	},
 }
 
 var ComputesTable = index_model.Table{
@@ -99,7 +161,7 @@ var ComputesDetail = index_model.Tabs{
 			Route:        "/Edit",
 			Kind:         "Form",
 			DataKey:      "Compute",
-			SubmitAction: "Update",
+			SubmitAction: "update compute",
 			Icon:         "Update",
 			Fields: []index_model.Field{
 				index_model.Field{Name: "Name", Kind: "text", Require: true,

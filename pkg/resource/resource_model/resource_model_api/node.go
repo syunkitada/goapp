@@ -1,74 +1,50 @@
 package resource_model_api
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/golang/protobuf/ptypes"
 	"github.com/jinzhu/gorm"
 
+	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_grpc_pb"
 	"github.com/syunkitada/goapp/pkg/lib/codes"
+	"github.com/syunkitada/goapp/pkg/lib/error_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_api/resource_cluster_api_grpc_pb"
 	"github.com/syunkitada/goapp/pkg/resource/resource_api/resource_api_grpc_pb"
 	"github.com/syunkitada/goapp/pkg/resource/resource_model"
 )
 
-// func (modelApi *ResourceModelApi) GetNode(tctx *logger.TraceContext, req *resource_api_grpc_pb.ActionRequest, rep *resource_api_grpc_pb.ActionReply) {
-// 	var err error
-// 	startTime := logger.StartTrace(tctx)
-// 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
-//
-// 	var db *gorm.DB
-// 	if db, err = modelApi.open(tctx); err != nil {
-// 		rep.Tctx.Err = err.Error()
-// 		rep.Tctx.StatusCode = codes.RemoteDbError
-// 		return
-// 	}
-// 	defer func() { err = db.Close() }()
-//
-// 	pbNodes := []*resource_api_grpc_pb.Node{}
-// 	if req.Cluster == "" {
-// 		var nodes []resource_model.Node
-// 		if err = db.Find(&nodes).Error; err != nil {
-// 			rep.Tctx.Err = err.Error()
-// 			rep.Tctx.StatusCode = codes.RemoteDbError
-// 			return
-// 		}
-// 		rootNodes := modelApi.convertNodes(tctx, "root", nodes)
-// 		pbNodes = append(pbNodes, rootNodes...)
-// 		rep.Tctx.StatusCode = codes.Ok
-//
-// 		for clusterName, clusterClient := range modelApi.clusterClientMap {
-// 			remoteRep, err := clusterClient.GetNode(tctx, req.Target)
-// 			if err != nil {
-// 				rep.Tctx.Err += fmt.Sprintf("Failed get node from cluster(%v) by error(%v), ",
-// 					clusterName, err.Error())
-// 				rep.Tctx.StatusCode = codes.RemoteClusterError
-// 			}
-// 			clusterNodes := modelApi.convertClusterNodes(clusterName, remoteRep.Nodes)
-// 			pbNodes = append(pbNodes, clusterNodes...)
-// 		}
-//
-// 	} else {
-// 		clusterClient, ok := modelApi.clusterClientMap[req.Cluster]
-// 		if !ok {
-// 			rep.Tctx.Err = fmt.Sprintf("NotFound cluster: %v", req.Cluster)
-// 			rep.Tctx.StatusCode = codes.ClientNotFound
-// 			return
-// 		}
-//
-// 		remoteRep, err := clusterClient.GetNode(tctx, req.Target)
-// 		if err != nil {
-// 			rep.Tctx.Err = err.Error()
-// 			rep.Tctx.StatusCode = codes.RemoteClusterError
-// 			return
-// 		}
-// 		clusterNodes := modelApi.convertClusterNodes(req.Cluster, remoteRep.Nodes)
-// 		pbNodes = append(pbNodes, clusterNodes...)
-// 	}
-//
-// 	rep.Nodes = pbNodes
-// }
+func (modelApi *ResourceModelApi) GetNode(tctx *logger.TraceContext,
+	db *gorm.DB, query *authproxy_grpc_pb.Query, data map[string]interface{}) (int64, error) {
+	var err error
+	resource, ok := query.StrParams["resource"]
+	if !ok {
+		return codes.ClientBadRequest, error_utils.NewInvalidRequestError("resource is None")
+	}
+
+	var node resource_model.Node
+	if err = db.Where(&resource_model.Node{
+		Name: resource,
+	}).First(&node).Error; err != nil {
+		return codes.RemoteDbError, err
+	}
+	data["Node"] = node
+	return codes.OkRead, nil
+}
+
+func (modelApi *ResourceModelApi) GetNodes(tctx *logger.TraceContext,
+	db *gorm.DB, query *authproxy_grpc_pb.Query, data map[string]interface{}) (int64, error) {
+	var err error
+
+	var nodes []resource_model.Node
+	if err = db.Find(&nodes).Error; err != nil {
+		return codes.RemoteDbError, err
+	}
+	data["Nodes"] = nodes
+	return codes.OkRead, nil
+}
 
 func (modelApi *ResourceModelApi) UpdateNode(tctx *logger.TraceContext, req *resource_api_grpc_pb.UpdateNodeRequest, rep *resource_api_grpc_pb.UpdateNodeReply) {
 	var err error
@@ -117,6 +93,39 @@ func (modelApi *ResourceModelApi) UpdateNode(tctx *logger.TraceContext, req *res
 	}
 
 	rep.Tctx.StatusCode = codes.Ok
+}
+
+func (modelApi *ResourceModelApi) DeleteNode(tctx *logger.TraceContext, db *gorm.DB, query *authproxy_grpc_pb.Query) (int64, error) {
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	tx := db.Begin()
+	defer tx.Rollback()
+
+	strSpecs, ok := query.StrParams["Specs"]
+	if !ok || len(strSpecs) == 0 {
+		err = error_utils.NewInvalidRequestEmptyError("Specs")
+		return codes.ClientBadRequest, err
+	}
+
+	var specs []resource_model.NameSpec
+	if err = json.Unmarshal([]byte(strSpecs), &specs); err != nil {
+		return codes.ClientBadRequest, err
+	}
+
+	for _, spec := range specs {
+		if err = modelApi.validate.Struct(&spec); err != nil {
+			return codes.ClientBadRequest, err
+		}
+
+		if err = tx.Delete(&resource_model.Node{}, "name = ?", spec.Name).Error; err != nil {
+			return codes.RemoteDbError, err
+		}
+	}
+
+	tx.Commit()
+	return codes.OkDeleted, nil
 }
 
 func (modelApi *ResourceModelApi) SyncRole(tctx *logger.TraceContext, kind string) ([]resource_model.Node, error) {

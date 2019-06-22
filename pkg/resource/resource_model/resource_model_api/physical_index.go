@@ -36,73 +36,89 @@ func (modelApi *ResourceModelApi) PhysicalAction(tctx *logger.TraceContext,
 		}
 	}()
 
+	tmpStatusCode := codes.Unknown
 	statusCode = codes.Unknown
 	for _, query := range req.Queries {
 		switch query.Kind {
-		case "GetIndex":
+		case "get_index":
 			response.Index = *modelApi.getPhysicalIndex()
-		case "GetDashboardIndex":
+		case "get_dashboard-index":
 			response.Index = *modelApi.getPhysicalIndex()
-			statusCode, err = modelApi.GetDatacenters(tctx, db, query, data)
+			tmpStatusCode, err = modelApi.GetDatacenters(tctx, db, query, data)
 
-		case "GetDatacenter":
-			statusCode, err = modelApi.GetDatacenter(tctx, db, query, data)
-		case "GetDatacenters":
-			statusCode, err = modelApi.GetDatacenters(tctx, db, query, data)
-		case "CreateDatacenter":
-			statusCode, err = modelApi.CreateDatacenter(tctx, db, query)
-		case "UpdateDatacenter":
-			statusCode, err = modelApi.UpdateDatacenter(tctx, db, query)
-		case "DeleteDatacenter":
-			statusCode, err = modelApi.DeleteDatacenter(tctx, db, query)
+		case "get_region":
+			tmpStatusCode, err = modelApi.GetRegion(tctx, db, query, data)
+		case "get_regions":
+			tmpStatusCode, err = modelApi.GetRegions(tctx, db, query, data)
+		case "create_region":
+			tmpStatusCode, err = modelApi.CreateRegion(tctx, db, query)
+		case "update_region":
+			tmpStatusCode, err = modelApi.UpdateRegion(tctx, db, query)
+		case "delete_region":
+			tmpStatusCode, err = modelApi.DeleteRegion(tctx, db, query)
 
-		case "GetFloor":
-			statusCode, err = modelApi.GetFloor(tctx, db, query, data)
-		case "GetFloors":
-			statusCode, err = modelApi.GetFloors(tctx, db, query, data)
-		case "CreateFloor":
-			statusCode, err = modelApi.CreateFloor(tctx, db, query)
-		case "UpdateFloor":
-			statusCode, err = modelApi.UpdateFloor(tctx, db, query)
-		case "DeleteFloor":
-			statusCode, err = modelApi.DeleteFloor(tctx, db, query)
+		case "get_datacenter":
+			tmpStatusCode, err = modelApi.GetDatacenter(tctx, db, query, data)
+		case "get_datacenters":
+			tmpStatusCode, err = modelApi.GetDatacenters(tctx, db, query, data)
+		case "create_datacenter":
+			tmpStatusCode, err = modelApi.CreateDatacenter(tctx, db, query)
+		case "update_datacenter":
+			tmpStatusCode, err = modelApi.UpdateDatacenter(tctx, db, query)
+		case "delete_datacenter":
+			tmpStatusCode, err = modelApi.DeleteDatacenter(tctx, db, query)
 
-		case "GetRack":
-			statusCode, err = modelApi.GetRack(tctx, db, query, data)
-		case "GetRacks":
-			statusCode, err = modelApi.GetRacks(tctx, db, query, data)
-		case "CreateRack":
-			statusCode, err = modelApi.CreateRack(tctx, db, query)
-		case "UpdateRack":
-			statusCode, err = modelApi.UpdateRack(tctx, db, query)
-		case "DeleteRack":
-			statusCode, err = modelApi.DeleteRack(tctx, db, query)
+		case "get_floor":
+			tmpStatusCode, err = modelApi.GetFloor(tctx, db, query, data)
+		case "get_floors":
+			tmpStatusCode, err = modelApi.GetFloors(tctx, db, query, data)
+		case "create_floor":
+			tmpStatusCode, err = modelApi.CreateFloor(tctx, db, query)
+		case "update_floor":
+			tmpStatusCode, err = modelApi.UpdateFloor(tctx, db, query)
+		case "delete_floor":
+			tmpStatusCode, err = modelApi.DeleteFloor(tctx, db, query)
 
-		case "GetPhysicalResource":
-			statusCode, err = modelApi.GetPhysicalResource(tctx, db, query, data)
-		case "GetPhysicalResources":
-			statusCode, err = modelApi.GetPhysicalResources(tctx, db, query, data)
-		case "CreatePhysicalResource":
-			statusCode, err = modelApi.CreatePhysicalResource(tctx, db, query)
-		case "UpdatePhysicalResource":
-			statusCode, err = modelApi.UpdatePhysicalResource(tctx, db, query)
-		case "DeletePhysicalResource":
-			statusCode, err = modelApi.DeletePhysicalResource(tctx, db, query)
+		case "get_rack":
+			tmpStatusCode, err = modelApi.GetRack(tctx, db, query, data)
+		case "get_racks":
+			tmpStatusCode, err = modelApi.GetRacks(tctx, db, query, data)
+		case "create_rack":
+			tmpStatusCode, err = modelApi.CreateRack(tctx, db, query)
+		case "update_rack":
+			tmpStatusCode, err = modelApi.UpdateRack(tctx, db, query)
+		case "delete_rack":
+			tmpStatusCode, err = modelApi.DeleteRack(tctx, db, query)
 
-		case "GetPhysicalModel":
-			statusCode, err = modelApi.GetPhysicalModel(tctx, db, query, data)
-		case "GetPhysicalModels":
-			statusCode, err = modelApi.GetPhysicalModels(tctx, db, query, data)
-		case "CreatePhysicalModel":
-			statusCode, err = modelApi.CreatePhysicalModel(tctx, db, query)
-		case "UpdatePhysicalModel":
-			statusCode, err = modelApi.UpdatePhysicalModel(tctx, db, query)
-		case "DeletePhysicalModel":
-			statusCode, err = modelApi.DeletePhysicalModel(tctx, db, query)
+		case "get_physical-resource":
+			tmpStatusCode, err = modelApi.GetPhysicalResource(tctx, db, query, data)
+		case "get_physical-resources":
+			tmpStatusCode, err = modelApi.GetPhysicalResources(tctx, db, query, data)
+		case "create_physical-resource":
+			tmpStatusCode, err = modelApi.CreatePhysicalResource(tctx, db, query)
+		case "update_physical-resource":
+			tmpStatusCode, err = modelApi.UpdatePhysicalResource(tctx, db, query)
+		case "delete_physical-resource":
+			tmpStatusCode, err = modelApi.DeletePhysicalResource(tctx, db, query)
+
+		case "get_physical-model":
+			tmpStatusCode, err = modelApi.GetPhysicalModel(tctx, db, query, data)
+		case "get_physical-models":
+			tmpStatusCode, err = modelApi.GetPhysicalModels(tctx, db, query, data)
+		case "create_physical-model":
+			tmpStatusCode, err = modelApi.CreatePhysicalModel(tctx, db, query)
+		case "update_physical-model":
+			tmpStatusCode, err = modelApi.UpdatePhysicalModel(tctx, db, query)
+		case "delete_physical-model":
+			tmpStatusCode, err = modelApi.DeletePhysicalModel(tctx, db, query)
 		}
 
 		if err != nil {
 			break
+		}
+
+		if tmpStatusCode > statusCode {
+			statusCode = tmpStatusCode
 		}
 	}
 
@@ -112,6 +128,7 @@ func (modelApi *ResourceModelApi) PhysicalAction(tctx *logger.TraceContext,
 func (modelApi *ResourceModelApi) getPhysicalIndex() *index_model.Index {
 	cmdMap := map[string]index_model.Cmd{}
 	cmdMaps := []map[string]index_model.Cmd{
+		resource_model.RegionCmd,
 		resource_model.DatacenterCmd,
 		resource_model.RackCmd,
 		resource_model.FloorCmd,
@@ -138,7 +155,7 @@ func (modelApi *ResourceModelApi) getPhysicalIndex() *index_model.Index {
 					Subname:          "kind",
 					Route:            "/Datacenters/:datacenter/Resources/:kind",
 					TabParam:         "kind",
-					GetQueries:       []string{"GetPhysicalResources", "GetRacks", "GetFloors", "GetPhysicalModels"},
+					GetQueries:       []string{"get_physical-resources", "get_racks", "get_floors", "get_physical-models"},
 					ExpectedDataKeys: []string{"PhysicalResources", "Racks", "Floors", "PhysicalModels"},
 					IsSync:           true,
 					Tabs: []interface{}{

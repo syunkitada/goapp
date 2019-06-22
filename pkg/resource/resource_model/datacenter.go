@@ -27,32 +27,32 @@ type DatacenterSpec struct {
 }
 
 var DatacenterCmd map[string]index_model.Cmd = map[string]index_model.Cmd{
-	"CreateDatacenter": index_model.Cmd{
+	"create_datacenter": index_model.Cmd{
 		Arg:     index_model.ArgRequired,
 		ArgType: index_model.ArgTypeFile,
 		ArgKind: DatacenterKind,
 		Help:    "helptext",
 	},
-	"UpdateDatacenter": index_model.Cmd{
+	"update_datacenter": index_model.Cmd{
 		Arg:     index_model.ArgRequired,
 		ArgType: index_model.ArgTypeFile,
 		ArgKind: DatacenterKind,
 		Help:    "helptext",
 	},
-	"GetDatacenters": index_model.Cmd{
+	"get_datacenters": index_model.Cmd{
 		Arg:         index_model.ArgOptional,
 		ArgType:     index_model.ArgTypeString,
 		ArgKind:     DatacenterKind,
 		Help:        "helptext",
 		TableHeader: []string{"Name", "Kind", "Region", "DomainSuffix"},
 	},
-	"GetDatacenter": index_model.Cmd{
+	"get_datacenter": index_model.Cmd{
 		Arg:     index_model.ArgRequired,
 		ArgType: index_model.ArgTypeString,
 		ArgKind: DatacenterKind,
 		Help:    "helptext",
 	},
-	"DeleteDatacenter": index_model.Cmd{
+	"delete_datacenter": index_model.Cmd{
 		Arg:     index_model.ArgRequired,
 		ArgType: index_model.ArgTypeString,
 		ArgKind: DatacenterKind,
@@ -74,7 +74,7 @@ var DatacentersTable = index_model.Table{
 			LinkParam: "datacenter",
 			LinkSync:  true,
 			LinkGetQueries: []string{
-				"GetPhysicalResources", "GetRacks", "GetFloors", "GetPhysicalModels"},
+				"get_physical-resources", "get_racks", "get_floors", "get_physical-models"},
 		},
 		index_model.TableColumn{Name: "Region", IsSearch: true},
 		index_model.TableColumn{Name: "UpdatedAt", Kind: "Time", Sort: "asc"},

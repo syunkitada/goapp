@@ -37,19 +37,19 @@ type PhysicalResourceSpec struct {
 }
 
 var PhysicalResourceCmd map[string]index_model.Cmd = map[string]index_model.Cmd{
-	"CreatePhysicalResource": index_model.Cmd{
+	"create_physical-resource": index_model.Cmd{
 		Arg:     index_model.ArgRequired,
 		ArgType: index_model.ArgTypeFile,
 		ArgKind: PhysicalResourceKind,
 		Help:    "helptext",
 	},
-	"UpdatePhysicalResource": index_model.Cmd{
+	"update_physical-resource": index_model.Cmd{
 		Arg:     index_model.ArgRequired,
 		ArgType: index_model.ArgTypeFile,
 		ArgKind: PhysicalResourceKind,
 		Help:    "helptext",
 	},
-	"GetPhysicalResources": index_model.Cmd{
+	"get_physical-resources": index_model.Cmd{
 		Arg:         index_model.ArgOptional,
 		ArgType:     index_model.ArgTypeString,
 		ArgKind:     PhysicalResourceKind,
@@ -63,13 +63,13 @@ var PhysicalResourceCmd map[string]index_model.Cmd = map[string]index_model.Cmd{
 			},
 		},
 	},
-	"GetPhysicalResource": index_model.Cmd{
+	"get_physical-resource": index_model.Cmd{
 		Arg:     index_model.ArgRequired,
 		ArgType: index_model.ArgTypeString,
 		ArgKind: PhysicalResourceKind,
 		Help:    "helptext",
 	},
-	"DeletePhysicalResource": index_model.Cmd{
+	"delete_physical-resource": index_model.Cmd{
 		Arg:     index_model.ArgRequired,
 		ArgType: index_model.ArgTypeString,
 		ArgKind: PhysicalResourceKind,
@@ -118,7 +118,7 @@ var PhysicalResourcesTable = index_model.Table{
 			Link:           "Datacenters/:datacenter/Resources/Resources/Detail/:0/View",
 			LinkParam:      "resource",
 			LinkSync:       false,
-			LinkGetQueries: []string{"GetPhysicalResource"},
+			LinkGetQueries: []string{"get_physical-resource"},
 		},
 		index_model.TableColumn{Name: "Kind"},
 		index_model.TableColumn{Name: "UpdatedAt", Kind: "Time"},
@@ -135,8 +135,8 @@ var PhysicalResourcesDetail = index_model.Tabs{
 	Route:           "/Datacenters/:datacenter/Resources/Resources/Detail/:resource/:subkind",
 	TabParam:        "subkind",
 	GetQueries: []string{
-		"GetPhysicalResource",
-		"GetPhysicalResources", "GetRacks", "GetFloors", "GetPhysicalModels"},
+		"get_physical-resource",
+		"get_physical-resources", "get_racks", "get_floors", "get_physical-models"},
 	ExpectedDataKeys: []string{"PhysicalResource"},
 	IsSync:           true,
 	Tabs: []interface{}{
@@ -155,7 +155,7 @@ var PhysicalResourcesDetail = index_model.Tabs{
 			Route:        "/Edit",
 			Kind:         "Form",
 			DataKey:      "PhysicalResource",
-			SubmitAction: "Update",
+			SubmitAction: "update_physical-resource",
 			Icon:         "Update",
 			Fields: []index_model.Field{
 				index_model.Field{Name: "Name", Kind: "text", Require: true,

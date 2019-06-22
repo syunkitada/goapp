@@ -68,13 +68,17 @@ func (modelApi *ResourceModelApi) Bootstrap(tctx *logger.TraceContext) error {
 
 	db.LogMode(modelApi.conf.Default.EnableDatabaseLog)
 
-	db.AutoMigrate(&resource_model.Node{})
+	db.AutoMigrate(&resource_model.Region{})
 	db.AutoMigrate(&resource_model.Datacenter{})
-	db.AutoMigrate(&resource_model.Cluster{})
 	db.AutoMigrate(&resource_model.Floor{})
 	db.AutoMigrate(&resource_model.Rack{})
 	db.AutoMigrate(&resource_model.PhysicalModel{})
 	db.AutoMigrate(&resource_model.PhysicalResource{})
+
+	db.AutoMigrate(&resource_model.Cluster{})
+	db.AutoMigrate(&resource_model.Node{})
+	db.AutoMigrate(&resource_model.GlobalService{})
+	db.AutoMigrate(&resource_model.RegionService{})
 	db.AutoMigrate(&resource_model.Compute{})
 	db.AutoMigrate(&resource_model.Volume{})
 	db.AutoMigrate(&resource_model.Image{})

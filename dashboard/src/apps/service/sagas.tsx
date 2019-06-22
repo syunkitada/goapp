@@ -32,11 +32,12 @@ function* post(action) {
     case 'SERVICE_GET_INDEX':
       payload = {
         projectName: params.project,
-        queries: [{Kind: 'GetDashboardIndex', StrParams: params}],
+        queries: [{Kind: 'get_dashboard-index', StrParams: params}],
         serviceName: params.service,
         stateKey: 'index',
       };
       break;
+
     case 'SERVICE_GET_QUERIES':
       const syncQueryMap: any[] = [];
       for (let i = 0, len = queries.length; i < len; i++) {

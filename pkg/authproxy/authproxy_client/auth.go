@@ -42,7 +42,7 @@ func (client *AuthproxyClient) GetIndex(tctx *logger.TraceContext, token string,
 			ProjectName: client.conf.Ctl.Project,
 			ServiceName: serviceName,
 			Queries: []authproxy_model.Query{
-				authproxy_model.Query{Kind: "GetIndex"},
+				authproxy_model.Query{Kind: "get_index"},
 			},
 		},
 	}

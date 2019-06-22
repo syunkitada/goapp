@@ -25,32 +25,32 @@ type PhysicalModelSpec struct {
 }
 
 var PhysicalModelCmd map[string]index_model.Cmd = map[string]index_model.Cmd{
-	"CreatePhysicalModel": index_model.Cmd{
+	"create_physical-model": index_model.Cmd{
 		Arg:     index_model.ArgRequired,
 		ArgType: index_model.ArgTypeFile,
 		ArgKind: PhysicalModelKind,
 		Help:    "helptext",
 	},
-	"UpdatePhysicalModel": index_model.Cmd{
+	"update_physical-model": index_model.Cmd{
 		Arg:     index_model.ArgRequired,
 		ArgType: index_model.ArgTypeFile,
 		ArgKind: PhysicalModelKind,
 		Help:    "helptext",
 	},
-	"GetPhysicalModels": index_model.Cmd{
+	"get_physical-models": index_model.Cmd{
 		Arg:         index_model.ArgOptional,
 		ArgType:     index_model.ArgTypeString,
 		ArgKind:     PhysicalModelKind,
 		Help:        "helptext",
 		TableHeader: []string{"Name", "Kind"},
 	},
-	"GetPhysicalModel": index_model.Cmd{
+	"get_physical-model": index_model.Cmd{
 		Arg:     index_model.ArgRequired,
 		ArgType: index_model.ArgTypeString,
 		ArgKind: PhysicalModelKind,
 		Help:    "helptext",
 	},
-	"DeletePhysicalModel": index_model.Cmd{
+	"delete_physical-model": index_model.Cmd{
 		Arg:     index_model.ArgRequired,
 		ArgType: index_model.ArgTypeString,
 		ArgKind: PhysicalModelKind,
@@ -133,7 +133,7 @@ var PhysicalModelsDetail = index_model.Tabs{
 			Route:        "/Edit",
 			Kind:         "Form",
 			DataKey:      "PhysicalModel",
-			SubmitAction: "Update",
+			SubmitAction: "update_physical-model",
 			Icon:         "Update",
 			Fields: []index_model.Field{
 				index_model.Field{Name: "Name", Kind: "text", Require: true,

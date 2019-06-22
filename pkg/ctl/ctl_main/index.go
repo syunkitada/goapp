@@ -94,40 +94,26 @@ func (ctl *CtlMain) Index(args []string) error {
 		}
 	}
 
-	argsMap := map[string]index_model.Cmd{}
 	cmdQuery := ""
 	var cmdInfo index_model.Cmd
 	argsStr := ""
 	lastArgs := []string{}
 	helpMsg := ""
 	for query, cmd := range indexResp.Index.CmdMap {
-		args := []rune{}
-		for i, c := range query {
-			if c >= 'A' && c <= 'Z' {
-				c += 'a' - 'A'
-				if i != 0 {
-					args = append(args, ' ')
-				}
-			}
-			args = append(args, c)
-		}
-		argsStr = string(args)
-		argsMap[argsStr] = cmd
-
+		args := strings.Split(query, "_")
 		if cmd.Arg != "" {
-			helpMsg += fmt.Sprintf("%s [%s:%s]  :%s\n", argsStr, cmd.ArgType, cmd.Arg, cmd.Help)
+			helpMsg += fmt.Sprintf("%s [%s:%s]  :%s\n", query, cmd.ArgType, cmd.Arg, cmd.Help)
 		} else {
-			helpMsg += fmt.Sprintf("%s  :%s\n", argsStr, cmd.Help)
+			helpMsg += fmt.Sprintf("%s  :%s\n", query, cmd.Help)
 		}
 
 		if len(cmdArgs) < 2 {
 			continue
 		}
 
-		splitedArgs := strings.Split(argsStr, " ")
-		if len(cmdArgs)+1 >= len(splitedArgs) {
+		if len(cmdArgs)+1 >= len(args) {
 			isMatch := true
-			for i, arg := range splitedArgs {
+			for i, arg := range args {
 				if arg != cmdArgs[i+1] {
 					isMatch = false
 					break
@@ -136,9 +122,9 @@ func (ctl *CtlMain) Index(args []string) error {
 			if isMatch {
 				cmdQuery = query
 				cmdInfo = cmd
-				if len(cmdArgs)+1 > len(splitedArgs) {
-					if len(cmdArgs) > len(splitedArgs)+1 {
-						lastArgs = cmdArgs[len(splitedArgs)+1:]
+				if len(cmdArgs)+1 > len(args) {
+					if len(cmdArgs) > len(args)+1 {
+						lastArgs = cmdArgs[len(args)+1:]
 					}
 
 					if cmd.Arg == "required" && len(lastArgs) == 0 {

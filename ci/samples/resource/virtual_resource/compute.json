@@ -1,15 +1,14 @@
 {
   "Kind": "Compute",
-  "Name": "testvm01",
-  "Cluster": "cluster1",
   "Spec": {
-    "Domain": "testvm01.example.com",
     "Kind": "Libvirt",
+    "Name": "testvm01",
+    "Region": "kanto",
     "Vcpus": 1,
     "MemorySize": 1024,
     "DiskSize": 2,
     "Image": "cirros-0.4.0",
-    "Network": "local-net1",
+    "DefaultNetwork": "local-net1",
     "Networks": ["local-net2", "local-net3"]
   }
 }

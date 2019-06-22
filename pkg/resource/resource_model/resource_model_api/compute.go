@@ -60,7 +60,7 @@ func (modelApi *ResourceModelApi) CreateCompute(tctx *logger.TraceContext, db *g
 		return codes.ClientBadRequest, err
 	}
 
-	var specs []resource_model.ComputeSpecData
+	var specs []resource_model.ComputeSpec
 	if err = json.Unmarshal([]byte(strSpecs), &specs); err != nil {
 		return codes.ClientBadRequest, err
 	}
@@ -82,11 +82,17 @@ func (modelApi *ResourceModelApi) CreateCompute(tctx *logger.TraceContext, db *g
 			}
 
 			data = resource_model.Compute{
-				Kind:        spec.Kind,
-				Name:        spec.Name,
-				Description: spec.Description,
-				Cluster:     spec.Cluster,
-				Domain:      spec.Domain,
+				Kind:         spec.Kind,
+				Name:         spec.Name,
+				Description:  spec.Description,
+				Region:       spec.Region,
+				Cluster:      spec.Cluster,
+				Image:        spec.Image,
+				Vcpus:        spec.Vcpus,
+				Memory:       spec.Memory,
+				Disk:         spec.Disk,
+				Status:       resource_model.StatusInitializing,
+				StatusReason: "CreateCompute",
 			}
 			if err = tx.Create(&data).Error; err != nil {
 				return codes.RemoteDbError, err
@@ -116,7 +122,7 @@ func (modelApi *ResourceModelApi) UpdateCompute(tctx *logger.TraceContext, db *g
 		return codes.ClientBadRequest, err
 	}
 
-	var specs []resource_model.ComputeSpecData
+	var specs []resource_model.ComputeSpec
 	if err = json.Unmarshal([]byte(strSpecs), &specs); err != nil {
 		return codes.ClientBadRequest, err
 	}
@@ -131,10 +137,9 @@ func (modelApi *ResourceModelApi) UpdateCompute(tctx *logger.TraceContext, db *g
 			return codes.ClientBadRequest, err
 		}
 		compute := &resource_model.Compute{
-			Kind:        spec.Kind,
-			Description: spec.Description,
-			Cluster:     spec.Cluster,
-			Domain:      spec.Domain,
+			Description:  spec.Description,
+			Status:       resource_model.StatusUpdating,
+			StatusReason: "UpdateCompute",
 		}
 		if err = tx.Model(compute).Where("name = ?", spec.Name).Updates(compute).Error; err != nil {
 			return codes.RemoteDbError, err
@@ -242,7 +247,7 @@ func (modelApi *ResourceModelApi) SyncCompute(tctx *logger.TraceContext) error {
 	for _, compute := range computes {
 		tctx.Metadata["ComputeId"] = strconv.FormatUint(uint64(compute.ID), 10)
 		switch compute.Status {
-		case resource_model.StatusCreating:
+		case resource_model.StatusInitializing:
 			modelApi.InitializeCompute(tctx, db, &compute)
 		case resource_model.StatusCreatingInitialized:
 			logger.Infof(tctx, "Found %v resource: %v", compute.Status, compute.Name)
@@ -267,6 +272,8 @@ func (modelApi *ResourceModelApi) InitializeCompute(tctx *logger.TraceContext, d
 	var err error
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	fmt.Println("DEBUG InitializeCompute")
 
 	if err = modelApi.AssignPort(tctx, db, compute); err != nil {
 		return

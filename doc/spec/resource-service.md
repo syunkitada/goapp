@@ -302,8 +302,9 @@
       - RackAZ: AntiAffinity
       - NetworkAZ: AntiAffinity
   - 仮想リソースを作成する際は、RegionService を指定して作成する
-    - オプションで Cluster、PowerAZ、RackAZ、NetworkAZ を指定する
-    - RegionService の Policy によってリソースを配置する
+    - Cluster は Region に紐図いてるので、Region により Cluster は自動決定する
+    - 仮想リソースは RegionService の Policy によって自動配置する
+    - オプションで Cluster、PowerAZ、RackAZ、NetworkAZ を指定できる
 
 ## ダッシュボードにおけるラック図、ネットワーク図の見せ方
 

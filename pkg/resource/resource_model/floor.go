@@ -27,19 +27,19 @@ type FloorSpec struct {
 }
 
 var FloorCmd map[string]index_model.Cmd = map[string]index_model.Cmd{
-	"CreateFloor": index_model.Cmd{
+	"create_floor": index_model.Cmd{
 		Arg:     index_model.ArgRequired,
 		ArgType: index_model.ArgTypeFile,
 		ArgKind: FloorKind,
 		Help:    "helptext",
 	},
-	"UpdateFloor": index_model.Cmd{
+	"update_floor": index_model.Cmd{
 		Arg:     index_model.ArgRequired,
 		ArgType: index_model.ArgTypeFile,
 		ArgKind: FloorKind,
 		Help:    "helptext",
 	},
-	"GetFloors": index_model.Cmd{
+	"get_floors": index_model.Cmd{
 		Arg:     index_model.ArgOptional,
 		ArgType: index_model.ArgTypeString,
 		ArgKind: FloorKind,
@@ -53,13 +53,13 @@ var FloorCmd map[string]index_model.Cmd = map[string]index_model.Cmd{
 		Help:        "helptext",
 		TableHeader: []string{"Name", "Kind", "Datacenter", "Zone", "Floor"},
 	},
-	"GetFloor": index_model.Cmd{
+	"get_floor": index_model.Cmd{
 		Arg:     index_model.ArgRequired,
 		ArgType: index_model.ArgTypeString,
 		ArgKind: FloorKind,
 		Help:    "helptext",
 	},
-	"DeleteFloor": index_model.Cmd{
+	"delete_floor": index_model.Cmd{
 		Arg:     index_model.ArgRequired,
 		ArgType: index_model.ArgTypeString,
 		ArgKind: FloorKind,
@@ -87,7 +87,7 @@ var FloorsTable = index_model.Table{
 			Link:           "Datacenters/:datacenter/Resources/Floors/Detail/:0/View",
 			LinkParam:      "resource",
 			LinkSync:       false,
-			LinkGetQueries: []string{"GetFloor"},
+			LinkGetQueries: []string{"get_floor"},
 		},
 		index_model.TableColumn{Name: "Kind"},
 		index_model.TableColumn{Name: "UpdatedAt", Kind: "Time"},

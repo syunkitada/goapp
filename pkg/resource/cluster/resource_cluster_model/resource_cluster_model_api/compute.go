@@ -264,13 +264,13 @@ func (modelApi *ResourceClusterModelApi) validateComputeSpec(db *gorm.DB, specSt
 	}
 
 	errors := []string{}
-	switch spec.Spec.Kind {
+	switch spec.Kind {
 	case resource_model.SpecKindComputeLibvirt:
 		// TODO Implement Validate SpecKindComputeLibvirt
 		fmt.Printf("Validate SpecKindComputeLibvirt is not implemented")
 
 	default:
-		errors = append(errors, fmt.Sprintf("Invalid kind: %v", spec.Spec.Kind))
+		errors = append(errors, fmt.Sprintf("Invalid kind: %v", spec.Kind))
 	}
 
 	if len(errors) > 0 {

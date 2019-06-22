@@ -5,15 +5,60 @@ import (
 	"github.com/syunkitada/goapp/pkg/authproxy/index_model"
 )
 
+const ImageKind = "Image"
+
 type Image struct {
 	gorm.Model
-	Cluster      string `gorm:"not null;size:50;"`
+	Region       string `gorm:"not null;size:50;"`
 	Name         string `gorm:"not null;size:255;"`
 	Kind         string `gorm:"not null;size:25;"`
 	Labels       string `gorm:"not null;size:255;"`
+	Description  string `gorm:"not null;size:255;"`
 	Status       string `gorm:"not null;size:25;"`
 	StatusReason string `gorm:"not null;size:50;"`
 	Spec         string `gorm:"not null;size:5000;"`
+}
+
+type ImageSpec struct {
+	Kind        string `validate:"required"`
+	Region      string `validate:"required"`
+	Name        string `validate:"required"`
+	Description string
+	Url         string
+}
+
+var ImageCmd map[string]index_model.Cmd = map[string]index_model.Cmd{
+	"create_image": index_model.Cmd{
+		Arg:     index_model.ArgRequired,
+		ArgType: index_model.ArgTypeFile,
+		ArgKind: ImageKind,
+		Help:    "create image",
+	},
+	"update_image": index_model.Cmd{
+		Arg:     index_model.ArgRequired,
+		ArgType: index_model.ArgTypeFile,
+		ArgKind: ImageKind,
+		Help:    "update image",
+	},
+	"get_images": index_model.Cmd{
+		Arg:         index_model.ArgOptional,
+		ArgType:     index_model.ArgTypeString,
+		ArgKind:     ImageKind,
+		Help:        "get images",
+		TableHeader: []string{"Name", "Kind", "Region"},
+	},
+	"get_image": index_model.Cmd{
+		Arg:     index_model.ArgRequired,
+		ArgType: index_model.ArgTypeString,
+		ArgKind: ImageKind,
+		Help:    "get image",
+	},
+	"delete_image": index_model.Cmd{
+		Arg:     index_model.ArgRequired,
+		ArgType: index_model.ArgTypeString,
+		ArgKind: ImageKind,
+		Help:    "delete image",
+	},
 }
 
 var ImagesTable = index_model.Table{
@@ -72,7 +117,7 @@ var ImagesDetail = index_model.Tabs{
 			Route:        "/Edit",
 			Kind:         "Form",
 			DataKey:      "Image",
-			SubmitAction: "Update",
+			SubmitAction: "update image",
 			Icon:         "Update",
 			Fields: []index_model.Field{
 				index_model.Field{Name: "Name", Kind: "text", Require: true,
