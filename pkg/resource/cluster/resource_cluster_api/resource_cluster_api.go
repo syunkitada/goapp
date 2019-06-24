@@ -63,8 +63,6 @@ func (srv *ResourceClusterApiServer) Action(ctx context.Context, req *resource_c
 	switch req.Tctx.ActionName {
 	case "GetNode":
 		srv.resourceClusterModelApi.GetNode(tctx, req, rep)
-	case "GetCompute":
-		srv.resourceClusterModelApi.GetCompute(tctx, req, rep)
 	default:
 		rep.Tctx.Err = fmt.Sprintf("InvalidAction: %v", req.Tctx.ActionName)
 		rep.Tctx.StatusCode = codes.ClientNotFound

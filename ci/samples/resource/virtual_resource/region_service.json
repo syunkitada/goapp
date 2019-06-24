@@ -1,8 +1,0 @@
-{
-  "Kind": "RegionService",
-  "Spec": {
-    "Name": "sample01",
-    "Kind": "Region",
-    "Region": "kanto"
-  }
-}

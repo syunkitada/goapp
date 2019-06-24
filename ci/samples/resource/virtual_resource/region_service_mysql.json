@@ -1,0 +1,25 @@
+{
+  "Kind": "RegionService",
+  "Spec": {
+    "Name": "service01",
+    "Kind": "Compute",
+    "Region": "kanto",
+    "SchedulePolicy": {
+      "Cluster": "Affinity",
+      "PowerAZ": "AntiAffinity",
+      "RackAZ": "AntiAffinity",
+      "NetworkAZ": "Affinity",
+      "Network": "Affinity"
+    },
+    "Compute": {
+      "Kind": "Qemu",
+      "Name": "test-mysql",
+      "Replicas": 3,
+      "Restart": "Always",
+      "Vcpus": 1,
+      "MemorySize": 1024,
+      "DiskSize": 10,
+      "Image": "mysql-0.0.1"
+    }
+  }
+}

@@ -8,6 +8,8 @@ import (
 	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_grpc_pb"
 	"github.com/syunkitada/goapp/pkg/lib/codes"
 	"github.com/syunkitada/goapp/pkg/lib/error_utils"
+	"github.com/syunkitada/goapp/pkg/lib/ip_utils"
+	"github.com/syunkitada/goapp/pkg/lib/ip_utils/ip_utils_model"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/resource/resource_model"
 )
@@ -181,15 +183,70 @@ func (modelApi *ResourceModelApi) DeleteNetworkV4(tctx *logger.TraceContext, db 
 	return codes.OkDeleted, nil
 }
 
-func (modelApi *ResourceModelApi) AssignPort(tctx *logger.TraceContext, db *gorm.DB, compute *resource_model.Compute) error {
+func (modelApi *ResourceModelApi) AssignNetworkV4Port(tctx *logger.TraceContext, tx *gorm.DB,
+	spec *resource_model.NetworkSpec, networks []resource_model.NetworkV4) error {
 	var err error
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
-	// TODO
-	// assign port(ip and mac)
+	fmt.Println("DEBUG ASSIGN")
+	netIds := []uint{}
+	netPortMap := map[uint]map[string]bool{}
+	netMacMap := map[uint]map[string]bool{}
+	for _, network := range networks {
+		netIds = append(netIds, network.ID)
+		netPortMap[network.ID] = map[string]bool{}
+	}
 
-	// TODO support multi network
+	var ports []resource_model.NetworkV4Port
+	if err = tx.Raw("SELECT net.id, ports.ip FROM network_v4_ports as ports "+
+		"INNER JOIN network_v4 as net ON net.id = ports.network_v4_id "+
+		"WHERE net.id IN (?)", netIds).Scan(&ports).Error; err != nil {
+		return err
+	}
+
+	for _, port := range ports {
+		netPortMap[port.ID][port.Ip] = true
+		netMacMap[port.ID][port.Mac] = true
+	}
+
+	nets := []resource_model.Network{}
+	for _, net := range networks {
+		var network *ip_utils_model.Network
+		if network, err = ip_utils.ParseNetwork(net.Subnet, net.Gateway, net.StartIp, net.EndIp); err != nil {
+			return err
+		}
+
+		portMap, _ := netPortMap[net.ID]
+		availableIps := []string{}
+		for {
+			ipStr := network.StartIp.String()
+			if _, ok := portMap[ipStr]; !ok {
+				availableIps = append(availableIps, ipStr)
+			}
+			ip_utils.IncrementIp(network.StartIp)
+			if ip_utils.CompareIp(network.StartIp, network.EndIp) == 0 {
+				break
+			}
+		}
+		nets = append(nets, resource_model.Network{
+			Id:           net.ID,
+			Name:         net.Name,
+			AvailableIps: availableIps,
+		})
+	}
+
+	// TODO AssignPort
+	// TODO Support MultiPort
+	// TODO Generate MAC
+	net := nets[0]
+	port := resource_model.NetworkV4Port{
+		NetworkV4ID: net.Id,
+		Ip:          net.AvailableIps[0],
+	}
+	if err = tx.Create(&port).Error; err != nil {
+		return err
+	}
 
 	return nil
 }

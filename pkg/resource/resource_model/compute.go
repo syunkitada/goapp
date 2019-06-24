@@ -13,48 +13,34 @@ type Compute struct {
 	PhysicalResourceID uint             `gorm:"not null;"`
 	Region             string           `gorm:"not null;size:50;"`
 	Cluster            string           `gorm:"not null;size:50;"`
-	Name               string           `gorm:"not null;size:200;"`
-	Description        string           `gorm:"not null;size:200;"`
+	RegionService      string           `gorm:"not null;size:63;"`
+	Name               string           `gorm:"not null;size:255;unique_index"`
 	Kind               string           `gorm:"not null;size:25;"`
 	Labels             string           `gorm:"not null;size:255;"`
 	Status             string           `gorm:"not null;size:25;"`
 	StatusReason       string           `gorm:"not null;size:50;"`
 	Spec               string           `gorm:"not null;size:5000;"`
-	Domain             string           `gorm:"not null;size:255;"`
+	Project            string           `gorm:"not null;size:63;"`
 	LinkSpec           string           `gorm:"not null;size:2500;"`
 	Image              string           `gorm:"not null;size:255;"`
+	DefaultNetworkIp   string           `gorm:"not null;size:255;"`
+	NetworkIps         string           `gorm:"not null;size:1000;"`
 	Vcpus              uint             `gorm:"not null;"`
 	Memory             uint             `gorm:"not null;"`
 	Disk               uint             `gorm:"not null;"`
 }
 
 type ComputeSpec struct {
-	Kind           string `validate:"required"`
-	Name           string `validate:"required"`
-	Region         string `validate:"required"`
-	Cluster        string
-	Description    string
-	Image          string `validate:"required"`
-	DefaultNetwork string `validate:"required"`
-	Networks       []string
-	Vcpus          uint
-	Memory         uint
-	Disk           uint
+	Kind     string `validate:"required"`
+	Cluster  string
+	Replicas int    `validate:"required"`
+	Image    string `validate:"required"`
+	Vcpus    uint
+	Memory   uint
+	Disk     uint
 }
 
 var ComputeCmd map[string]index_model.Cmd = map[string]index_model.Cmd{
-	"create_compute": index_model.Cmd{
-		Arg:     index_model.ArgRequired,
-		ArgType: index_model.ArgTypeFile,
-		ArgKind: ComputeKind,
-		Help:    "create compute",
-	},
-	"update_compute": index_model.Cmd{
-		Arg:     index_model.ArgRequired,
-		ArgType: index_model.ArgTypeFile,
-		ArgKind: ComputeKind,
-		Help:    "update compute",
-	},
 	"get_computes": index_model.Cmd{
 		Arg:     index_model.ArgOptional,
 		ArgType: index_model.ArgTypeString,
@@ -67,19 +53,13 @@ var ComputeCmd map[string]index_model.Cmd = map[string]index_model.Cmd{
 			},
 		},
 		Help:        "get computes",
-		TableHeader: []string{"Name", "Kind", "Region", "Image", "Vcpus", "Memory", "Disk", "IP", "Status"},
+		TableHeader: []string{"Region", "Cluster", "Name", "Image", "Vcpus", "Memory", "Disk", "Status"},
 	},
 	"get_compute": index_model.Cmd{
 		Arg:     index_model.ArgRequired,
 		ArgType: index_model.ArgTypeString,
 		ArgKind: ComputeKind,
 		Help:    "get compute",
-	},
-	"delete_compute": index_model.Cmd{
-		Arg:     index_model.ArgRequired,
-		ArgType: index_model.ArgTypeString,
-		ArgKind: ComputeKind,
-		Help:    "delete compute",
 	},
 }
 

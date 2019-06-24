@@ -74,6 +74,11 @@ func (modelApi *ResourceModelApi) CreateCluster(tctx *logger.TraceContext, db *g
 			return codes.ClientBadRequest, err
 		}
 
+		var datacenter resource_model.Datacenter
+		if err = tx.Where("name = ?", spec.Datacenter).First(&datacenter).Error; err != nil {
+			return codes.RemoteDbError, err
+		}
+
 		var data resource_model.Cluster
 		if err = tx.Where("name = ?", spec.Name).First(&data).Error; err != nil {
 			if !gorm.IsRecordNotFoundError(err) {
@@ -85,6 +90,7 @@ func (modelApi *ResourceModelApi) CreateCluster(tctx *logger.TraceContext, db *g
 				Name:         spec.Name,
 				Description:  spec.Description,
 				Datacenter:   spec.Datacenter,
+				Region:       datacenter.Region,
 				DomainSuffix: spec.DomainSuffix,
 			}
 			if err = tx.Create(&data).Error; err != nil {

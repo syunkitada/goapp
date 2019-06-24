@@ -412,3 +412,22 @@ floor-1-1-1-rack-1-2-rack-reaf-router02 --- rack-1-2-server2
 ```
 internet --- gateway-router --- floor-spine-router --- floor-leaf-router --- rack-spine-router --- rack-leaf-router --- server
 ```
+
+## 物理機材の新陳代謝
+
+- 物理機材には 5 年ほどの保守期限があるため、保守切れとなる前に利用を止め、新しいものに切り替える必要がある
+- ネットワーク機器、gateway-router, floor-spine-router, floor-leaf-router ,rack-spine-router ,rack-leaf-router については、新しい機器を取り付け、古い機器の BGP を切ることで入れ替えることが可能
+- サーバ機器については、Rack 単位で行い、その Rack 内のサーバ上リソースをすべて他の Rack にライブマイグレーションし、その Rack 単位で機材を総入れ替えする
+  - Rack マイグレーション用に空の Rack を余分に確保しておく必要がある
+    - 空 Rack は筐体交換用の倉庫として利用するとよい
+    - 機材が壊れたらここから交換して、センドバックする
+- リージョン単位の閉鎖およびマイグレーション
+  - データセンタ自体の劣化のためリージョン単位で閉鎖することも考慮する必要がある
+    - 閉鎖単位でリージョンを切る
+      - 基本的には、リージョンに対してデータセンタが一つの想定だが、クラスタ単位で閉鎖する場合はリージョンに対してクラスタも一つにしておく
+    - リソース利用ユーザにはリージョンだけを意識してもらう
+  - tokyo2 というリージョンを開設し、tokyo1 というリージョンを閉鎖する場合は、ユーザには tokyo1 リージョンから tokyo2 リージョンへ移動してもらう必要がある
+    - この場合、サービスが GlobalServcie に紐ずくという前提で以下の 2 通りの方法で移動することができる
+      - tokyo2 でサービスを作り直して GlobalService に紐づけ、tokyo1 のサービスを GlobalService から外して削除する
+      - 作り直しが難しい場合は、GlobalService から tokyo1 のサービスを外して停止し、tokyo2 へコールドマイグレーションしてサービスを再開して GlobalService に紐づける
+    - GlobalService に紐図かないサービス(バッチなど)の場合は、停止を許容して tokyo1 のサービスを停止し tokyo2 へ移行する

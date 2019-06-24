@@ -50,7 +50,7 @@ func (modelApi *ResourceModelApi) VirtualAction(tctx *logger.TraceContext,
 		case "get_region-services":
 			statusCode, err = modelApi.GetRegionServices(tctx, db, query, data)
 		case "create_region-service":
-			statusCode, err = modelApi.CreateRegionService(tctx, db, query)
+			statusCode, err = modelApi.CreateRegionService(tctx, db, req, query)
 		case "update_region-service":
 			statusCode, err = modelApi.UpdateRegionService(tctx, db, query)
 		case "delete_region-service":
@@ -82,12 +82,6 @@ func (modelApi *ResourceModelApi) VirtualAction(tctx *logger.TraceContext,
 			statusCode, err = modelApi.GetCompute(tctx, db, query, data)
 		case "get_computes":
 			statusCode, err = modelApi.GetComputes(tctx, db, query, data)
-		case "create_compute":
-			statusCode, err = modelApi.CreateCompute(tctx, db, query)
-		case "update_compute":
-			statusCode, err = modelApi.UpdateCompute(tctx, db, query)
-		case "delete_compute":
-			statusCode, err = modelApi.DeleteCompute(tctx, db, query)
 
 		case "get_image":
 			statusCode, err = modelApi.GetImage(tctx, db, query, data)

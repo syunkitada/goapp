@@ -28,7 +28,7 @@ func (srv *ResourceControllerServer) MainTask(tctx *logger.TraceContext) error {
 
 	wg := sync.WaitGroup{}
 	wg.Add(1)
-	go srv.SyncCompute(tctx, &wg)
+	go srv.SyncRegionService(tctx, &wg)
 	wg.Wait()
 
 	// TODO
@@ -103,7 +103,7 @@ func (srv *ResourceControllerServer) SyncRole(tctx *logger.TraceContext) error {
 	return nil
 }
 
-func (srv *ResourceControllerServer) SyncCompute(tctx *logger.TraceContext, wg *sync.WaitGroup) {
+func (srv *ResourceControllerServer) SyncRegionService(tctx *logger.TraceContext, wg *sync.WaitGroup) {
 	defer func() { wg.Done() }()
 	var err error
 	startTime := logger.StartTrace(tctx)
@@ -116,7 +116,7 @@ func (srv *ResourceControllerServer) SyncCompute(tctx *logger.TraceContext, wg *
 	defer cancel()
 
 	go func() {
-		errChan <- srv.resourceModelApi.SyncCompute(tctx)
+		errChan <- srv.resourceModelApi.SyncRegionService(tctx)
 	}()
 
 	select {

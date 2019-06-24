@@ -28,7 +28,7 @@ type Project struct {
 
 type ProjectRole struct {
 	gorm.Model
-	Name     string
+	Name     string    `gorm:"size:63;"`
 	Services []Service `gorm:"many2many:project_role_services"`
 }
 

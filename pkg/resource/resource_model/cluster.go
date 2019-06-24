@@ -9,6 +9,7 @@ const ClusterKind = "Cluster"
 
 type Cluster struct {
 	gorm.Model
+	Region       string `gorm:"not null;size:50;"`
 	Datacenter   string `gorm:"not null;size:50;"`
 	Name         string `gorm:"not null;size:50;unique_index;"`
 	Kind         string `gorm:"not null;size:25;"`
@@ -44,7 +45,7 @@ var ClusterCmd map[string]index_model.Cmd = map[string]index_model.Cmd{
 		ArgType:     index_model.ArgTypeString,
 		ArgKind:     ClusterKind,
 		Help:        "helptext",
-		TableHeader: []string{"Name", "Kind", "Datacenter", "DomainSuffix"},
+		TableHeader: []string{"Name", "Kind", "Region", "Datacenter", "DomainSuffix"},
 	},
 	"get_cluster": index_model.Cmd{
 		Arg:     index_model.ArgRequired,
