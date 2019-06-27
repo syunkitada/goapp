@@ -9,12 +9,12 @@
       "Cluster": "Affinity",
       "PowerAZ": "AntiAffinity",
       "RackAZ": "AntiAffinity",
-      "NetworkAZ": "Affinity",
-      "Network": "Affinity"
+      "NetworkAZ": "Affinity"
     },
     "Network": {
       "Version": 4,
       "Interfaces": 1,
+      "SchedulePolicy": "Affinity",
       "StaticNetworks": []
     },
     "Compute": {

@@ -1,6 +1,8 @@
 package ip_utils
 
 import (
+	"crypto/rand"
+	"fmt"
 	"net"
 
 	"github.com/syunkitada/goapp/pkg/lib/error_utils"
@@ -73,4 +75,31 @@ func CompareIp(ip1 net.IP, ip2 net.IP) int {
 	}
 
 	return 0
+}
+
+func GenerateRandomMac() (string, error) {
+	buf := make([]byte, 5)
+	_, err := rand.Read(buf)
+	if err != nil {
+		return "", err
+	}
+
+	oui := []uint8{0x02}
+	return fmt.Sprintf("%02x:%02x:%02x:%02x:%02x:%02x", oui[0], buf[0], buf[1], buf[2], buf[3], buf[4]), nil
+}
+
+func GenerateUniqueRandomMac(macMap map[string]bool, limit int) (string, error) {
+	var mac string
+	var err error
+	for i := 0; i < limit; i++ {
+		if mac, err = GenerateRandomMac(); err != nil {
+			return "", err
+		}
+
+		if _, ok := macMap[mac]; !ok {
+			return mac, err
+		}
+	}
+
+	return "", fmt.Errorf("Failed Generate Mac: Exceeded Limit %d", limit)
 }

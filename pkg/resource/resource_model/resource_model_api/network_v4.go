@@ -236,16 +236,27 @@ func (modelApi *ResourceModelApi) AssignNetworkV4Port(tctx *logger.TraceContext,
 		})
 	}
 
-	// TODO AssignPort
-	// TODO Support MultiPort
-	// TODO Generate MAC
-	net := nets[0]
-	port := resource_model.NetworkV4Port{
-		NetworkV4ID: net.Id,
-		Ip:          net.AvailableIps[0],
-	}
-	if err = tx.Create(&port).Error; err != nil {
-		return err
+	for i := 0; i < spec.Interfaces; i++ {
+		switch spec.SchedulePolicy {
+		case resource_model.SchedulePolicyAffinity:
+			net := nets[0]
+			ip := net.AvailableIps[i]
+			var mac string
+			macMap, _ := netMacMap[net.Id]
+			mac, err = ip_utils.GenerateUniqueRandomMac(macMap, 100)
+			if err != nil {
+				return err
+			}
+
+			port := resource_model.NetworkV4Port{
+				NetworkV4ID: net.Id,
+				Ip:          ip,
+				Mac:         mac,
+			}
+			if err = tx.Create(&port).Error; err != nil {
+				return err
+			}
+		}
 	}
 
 	return nil

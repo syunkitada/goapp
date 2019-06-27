@@ -36,6 +36,7 @@ type RegionServiceSpec struct {
 type NetworkSpec struct {
 	Version        int
 	Interfaces     int
+	SchedulePolicy string
 	StaticNetworks []string
 }
 
