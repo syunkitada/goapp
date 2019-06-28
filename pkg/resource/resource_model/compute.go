@@ -23,8 +23,6 @@ type Compute struct {
 	Project            string           `gorm:"not null;size:63;"`
 	LinkSpec           string           `gorm:"not null;size:2500;"`
 	Image              string           `gorm:"not null;size:255;"`
-	DefaultNetworkIp   string           `gorm:"not null;size:255;"`
-	NetworkIps         string           `gorm:"not null;size:1000;"`
 	Vcpus              uint             `gorm:"not null;"`
 	Memory             uint             `gorm:"not null;"`
 	Disk               uint             `gorm:"not null;"`
@@ -33,7 +31,8 @@ type Compute struct {
 type ComputeSpec struct {
 	Kind     string `validate:"required"`
 	Cluster  string
-	Replicas int    `validate:"required"`
+	Replicas int `validate:"required"`
+	Ports    []PortSpec
 	Image    string `validate:"required"`
 	Vcpus    uint
 	Memory   uint

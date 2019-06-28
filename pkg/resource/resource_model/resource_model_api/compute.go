@@ -144,19 +144,30 @@ func (modelApi *ResourceModelApi) InitializeCompute(tctx *logger.TraceContext, d
 		err = error_utils.NewNotFoundError("network")
 		return
 	}
-	fmt.Println("DEBUG compute:", compute.Cluster, spec.Network)
 
+	var ports []resource_model.PortSpec
 	tx := db.Begin()
 	defer tx.Rollback()
 	switch spec.Network.Version {
 	case 4:
-		modelApi.AssignNetworkV4Port(tctx, tx, &spec.Network, networkV4s)
+		if ports, err = modelApi.AssignNetworkV4Port(tctx, tx, &spec.Network, networkV4s, resource_model.ComputeKind, compute.Name); err != nil {
+			return
+		}
 	}
-
-	if err = modelApi.RegisterRecord(tctx, db, compute); err != nil {
+	spec.Compute.Ports = ports
+	specBytes, err := json_utils.Marshal(spec)
+	if err != nil {
 		return
 	}
-	// Update Creating Initialized
+
+	compute.Spec = string(specBytes)
+	compute.Status = resource_model.StatusCreating
+	compute.StatusReason = "InitializeCompute"
+	if err = tx.Save(compute).Error; err != nil {
+		return
+	}
+
+	tx.Commit()
 
 	return
 }

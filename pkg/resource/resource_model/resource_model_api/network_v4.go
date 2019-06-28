@@ -184,7 +184,7 @@ func (modelApi *ResourceModelApi) DeleteNetworkV4(tctx *logger.TraceContext, db 
 }
 
 func (modelApi *ResourceModelApi) AssignNetworkV4Port(tctx *logger.TraceContext, tx *gorm.DB,
-	spec *resource_model.NetworkSpec, networks []resource_model.NetworkV4) error {
+	spec *resource_model.NetworkSpec, networks []resource_model.NetworkV4, kind string, name string) ([]resource_model.PortSpec, error) {
 	var err error
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
@@ -202,7 +202,7 @@ func (modelApi *ResourceModelApi) AssignNetworkV4Port(tctx *logger.TraceContext,
 	if err = tx.Raw("SELECT net.id, ports.ip FROM network_v4_ports as ports "+
 		"INNER JOIN network_v4 as net ON net.id = ports.network_v4_id "+
 		"WHERE net.id IN (?)", netIds).Scan(&ports).Error; err != nil {
-		return err
+		return nil, err
 	}
 
 	for _, port := range ports {
@@ -214,7 +214,7 @@ func (modelApi *ResourceModelApi) AssignNetworkV4Port(tctx *logger.TraceContext,
 	for _, net := range networks {
 		var network *ip_utils_model.Network
 		if network, err = ip_utils.ParseNetwork(net.Subnet, net.Gateway, net.StartIp, net.EndIp); err != nil {
-			return err
+			return nil, err
 		}
 
 		portMap, _ := netPortMap[net.ID]
@@ -232,10 +232,13 @@ func (modelApi *ResourceModelApi) AssignNetworkV4Port(tctx *logger.TraceContext,
 		nets = append(nets, resource_model.Network{
 			Id:           net.ID,
 			Name:         net.Name,
+			Subnet:       net.Subnet,
+			Gateway:      net.Gateway,
 			AvailableIps: availableIps,
 		})
 	}
 
+	portSpecs := []resource_model.PortSpec{}
 	for i := 0; i < spec.Interfaces; i++ {
 		switch spec.SchedulePolicy {
 		case resource_model.SchedulePolicyAffinity:
@@ -245,21 +248,30 @@ func (modelApi *ResourceModelApi) AssignNetworkV4Port(tctx *logger.TraceContext,
 			macMap, _ := netMacMap[net.Id]
 			mac, err = ip_utils.GenerateUniqueRandomMac(macMap, 100)
 			if err != nil {
-				return err
+				return nil, err
 			}
 
 			port := resource_model.NetworkV4Port{
-				NetworkV4ID: net.Id,
-				Ip:          ip,
-				Mac:         mac,
+				NetworkV4ID:  net.Id,
+				Ip:           ip,
+				Mac:          mac,
+				ResourceKind: kind,
+				ResourceName: name,
 			}
 			if err = tx.Create(&port).Error; err != nil {
-				return err
+				return nil, err
 			}
+			portSpecs = append(portSpecs, resource_model.PortSpec{
+				Version: 4,
+				Subnet:  net.Subnet,
+				Gateway: net.Gateway,
+				Ip:      ip,
+				Mac:     mac,
+			})
 		}
 	}
 
-	return nil
+	return portSpecs, nil
 }
 
 func (modelApi *ResourceModelApi) RegisterRecord(tctx *logger.TraceContext, db *gorm.DB, compute *resource_model.Compute) error {

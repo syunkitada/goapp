@@ -28,15 +28,19 @@ type NetworkV4 struct {
 type Network struct {
 	Id           uint
 	Name         string
+	Subnet       string
+	Gateway      string
 	AvailableIps []string
 }
 
 type NetworkV4Port struct {
 	gorm.Model
-	NetworkV4   NetworkV4 `gorm:"foreignkey:NetworkV4ID;association_foreignkey:Refer;"`
-	NetworkV4ID uint      `gorm:"not null;"`
-	Ip          string    `gorm:"not null;"`
-	Mac         string    `gorm:"not null;"`
+	NetworkV4    NetworkV4 `gorm:"foreignkey:NetworkV4ID;association_foreignkey:Refer;"`
+	NetworkV4ID  uint      `gorm:"not null;"`
+	Ip           string    `gorm:"not null;"`
+	Mac          string    `gorm:"not null;"`
+	ResourceKind string    `gorm:"not null;"`
+	ResourceName string    `gorm:"not null;"`
 }
 
 type NetworkV4Spec struct {
