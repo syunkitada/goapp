@@ -184,7 +184,7 @@ func (modelApi *ResourceModelApi) DeleteNetworkV4(tctx *logger.TraceContext, db 
 }
 
 func (modelApi *ResourceModelApi) AssignNetworkV4Port(tctx *logger.TraceContext, tx *gorm.DB,
-	spec *resource_model.NetworkSpec, networks []resource_model.NetworkV4, kind string, name string) ([]resource_model.PortSpec, error) {
+	spec *resource_model.NetworkPolicySpec, networks []resource_model.NetworkV4, kind string, name string) ([]resource_model.PortSpec, error) {
 	var err error
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
@@ -240,7 +240,7 @@ func (modelApi *ResourceModelApi) AssignNetworkV4Port(tctx *logger.TraceContext,
 
 	portSpecs := []resource_model.PortSpec{}
 	for i := 0; i < spec.Interfaces; i++ {
-		switch spec.SchedulePolicy {
+		switch spec.AssignPolicy {
 		case resource_model.SchedulePolicyAffinity:
 			net := nets[0]
 			ip := net.AvailableIps[i]

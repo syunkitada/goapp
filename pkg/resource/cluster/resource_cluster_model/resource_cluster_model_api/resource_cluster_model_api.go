@@ -49,6 +49,7 @@ func (modelApi *ResourceClusterModelApi) Bootstrap(tctx *logger.TraceContext) er
 
 	db.AutoMigrate(&resource_model.Node{})
 	db.AutoMigrate(&resource_model.Compute{})
+	db.AutoMigrate(&resource_model.ComputeAssignment{})
 	return nil
 }
 

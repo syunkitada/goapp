@@ -22,10 +22,9 @@ type ResourceClusterConfig struct {
 }
 
 type ResourceNodeConfig struct {
-	ClusterName             string
-	NetworkAvailabilityZone string
-	NodeAvailabilityZone    string
-	Compute                 ResourceComputeConfig
+	ClusterName string
+	Labels      string
+	Compute     ResourceComputeConfig
 }
 
 type ResourceComputeConfig struct {

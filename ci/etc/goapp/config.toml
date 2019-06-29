@@ -153,8 +153,7 @@ Connection = "goapp:goapppass@tcp(127.0.0.1:3306)/goapp_resource_tokyo1?charset=
 
 [Resource.Node]
 ClusterName = "tokyo1"
-NetworkAvailabilityZone = "nw1"
-NodeAvailabilityZone = "node1"
+Labels = "NwAz:nw1;NodeAz:node1;PowerAz:power1;"
 
 [Resource.Node.Compute]
 CpuMode = "host-model"

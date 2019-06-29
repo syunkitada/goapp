@@ -166,6 +166,75 @@ func (modelApi *ResourceClusterModelApi) SyncCompute(tctx *logger.TraceContext) 
 	}
 	defer modelApi.close(tctx, db)
 
+	tx := db.Begin()
+	defer tx.Rollback()
+	var computes []resource_model.Compute
+	if err = tx.Find(&computes).Error; err != nil {
+		return err
+	}
+
+	query := tx.Table("compute_assignments as ca").
+		Select("ca.status, c.name as compute_name, c.spec as compute_spec, n.name as node_name").
+		Joins("INNER JOIN computes AS c ON c.id = ca.compute_id").
+		Joins("INNER JOIN nodes AS n ON n.id = ca.node_id")
+	var assignments []resource_model.ComputeAssignmentWithComputeAndNode
+	if err = query.Find(&assignments).Error; err != nil {
+		return nil
+	}
+	tx.Commit()
+
+	assignmentsMap := map[string][]resource_model.ComputeAssignmentWithComputeAndNode{}
+	for _, assignment := range assignments {
+		assignments, ok := assignmentsMap[assignment.ComputeName]
+		if !ok {
+			assignments = []resource_model.ComputeAssignmentWithComputeAndNode{}
+		}
+		assignments = append(assignments, assignment)
+		assignmentsMap[assignment.ComputeName] = assignments
+	}
+
+	fmt.Println("DEBUG assignments", assignments)
+	for _, compute := range computes {
+		switch compute.Status {
+		case resource_model.StatusInitializing:
+			modelApi.AssignCompute(tctx, db, &compute, assignmentsMap, false)
+		}
+	}
+
 	fmt.Println("TODO SyncCompute")
 	return nil
+}
+
+func (modelApi *ResourceClusterModelApi) AssignCompute(tctx *logger.TraceContext, db *gorm.DB,
+	compute *resource_model.Compute,
+	assignmentsMap map[string][]resource_model.ComputeAssignmentWithComputeAndNode,
+	isReschedule bool) {
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	// assignNodes := []uint{}
+	// updateNodes := []uint{}
+	// unassignNodes := []uint{}
+
+	// var spec resource_model.RegionServiceSpec
+	// if err = json_utils.Unmarshal(compute.Spec, &spec); err != nil {
+	// 	return err
+	// }
+
+	// currentAssignments, ok := assignmentsMap[compute.Name]
+	// if ok {
+	// 	infoMsg := []string{}
+	// 	for _, currentAssignment := range currentAssignments {
+	// 		infoMsg = append(infoMsg, currentAssignment.NodeName)
+	// 	}
+	// 	logger.Infof(tctx, "currentAssignments: %v", infoMsg)
+	// }
+
+	// // policy := spec.SchedulePolicy
+
+	// if !isReschedule {
+	// 	for _, assignment := range currentAssignments {
+	// 	}
+	// }
 }

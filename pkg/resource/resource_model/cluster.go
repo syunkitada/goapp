@@ -15,6 +15,7 @@ type Cluster struct {
 	Kind         string `gorm:"not null;size:25;"`
 	Description  string `gorm:"not null;size:200;"`
 	DomainSuffix string `gorm:"not null;size:255;unique;"`
+	Labels       string `gorm:"not null;size:500;"`
 	Spec         string `gorm:"not null;size:1000;"`
 }
 

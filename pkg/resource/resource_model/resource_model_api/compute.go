@@ -50,7 +50,7 @@ func (modelApi *ResourceModelApi) CreateCompute(tctx *logger.TraceContext, tx *g
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
 	specCompute := spec.Compute
-	for i := 0; i < specCompute.Replicas; i++ {
+	for i := 0; i < specCompute.SchedulePolicy.Replicas; i++ {
 		name := fmt.Sprintf("%s.r%d.%s.%s", spec.Name, i, regionService.Project, cluster.DomainSuffix)
 		var data resource_model.Compute
 		if err = tx.Where("name = ?", name).First(&data).Error; err != nil {
@@ -149,9 +149,9 @@ func (modelApi *ResourceModelApi) InitializeCompute(tctx *logger.TraceContext, d
 	var ports []resource_model.PortSpec
 	tx := db.Begin()
 	defer tx.Rollback()
-	switch spec.Network.Version {
+	switch spec.Compute.NetworkPolicy.Version {
 	case 4:
-		if ports, err = modelApi.AssignNetworkV4Port(tctx, tx, &spec.Network, networkV4s, resource_model.ComputeKind, compute.Name); err != nil {
+		if ports, err = modelApi.AssignNetworkV4Port(tctx, tx, &spec.Compute.NetworkPolicy, networkV4s, resource_model.ComputeKind, compute.Name); err != nil {
 			return
 		}
 	}

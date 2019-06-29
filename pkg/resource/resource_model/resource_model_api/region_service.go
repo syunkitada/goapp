@@ -323,10 +323,9 @@ func (modelApi *ResourceModelApi) InitializeRegionService(tctx *logger.TraceCont
 	}
 
 	var cluster resource_model.Cluster
-	switch spec.SchedulePolicy.Cluster {
-	case resource_model.SchedulePolicyAffinity:
-		cluster = clusters[0]
-	}
+	fmt.Println("TODO: filter cluster", spec.Compute.SchedulePolicy.ClusterFilters)
+	fmt.Println("TODO: filter cluster", spec.Compute.SchedulePolicy.ClusterFilters)
+	cluster = clusters[0]
 
 	tx := db.Begin()
 	defer tx.Rollback()

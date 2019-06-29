@@ -6,20 +6,16 @@
     "Region": "kanto",
     "ExpireDate": -1,
     "SchedulePolicy": {
-      "Cluster": "Affinity",
-      "PowerAZ": "AntiAffinity",
-      "RackAZ": "AntiAffinity",
-      "NetworkAZ": "Affinity"
+      "Replicas": 1
     },
     "Network": {
       "Version": 4,
       "Interfaces": 1,
-      "SchedulePolicy": "Affinity",
+      "AssignPolicy": "Affinity",
       "StaticNetworks": []
     },
     "Compute": {
       "Kind": "Qemu",
-      "Replicas": 1,
       "Restart": "Always",
       "Vcpus": 1,
       "Memory": 1024,

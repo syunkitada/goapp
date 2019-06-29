@@ -16,6 +16,8 @@ type Node struct {
 	StatusReason string `gorm:"not null;size:50;"`
 	State        string `gorm:"not null;size:25;"`
 	StateReason  string `gorm:"not null;size:50;"`
+	ClusterName  string `gorm:"not null;size:50;"`
+	Labels       string `gorm:"not null;size:500;"`
 }
 
 type NodeSpec struct {

@@ -24,19 +24,17 @@ type RegionService struct {
 }
 
 type RegionServiceSpec struct {
-	Name           string `validate:"required"`
-	Region         string `validate:"required"`
-	Kind           string `validate:"required"`
-	Cluster        string
-	SchedulePolicy SchedulePolicySpec
-	Network        NetworkSpec
-	Compute        ComputeSpec
+	Name    string `validate:"required"`
+	Region  string `validate:"required"`
+	Kind    string `validate:"required"`
+	Cluster string
+	Compute ComputeSpec
 }
 
-type NetworkSpec struct {
+type NetworkPolicySpec struct {
 	Version        int
 	Interfaces     int
-	SchedulePolicy string
+	AssignPolicy   string
 	StaticNetworks []string
 }
 
@@ -49,11 +47,15 @@ type PortSpec struct {
 }
 
 type SchedulePolicySpec struct {
-	Cluster   string
-	PowerAZ   string
-	RackAZ    string
-	NetworkAZ string
-	Network   string
+	Replicas                    int `validate:"required"`
+	ClusterFilters              []string
+	ClusterLabelFilters         []string
+	NodeFilters                 []string
+	NodeLabelFilters            []string
+	NodeLabelSoftUntiAffinities []string
+	NodeLabelSoftAffinities     []string
+	NodeLabelHardUntiAffinities []string
+	NodeLabelHardAffinities     []string
 }
 
 var RegionServiceCmd map[string]index_model.Cmd = map[string]index_model.Cmd{

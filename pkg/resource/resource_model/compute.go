@@ -29,16 +29,35 @@ type Compute struct {
 	Disk               uint             `gorm:"not null;"`
 }
 
+type ComputeAssignment struct {
+	gorm.Model
+	Compute      Compute `gorm:"foreignkey:ComputeID;association_foreignkey:Refer;"`
+	ComputeID    uint    `gorm:"not null;"`
+	Node         Node    `gorm:"foreignkey:NodeID;association_foreignkey:Refer;"`
+	NodeID       uint    `gorm:"not null;"`
+	Status       string  `gorm:"not null;size:25;"`
+	StatusReason string  `gorm:"not null;size:50;"`
+}
+
+type ComputeAssignmentWithComputeAndNode struct {
+	ComputeSpec  string
+	ComputeName  string
+	NodeName     string
+	Status       string
+	StatusReason string
+}
+
 type ComputeSpec struct {
-	Kind     string `validate:"required"`
-	Replicas int    `validate:"required"`
-	Image    string `validate:"required"`
-	Name     string
-	Cluster  string
-	Ports    []PortSpec
-	Vcpus    uint
-	Memory   uint
-	Disk     uint
+	Kind           string `validate:"required"`
+	Image          string `validate:"required"`
+	SchedulePolicy SchedulePolicySpec
+	NetworkPolicy  NetworkPolicySpec
+	Name           string
+	Cluster        string
+	Ports          []PortSpec
+	Vcpus          uint
+	Memory         uint
+	Disk           uint
 }
 
 type ActionResponse struct {
