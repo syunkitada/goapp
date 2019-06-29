@@ -19,95 +19,93 @@ func (modelApi *ResourceModelApi) VirtualAction(tctx *logger.TraceContext,
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
+	data := map[string]interface{}{}
 	response := authproxy_model.ActionResponse{
 		Tctx: *req.Tctx,
 	}
 
 	var db *gorm.DB
 	if db, err = modelApi.open(tctx); err != nil {
-		authproxy_utils.MergeResponse(rep, &response, nil, err, codes.RemoteDbError)
+		authproxy_utils.MergeResponse(rep, &response, data, err, codes.RemoteDbError)
 		return
 	}
-	defer func() {
-		tmpErr := db.Close()
-		if tmpErr != nil {
-			logger.Error(tctx, tmpErr)
-		}
-	}()
+	defer modelApi.close(tctx, db)
 
-	data := map[string]interface{}{}
-	statusCode = codes.ClientNotFound
+	tmpStatusCode := codes.Unknown
+	statusCode = codes.Unknown
 	for _, query := range req.Queries {
 		switch query.Kind {
 		case "get_index":
 			response.Index = *modelApi.getVirtualIndex()
 		case "get_dashboard-index":
 			response.Index = *modelApi.getVirtualIndex()
-			statusCode, err = modelApi.GetClusters(tctx, db, query, data)
+			tmpStatusCode, err = modelApi.GetClusters(tctx, db, query, data)
 
 		case "get_region-service":
-			statusCode, err = modelApi.GetRegionService(tctx, db, query, data)
+			tmpStatusCode, err = modelApi.GetRegionService(tctx, db, query, data)
 		case "get_region-services":
-			statusCode, err = modelApi.GetRegionServices(tctx, db, query, data)
+			tmpStatusCode, err = modelApi.GetRegionServices(tctx, db, query, data)
 		case "create_region-service":
-			statusCode, err = modelApi.CreateRegionService(tctx, db, req, query)
+			tmpStatusCode, err = modelApi.CreateRegionService(tctx, db, req, query)
 		case "update_region-service":
-			statusCode, err = modelApi.UpdateRegionService(tctx, db, query)
+			tmpStatusCode, err = modelApi.UpdateRegionService(tctx, db, query)
 		case "delete_region-service":
-			statusCode, err = modelApi.DeleteRegionService(tctx, db, query)
+			tmpStatusCode, err = modelApi.DeleteRegionService(tctx, db, query)
 
 		case "get_cluster":
-			statusCode, err = modelApi.GetCluster(tctx, db, query, data)
+			tmpStatusCode, err = modelApi.GetCluster(tctx, db, query, data)
 		case "get_clusters":
-			statusCode, err = modelApi.GetClusters(tctx, db, query, data)
+			tmpStatusCode, err = modelApi.GetClusters(tctx, db, query, data)
 		case "create_cluster":
-			statusCode, err = modelApi.CreateCluster(tctx, db, query)
+			tmpStatusCode, err = modelApi.CreateCluster(tctx, db, query)
 		case "update_cluster":
-			statusCode, err = modelApi.UpdateCluster(tctx, db, query)
+			tmpStatusCode, err = modelApi.UpdateCluster(tctx, db, query)
 		case "delete_cluster":
-			statusCode, err = modelApi.DeleteCluster(tctx, db, query)
+			tmpStatusCode, err = modelApi.DeleteCluster(tctx, db, query)
 
 		case "get_node":
-			statusCode, err = modelApi.GetNode(tctx, db, query, data)
+			tmpStatusCode, err = modelApi.GetNode(tctx, db, query, data)
 		case "get_nodes":
-			statusCode, err = modelApi.GetNodes(tctx, db, query, data)
-		// case "create_node":
-		// 	statusCode, err = modelApi.CreateNode(tctx, db, query)
-		// case "update_node":
-		// 	statusCode, err = modelApi.UpdateNode(tctx, db, query)
+			tmpStatusCode, err = modelApi.GetNodes(tctx, db, query, data)
+		case "update_node":
+			tmpStatusCode, err = modelApi.UpdateNode(tctx, db, query)
 		case "delete_node":
-			statusCode, err = modelApi.DeleteNode(tctx, db, query)
+			tmpStatusCode, err = modelApi.DeleteNode(tctx, db, query)
 
 		case "get_compute":
-			statusCode, err = modelApi.GetCompute(tctx, db, query, data)
+			tmpStatusCode, err = modelApi.GetCompute(tctx, db, query, data)
 		case "get_computes":
-			statusCode, err = modelApi.GetComputes(tctx, db, query, data)
+			tmpStatusCode, err = modelApi.GetComputes(tctx, db, query, data)
 
 		case "get_image":
-			statusCode, err = modelApi.GetImage(tctx, db, query, data)
+			tmpStatusCode, err = modelApi.GetImage(tctx, db, query, data)
 		case "get_images":
-			statusCode, err = modelApi.GetImages(tctx, db, query, data)
+			tmpStatusCode, err = modelApi.GetImages(tctx, db, query, data)
 		case "create_image":
-			statusCode, err = modelApi.CreateImage(tctx, db, query)
+			tmpStatusCode, err = modelApi.CreateImage(tctx, db, query)
 		case "update_image":
-			statusCode, err = modelApi.UpdateImage(tctx, db, query)
+			tmpStatusCode, err = modelApi.UpdateImage(tctx, db, query)
 		case "delete_image":
-			statusCode, err = modelApi.DeleteImage(tctx, db, query)
+			tmpStatusCode, err = modelApi.DeleteImage(tctx, db, query)
 
 		case "get_network-v4":
-			statusCode, err = modelApi.GetNetworkV4(tctx, db, query, data)
+			tmpStatusCode, err = modelApi.GetNetworkV4(tctx, db, query, data)
 		case "get_network-v4s":
-			statusCode, err = modelApi.GetNetworkV4s(tctx, db, query, data)
+			tmpStatusCode, err = modelApi.GetNetworkV4s(tctx, db, query, data)
 		case "create_network-v4":
-			statusCode, err = modelApi.CreateNetworkV4(tctx, db, query)
+			tmpStatusCode, err = modelApi.CreateNetworkV4(tctx, db, query)
 		case "update_network-v4":
-			statusCode, err = modelApi.UpdateNetworkV4(tctx, db, query)
+			tmpStatusCode, err = modelApi.UpdateNetworkV4(tctx, db, query)
 		case "delete_network-v4":
-			statusCode, err = modelApi.DeleteNetworkV4(tctx, db, query)
+			tmpStatusCode, err = modelApi.DeleteNetworkV4(tctx, db, query)
 		}
 
 		if err != nil {
 			break
+		}
+
+		if tmpStatusCode > statusCode {
+			statusCode = tmpStatusCode
 		}
 	}
 

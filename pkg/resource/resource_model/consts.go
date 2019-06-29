@@ -10,8 +10,11 @@ const (
 )
 
 const (
-	KindResourceController = "ResourceController"
-	KindResourceApi        = "ResourceApi"
+	KindResourceController        = "ResourceController"
+	KindResourceApi               = "ResourceApi"
+	KindResourceClusterController = "ResourceClusterController"
+	KindResourceClusterApi        = "ResourceClusterApi"
+	KindResourceClusterAgent      = "ResourceClusterAgent"
 )
 
 const (

@@ -2,6 +2,7 @@ package resource_model
 
 import (
 	"github.com/jinzhu/gorm"
+	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_grpc_pb"
 	"github.com/syunkitada/goapp/pkg/authproxy/index_model"
 )
 
@@ -30,13 +31,23 @@ type Compute struct {
 
 type ComputeSpec struct {
 	Kind     string `validate:"required"`
-	Cluster  string
-	Replicas int `validate:"required"`
-	Ports    []PortSpec
+	Replicas int    `validate:"required"`
 	Image    string `validate:"required"`
+	Name     string
+	Cluster  string
+	Ports    []PortSpec
 	Vcpus    uint
 	Memory   uint
 	Disk     uint
+}
+
+type ActionResponse struct {
+	Tctx authproxy_grpc_pb.TraceContext
+	Data ResponseData
+}
+
+type ResponseData struct {
+	Computes []Compute
 }
 
 var ComputeCmd map[string]index_model.Cmd = map[string]index_model.Cmd{

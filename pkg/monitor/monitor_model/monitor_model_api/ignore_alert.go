@@ -183,12 +183,10 @@ func (modelApi *MonitorModelApi) convertIgnoreAlerts(tctx *logger.TraceContext, 
 	for i, ignoreAlert := range ignoreAlerts {
 		updatedAt, err := ptypes.TimestampProto(ignoreAlert.Model.UpdatedAt)
 		if err != nil {
-			logger.Warningf(tctx, err, "Failed ptypes.TimestampProto: %v", ignoreAlert.Model.UpdatedAt)
 			continue
 		}
 		createdAt, err := ptypes.TimestampProto(ignoreAlert.Model.CreatedAt)
 		if err != nil {
-			logger.Warningf(tctx, err, "Failed ptypes.TimestampProto: %v", ignoreAlert.Model.CreatedAt)
 			continue
 		}
 

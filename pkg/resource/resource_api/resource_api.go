@@ -36,27 +36,6 @@ func (srv *ResourceApiServer) RegisterGrpcServer(grpcServer *grpc.Server) error 
 	return nil
 }
 
-func (srv *ResourceApiServer) Status(ctx context.Context, statusRequest *resource_api_grpc_pb.StatusRequest) (*resource_api_grpc_pb.StatusReply, error) {
-	return &resource_api_grpc_pb.StatusReply{Msg: "Status"}, nil
-}
-
-//
-// Node
-//
-func (srv *ResourceApiServer) UpdateNode(ctx context.Context, req *resource_api_grpc_pb.UpdateNodeRequest) (*resource_api_grpc_pb.UpdateNodeReply, error) {
-	var err error
-	rep := &resource_api_grpc_pb.UpdateNodeReply{Tctx: req.Tctx}
-	tctx := logger.NewGrpcAuthproxyTraceContext(srv.Host, srv.Name, ctx, req.Tctx)
-	startTime := logger.StartTrace(tctx)
-	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
-
-	srv.resourceModelApi.UpdateNode(tctx, req, rep)
-	return rep, nil
-}
-
-//
-// Action
-//
 func (srv *ResourceApiServer) PhysicalAction(ctx context.Context,
 	req *authproxy_grpc_pb.ActionRequest) (*authproxy_grpc_pb.ActionReply, error) {
 	var err error
@@ -78,5 +57,25 @@ func (srv *ResourceApiServer) VirtualAction(ctx context.Context,
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
 	srv.resourceModelApi.VirtualAction(tctx, req, rep)
+	return rep, nil
+}
+
+func (srv *ResourceApiServer) localVirtualAction(tctx *logger.TraceContext, atctx *logger.ActionTraceContext) (*authproxy_grpc_pb.ActionReply, error) {
+	queries := []*authproxy_grpc_pb.Query{}
+	for _, query := range atctx.Queries {
+		queries = append(queries, &authproxy_grpc_pb.Query{
+			Kind:      query.Kind,
+			StrParams: query.StrParams,
+			NumParams: query.NumParams,
+		})
+	}
+
+	req := authproxy_grpc_pb.ActionRequest{
+		Tctx:    logger.NewAuthproxyTraceContext(nil, atctx),
+		Queries: queries,
+	}
+	rep := &authproxy_grpc_pb.ActionReply{Tctx: req.Tctx}
+
+	srv.resourceModelApi.VirtualAction(tctx, &req, rep)
 	return rep, nil
 }

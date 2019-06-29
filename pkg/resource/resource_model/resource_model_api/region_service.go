@@ -2,10 +2,12 @@ package resource_model_api
 
 import (
 	"encoding/json"
+	"fmt"
 	"strconv"
 
 	"github.com/jinzhu/gorm"
 	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_grpc_pb"
+	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_model"
 	"github.com/syunkitada/goapp/pkg/lib/codes"
 	"github.com/syunkitada/goapp/pkg/lib/error_utils"
 	"github.com/syunkitada/goapp/pkg/lib/json_utils"
@@ -186,7 +188,7 @@ func (modelApi *ResourceModelApi) SyncRegionService(tctx *logger.TraceContext) e
 	if db, err = modelApi.open(tctx); err != nil {
 		return err
 	}
-	defer func() { err = db.Close() }()
+	defer modelApi.close(tctx, db)
 
 	clusterNetworksMap := map[string][]resource_model.NetworkV4{}
 	var networks []resource_model.NetworkV4
@@ -240,6 +242,39 @@ func (modelApi *ResourceModelApi) SyncRegionService(tctx *logger.TraceContext) e
 		tctx.Metadata = map[string]string{}
 	}
 
+	clusterComputeMap := map[string]map[string]resource_model.Compute{}
+	for clusterName, clusterApiClient := range modelApi.clusterClientMap {
+		computeMap, ok := clusterComputeMap[clusterName]
+		if !ok {
+			computeMap = map[string]resource_model.Compute{}
+		}
+
+		queries := []authproxy_model.Query{
+			authproxy_model.Query{
+				Kind: "get_computes",
+			},
+		}
+		var rep *authproxy_grpc_pb.ActionReply
+		if rep, err = clusterApiClient.Action(
+			logger.NewActionTraceContext(tctx, "system", "system", queries)); err != nil {
+			return err
+		}
+
+		var resp resource_model.ActionResponse
+		if err = json_utils.Unmarshal(rep.Response, &resp); err != nil {
+			return err
+		}
+		if resp.Tctx.StatusCode == codes.OkRead {
+			for _, compute := range resp.Data.Computes {
+				fmt.Println("DEBUG NAME", compute.Name)
+				computeMap[compute.Name] = compute
+			}
+		}
+
+		clusterComputeMap[clusterName] = computeMap
+	}
+	fmt.Println("DEBUG clusterComputeMap", clusterComputeMap)
+
 	// SyncComputes
 	var computes []resource_model.Compute
 	if err = db.Find(&computes).Error; err != nil {
@@ -251,8 +286,8 @@ func (modelApi *ResourceModelApi) SyncRegionService(tctx *logger.TraceContext) e
 		switch compute.Status {
 		case resource_model.StatusInitializing:
 			modelApi.InitializeCompute(tctx, db, &compute, clusterNetworksMap)
-		case resource_model.StatusCreatingInitialized:
-			logger.Infof(tctx, "Found %v resource: %v", compute.Status, compute.Name)
+		case resource_model.StatusCreating:
+			modelApi.CreateClusterCompute(tctx, db, &compute, clusterComputeMap)
 		case resource_model.StatusCreatingScheduled:
 			logger.Infof(tctx, "Found %v resource: %v", compute.Status, compute.Name)
 		case resource_model.StatusUpdating:
@@ -283,8 +318,7 @@ func (modelApi *ResourceModelApi) InitializeRegionService(tctx *logger.TraceCont
 
 	clusters, ok := regionClustersMap[spec.Region]
 	if !ok {
-		err = error_utils.NewNotFoundError("cluster")
-		logger.Warningf(tctx, err, "cluster not found: region=%v", spec.Region)
+		logger.Warningf(tctx, "cluster not found: region=%v", spec.Region)
 		return
 	}
 

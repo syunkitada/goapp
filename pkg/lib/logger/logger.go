@@ -88,6 +88,18 @@ func NewCtlTraceContext(app string) *TraceContext {
 	}
 }
 
+func NewActionTraceContext(tctx *TraceContext, projectName string, projectRoleName string,
+	queries []authproxy_model.Query) *ActionTraceContext {
+	return &ActionTraceContext{
+		TraceContext:    *tctx,
+		UserName:        tctx.Host,
+		RoleName:        tctx.App,
+		ProjectName:     projectName,
+		ProjectRoleName: projectRoleName,
+		Queries:         queries,
+	}
+}
+
 func NewAuthproxyActionTraceContext(host string, app string, c *gin.Context) (*ActionTraceContext, error) {
 	traceId, traceIdOk := c.Get("TraceId")
 	username, usernameOk := c.Get("Username")
@@ -300,16 +312,16 @@ func Infof(tctx *TraceContext, format string, args ...interface{}) {
 		"\" Msg=\"" + fmt.Sprintf(format, args...) + "\"" + convertTags(tctx))
 }
 
-func Warning(tctx *TraceContext, err error, args ...interface{}) {
+func Warning(tctx *TraceContext, args ...interface{}) {
 	tctx.Func = getFunc(0)
 	Logger.Print(timePrefix() + " Level=\"" + warningLog +
-		"\" Err=\"" + err.Error() + "\" Msg=\"" + fmt.Sprint(args...) + "\"" + convertTags(tctx))
+		"\" Msg=\"" + fmt.Sprint(args...) + "\"" + convertTags(tctx))
 }
 
-func Warningf(tctx *TraceContext, err error, format string, args ...interface{}) {
+func Warningf(tctx *TraceContext, format string, args ...interface{}) {
 	tctx.Func = getFunc(0)
 	Logger.Print(timePrefix() + " Level=\"" + warningLog +
-		"\" Err=\"" + err.Error() + "\" Msg=\"" + fmt.Sprintf(format, args...) + "\"" + convertTags(tctx))
+		"\" Msg=\"" + fmt.Sprintf(format, args...) + "\"" + convertTags(tctx))
 }
 
 func Error(tctx *TraceContext, err error, args ...interface{}) {

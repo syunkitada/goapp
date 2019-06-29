@@ -10,7 +10,7 @@ import (
 
 	"github.com/syunkitada/goapp/pkg/config"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
-	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_model"
+	"github.com/syunkitada/goapp/pkg/resource/resource_model"
 )
 
 type ResourceClusterModelApi struct {
@@ -36,18 +36,19 @@ func NewResourceClusterModelApi(conf *config.Config) *ResourceClusterModelApi {
 	return &modelApi
 }
 
-func (modelApi *ResourceClusterModelApi) Bootstrap() error {
-	db, dbErr := gorm.Open("mysql", modelApi.cluster.Database.Connection)
-	defer db.Close()
-	if dbErr != nil {
-		return dbErr
+func (modelApi *ResourceClusterModelApi) Bootstrap(tctx *logger.TraceContext) error {
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	var db *gorm.DB
+	if db, err = modelApi.open(tctx); err != nil {
+		return err
 	}
-	db.LogMode(modelApi.conf.Default.EnableDatabaseLog)
+	defer modelApi.close(tctx, db)
 
-	db.AutoMigrate(&resource_cluster_model.Node{})
-	db.AutoMigrate(&resource_cluster_model.Region{})
-	db.AutoMigrate(&resource_cluster_model.Compute{})
-
+	db.AutoMigrate(&resource_model.Node{})
+	db.AutoMigrate(&resource_model.Compute{})
 	return nil
 }
 
@@ -63,4 +64,10 @@ func (modelApi *ResourceClusterModelApi) open(tctx *logger.TraceContext) (*gorm.
 	db.LogMode(modelApi.conf.Default.EnableDatabaseLog)
 
 	return db, err
+}
+
+func (modelApi *ResourceClusterModelApi) close(tctx *logger.TraceContext, db *gorm.DB) {
+	if err := db.Close(); err != nil {
+		logger.Error(tctx, err)
+	}
 }

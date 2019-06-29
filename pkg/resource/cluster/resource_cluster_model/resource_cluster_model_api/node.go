@@ -1,98 +1,144 @@
 package resource_cluster_model_api
 
 import (
+	"encoding/json"
 	"time"
 
-	"github.com/golang/protobuf/ptypes"
 	"github.com/jinzhu/gorm"
 
+	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_grpc_pb"
 	"github.com/syunkitada/goapp/pkg/lib/codes"
+	"github.com/syunkitada/goapp/pkg/lib/error_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
-	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_api/resource_cluster_api_grpc_pb"
-	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_model"
-	"github.com/syunkitada/goapp/pkg/resource/resource_api/resource_api_grpc_pb"
+	"github.com/syunkitada/goapp/pkg/resource/resource_model"
 )
 
-func (modelApi *ResourceClusterModelApi) GetNode(tctx *logger.TraceContext, req *resource_cluster_api_grpc_pb.ActionRequest, rep *resource_cluster_api_grpc_pb.ActionReply) {
+func (modelApi *ResourceClusterModelApi) GetNode(tctx *logger.TraceContext,
+	db *gorm.DB, query *authproxy_grpc_pb.Query, data map[string]interface{}) (int64, error) {
 	var err error
-	startTime := logger.StartTrace(tctx)
-	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
-
-	var db *gorm.DB
-	if db, err = modelApi.open(tctx); err != nil {
-		rep.Tctx.Err = err.Error()
-		rep.Tctx.StatusCode = codes.RemoteDbError
-		return
+	resource, ok := query.StrParams["resource"]
+	if !ok {
+		return codes.ClientBadRequest, error_utils.NewInvalidRequestError("resource is None")
 	}
-	defer func() { err = db.Close() }()
 
-	pbNodes := []*resource_cluster_api_grpc_pb.Node{}
+	var node resource_model.Node
+	if err = db.Where(&resource_model.Node{
+		Name: resource,
+	}).First(&node).Error; err != nil {
+		return codes.RemoteDbError, err
+	}
+	data["Node"] = node
+	return codes.OkRead, nil
+}
 
-	var nodes []resource_cluster_model.Node
+func (modelApi *ResourceClusterModelApi) GetNodes(tctx *logger.TraceContext,
+	db *gorm.DB, query *authproxy_grpc_pb.Query, data map[string]interface{}) (int64, error) {
+	var err error
+
+	var nodes []resource_model.Node
 	if err = db.Find(&nodes).Error; err != nil {
-		rep.Tctx.Err = err.Error()
-		rep.Tctx.StatusCode = codes.RemoteDbError
-		return
+		return codes.RemoteDbError, err
 	}
-	rootNodes := modelApi.convertNodes(tctx, nodes)
-	pbNodes = append(pbNodes, rootNodes...)
-	rep.Tctx.StatusCode = codes.Ok
-
-	rep.Nodes = pbNodes
+	data["Nodes"] = nodes
+	return codes.OkRead, nil
 }
 
-func (modelApi *ResourceClusterModelApi) UpdateNode(tctx *logger.TraceContext, req *resource_cluster_api_grpc_pb.UpdateNodeRequest, rep *resource_cluster_api_grpc_pb.UpdateNodeReply) {
+func (modelApi *ResourceClusterModelApi) UpdateNode(tctx *logger.TraceContext, db *gorm.DB,
+	query *authproxy_grpc_pb.Query) (int64, error) {
 	var err error
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
-	var db *gorm.DB
-	if db, err = modelApi.open(tctx); err != nil {
-		rep.Tctx.Err = err.Error()
-		rep.Tctx.StatusCode = codes.RemoteDbError
-		return
-	}
-	defer func() { err = db.Close() }()
+	tx := db.Begin()
+	defer tx.Rollback()
 
-	var node resource_cluster_model.Node
-	reqNode := req.Node.Node
-	if err = db.Where("name = ? and kind = ?", reqNode.Name, reqNode.Kind).First(&node).Error; err != nil {
-		if !gorm.IsRecordNotFoundError(err) {
-			rep.Tctx.Err = err.Error()
-			rep.Tctx.StatusCode = codes.RemoteDbError
-			return
-		}
-
-		node = resource_cluster_model.Node{
-			Name:         reqNode.Name,
-			Kind:         reqNode.Kind,
-			Role:         reqNode.Role,
-			Status:       reqNode.Status,
-			StatusReason: reqNode.StatusReason,
-			State:        reqNode.State,
-			StateReason:  reqNode.StateReason,
-		}
-		if err = db.Create(&node).Error; err != nil {
-			rep.Tctx.Err = err.Error()
-			rep.Tctx.StatusCode = codes.RemoteDbError
-			return
-		}
-	} else {
-		node.State = reqNode.State
-		node.StateReason = reqNode.StateReason
-		if err = db.Save(&node).Error; err != nil {
-			rep.Tctx.Err = err.Error()
-			rep.Tctx.StatusCode = codes.RemoteDbError
-			return
-		}
+	strSpecs, ok := query.StrParams["Specs"]
+	if !ok {
+		err = error_utils.NewInvalidRequestError("NotFound Specs")
+		return codes.ClientBadRequest, err
 	}
 
-	rep.Tctx.StatusCode = codes.Ok
-	return
+	var specs []resource_model.NodeSpec
+	if err = json.Unmarshal([]byte(strSpecs), &specs); err != nil {
+		return codes.ClientBadRequest, err
+	}
+
+	if len(specs) == 0 {
+		err = error_utils.NewInvalidRequestError("Specs is empty")
+		return codes.ClientBadRequest, err
+	}
+
+	for _, spec := range specs {
+		if err = modelApi.validate.Struct(&spec); err != nil {
+			return codes.ClientBadRequest, err
+		}
+
+		var data resource_model.Node
+		if err = db.Where("name = ? and kind = ?", spec.Name, spec.Kind).First(&data).Error; err != nil {
+			if !gorm.IsRecordNotFoundError(err) {
+				return codes.RemoteDbError, err
+			}
+
+			data = resource_model.Node{
+				Name:         spec.Name,
+				Kind:         spec.Kind,
+				Role:         spec.Role,
+				Status:       spec.Status,
+				StatusReason: spec.StatusReason,
+				State:        spec.State,
+				StateReason:  spec.StateReason,
+			}
+			if err = tx.Create(&data).Error; err != nil {
+				return codes.RemoteDbError, err
+			}
+		} else {
+			data.State = spec.State
+			data.StateReason = spec.StateReason
+			if err = db.Save(&data).Error; err != nil {
+				return codes.RemoteDbError, err
+			}
+		}
+	}
+
+	tx.Commit()
+	return codes.OkUpdated, nil
 }
 
-func (modelApi *ResourceClusterModelApi) SyncRole(tctx *logger.TraceContext, kind string) ([]resource_cluster_model.Node, error) {
-	var nodes []resource_cluster_model.Node
+func (modelApi *ResourceClusterModelApi) DeleteNode(tctx *logger.TraceContext, db *gorm.DB, query *authproxy_grpc_pb.Query) (int64, error) {
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	tx := db.Begin()
+	defer tx.Rollback()
+
+	strSpecs, ok := query.StrParams["Specs"]
+	if !ok || len(strSpecs) == 0 {
+		err = error_utils.NewInvalidRequestEmptyError("Specs")
+		return codes.ClientBadRequest, err
+	}
+
+	var specs []resource_model.NameSpec
+	if err = json.Unmarshal([]byte(strSpecs), &specs); err != nil {
+		return codes.ClientBadRequest, err
+	}
+
+	for _, spec := range specs {
+		if err = modelApi.validate.Struct(&spec); err != nil {
+			return codes.ClientBadRequest, err
+		}
+
+		if err = tx.Delete(&resource_model.Node{}, "name = ?", spec.Name).Error; err != nil {
+			return codes.RemoteDbError, err
+		}
+	}
+
+	tx.Commit()
+	return codes.OkDeleted, nil
+}
+
+func (modelApi *ResourceClusterModelApi) SyncRole(tctx *logger.TraceContext, kind string) ([]resource_model.Node, error) {
+	var nodes []resource_model.Node
 	var err error
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
@@ -112,8 +158,8 @@ func (modelApi *ResourceClusterModelApi) SyncRole(tctx *logger.TraceContext, kin
 	downTime := time.Now().Add(modelApi.downTimeDuration)
 	existsActiveLeader := false
 	for _, node := range nodes {
-		if node.Role == resource_cluster_model.RoleLeader {
-			if node.Status == resource_cluster_model.StatusEnabled && node.State == resource_cluster_model.StateUp && node.UpdatedAt.After(downTime) {
+		if node.Role == resource_model.RoleLeader {
+			if node.Status == resource_model.StatusEnabled && node.State == resource_model.StateUp && node.UpdatedAt.After(downTime) {
 				existsActiveLeader = true
 			}
 			break
@@ -125,25 +171,25 @@ func (modelApi *ResourceClusterModelApi) SyncRole(tctx *logger.TraceContext, kin
 	logger.Info(tctx, "Active Leader is not exists, Leader will be assigned.")
 
 	isReassignLeader := false
-	newNodes := []resource_cluster_model.Node{}
+	newNodes := []resource_model.Node{}
 	for _, node := range nodes {
 		if isReassignLeader {
-			node.Role = resource_cluster_model.RoleMember
+			node.Role = resource_model.RoleMember
 			if err = tx.Save(&node).Error; err != nil {
 				return nil, err
 			}
-		} else if node.Status == resource_cluster_model.StatusEnabled &&
-			node.State == resource_cluster_model.StateUp &&
+		} else if node.Status == resource_model.StatusEnabled &&
+			node.State == resource_model.StateUp &&
 			node.UpdatedAt.After(downTime) {
 
-			node.Role = resource_cluster_model.RoleLeader
+			node.Role = resource_model.RoleLeader
 			if err = tx.Save(&node).Error; err != nil {
 				return nil, err
 			}
 			isReassignLeader = true
 			logger.Infof(tctx, "Leader is assigned: %v", node.Name)
 		} else {
-			node.Role = resource_cluster_model.RoleMember
+			node.Role = resource_model.RoleMember
 			if err = tx.Save(&node).Error; err != nil {
 				return nil, err
 			}
@@ -153,34 +199,6 @@ func (modelApi *ResourceClusterModelApi) SyncRole(tctx *logger.TraceContext, kin
 	tx.Commit()
 
 	return newNodes, nil
-}
-
-func (modelApi *ResourceClusterModelApi) convertNodes(tctx *logger.TraceContext, nodes []resource_cluster_model.Node) []*resource_cluster_api_grpc_pb.Node {
-	pbNodes := make([]*resource_cluster_api_grpc_pb.Node, len(nodes))
-	for i, node := range nodes {
-		updatedAt, err := ptypes.TimestampProto(node.Model.UpdatedAt)
-		createdAt, err := ptypes.TimestampProto(node.Model.CreatedAt)
-		if err != nil {
-			logger.Warning(tctx, err, "Invalid timestamp")
-			continue
-		}
-
-		pbNodes[i] = &resource_cluster_api_grpc_pb.Node{
-			Node: &resource_api_grpc_pb.Node{
-				Name:         node.Name,
-				Kind:         node.Kind,
-				Role:         node.Role,
-				Status:       node.Status,
-				StatusReason: node.StatusReason,
-				State:        node.State,
-				StateReason:  node.StateReason,
-				UpdatedAt:    updatedAt,
-				CreatedAt:    createdAt,
-			},
-		}
-	}
-
-	return pbNodes
 }
 
 func (modelApi *ResourceClusterModelApi) CheckNodes(tctx *logger.TraceContext) error {
@@ -196,7 +214,7 @@ func (modelApi *ResourceClusterModelApi) CheckNodes(tctx *logger.TraceContext) e
 
 	tx := db.Begin()
 	defer tx.Rollback()
-	var nodes []resource_cluster_model.Node
+	var nodes []resource_model.Node
 	if err = tx.Find(&nodes).Error; err != nil {
 		return err
 	}
@@ -206,7 +224,7 @@ func (modelApi *ResourceClusterModelApi) CheckNodes(tctx *logger.TraceContext) e
 
 	for _, node := range nodes {
 		if node.UpdatedAt.Before(downTime) {
-			node.State = resource_cluster_model.StateDown
+			node.State = resource_model.StateDown
 			if err = tx.Save(&node).Error; err != nil {
 				return err
 			}

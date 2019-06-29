@@ -4,13 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/golang/protobuf/ptypes"
 	"github.com/jinzhu/gorm"
 	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_grpc_pb"
 	"github.com/syunkitada/goapp/pkg/lib/codes"
 	"github.com/syunkitada/goapp/pkg/lib/error_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
-	"github.com/syunkitada/goapp/pkg/resource/resource_api/resource_api_grpc_pb"
 	"github.com/syunkitada/goapp/pkg/resource/resource_model"
 )
 
@@ -171,37 +169,4 @@ func (modelApi *ResourceModelApi) DeletePhysicalModel(tctx *logger.TraceContext,
 
 	tx.Commit()
 	return codes.OkDeleted, nil
-}
-
-func (modelApi *ResourceModelApi) convertPhysicalModel(tctx *logger.TraceContext,
-	physicalModel *resource_model.PhysicalModel) *resource_api_grpc_pb.PhysicalModel {
-	updatedAt, err := ptypes.TimestampProto(physicalModel.Model.UpdatedAt)
-	if err != nil {
-		logger.Warningf(tctx, err,
-			"Failed ptypes.TimestampProto: %v", physicalModel.Model.UpdatedAt)
-	}
-	createdAt, err := ptypes.TimestampProto(physicalModel.Model.CreatedAt)
-	if err != nil {
-		logger.Warningf(tctx, err,
-			"Failed ptypes.TimestampProto: %v", physicalModel.Model.CreatedAt)
-	}
-
-	return &resource_api_grpc_pb.PhysicalModel{
-		Name:        physicalModel.Name,
-		Kind:        physicalModel.Kind,
-		Description: physicalModel.Description,
-		Unit:        uint32(physicalModel.Unit),
-		UpdatedAt:   updatedAt,
-		CreatedAt:   createdAt,
-	}
-}
-
-func (modelApi *ResourceModelApi) convertPhysicalModels(tctx *logger.TraceContext,
-	physicalModels []resource_model.PhysicalModel) []*resource_api_grpc_pb.PhysicalModel {
-	pbPhysicalModels := make([]*resource_api_grpc_pb.PhysicalModel, len(physicalModels))
-	for i, physicalModel := range physicalModels {
-		pbPhysicalModels[i] = modelApi.convertPhysicalModel(tctx, &physicalModel)
-	}
-
-	return pbPhysicalModels
 }

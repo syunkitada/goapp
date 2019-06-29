@@ -3,13 +3,11 @@ package resource_model_api
 import (
 	"encoding/json"
 
-	"github.com/golang/protobuf/ptypes"
 	"github.com/jinzhu/gorm"
 	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_grpc_pb"
 	"github.com/syunkitada/goapp/pkg/lib/codes"
 	"github.com/syunkitada/goapp/pkg/lib/error_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
-	"github.com/syunkitada/goapp/pkg/resource/resource_api/resource_api_grpc_pb"
 	"github.com/syunkitada/goapp/pkg/resource/resource_model"
 )
 
@@ -170,35 +168,4 @@ func (modelApi *ResourceModelApi) DeleteRack(tctx *logger.TraceContext, db *gorm
 
 	tx.Commit()
 	return codes.OkDeleted, nil
-}
-
-func (modelApi *ResourceModelApi) convertRack(tctx *logger.TraceContext,
-	floor *resource_model.Rack) *resource_api_grpc_pb.Rack {
-	updatedAt, err := ptypes.TimestampProto(floor.Model.UpdatedAt)
-	if err != nil {
-		logger.Warningf(tctx, err,
-			"Failed ptypes.TimestampProto: %v", floor.Model.UpdatedAt)
-	}
-	createdAt, err := ptypes.TimestampProto(floor.Model.CreatedAt)
-	if err != nil {
-		logger.Warningf(tctx, err,
-			"Failed ptypes.TimestampProto: %v", floor.Model.CreatedAt)
-	}
-
-	return &resource_api_grpc_pb.Rack{
-		Name:      floor.Name,
-		Kind:      floor.Kind,
-		UpdatedAt: updatedAt,
-		CreatedAt: createdAt,
-	}
-}
-
-func (modelApi *ResourceModelApi) convertRacks(tctx *logger.TraceContext,
-	floors []resource_model.Rack) []*resource_api_grpc_pb.Rack {
-	pbRacks := make([]*resource_api_grpc_pb.Rack, len(floors))
-	for i, floor := range floors {
-		pbRacks[i] = modelApi.convertRack(tctx, &floor)
-	}
-
-	return pbRacks
 }

@@ -6,6 +6,7 @@ import (
 
 	"github.com/jinzhu/gorm"
 	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_grpc_pb"
+	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_model"
 	"github.com/syunkitada/goapp/pkg/lib/codes"
 	"github.com/syunkitada/goapp/pkg/lib/error_utils"
 	"github.com/syunkitada/goapp/pkg/lib/json_utils"
@@ -49,17 +50,18 @@ func (modelApi *ResourceModelApi) CreateCompute(tctx *logger.TraceContext, tx *g
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
 	specCompute := spec.Compute
-	specBytes, err := json_utils.Marshal(spec)
-	if err != nil {
-		return error_utils.NewInvalidDataError("spec", spec, "Failed Marshal")
-	}
-
 	for i := 0; i < specCompute.Replicas; i++ {
 		name := fmt.Sprintf("%s.r%d.%s.%s", spec.Name, i, regionService.Project, cluster.DomainSuffix)
 		var data resource_model.Compute
 		if err = tx.Where("name = ?", name).First(&data).Error; err != nil {
 			if !gorm.IsRecordNotFoundError(err) {
 				return err
+			}
+
+			spec.Compute.Name = name
+			specBytes, err := json_utils.Marshal(spec)
+			if err != nil {
+				return error_utils.NewInvalidDataError("spec", spec, "Failed Marshal")
 			}
 
 			data = resource_model.Compute{
@@ -133,7 +135,6 @@ func (modelApi *ResourceModelApi) InitializeCompute(tctx *logger.TraceContext, d
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
-	fmt.Println("DEBUG InitializeCompute")
 	var spec resource_model.RegionServiceSpec
 	if err = json_utils.Unmarshal(compute.Spec, &spec); err != nil {
 		return
@@ -169,5 +170,67 @@ func (modelApi *ResourceModelApi) InitializeCompute(tctx *logger.TraceContext, d
 
 	tx.Commit()
 
+	return
+}
+
+func (modelApi *ResourceModelApi) CreateClusterCompute(tctx *logger.TraceContext,
+	db *gorm.DB, compute *resource_model.Compute, clusterComputeMap map[string]map[string]resource_model.Compute) {
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	var spec resource_model.RegionServiceSpec
+	if err = json_utils.Unmarshal(compute.Spec, &spec); err != nil {
+		return
+	}
+
+	computeMap, ok := clusterComputeMap[compute.Cluster]
+	if !ok {
+		err = error_utils.NewNotFoundError("cluster")
+		return
+	}
+
+	clusterApiClient, ok := modelApi.clusterClientMap[compute.Cluster]
+	if !ok {
+		err = error_utils.NewNotFoundError("cluster")
+		return
+	}
+
+	if _, ok := computeMap[compute.Name]; !ok {
+		specs := "[" + compute.Spec + "]"
+		queries := []authproxy_model.Query{
+			authproxy_model.Query{
+				Kind: "create_compute",
+				StrParams: map[string]string{
+					"Specs": specs,
+				},
+			},
+		}
+		var rep *authproxy_grpc_pb.ActionReply
+		if rep, err = clusterApiClient.Action(
+			logger.NewActionTraceContext(tctx, compute.Project, "", queries)); err != nil {
+			return
+		}
+
+		var resp resource_model.ActionResponse
+		if err = json_utils.Unmarshal(rep.Response, &resp); err != nil {
+			return
+		}
+		if resp.Tctx.StatusCode != codes.OkCreated {
+			logger.Warningf(tctx, "Failed create: %s", resp.Tctx.Err)
+			return
+		}
+	}
+
+	compute.Status = resource_model.StatusCreatingScheduled
+	compute.StatusReason = "CreateClusterCompute"
+
+	tx := db.Begin()
+	defer tx.Rollback()
+	if err = tx.Save(compute).Error; err != nil {
+		return
+	}
+
+	tx.Commit()
 	return
 }

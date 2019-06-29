@@ -3,7 +3,6 @@ package resource_model_api
 import (
 	"time"
 
-	"github.com/golang/glog"
 	"github.com/jinzhu/gorm"
 	"gopkg.in/go-playground/validator.v9"
 
@@ -35,7 +34,7 @@ func NewResourceModelApi(conf *config.Config, clusterApiMap map[string]resource_
 		for clusterName := range conf.Resource.ClusterMap {
 			api, ok := clusterApiMap[clusterName]
 			if !ok {
-				glog.Fatalf("NotFound cluster: %v", clusterName)
+				logger.StdoutFatalf("NotFound cluster: %v", clusterName)
 			}
 			newConf := *conf
 			newConf.Resource.Node.ClusterName = clusterName
@@ -85,44 +84,6 @@ func (modelApi *ResourceModelApi) Bootstrap(tctx *logger.TraceContext) error {
 	db.AutoMigrate(&resource_model.Loadbalancer{})
 	db.AutoMigrate(&resource_model.NetworkV4{})
 	db.AutoMigrate(&resource_model.NetworkV4Port{})
-	glog.V(2).Info("ResourceModelApi: Complete AutoMigrate")
-
-	if err = modelApi.bootstrapClusters(tctx); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (modelApi *ResourceModelApi) bootstrapClusters(tctx *logger.TraceContext) error {
-	var err error
-	startTime := logger.StartTrace(tctx)
-	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
-
-	var db *gorm.DB
-	if db, err = modelApi.open(tctx); err != nil {
-		return err
-	}
-	defer func() { err = db.Close() }()
-
-	for clusterName, clusterConf := range modelApi.conf.Resource.ClusterMap {
-		var cluster resource_model.Cluster
-		if err = db.Where("name = ?", clusterName).First(&cluster).Error; err != nil {
-			if !gorm.IsRecordNotFoundError(err) {
-				return err
-			}
-
-			cluster = resource_model.Cluster{
-				Name: clusterName,
-			}
-			if err = db.Create(&cluster).Error; err != nil {
-				return err
-			}
-			glog.V(2).Infof("Resource Cluster: Created: cluster=%v, conf=%v", clusterName, clusterConf)
-		} else {
-			glog.V(2).Infof("Resource Cluster: Already Exists: cluster=%v", clusterName)
-		}
-	}
 
 	return nil
 }
@@ -139,4 +100,10 @@ func (modelApi *ResourceModelApi) open(tctx *logger.TraceContext) (*gorm.DB, err
 	db.LogMode(modelApi.conf.Default.EnableDatabaseLog)
 
 	return db, err
+}
+
+func (modelApi *ResourceModelApi) close(tctx *logger.TraceContext, db *gorm.DB) {
+	if err := db.Close(); err != nil {
+		logger.Error(tctx, err)
+	}
 }

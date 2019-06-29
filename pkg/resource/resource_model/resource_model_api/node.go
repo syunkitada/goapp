@@ -4,15 +4,12 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/golang/protobuf/ptypes"
 	"github.com/jinzhu/gorm"
 
 	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_grpc_pb"
 	"github.com/syunkitada/goapp/pkg/lib/codes"
 	"github.com/syunkitada/goapp/pkg/lib/error_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
-	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_api/resource_cluster_api_grpc_pb"
-	"github.com/syunkitada/goapp/pkg/resource/resource_api/resource_api_grpc_pb"
 	"github.com/syunkitada/goapp/pkg/resource/resource_model"
 )
 
@@ -46,53 +43,65 @@ func (modelApi *ResourceModelApi) GetNodes(tctx *logger.TraceContext,
 	return codes.OkRead, nil
 }
 
-func (modelApi *ResourceModelApi) UpdateNode(tctx *logger.TraceContext, req *resource_api_grpc_pb.UpdateNodeRequest, rep *resource_api_grpc_pb.UpdateNodeReply) {
+func (modelApi *ResourceModelApi) UpdateNode(tctx *logger.TraceContext, db *gorm.DB,
+	query *authproxy_grpc_pb.Query) (int64, error) {
 	var err error
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
-	var db *gorm.DB
-	if db, err = modelApi.open(tctx); err != nil {
-		rep.Tctx.Err = err.Error()
-		rep.Tctx.StatusCode = codes.RemoteDbError
-		return
-	}
-	defer func() { err = db.Close() }()
+	tx := db.Begin()
+	defer tx.Rollback()
 
-	var node resource_model.Node
-	reqNode := req.Node
-	if err = db.Where("name = ? and kind = ?", reqNode.Name, reqNode.Kind).First(&node).Error; err != nil {
-		if !gorm.IsRecordNotFoundError(err) {
-			rep.Tctx.Err = err.Error()
-			rep.Tctx.StatusCode = codes.RemoteDbError
-			return
-		}
-
-		node = resource_model.Node{
-			Name:         reqNode.Name,
-			Kind:         reqNode.Kind,
-			Role:         reqNode.Role,
-			Status:       reqNode.Status,
-			StatusReason: reqNode.StatusReason,
-			State:        reqNode.State,
-			StateReason:  reqNode.StateReason,
-		}
-		if err = db.Create(&node).Error; err != nil {
-			rep.Tctx.Err = err.Error()
-			rep.Tctx.StatusCode = codes.RemoteDbError
-			return
-		}
-	} else {
-		node.State = reqNode.State
-		node.StateReason = reqNode.StateReason
-		if err = db.Save(&node).Error; err != nil {
-			rep.Tctx.Err = err.Error()
-			rep.Tctx.StatusCode = codes.RemoteDbError
-			return
-		}
+	strSpecs, ok := query.StrParams["Specs"]
+	if !ok {
+		err = error_utils.NewInvalidRequestError("NotFound Specs")
+		return codes.ClientBadRequest, err
 	}
 
-	rep.Tctx.StatusCode = codes.Ok
+	var specs []resource_model.NodeSpec
+	if err = json.Unmarshal([]byte(strSpecs), &specs); err != nil {
+		return codes.ClientBadRequest, err
+	}
+
+	if len(specs) == 0 {
+		err = error_utils.NewInvalidRequestError("Specs is empty")
+		return codes.ClientBadRequest, err
+	}
+
+	for _, spec := range specs {
+		if err = modelApi.validate.Struct(&spec); err != nil {
+			return codes.ClientBadRequest, err
+		}
+
+		var data resource_model.Node
+		if err = db.Where("name = ? and kind = ?", spec.Name, spec.Kind).First(&data).Error; err != nil {
+			if !gorm.IsRecordNotFoundError(err) {
+				return codes.RemoteDbError, err
+			}
+
+			data = resource_model.Node{
+				Name:         spec.Name,
+				Kind:         spec.Kind,
+				Role:         spec.Role,
+				Status:       spec.Status,
+				StatusReason: spec.StatusReason,
+				State:        spec.State,
+				StateReason:  spec.StateReason,
+			}
+			if err = tx.Create(&data).Error; err != nil {
+				return codes.RemoteDbError, err
+			}
+		} else {
+			data.State = spec.State
+			data.StateReason = spec.StateReason
+			if err = db.Save(&data).Error; err != nil {
+				return codes.RemoteDbError, err
+			}
+		}
+	}
+
+	tx.Commit()
+	return codes.OkUpdated, nil
 }
 
 func (modelApi *ResourceModelApi) DeleteNode(tctx *logger.TraceContext, db *gorm.DB, query *authproxy_grpc_pb.Query) (int64, error) {
@@ -190,53 +199,6 @@ func (modelApi *ResourceModelApi) SyncRole(tctx *logger.TraceContext, kind strin
 	tx.Commit()
 
 	return newNodes, nil
-}
-
-func (modelApi *ResourceModelApi) convertNodes(tctx *logger.TraceContext, clusterName string, nodes []resource_model.Node) []*resource_api_grpc_pb.Node {
-	pbNodes := make([]*resource_api_grpc_pb.Node, len(nodes))
-	for i, node := range nodes {
-		updatedAt, err := ptypes.TimestampProto(node.Model.UpdatedAt)
-		createdAt, err := ptypes.TimestampProto(node.Model.CreatedAt)
-		if err != nil {
-			logger.Warning(tctx, err, "Invalid timestamp")
-			continue
-		}
-
-		pbNodes[i] = &resource_api_grpc_pb.Node{
-			Cluster:      clusterName,
-			Name:         node.Name,
-			Kind:         node.Kind,
-			Role:         node.Role,
-			Status:       node.Status,
-			StatusReason: node.StatusReason,
-			State:        node.State,
-			StateReason:  node.StateReason,
-			UpdatedAt:    updatedAt,
-			CreatedAt:    createdAt,
-		}
-	}
-
-	return pbNodes
-}
-
-func (modelApi *ResourceModelApi) convertClusterNodes(clusterName string, nodes []*resource_cluster_api_grpc_pb.Node) []*resource_api_grpc_pb.Node {
-	pbNodes := make([]*resource_api_grpc_pb.Node, len(nodes))
-	for i, node := range nodes {
-		pbNodes[i] = &resource_api_grpc_pb.Node{
-			Cluster:      clusterName,
-			Name:         node.Node.Name,
-			Kind:         node.Node.Kind,
-			Role:         node.Node.Role,
-			Status:       node.Node.Status,
-			StatusReason: node.Node.StatusReason,
-			State:        node.Node.State,
-			StateReason:  node.Node.StateReason,
-			UpdatedAt:    node.Node.UpdatedAt,
-			CreatedAt:    node.Node.CreatedAt,
-		}
-	}
-
-	return pbNodes
 }
 
 func (modelApi *ResourceModelApi) CheckNodes(tctx *logger.TraceContext) error {

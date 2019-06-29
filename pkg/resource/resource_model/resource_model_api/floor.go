@@ -3,13 +3,11 @@ package resource_model_api
 import (
 	"encoding/json"
 
-	"github.com/golang/protobuf/ptypes"
 	"github.com/jinzhu/gorm"
 	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_grpc_pb"
 	"github.com/syunkitada/goapp/pkg/lib/codes"
 	"github.com/syunkitada/goapp/pkg/lib/error_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
-	"github.com/syunkitada/goapp/pkg/resource/resource_api/resource_api_grpc_pb"
 	"github.com/syunkitada/goapp/pkg/resource/resource_model"
 )
 
@@ -170,35 +168,4 @@ func (modelApi *ResourceModelApi) DeleteFloor(tctx *logger.TraceContext, db *gor
 
 	tx.Commit()
 	return codes.OkDeleted, nil
-}
-
-func (modelApi *ResourceModelApi) convertFloor(tctx *logger.TraceContext,
-	floor *resource_model.Floor) *resource_api_grpc_pb.Floor {
-	updatedAt, err := ptypes.TimestampProto(floor.Model.UpdatedAt)
-	if err != nil {
-		logger.Warningf(tctx, err,
-			"Failed ptypes.TimestampProto: %v", floor.Model.UpdatedAt)
-	}
-	createdAt, err := ptypes.TimestampProto(floor.Model.CreatedAt)
-	if err != nil {
-		logger.Warningf(tctx, err,
-			"Failed ptypes.TimestampProto: %v", floor.Model.CreatedAt)
-	}
-
-	return &resource_api_grpc_pb.Floor{
-		Name:      floor.Name,
-		Kind:      floor.Kind,
-		UpdatedAt: updatedAt,
-		CreatedAt: createdAt,
-	}
-}
-
-func (modelApi *ResourceModelApi) convertFloors(tctx *logger.TraceContext,
-	floors []resource_model.Floor) []*resource_api_grpc_pb.Floor {
-	pbFloors := make([]*resource_api_grpc_pb.Floor, len(floors))
-	for i, floor := range floors {
-		pbFloors[i] = modelApi.convertFloor(tctx, &floor)
-	}
-
-	return pbFloors
 }

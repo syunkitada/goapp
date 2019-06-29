@@ -18,6 +18,17 @@ type Node struct {
 	StateReason  string `gorm:"not null;size:50;"`
 }
 
+type NodeSpec struct {
+	Name         string `validate:"required"`
+	Kind         string `validate:"required"`
+	Role         string
+	Status       string
+	StatusReason string
+	State        string
+	StateReason  string
+	Spec         interface{}
+}
+
 var NodeCmd map[string]index_model.Cmd = map[string]index_model.Cmd{
 	"create_node": index_model.Cmd{
 		Arg:     index_model.ArgRequired,

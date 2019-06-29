@@ -38,7 +38,7 @@ var BootstrapCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		ctl := NewCtl(&config.Conf)
 		if err := ctl.Bootstrap(false); err != nil {
-			glog.Fatal(err)
+			logger.StdoutFatal(err)
 		}
 	},
 }
@@ -51,27 +51,26 @@ var RebootstrapCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		ctl := NewCtl(&config.Conf)
 		if err := ctl.Bootstrap(true); err != nil {
-			glog.Fatal(err)
+			logger.StdoutFatal(err)
 		}
 	},
 }
 
 func (ctl *Ctl) Bootstrap(isRecreate bool) error {
+	var err error
 	tctx := logger.NewCtlTraceContext(ctl.Name)
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
-	if err := ctl.CreateDatabases(isRecreate); err != nil {
+	if err = ctl.createDatabases(isRecreate); err != nil {
 		return err
 	}
 
-	if err := ctl.AuthproxyModelApi.Bootstrap(tctx); err != nil {
+	if err = ctl.AuthproxyModelApi.Bootstrap(tctx); err != nil {
 		return err
 	}
 
-	if err := ctl.MonitorModelApi.Bootstrap(tctx); err != nil {
-		return err
-	}
-
-	if err := ctl.ResourceModelApi.Bootstrap(tctx); err != nil {
+	if err = ctl.ResourceModelApi.Bootstrap(tctx); err != nil {
 		return err
 	}
 
@@ -79,7 +78,7 @@ func (ctl *Ctl) Bootstrap(isRecreate bool) error {
 		clusterConf := *ctl.Conf
 		clusterConf.Resource.Node.ClusterName = clusterName
 		resourceClusterModelApi := resource_cluster_model_api.NewResourceClusterModelApi(&clusterConf)
-		if err := resourceClusterModelApi.Bootstrap(); err != nil {
+		if err = resourceClusterModelApi.Bootstrap(tctx); err != nil {
 			return err
 		}
 	}
@@ -87,30 +86,31 @@ func (ctl *Ctl) Bootstrap(isRecreate bool) error {
 	return nil
 }
 
-func (ctl *Ctl) CreateDatabases(isRecreate bool) error {
+func (ctl *Ctl) createDatabases(isRecreate bool) error {
 	databaseConnections := []string{
 		ctl.Conf.Authproxy.Database.Connection,
 		ctl.Conf.Resource.Database.Connection,
-		ctl.Conf.Monitor.Database.Connection,
 	}
 
 	for _, cluster := range ctl.Conf.Resource.ClusterMap {
+		fmt.Println("DEBUG connection", cluster.Database.Connection)
 		databaseConnections = append(databaseConnections, cluster.Database.Connection)
 	}
 
 	for _, conn := range databaseConnections {
-		if err := ctl.CreateDatabase(isRecreate, conn); err != nil {
+		if err := ctl.createDatabase(isRecreate, conn); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (ctl *Ctl) CreateDatabase(isRecreate bool, connection string) error {
+func (ctl *Ctl) createDatabase(isRecreate bool, connection string) error {
 	conn, connErr := ctl.ParseDatabaseConnection(connection)
 	if connErr != nil {
 		return connErr
 	}
+	fmt.Printf("Creating database: %s\n", conn.database)
 
 	if isRecreate {
 		if !ctl.Conf.Default.EnableDevelop {
@@ -124,6 +124,7 @@ func (ctl *Ctl) CreateDatabase(isRecreate bool, connection string) error {
 	if err := ctl.ExecMysql(conn, "create database if not exists "+conn.database+" DEFAULT CHARACTER SET utf8"); err != nil {
 		return err
 	}
+	fmt.Printf("Created database: %s\n", conn.database)
 
 	return nil
 }

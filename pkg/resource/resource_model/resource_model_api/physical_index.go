@@ -29,12 +29,7 @@ func (modelApi *ResourceModelApi) PhysicalAction(tctx *logger.TraceContext,
 		authproxy_utils.MergeResponse(rep, &response, data, err, codes.RemoteDbError)
 		return
 	}
-	defer func() {
-		tmpErr := db.Close()
-		if tmpErr != nil {
-			logger.Error(tctx, tmpErr)
-		}
-	}()
+	defer modelApi.close(tctx, db)
 
 	tmpStatusCode := codes.Unknown
 	statusCode = codes.Unknown

@@ -4,13 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/golang/protobuf/ptypes"
 	"github.com/jinzhu/gorm"
 	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_grpc_pb"
 	"github.com/syunkitada/goapp/pkg/lib/codes"
 	"github.com/syunkitada/goapp/pkg/lib/error_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
-	"github.com/syunkitada/goapp/pkg/resource/resource_api/resource_api_grpc_pb"
 	"github.com/syunkitada/goapp/pkg/resource/resource_model"
 )
 
@@ -177,38 +175,4 @@ func (modelApi *ResourceModelApi) DeleteDatacenter(tctx *logger.TraceContext, db
 
 	tx.Commit()
 	return codes.OkDeleted, nil
-}
-
-func (modelApi *ResourceModelApi) convertDatacenter(tctx *logger.TraceContext,
-	datacenter *resource_model.Datacenter) *resource_api_grpc_pb.Datacenter {
-	updatedAt, err := ptypes.TimestampProto(datacenter.Model.UpdatedAt)
-	if err != nil {
-		logger.Warningf(tctx, err,
-			"Failed ptypes.TimestampProto: %v", datacenter.Model.UpdatedAt)
-	}
-	createdAt, err := ptypes.TimestampProto(datacenter.Model.CreatedAt)
-	if err != nil {
-		logger.Warningf(tctx, err,
-			"Failed ptypes.TimestampProto: %v", datacenter.Model.CreatedAt)
-	}
-
-	return &resource_api_grpc_pb.Datacenter{
-		Name:         datacenter.Name,
-		Kind:         datacenter.Kind,
-		Description:  datacenter.Description,
-		Region:       datacenter.Region,
-		DomainSuffix: datacenter.DomainSuffix,
-		UpdatedAt:    updatedAt,
-		CreatedAt:    createdAt,
-	}
-}
-
-func (modelApi *ResourceModelApi) convertDatacenters(tctx *logger.TraceContext,
-	datacenters []resource_model.Datacenter) []*resource_api_grpc_pb.Datacenter {
-	pbDatacenters := make([]*resource_api_grpc_pb.Datacenter, len(datacenters))
-	for i, datacenter := range datacenters {
-		pbDatacenters[i] = modelApi.convertDatacenter(tctx, &datacenter)
-	}
-
-	return pbDatacenters
 }

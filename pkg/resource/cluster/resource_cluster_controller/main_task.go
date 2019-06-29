@@ -3,10 +3,11 @@ package resource_cluster_controller
 import (
 	"fmt"
 
+	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_model"
+	"github.com/syunkitada/goapp/pkg/lib/json_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
-	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_api/resource_cluster_api_grpc_pb"
 	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_model"
-	"github.com/syunkitada/goapp/pkg/resource/resource_api/resource_api_grpc_pb"
+	"github.com/syunkitada/goapp/pkg/resource/resource_model"
 )
 
 func (srv *ResourceClusterControllerServer) MainTask(tctx *logger.TraceContext) error {
@@ -28,19 +29,32 @@ func (srv *ResourceClusterControllerServer) MainTask(tctx *logger.TraceContext) 
 }
 
 func (srv *ResourceClusterControllerServer) UpdateNode(tctx *logger.TraceContext) error {
-	node := &resource_cluster_api_grpc_pb.Node{
-		Node: &resource_api_grpc_pb.Node{
+	nodes := []resource_model.NodeSpec{
+		resource_model.NodeSpec{
 			Name:         srv.conf.Default.Host,
-			Kind:         resource_cluster_model.KindResourceClusterController,
-			Role:         resource_cluster_model.RoleMember,
-			Status:       resource_cluster_model.StatusEnabled,
+			Kind:         resource_model.KindResourceClusterController,
+			Role:         resource_model.RoleMember,
+			Status:       resource_model.StatusEnabled,
 			StatusReason: "Default",
-			State:        resource_cluster_model.StateUp,
+			State:        resource_model.StateUp,
 			StateReason:  "UpdateNode",
 		},
 	}
+	specs, err := json_utils.Marshal(nodes)
+	if err != nil {
+		return err
+	}
+	queries := []authproxy_model.Query{
+		authproxy_model.Query{
+			Kind: "update_node",
+			StrParams: map[string]string{
+				"Specs": string(specs),
+			},
+		},
+	}
 
-	if _, err := srv.resourceClusterApiClient.UpdateNode(tctx, node); err != nil {
+	if _, err := srv.resourceClusterApiClient.Action(
+		logger.NewActionTraceContext(tctx, "system", "system", queries)); err != nil {
 		return err
 	}
 

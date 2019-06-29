@@ -8,61 +8,7 @@ option java_package = "io.grpc.examples.routeguide";
 option java_outer_classname = "RouteGuideProto";
 
 import "authproxy/authproxy_grpc_pb/authproxy_grpc_pb.proto";
-import "resource/resource_api/resource_api_grpc_pb/resource_api_grpc_pb.proto";
-
 
 service ResourceClusterApi {
-  rpc Status(StatusRequest) returns (StatusReply) {}
-
-  rpc Action(ActionRequest) returns (ActionReply) {}
-
-  rpc UpdateNode(UpdateNodeRequest) returns (UpdateNodeReply) {}
-}
-
-message StatusRequest {}
-
-message StatusReply {
-    string Msg = 1;
-}
-
-//
-// Action
-//
-message ActionRequest {
-    authproxy_grpc_pb.TraceContext Tctx = 1;
-    string Target = 2;
-    string Cluster = 3;
-    string Spec = 4;
-}
-
-message ActionReply {
-    authproxy_grpc_pb.TraceContext Tctx = 1;
-    repeated Node Nodes = 3;
-    repeated Compute Computes = 4;
-}
-
-//
-// Node
-//
-message UpdateNodeRequest {
-    authproxy_grpc_pb.TraceContext Tctx = 1;
-    Node Node = 2;
-}
-
-message UpdateNodeReply {
-    authproxy_grpc_pb.TraceContext Tctx = 1;
-}
-
-
-//
-// Resources
-//
-message Node {
-    resource_api_grpc_pb.Node node = 1;
-    string Labels = 2;
-    string DriverLabels = 3;
-}
-
-message Compute {
-    resource_api_grpc_pb.Compute compute = 1;
+  rpc Action(authproxy_grpc_pb.ActionRequest) returns (authproxy_grpc_pb.ActionReply) {}
 }

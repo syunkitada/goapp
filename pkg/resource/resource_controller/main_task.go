@@ -6,8 +6,9 @@ import (
 
 	"golang.org/x/net/context"
 
+	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_model"
+	"github.com/syunkitada/goapp/pkg/lib/json_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
-	"github.com/syunkitada/goapp/pkg/resource/resource_api/resource_api_grpc_pb"
 	"github.com/syunkitada/goapp/pkg/resource/resource_model"
 )
 
@@ -42,21 +43,32 @@ func (srv *ResourceControllerServer) MainTask(tctx *logger.TraceContext) error {
 }
 
 func (srv *ResourceControllerServer) UpdateNode(tctx *logger.TraceContext) error {
-	var err error
-	startTime := logger.StartTrace(tctx)
-	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
-
-	node := &resource_api_grpc_pb.Node{
-		Name:         srv.conf.Default.Host,
-		Kind:         resource_model.KindResourceController,
-		Role:         resource_model.RoleMember,
-		Status:       resource_model.StatusEnabled,
-		StatusReason: "Default",
-		State:        resource_model.StateUp,
-		StateReason:  "UpdateNode",
+	nodes := []resource_model.NodeSpec{
+		resource_model.NodeSpec{
+			Name:         srv.conf.Default.Host,
+			Kind:         resource_model.KindResourceApi,
+			Role:         resource_model.RoleMember,
+			Status:       resource_model.StatusEnabled,
+			StatusReason: "Default",
+			State:        resource_model.StateUp,
+			StateReason:  "UpdateNode",
+		},
+	}
+	specs, err := json_utils.Marshal(nodes)
+	if err != nil {
+		return err
+	}
+	queries := []authproxy_model.Query{
+		authproxy_model.Query{
+			Kind: "update_node",
+			StrParams: map[string]string{
+				"Specs": string(specs),
+			},
+		},
 	}
 
-	if _, err := srv.resourceApiClient.UpdateNode(tctx, node); err != nil {
+	if _, err := srv.resourceApiClient.VirtualAction(
+		logger.NewActionTraceContext(tctx, "system", "system", queries)); err != nil {
 		return err
 	}
 
