@@ -1,7 +1,9 @@
 package resource_cluster_controller
 
 import (
+	"context"
 	"fmt"
+	"sync"
 
 	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_model"
 	"github.com/syunkitada/goapp/pkg/lib/json_utils"
@@ -24,6 +26,11 @@ func (srv *ResourceClusterControllerServer) MainTask(tctx *logger.TraceContext) 
 	if err := srv.resourceClusterModelApi.CheckNodes(tctx); err != nil {
 		return err
 	}
+
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+	go srv.SyncCompute(tctx, &wg)
+	wg.Wait()
 
 	return nil
 }
@@ -94,4 +101,28 @@ func (srv *ResourceClusterControllerServer) SyncRole(tctx *logger.TraceContext) 
 	}
 
 	return nil
+}
+
+func (srv *ResourceClusterControllerServer) SyncCompute(tctx *logger.TraceContext, wg *sync.WaitGroup) {
+	defer func() { wg.Done() }()
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	errChan := make(chan error)
+
+	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(ctx, srv.syncResourceTimeout)
+	defer cancel()
+
+	go func() {
+		errChan <- srv.resourceClusterModelApi.SyncCompute(tctx)
+	}()
+
+	select {
+	case err = <-errChan:
+		break
+	case <-ctx.Done():
+		err = ctx.Err()
+	}
 }

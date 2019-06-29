@@ -154,3 +154,18 @@ func (modelApi *ResourceClusterModelApi) DeleteCompute(tctx *logger.TraceContext
 	tx.Commit()
 	return codes.OkDeleted, nil
 }
+
+func (modelApi *ResourceClusterModelApi) SyncCompute(tctx *logger.TraceContext) error {
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	var db *gorm.DB
+	if db, err = modelApi.open(tctx); err != nil {
+		return err
+	}
+	defer modelApi.close(tctx, db)
+
+	fmt.Println("TODO SyncCompute")
+	return nil
+}
