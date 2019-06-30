@@ -5,16 +5,16 @@
     "Kind": "Compute",
     "Region": "kanto",
     "ExpireDate": -1,
-    "SchedulePolicy": {
-      "Replicas": 1
-    },
-    "Network": {
-      "Version": 4,
-      "Interfaces": 1,
-      "AssignPolicy": "Affinity",
-      "StaticNetworks": []
-    },
     "Compute": {
+      "SchedulePolicy": {
+        "Replicas": 1
+      },
+      "NetworkPolicy": {
+        "Version": 4,
+        "Interfaces": 1,
+        "AssignPolicy": "Affinity",
+        "StaticNetworks": []
+      },
       "Kind": "Qemu",
       "Restart": "Always",
       "Vcpus": 1,

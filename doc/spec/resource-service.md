@@ -28,10 +28,24 @@
   - Resource を Region 単位でバッチ処理するコントローラ
   - Resource を ResourceAgent にアサインする
 - ResourceAgent
+  - 各 Node 内で稼働する Agent
   - Region に所属し、アサインされた Resource を実体化し、状態を管理する
   - Node ごとに複数の Provider サポートできる
   - Provider を利用してノード自身を監視し、イベントがあれば Alert を MonitorController に通知する
     - またメトリクスをメトリクス DB に送信する
+- ResourceComputeAgent
+  - 各 ComputeVM 内で稼働する Agent
+  - cluster-api をたたいて、Compute の Orchestration 情報を取得してサービスを制御する
+  - ユーザ、グループ、SSH 公開鍵などの情報を同期する
+  - stats 情報を報告する
+  - ローリングアップデートのサポート
+  - L3DSR の設定
+  - EtoE TLS のサポート
+    - VM 単位でローカルに TLS プロキシサーバを立てて TLS 終端をする
+      - 各 VM 上のサービスは 必ずこのプロキシサーバを経由してアクセスさせる
+      - 共有の L7 プロキシを立てて裏は HTTP みたいなことはやらない
+    - 証明書の自動更新をサポートする
+    - トレーシングをサポートする
 
 ## Data Model
 
@@ -296,15 +310,95 @@
       - 作成時に指定する
     - VIP の管理に利用
       - VIP を有効にしなくてもよい
-    - 各種 Policy を設定する
-      - Cluster: AntiAffinity
-      - PowerAZ: AntiAffinity
-      - RackAZ: AntiAffinity
-      - NetworkAZ: AntiAffinity
+    - 各種 リソースごとに SchedulePolicy を設定し、Cluster や Node によるフィルタリング、Affinity の設定をする
+      - Replicas
+      - ClusterFilters
+      - ClusterLabelFilters
+      - NodeFilters
+      - NodeLabelFilters
+      - NodeLabelSoftUntiAffinities
+      - NodeLabelSoftAffinities
+      - NodeLabelHardUntiAffinities
+      - NodeLabelHardAffinities
   - 仮想リソースを作成する際は、RegionService を指定して作成する
     - Cluster は Region に紐図いてるので、Region により Cluster は自動決定する
-    - 仮想リソースは RegionService の Policy によって自動配置する
-    - オプションで Cluster、PowerAZ、RackAZ、NetworkAZ を指定できる
+    - 仮想リソースは SchedulrPolicy によって自動配置される
+
+## 各種リソースの管理
+
+- RegionService の作成
+  - RegionService には、Compute、Loadbalancer を紐図けることができ、これらをまとめて作成し管理する
+- Compute の作成
+  - RegionService に紐づき、直接 Compute を作成することはできない
+  - 新規 RegionService を作るか、既存 RegionService の Replica をインクリメントすることで作成される
+- Compute の削除
+  - 既存 RegionService の Replica をデクリメントする
+    - 自動で末尾の Compute から削除される
+  - Compute を直接指定して削除する
+    - RegionService の Replica が自動でデクリメントされる
+    - 0 になる場合は RegionService も削除される
+- Loadbalancer の作成
+  - RegionService に一つ紐づき、直接 Loadbalancer を作成することはできない
+  - 新規 RegionService を作ることで作成される
+- Loadbalancer の削除
+  - 直接削除できない
+  - RegionService を削除したときに削除される
+
+## 各種リソースのステータスフロー
+
+- root: RegionService
+
+  - Initializing
+    - controller: assign Computes to cluster
+    - controller: assign Loadbalancer to cluster
+    - controller: assign ip to Computes and create Computes
+    - controller: assign ip to Loadbalancer and create Loadbalancer
+    - controller: update RegionService status to Creating
+  - Creating
+    - controller: get Computes status and update RegionService status to Active
+  - Active
+
+- root: Compute
+
+  - Initializing
+    - controller: create Compute by cluster-api
+    - controller: update Compute status to Creating:Scheduled
+  - Creating:Scheduled
+    - controller: get Compute status from cluster-api, and update compute status to Active
+  - Active
+
+- root: Loadbalancer
+
+  - Initializing
+    - controller: create Loadbalancer by cluster-api
+    - controller: update Loadbalancer status to Creating:Scheduled
+  - Creating:Scheduled
+    - controller: get Loadbalancer status from cluster-api, and update compute status to Active
+  - Active
+
+- cluster: Compute
+
+  - Initializing
+    - cluster-controller: schedule Compute to nodes group by RegionService
+    - cluster-controller: create Assignments
+    - cluster-controller: update Compute status to Creating:Scheduled
+  - Creating:Scheduled
+    - cluster-agent: get assignments from cluster-api, and create Compute on node
+    - cluster-agent: update assignments status by cluster-api
+    - cluster-controller: update Compute status to Active
+  - Active
+
+- cluster: Loadbalancer
+
+  - Initializing
+    - cluster-controller: schedule Loadbalancer to nodes group by RegionService
+    - cluster-controller: create Assignments
+    - cluster-controller: update Loadbalancer status to Creating:Scheduled
+  - Creating:Scheduled
+    - cluster-agent: get assignments from cluster-api, and create Loadbalancer on node
+    - cluster-agent: update assignments status by cluster-api
+    - cluster-controller: update Loadbalancer status to Active
+  - Active
 
 ## ダッシュボードにおけるラック図、ネットワーク図の見せ方
 
