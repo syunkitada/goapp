@@ -76,7 +76,7 @@ var RegionServiceCmd map[string]index_model.Cmd = map[string]index_model.Cmd{
 		ArgType:     index_model.ArgTypeString,
 		ArgKind:     RegionServiceKind,
 		Help:        "helptext",
-		TableHeader: []string{"Name", "Kind", "Region", "Status"},
+		TableHeader: []string{"Name", "Kind", "Region", "Status", "StatusReason"},
 	},
 	"get_region-service": index_model.Cmd{
 		Arg:     index_model.ArgRequired,

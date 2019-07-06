@@ -33,6 +33,14 @@ const (
 	StatusDeleting            = "Deleting"
 	StatusDeletingScheduled   = "Deleting:Scheduled"
 	StatusDeleted             = "Deleted"
+	StatusError               = "Error"
+)
+
+const (
+	StatusMsgInitializing                  = "Initializing"
+	StatusMsgInitializeErrorNoValidCluster = "InitializeError: NoValidCluster"
+	StatusMsgInitializeSuccess             = "InitializeSuccess"
+	StatusMsgUpdating                      = "Updating"
 )
 
 const (

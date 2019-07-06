@@ -195,6 +195,12 @@ func (ctl *CtlMain) Index(args []string) error {
 
 		ctl.output(&cmdInfo, tmpResp, flagMap)
 		return nil
+	} else if len(lastArgs) > 0 {
+		specsBytes, err := json_utils.Marshal(lastArgs)
+		if err != nil {
+			return err
+		}
+		strParams["Args"] = string(specsBytes)
 	}
 
 	queries := []authproxy_model.Query{

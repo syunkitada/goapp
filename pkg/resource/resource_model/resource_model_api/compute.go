@@ -44,7 +44,8 @@ func (modelApi *ResourceModelApi) GetComputes(tctx *logger.TraceContext, db *gor
 }
 
 func (modelApi *ResourceModelApi) CreateCompute(tctx *logger.TraceContext, tx *gorm.DB,
-	regionService *resource_model.RegionService, spec *resource_model.RegionServiceSpec, cluster *resource_model.Cluster) error {
+	regionService *resource_model.RegionService, spec *resource_model.RegionServiceSpec,
+	cluster *resource_model.Cluster, clusterNetworkV4s []resource_model.NetworkV4) error {
 	var err error
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
@@ -57,8 +58,18 @@ func (modelApi *ResourceModelApi) CreateCompute(tctx *logger.TraceContext, tx *g
 			if !gorm.IsRecordNotFoundError(err) {
 				return err
 			}
-
 			spec.Compute.Name = name
+
+			var ports []resource_model.PortSpec
+			switch spec.Compute.NetworkPolicy.Version {
+			case 4:
+				if ports, err = modelApi.AssignNetworkV4Port(tctx, tx, &spec.Compute.NetworkPolicy,
+					clusterNetworkV4s, resource_model.ComputeKind, name); err != nil {
+					return err
+				}
+			}
+			spec.Compute.Ports = ports
+
 			specBytes, err := json_utils.Marshal(spec)
 			if err != nil {
 				return error_utils.NewInvalidDataError("spec", spec, "Failed Marshal")
@@ -76,8 +87,8 @@ func (modelApi *ResourceModelApi) CreateCompute(tctx *logger.TraceContext, tx *g
 				Memory:        specCompute.Memory,
 				Disk:          specCompute.Disk,
 				Spec:          string(specBytes),
-				Status:        resource_model.StatusInitializing,
-				StatusReason:  "CreateCompute",
+				Status:        resource_model.StatusCreating,
+				StatusReason:  resource_model.StatusMsgInitializeSuccess,
 			}
 			if err = tx.Create(&data).Error; err != nil {
 				return err
@@ -130,51 +141,8 @@ func (modelApi *ResourceModelApi) DeleteCompute(tctx *logger.TraceContext, db *g
 	return codes.OkDeleted, nil
 }
 
-func (modelApi *ResourceModelApi) InitializeCompute(tctx *logger.TraceContext, db *gorm.DB, compute *resource_model.Compute, clusterNetworksMap map[string][]resource_model.NetworkV4) {
-	var err error
-	startTime := logger.StartTrace(tctx)
-	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
-
-	var spec resource_model.RegionServiceSpec
-	if err = json_utils.Unmarshal(compute.Spec, &spec); err != nil {
-		return
-	}
-
-	networkV4s, ok := clusterNetworksMap[compute.Cluster]
-	if !ok {
-		err = error_utils.NewNotFoundError("network")
-		return
-	}
-
-	var ports []resource_model.PortSpec
-	tx := db.Begin()
-	defer tx.Rollback()
-	switch spec.Compute.NetworkPolicy.Version {
-	case 4:
-		if ports, err = modelApi.AssignNetworkV4Port(tctx, tx, &spec.Compute.NetworkPolicy, networkV4s, resource_model.ComputeKind, compute.Name); err != nil {
-			return
-		}
-	}
-	spec.Compute.Ports = ports
-	specBytes, err := json_utils.Marshal(spec)
-	if err != nil {
-		return
-	}
-
-	compute.Spec = string(specBytes)
-	compute.Status = resource_model.StatusCreating
-	compute.StatusReason = "InitializeCompute"
-	if err = tx.Save(compute).Error; err != nil {
-		return
-	}
-
-	tx.Commit()
-
-	return
-}
-
-func (modelApi *ResourceModelApi) CreateClusterCompute(tctx *logger.TraceContext,
-	db *gorm.DB, compute *resource_model.Compute, clusterComputeMap map[string]map[string]resource_model.Compute) {
+func (modelApi *ResourceModelApi) CreateClusterCompute(tctx *logger.TraceContext, db *gorm.DB,
+	compute *resource_model.Compute, clusterComputeMap map[string]map[string]resource_model.Compute) {
 	var err error
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()

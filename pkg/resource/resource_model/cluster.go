@@ -17,6 +17,7 @@ type Cluster struct {
 	DomainSuffix string `gorm:"not null;size:255;unique;"`
 	Labels       string `gorm:"not null;size:500;"`
 	Spec         string `gorm:"not null;size:1000;"`
+	Weight       int    `gorm:"not null;"`
 }
 
 type ClusterSpec struct {

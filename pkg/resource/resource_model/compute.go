@@ -42,6 +42,7 @@ type ComputeAssignment struct {
 type ComputeAssignmentWithComputeAndNode struct {
 	ComputeSpec  string
 	ComputeName  string
+	NodeID       uint
 	NodeName     string
 	Status       string
 	StatusReason string

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/jinzhu/gorm"
 	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_grpc_pb"
@@ -154,23 +155,19 @@ func (modelApi *ResourceModelApi) DeleteRegionService(tctx *logger.TraceContext,
 	tx := db.Begin()
 	defer tx.Rollback()
 
-	strSpecs, ok := query.StrParams["Specs"]
-	if !ok || len(strSpecs) == 0 {
-		err = error_utils.NewInvalidRequestEmptyError("Specs")
+	strArgs, ok := query.StrParams["Args"]
+	if !ok || len(strArgs) == 0 {
+		err = error_utils.NewInvalidRequestEmptyError("Args")
 		return codes.ClientBadRequest, err
 	}
 
-	var specs []resource_model.NameSpec
-	if err = json.Unmarshal([]byte(strSpecs), &specs); err != nil {
+	var args []string
+	if err = json.Unmarshal([]byte(strArgs), &args); err != nil {
 		return codes.ClientBadRequest, err
 	}
 
-	for _, spec := range specs {
-		if err = modelApi.validate.Struct(&spec); err != nil {
-			return codes.ClientBadRequest, err
-		}
-
-		if err = tx.Delete(&resource_model.RegionService{}, "name = ?", spec.Name).Error; err != nil {
+	for _, arg := range args {
+		if err = tx.Delete(&resource_model.RegionService{}, "name = ?", arg).Error; err != nil {
 			return codes.RemoteDbError, err
 		}
 	}
@@ -190,16 +187,16 @@ func (modelApi *ResourceModelApi) SyncRegionService(tctx *logger.TraceContext) e
 	}
 	defer modelApi.close(tctx, db)
 
-	clusterNetworksMap := map[string][]resource_model.NetworkV4{}
+	clusterNetworkV4sMap := map[string][]resource_model.NetworkV4{}
 	var networks []resource_model.NetworkV4
 	if err = db.Find(&networks).Error; err != nil {
 		return err
 	}
 	for _, network := range networks {
-		if networks, ok := clusterNetworksMap[network.Cluster]; ok {
+		if networks, ok := clusterNetworkV4sMap[network.Cluster]; ok {
 			networks = append(networks, network)
 		} else {
-			clusterNetworksMap[network.Cluster] = []resource_model.NetworkV4{network}
+			clusterNetworkV4sMap[network.Cluster] = []resource_model.NetworkV4{network}
 		}
 	}
 
@@ -225,7 +222,7 @@ func (modelApi *ResourceModelApi) SyncRegionService(tctx *logger.TraceContext) e
 		tctx.Metadata["RegionServiceId"] = strconv.FormatUint(uint64(service.ID), 10)
 		switch service.Status {
 		case resource_model.StatusInitializing:
-			modelApi.InitializeRegionService(tctx, db, &service, regionClustersMap)
+			modelApi.InitializeRegionService(tctx, db, &service, regionClustersMap, clusterNetworkV4sMap)
 		case resource_model.StatusCreatingInitialized:
 			logger.Infof(tctx, "Found %v resource: %v", service.Status, service.Name)
 		case resource_model.StatusCreatingScheduled:
@@ -284,8 +281,6 @@ func (modelApi *ResourceModelApi) SyncRegionService(tctx *logger.TraceContext) e
 	for _, compute := range computes {
 		tctx.Metadata["ComputeId"] = strconv.FormatUint(uint64(compute.ID), 10)
 		switch compute.Status {
-		case resource_model.StatusInitializing:
-			modelApi.InitializeCompute(tctx, db, &compute, clusterNetworksMap)
 		case resource_model.StatusCreating:
 			modelApi.CreateClusterCompute(tctx, db, &compute, clusterComputeMap)
 		case resource_model.StatusCreatingScheduled:
@@ -306,7 +301,8 @@ func (modelApi *ResourceModelApi) SyncRegionService(tctx *logger.TraceContext) e
 }
 
 func (modelApi *ResourceModelApi) InitializeRegionService(tctx *logger.TraceContext, db *gorm.DB,
-	regionService *resource_model.RegionService, regionClustersMap map[string][]resource_model.Cluster) {
+	regionService *resource_model.RegionService, regionClustersMap map[string][]resource_model.Cluster,
+	clusterNetworkV4sMap map[string][]resource_model.NetworkV4) {
 	var err error
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
@@ -316,25 +312,64 @@ func (modelApi *ResourceModelApi) InitializeRegionService(tctx *logger.TraceCont
 		return
 	}
 
-	clusters, ok := regionClustersMap[spec.Region]
+	tmpClusters, ok := regionClustersMap[spec.Region]
 	if !ok {
 		logger.Warningf(tctx, "cluster not found: region=%v", spec.Region)
 		return
 	}
 
-	var cluster resource_model.Cluster
-	fmt.Println("TODO: filter cluster", spec.Compute.SchedulePolicy.ClusterFilters)
-	fmt.Println("TODO: filter cluster", spec.Compute.SchedulePolicy.ClusterFilters)
-	cluster = clusters[0]
+	clusters := []resource_model.Cluster{}
+	for _, cluster := range tmpClusters {
+		_, ok := clusterNetworkV4sMap[cluster.Name]
+		if !ok {
+			continue
+		}
+		for _, filter := range spec.Compute.SchedulePolicy.ClusterFilters {
+			if filter != cluster.Name {
+				ok = false
+				break
+			}
+		}
+		if !ok {
+			continue
+		}
+
+		for _, labelFilter := range spec.Compute.SchedulePolicy.ClusterLabelFilters {
+			if strings.Index(cluster.Labels, labelFilter) < 0 {
+				ok = false
+				break
+			}
+		}
+		if !ok {
+			continue
+		}
+
+		clusters = append(clusters, cluster)
+	}
 
 	tx := db.Begin()
 	defer tx.Rollback()
-	if err = modelApi.CreateCompute(tctx, tx, regionService, &spec, &cluster); err != nil {
+	if len(clusters) == 0 {
+		err = error_utils.NewNotFoundError(resource_model.StatusMsgInitializeErrorNoValidCluster)
+		regionService.Status = resource_model.StatusError
+		regionService.StatusReason = resource_model.StatusMsgInitializeErrorNoValidCluster
+		tx.Save(regionService)
+		tx.Commit()
+		return
+	}
+
+	// TODO Sort clusters by weight
+	// TODO Sort clusters by resource
+	cluster := clusters[0]
+	clusterNetworkV4s := clusterNetworkV4sMap[cluster.Name]
+
+	if err = modelApi.CreateCompute(tctx, tx, regionService, &spec,
+		&cluster, clusterNetworkV4s); err != nil {
 		return
 	}
 
 	regionService.Status = resource_model.StatusCreating
-	regionService.StatusReason = "InitializeRegionService"
+	regionService.StatusReason = resource_model.StatusMsgInitializeSuccess
 	tx.Save(regionService)
 
 	tx.Commit()

@@ -98,7 +98,7 @@ func (modelApi *ResourceClusterModelApi) CreateCompute(tctx *logger.TraceContext
 				Disk:          computeSpec.Disk,
 				Spec:          string(specBytes),
 				Status:        resource_model.StatusInitializing,
-				StatusReason:  "CreateCompute",
+				StatusReason:  resource_model.StatusMsgInitializing,
 			}
 			if err = tx.Create(&data).Error; err != nil {
 				return codes.RemoteDbError, err
@@ -173,31 +173,44 @@ func (modelApi *ResourceClusterModelApi) SyncCompute(tctx *logger.TraceContext) 
 		return err
 	}
 
+	var nodes []resource_model.Node
+	if err = tx.Find(&nodes).Error; err != nil {
+		return err
+	}
+
 	query := tx.Table("compute_assignments as ca").
-		Select("ca.status, c.name as compute_name, c.spec as compute_spec, n.name as node_name").
+		Select("ca.status, c.name as compute_name, c.spec as compute_spec, ca.node_id, n.name as node_name").
 		Joins("INNER JOIN computes AS c ON c.id = ca.compute_id").
 		Joins("INNER JOIN nodes AS n ON n.id = ca.node_id")
-	var assignments []resource_model.ComputeAssignmentWithComputeAndNode
-	if err = query.Find(&assignments).Error; err != nil {
+	var computeAssignments []resource_model.ComputeAssignmentWithComputeAndNode
+	if err = query.Find(&computeAssignments).Error; err != nil {
 		return nil
 	}
 	tx.Commit()
 
-	assignmentsMap := map[string][]resource_model.ComputeAssignmentWithComputeAndNode{}
-	for _, assignment := range assignments {
-		assignments, ok := assignmentsMap[assignment.ComputeName]
+	nodeAssignmentsMap := map[uint][]resource_model.ComputeAssignmentWithComputeAndNode{}
+	for _, node := range nodes {
+		nodeAssignmentsMap[node.ID] = []resource_model.ComputeAssignmentWithComputeAndNode{}
+	}
+
+	computeAssignmentsMap := map[string][]resource_model.ComputeAssignmentWithComputeAndNode{}
+	for _, assignment := range computeAssignments {
+		assignments, ok := computeAssignmentsMap[assignment.ComputeName]
 		if !ok {
 			assignments = []resource_model.ComputeAssignmentWithComputeAndNode{}
 		}
 		assignments = append(assignments, assignment)
-		assignmentsMap[assignment.ComputeName] = assignments
+		computeAssignmentsMap[assignment.ComputeName] = assignments
+
+		nodeAssignments := nodeAssignmentsMap[assignment.NodeID]
+		nodeAssignments = append(nodeAssignments, assignment)
+		nodeAssignmentsMap[assignment.NodeID] = nodeAssignments
 	}
 
-	fmt.Println("DEBUG assignments", assignments)
 	for _, compute := range computes {
 		switch compute.Status {
 		case resource_model.StatusInitializing:
-			modelApi.AssignCompute(tctx, db, &compute, assignmentsMap, false)
+			modelApi.AssignCompute(tctx, db, &compute, nodeAssignmentsMap, computeAssignmentsMap, false)
 		}
 	}
 
@@ -207,34 +220,73 @@ func (modelApi *ResourceClusterModelApi) SyncCompute(tctx *logger.TraceContext) 
 
 func (modelApi *ResourceClusterModelApi) AssignCompute(tctx *logger.TraceContext, db *gorm.DB,
 	compute *resource_model.Compute,
+	nodeAssignmentsMap map[uint][]resource_model.ComputeAssignmentWithComputeAndNode,
 	assignmentsMap map[string][]resource_model.ComputeAssignmentWithComputeAndNode,
 	isReschedule bool) {
 	var err error
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
-	// assignNodes := []uint{}
-	// updateNodes := []uint{}
-	// unassignNodes := []uint{}
+	var spec resource_model.RegionServiceSpec
+	if err = json_utils.Unmarshal(compute.Spec, &spec); err != nil {
+		return
+	}
 
-	// var spec resource_model.RegionServiceSpec
-	// if err = json_utils.Unmarshal(compute.Spec, &spec); err != nil {
-	// 	return err
-	// }
+	policy := spec.Compute.SchedulePolicy
+	assignNodes := []uint{}
+	updateNodes := []uint{}
+	unassignNodes := []uint{}
 
-	// currentAssignments, ok := assignmentsMap[compute.Name]
-	// if ok {
-	// 	infoMsg := []string{}
-	// 	for _, currentAssignment := range currentAssignments {
-	// 		infoMsg = append(infoMsg, currentAssignment.NodeName)
-	// 	}
-	// 	logger.Infof(tctx, "currentAssignments: %v", infoMsg)
-	// }
+	currentAssignments, ok := assignmentsMap[compute.Name]
+	if ok {
+		infoMsg := []string{}
+		for _, currentAssignment := range currentAssignments {
+			infoMsg = append(infoMsg, currentAssignment.NodeName)
+		}
+		logger.Infof(tctx, "currentAssignments: %v", infoMsg)
+	}
 
-	// // policy := spec.SchedulePolicy
+	replicas := policy.Replicas
+	if !isReschedule {
+		for _, assignment := range currentAssignments {
+			updateNodes = append(updateNodes, assignment.NodeID)
+		}
+		replicas -= len(currentAssignments)
+	}
 
-	// if !isReschedule {
-	// 	for _, assignment := range currentAssignments {
-	// 	}
-	// }
+	if replicas != 0 {
+		// assignNodes := []uint{}
+		// updateNodes := []uint{}
+		// unassignNodes := []uint{}
+		for i := 0; i < replicas; i++ {
+			fmt.Println("DEBUG")
+		}
+	}
+
+	if policy.Replicas != len(assignNodes)+len(updateNodes)-len(unassignNodes) {
+		logger.Warningf(tctx, "Failed assign: compute=%v", compute.Name)
+		return
+	}
+
+	tx := db.Begin()
+	defer tx.Rollback()
+	for _, nodeID := range updateNodes {
+		switch compute.Status {
+		case resource_model.StatusInitializing:
+			tx.Create(&resource_model.ComputeAssignment{
+				ComputeID:    compute.ID,
+				NodeID:       nodeID,
+				Status:       resource_model.StatusUpdating,
+				StatusReason: resource_model.StatusMsgUpdating,
+			})
+		}
+	}
+
+	switch compute.Status {
+	case resource_model.StatusInitializing:
+		compute.Status = resource_model.StatusCreatingScheduled
+		compute.Status = resource_model.StatusMsgInitializeSuccess
+	}
+
+	tx.Commit()
 }

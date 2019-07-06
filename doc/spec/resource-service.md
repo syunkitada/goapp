@@ -22,10 +22,10 @@
   - Monitor は、一定時間更新のない Node があった場合
     - その Node の Status API をたたき、その Node のステータスを更新する
   - その Node のステータス API をたたいて
-- ResourceRegionApi
-  - Region の Api
-- ResourceRegionController
-  - Resource を Region 単位でバッチ処理するコントローラ
+- ResourceClusterApi
+  - Cluster の Api
+- ResourceClusterController
+  - Resource を Cluster 単位でバッチ処理するコントローラ
   - Resource を ResourceAgent にアサインする
 - ResourceAgent
   - 各 Node 内で稼働する Agent
@@ -310,19 +310,36 @@
       - 作成時に指定する
     - VIP の管理に利用
       - VIP を有効にしなくてもよい
-    - 各種 リソースごとに SchedulePolicy を設定し、Cluster や Node によるフィルタリング、Affinity の設定をする
+    - VirtualResource を作成する際は、RegionService を作成することによって間接的に作成する
+    - 各 VirtualResource ごとに SchedulePolicy を設定し、Cluster や Node のスケジューリングに利用する
       - Replicas
+        - 作成するリソース数
       - ClusterFilters
+        - クラスタ名によりリソースを作成するクラスタをフィルタリングする
       - ClusterLabelFilters
+        - ラベルによりリソースを作成するクラスタをフィルタリングする
       - NodeFilters
+        - ノード名によりリソースを作成するクラスタをフィルタリングする
       - NodeLabelFilters
+        - ラベルによりリソースを作成するノードをフィルタリングする
       - NodeLabelSoftUntiAffinities
+        - 特定ラベルが設定してあるノードにできるだけ分散するようにスケジューリングする
       - NodeLabelSoftAffinities
+        - 特定ラベルが設定してあるノードにできるだけ集中するようにスケジューリングする
       - NodeLabelHardUntiAffinities
+        - 特定ラベルが設定してあるノードに必ず分散するようにスケジューリングする
+        - ノードの空きがない場合は Error となる
       - NodeLabelHardAffinities
-  - 仮想リソースを作成する際は、RegionService を指定して作成する
-    - Cluster は Region に紐図いてるので、Region により Cluster は自動決定する
-    - 仮想リソースは SchedulrPolicy によって自動配置される
+        - 特定ラベルが設定してあるノードに必ず集中するようにスケジューリングする
+        - ノードの空きがない場合は Error となる
+    - Cluster のスケジューリング
+      - ResourceController がスケジューリングを担当
+      - Cluster は Region に紐図いており、Region により Cluster はフィルタリングされる
+      - ClusterFilters, ClusterLabelFilters によりクラスタはフィルタリングされる
+      - Cluster に設定された Weight によってソート(数値の大きいほうが優先)される
+      - Weight が同じ Cluster が複数ある場合は、Cluster 内のリソース空き容量によりソートされる
+    - Cluster 内でのスケジューリング
+      - ResourceClusterController がスケジューリングを担当
 
 ## 各種リソースの管理
 
