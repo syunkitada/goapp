@@ -318,30 +318,47 @@ func (modelApi *ResourceModelApi) InitializeRegionService(tctx *logger.TraceCont
 		return
 	}
 
+	policy := spec.Compute.SchedulePolicy
+	enableClusterFilters := false
+	if len(policy.ClusterFilters) > 0 {
+		enableClusterFilters = true
+	}
+	enableLabelFilters := false
+	if len(policy.ClusterLabelFilters) > 0 {
+		enableLabelFilters = true
+	}
+
 	clusters := []resource_model.Cluster{}
 	for _, cluster := range tmpClusters {
 		_, ok := clusterNetworkV4sMap[cluster.Name]
 		if !ok {
 			continue
 		}
-		for _, filter := range spec.Compute.SchedulePolicy.ClusterFilters {
-			if filter != cluster.Name {
-				ok = false
-				break
+
+		if enableClusterFilters {
+			ok = false
+			for _, filter := range policy.ClusterFilters {
+				if filter == cluster.Name {
+					ok = true
+					break
+				}
 			}
-		}
-		if !ok {
-			continue
+			if !ok {
+				continue
+			}
 		}
 
-		for _, labelFilter := range spec.Compute.SchedulePolicy.ClusterLabelFilters {
-			if strings.Index(cluster.Labels, labelFilter) < 0 {
-				ok = false
-				break
+		if enableLabelFilters {
+			ok = false
+			for _, labelFilter := range policy.ClusterLabelFilters {
+				if strings.Index(cluster.Labels, labelFilter) >= 0 {
+					ok = true
+					break
+				}
 			}
-		}
-		if !ok {
-			continue
+			if !ok {
+				continue
+			}
 		}
 
 		clusters = append(clusters, cluster)

@@ -3,6 +3,7 @@ package resource_cluster_model_api
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/jinzhu/gorm"
 	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_grpc_pb"
@@ -174,7 +175,9 @@ func (modelApi *ResourceClusterModelApi) SyncCompute(tctx *logger.TraceContext) 
 	}
 
 	var nodes []resource_model.Node
-	if err = tx.Find(&nodes).Error; err != nil {
+	if err = tx.Where(&resource_model.Node{
+		Kind: resource_model.KindResourceClusterAgent,
+	}).Find(&nodes).Error; err != nil {
 		return err
 	}
 
@@ -188,9 +191,11 @@ func (modelApi *ResourceClusterModelApi) SyncCompute(tctx *logger.TraceContext) 
 	}
 	tx.Commit()
 
+	nodeMap := map[uint]*resource_model.Node{}
 	nodeAssignmentsMap := map[uint][]resource_model.ComputeAssignmentWithComputeAndNode{}
 	for _, node := range nodes {
 		nodeAssignmentsMap[node.ID] = []resource_model.ComputeAssignmentWithComputeAndNode{}
+		nodeMap[node.ID] = &node
 	}
 
 	computeAssignmentsMap := map[string][]resource_model.ComputeAssignmentWithComputeAndNode{}
@@ -210,7 +215,7 @@ func (modelApi *ResourceClusterModelApi) SyncCompute(tctx *logger.TraceContext) 
 	for _, compute := range computes {
 		switch compute.Status {
 		case resource_model.StatusInitializing:
-			modelApi.AssignCompute(tctx, db, &compute, nodeAssignmentsMap, computeAssignmentsMap, false)
+			modelApi.AssignCompute(tctx, db, &compute, nodeMap, nodeAssignmentsMap, computeAssignmentsMap, false)
 		}
 	}
 
@@ -219,7 +224,7 @@ func (modelApi *ResourceClusterModelApi) SyncCompute(tctx *logger.TraceContext) 
 }
 
 func (modelApi *ResourceClusterModelApi) AssignCompute(tctx *logger.TraceContext, db *gorm.DB,
-	compute *resource_model.Compute,
+	compute *resource_model.Compute, nodeMap map[uint]*resource_model.Node,
 	nodeAssignmentsMap map[uint][]resource_model.ComputeAssignmentWithComputeAndNode,
 	assignmentsMap map[string][]resource_model.ComputeAssignmentWithComputeAndNode,
 	isReschedule bool) {
@@ -246,20 +251,311 @@ func (modelApi *ResourceClusterModelApi) AssignCompute(tctx *logger.TraceContext
 		logger.Infof(tctx, "currentAssignments: %v", infoMsg)
 	}
 
+	fmt.Println("DEBUG nodeAssignments: ", nodeAssignmentsMap)
+
+	// filtering node
+	enableNodeFilters := false
+	if len(policy.NodeFilters) > 0 {
+		enableNodeFilters = true
+	}
+	enableLabelFilters := false
+	if len(policy.NodeLabelFilters) > 0 {
+		enableLabelFilters = true
+	}
+	enableHardAffinites := false
+	if len(policy.NodeLabelHardAffinities) > 0 {
+		enableHardAffinites = true
+	}
+	enableHardAntiAffinites := false
+	if len(policy.NodeLabelHardAntiAffinities) > 0 {
+		enableHardAntiAffinites = true
+	}
+	enableSoftAffinites := false
+	if len(policy.NodeLabelSoftAffinities) > 0 {
+		enableSoftAffinites = true
+	}
+	enableSoftAntiAffinites := false
+	if len(policy.NodeLabelSoftAntiAffinities) > 0 {
+		enableSoftAntiAffinites = true
+	}
+
+	labelNodesMap := map[string][]*resource_model.Node{}
+	filterdNodeMap := map[uint]*resource_model.Node{}
+	nodes := []*resource_model.Node{}
+	for _, node := range nodeMap {
+		// TODO Filter cpu, memory, disk, status, state
+
+		labels := []string{}
+		ok := true
+		if enableNodeFilters {
+			ok = false
+			for _, nodeName := range policy.NodeFilters {
+				if node.Name == nodeName {
+					ok = true
+					break
+				}
+			}
+			if !ok {
+				continue
+			}
+		}
+
+		if enableLabelFilters {
+			ok = false
+			for _, label := range policy.NodeLabelFilters {
+				if strings.Index(node.Labels, label) >= 0 {
+					ok = true
+					break
+				}
+			}
+			if !ok {
+				continue
+			}
+		}
+
+		if enableHardAffinites {
+			ok = false
+			for _, label := range policy.NodeLabelHardAffinities {
+				if strings.Index(node.Labels, label) >= 0 {
+					ok = true
+					labels = append(labels, label)
+					break
+				}
+			}
+			if !ok {
+				continue
+			}
+		}
+
+		if enableHardAntiAffinites {
+			ok = false
+			for _, label := range policy.NodeLabelHardAntiAffinities {
+				if strings.Index(node.Labels, label) >= 0 {
+					ok = true
+					labels = append(labels, label)
+					break
+				}
+			}
+			if !ok {
+				continue
+			}
+		}
+
+		if enableSoftAffinites {
+			ok = false
+			for _, label := range policy.NodeLabelSoftAffinities {
+				if strings.Index(node.Labels, label) >= 0 {
+					ok = true
+					labels = append(labels, label)
+					break
+				}
+			}
+			if !ok {
+				continue
+			}
+		}
+
+		if enableSoftAntiAffinites {
+			ok = false
+			for _, label := range policy.NodeLabelSoftAntiAffinities {
+				if strings.Index(node.Labels, label) >= 0 {
+					ok = true
+					labels = append(labels, label)
+					break
+				}
+			}
+			if !ok {
+				continue
+			}
+		}
+
+		for _, label := range labels {
+			nodes, lok := labelNodesMap[label]
+			if !lok {
+				nodes = []*resource_model.Node{}
+			}
+			nodes = append(nodes, node)
+			labelNodesMap[label] = nodes
+		}
+
+		nodes = append(nodes, node)
+		filterdNodeMap[node.ID] = node
+	}
+
 	replicas := policy.Replicas
 	if !isReschedule {
 		for _, assignment := range currentAssignments {
-			updateNodes = append(updateNodes, assignment.NodeID)
+			_, ok := filterdNodeMap[assignment.NodeID]
+			if ok {
+				updateNodes = append(updateNodes, assignment.NodeID)
+			} else {
+				unassignNodes = append(unassignNodes, assignment.NodeID)
+			}
 		}
-		replicas -= len(currentAssignments)
+		replicas = replicas - len(currentAssignments) + len(unassignNodes)
 	}
 
 	if replicas != 0 {
-		// assignNodes := []uint{}
-		// updateNodes := []uint{}
-		// unassignNodes := []uint{}
 		for i := 0; i < replicas; i++ {
-			fmt.Println("DEBUG")
+			candidates := []*resource_model.Node{}
+			for _, label := range policy.NodeLabelHardAntiAffinities {
+				tmpCandidates := []*resource_model.Node{}
+				nodes := labelNodesMap[label]
+				for _, node := range nodes {
+					existsNode := false
+					for _, n := range assignNodes {
+						if node.ID == n {
+							existsNode = true
+							break
+						}
+					}
+					if existsNode {
+						continue
+					}
+					for _, n := range updateNodes {
+						if node.ID == n {
+							existsNode = true
+							break
+						}
+					}
+					if existsNode {
+						continue
+					}
+					tmpCandidates = append(candidates, node)
+				}
+				if len(candidates) == 0 {
+					candidates = tmpCandidates
+				} else {
+					newCandidates := []*resource_model.Node{}
+					for _, c := range candidates {
+						for _, tc := range tmpCandidates {
+							if c == tc {
+								newCandidates = append(newCandidates, c)
+								break
+							}
+						}
+					}
+					candidates = newCandidates
+				}
+			}
+
+			for _, label := range policy.NodeLabelHardAffinities {
+				tmpCandidates := []*resource_model.Node{}
+				nodes := labelNodesMap[label]
+				if len(candidates) == 0 && len(assignNodes) == 0 && len(updateNodes) == 0 {
+					for _, node := range nodes {
+						tmpCandidates = append(tmpCandidates, node)
+					}
+					candidates = tmpCandidates
+					break
+				} else if len(assignNodes) > 0 {
+					for _, node := range nodes {
+						for _, assignNodeID := range assignNodes {
+							if node.ID == assignNodeID {
+								candidates = append(candidates, node)
+								break
+							}
+						}
+					}
+					break
+				} else if len(updateNodes) > 0 {
+					for _, node := range nodes {
+						for _, updateNodeID := range updateNodes {
+							if node.ID == updateNodeID {
+								candidates = append(candidates, node)
+								break
+							}
+						}
+					}
+					break
+				}
+			}
+
+			for _, label := range policy.NodeLabelSoftAffinities {
+				tmpCandidates := []*resource_model.Node{}
+				nodes := labelNodesMap[label]
+				for _, node := range nodes {
+					for _, n := range assignNodes {
+						if node.ID == n {
+							node.Weight += 1000
+							break
+						}
+					}
+					for _, n := range updateNodes {
+						if node.ID == n {
+							node.Weight += 1000
+							break
+						}
+					}
+					tmpCandidates = append(candidates, node)
+				}
+				if len(candidates) == 0 {
+					candidates = tmpCandidates
+				} else {
+					newCandidates := []*resource_model.Node{}
+					for _, c := range candidates {
+						for _, tc := range tmpCandidates {
+							if c == tc {
+								newCandidates = append(newCandidates, c)
+								break
+							}
+						}
+					}
+					candidates = newCandidates
+				}
+			}
+
+			for _, label := range policy.NodeLabelSoftAntiAffinities {
+				tmpCandidates := []*resource_model.Node{}
+				nodes := labelNodesMap[label]
+				for _, node := range nodes {
+					for _, n := range assignNodes {
+						if node.ID == n {
+							node.Weight -= 1000
+							break
+						}
+					}
+					for _, n := range updateNodes {
+						if node.ID == n {
+							node.Weight -= 1000
+							break
+						}
+					}
+					tmpCandidates = append(candidates, node)
+				}
+				if len(candidates) == 0 {
+					candidates = tmpCandidates
+				} else {
+					newCandidates := []*resource_model.Node{}
+					for _, c := range candidates {
+						for _, tc := range tmpCandidates {
+							if c == tc {
+								newCandidates = append(newCandidates, c)
+								break
+							}
+						}
+					}
+					candidates = newCandidates
+				}
+			}
+
+			if len(candidates) == 0 {
+				break
+			}
+
+			for _, candidate := range candidates {
+				assignments, ok := nodeAssignmentsMap[candidate.ID]
+				if ok {
+					for _, assignment := range assignments {
+						// TODO calucurate assignment.Cost before scheduling
+						candidate.Weight -= (10 + assignment.Cost)
+					}
+				}
+			}
+
+			// TODO Sort candidates by weight
+
+			assignNodes = append(assignNodes, candidates[0].ID)
 		}
 	}
 

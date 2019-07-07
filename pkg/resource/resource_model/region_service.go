@@ -31,33 +31,6 @@ type RegionServiceSpec struct {
 	Compute ComputeSpec
 }
 
-type NetworkPolicySpec struct {
-	Version        int
-	Interfaces     int
-	AssignPolicy   string
-	StaticNetworks []string
-}
-
-type PortSpec struct {
-	Version int
-	Subnet  string
-	Gateway string
-	Ip      string
-	Mac     string
-}
-
-type SchedulePolicySpec struct {
-	Replicas                    int `validate:"required"`
-	ClusterFilters              []string
-	ClusterLabelFilters         []string
-	NodeFilters                 []string
-	NodeLabelFilters            []string
-	NodeLabelSoftUntiAffinities []string
-	NodeLabelSoftAffinities     []string
-	NodeLabelHardUntiAffinities []string
-	NodeLabelHardAffinities     []string
-}
-
 var RegionServiceCmd map[string]index_model.Cmd = map[string]index_model.Cmd{
 	"create_region-service": index_model.Cmd{
 		Arg:     index_model.ArgRequired,
