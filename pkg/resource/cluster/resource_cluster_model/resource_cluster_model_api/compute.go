@@ -280,11 +280,8 @@ func (modelApi *ResourceClusterModelApi) AssignCompute(tctx *logger.TraceContext
 	}
 
 	labelNodesMap := map[string][]*resource_model.Node{}
-	filterdNodeMap := map[uint]*resource_model.Node{}
-	nodes := []*resource_model.Node{}
+	labelFilterNodeMap := map[uint]*resource_model.Node{}
 	for _, node := range nodeMap {
-		// TODO Filter cpu, memory, disk, status, state
-
 		labels := []string{}
 		ok := true
 		if enableNodeFilters {
@@ -369,6 +366,11 @@ func (modelApi *ResourceClusterModelApi) AssignCompute(tctx *logger.TraceContext
 			}
 		}
 
+		// labelFilterNodeMapには、LabelのみによるNodeのフィルタリング結果を格納する
+		labelFilterNodeMap[node.ID] = node
+
+		// TODO Filter node by cpu, memory, disk, status, state
+
 		for _, label := range labels {
 			nodes, lok := labelNodesMap[label]
 			if !lok {
@@ -377,15 +379,14 @@ func (modelApi *ResourceClusterModelApi) AssignCompute(tctx *logger.TraceContext
 			nodes = append(nodes, node)
 			labelNodesMap[label] = nodes
 		}
-
-		nodes = append(nodes, node)
-		filterdNodeMap[node.ID] = node
 	}
 
 	replicas := policy.Replicas
 	if !isReschedule {
 		for _, assignment := range currentAssignments {
-			_, ok := filterdNodeMap[assignment.NodeID]
+			// labelFilterNodeMapには、LabelのみによるNodeのフィルタリング結果が格納されている
+			// label変更されてNodeが候補から外された場合は、unassignNodesに追加する
+			_, ok := labelFilterNodeMap[assignment.NodeID]
 			if ok {
 				updateNodes = append(updateNodes, assignment.NodeID)
 			} else {
