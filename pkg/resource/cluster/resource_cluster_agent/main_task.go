@@ -1,7 +1,11 @@
 package resource_cluster_agent
 
 import (
+	"fmt"
+
 	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_model"
+	"github.com/syunkitada/goapp/pkg/lib/codes"
+	"github.com/syunkitada/goapp/pkg/lib/error_utils"
 	"github.com/syunkitada/goapp/pkg/lib/json_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/resource/resource_model"
@@ -39,9 +43,23 @@ func (srv *ResourceClusterAgentServer) UpdateNode(tctx *logger.TraceContext) err
 			},
 		},
 	}
-	if _, err := srv.resourceClusterApiClient.Action(
-		logger.NewActionTraceContext(tctx, "system", "system", queries)); err != nil {
+	rep, err := srv.resourceClusterApiClient.Action(
+		logger.NewActionTraceContext(tctx, "system", "system", queries))
+	if err != nil {
 		return err
 	}
+
+	var response resource_model.UpdateNodeResponse
+	if err = json_utils.Unmarshal(rep.Response, &response); err != nil {
+		return err
+	}
+
+	if response.Tctx.StatusCode != codes.OkUpdated {
+		err = error_utils.NewInvalidResponseError(fmt.Sprintf("UnexpectedStatusCode: %v", response.Tctx.StatusCode))
+		return err
+	}
+
+	// TODO Create Compute
+	fmt.Println(response.Data.ComputeAssignments)
 	return nil
 }

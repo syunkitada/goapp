@@ -41,6 +41,7 @@ const (
 	StatusMsgInitializeErrorNoValidCluster = "InitializeError: NoValidCluster"
 	StatusMsgInitializeSuccess             = "InitializeSuccess"
 	StatusMsgUpdating                      = "Updating"
+	StatusMsgCreating                      = "Creating"
 )
 
 const (

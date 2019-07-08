@@ -44,7 +44,7 @@ func (modelApi *ResourceClusterModelApi) GetNodes(tctx *logger.TraceContext,
 }
 
 func (modelApi *ResourceClusterModelApi) UpdateNode(tctx *logger.TraceContext, db *gorm.DB,
-	query *authproxy_grpc_pb.Query) (int64, error) {
+	query *authproxy_grpc_pb.Query, data map[string]interface{}) (int64, error) {
 	var err error
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
@@ -101,6 +101,14 @@ func (modelApi *ResourceClusterModelApi) UpdateNode(tctx *logger.TraceContext, d
 	}
 
 	tx.Commit()
+
+	// generate node tasks
+	var computeAssignments []resource_model.ComputeAssignmentWithComputeAndNode
+	if computeAssignments, err = modelApi.GetComputeAssignments(tctx, db, ""); err != nil {
+		return codes.RemoteDbError, err
+	}
+	data["ComputeAssignments"] = computeAssignments
+
 	return codes.OkUpdated, nil
 }
 

@@ -175,19 +175,16 @@ func (modelApi *ResourceClusterModelApi) SyncCompute(tctx *logger.TraceContext) 
 	}
 
 	var nodes []resource_model.Node
+	// TODO filter by resource driver
 	if err = tx.Where(&resource_model.Node{
 		Kind: resource_model.KindResourceClusterAgent,
 	}).Find(&nodes).Error; err != nil {
 		return err
 	}
 
-	query := tx.Table("compute_assignments as ca").
-		Select("ca.status, c.name as compute_name, c.spec as compute_spec, ca.node_id, n.name as node_name").
-		Joins("INNER JOIN computes AS c ON c.id = ca.compute_id").
-		Joins("INNER JOIN nodes AS n ON n.id = ca.node_id")
 	var computeAssignments []resource_model.ComputeAssignmentWithComputeAndNode
-	if err = query.Find(&computeAssignments).Error; err != nil {
-		return nil
+	if computeAssignments, err = modelApi.GetComputeAssignments(tctx, tx, ""); err != nil {
+		return err
 	}
 	tx.Commit()
 
@@ -279,8 +276,9 @@ func (modelApi *ResourceClusterModelApi) AssignCompute(tctx *logger.TraceContext
 		enableSoftAntiAffinites = true
 	}
 
-	labelNodesMap := map[string][]*resource_model.Node{}
 	labelFilterNodeMap := map[uint]*resource_model.Node{}
+	filteredNodes := []*resource_model.Node{}
+	labelNodesMap := map[string][]*resource_model.Node{} // LabelごとのNode候補
 	for _, node := range nodeMap {
 		labels := []string{}
 		ok := true
@@ -369,7 +367,19 @@ func (modelApi *ResourceClusterModelApi) AssignCompute(tctx *logger.TraceContext
 		// labelFilterNodeMapには、LabelのみによるNodeのフィルタリング結果を格納する
 		labelFilterNodeMap[node.ID] = node
 
-		// TODO Filter node by cpu, memory, disk, status, state
+		// Filter node by status, state
+		if node.Status != resource_model.StatusEnabled {
+			continue
+		}
+
+		if node.State != resource_model.StateUp {
+			continue
+		}
+
+		// TODO
+		// Filter node by cpu, memory, disk
+
+		filteredNodes = append(filteredNodes, node)
 
 		for _, label := range labels {
 			nodes, lok := labelNodesMap[label]
@@ -472,71 +482,48 @@ func (modelApi *ResourceClusterModelApi) AssignCompute(tctx *logger.TraceContext
 				}
 			}
 
+			if !enableNodeFilters && !enableLabelFilters && !enableHardAffinites && !enableHardAntiAffinites {
+				if len(candidates) == 0 {
+					for _, node := range filteredNodes {
+						candidates = append(candidates, node)
+					}
+				}
+			}
+
+			// candidatesのweightを調整する
 			for _, label := range policy.NodeLabelSoftAffinities {
-				tmpCandidates := []*resource_model.Node{}
 				nodes := labelNodesMap[label]
 				for _, node := range nodes {
-					for _, n := range assignNodes {
-						if node.ID == n {
+					for _, assignNodeId := range assignNodes {
+						if node.ID == assignNodeId {
 							node.Weight += 1000
 							break
 						}
 					}
-					for _, n := range updateNodes {
-						if node.ID == n {
+					for _, updateNodeId := range updateNodes {
+						if node.ID == updateNodeId {
 							node.Weight += 1000
 							break
 						}
 					}
-					tmpCandidates = append(candidates, node)
-				}
-				if len(candidates) == 0 {
-					candidates = tmpCandidates
-				} else {
-					newCandidates := []*resource_model.Node{}
-					for _, c := range candidates {
-						for _, tc := range tmpCandidates {
-							if c == tc {
-								newCandidates = append(newCandidates, c)
-								break
-							}
-						}
-					}
-					candidates = newCandidates
 				}
 			}
 
 			for _, label := range policy.NodeLabelSoftAntiAffinities {
-				tmpCandidates := []*resource_model.Node{}
 				nodes := labelNodesMap[label]
 				for _, node := range nodes {
-					for _, n := range assignNodes {
-						if node.ID == n {
+					for _, assignNodeId := range assignNodes {
+						if node.ID == assignNodeId {
 							node.Weight -= 1000
 							break
 						}
 					}
-					for _, n := range updateNodes {
-						if node.ID == n {
+					for _, updateNodeId := range updateNodes {
+						if node.ID == updateNodeId {
 							node.Weight -= 1000
 							break
 						}
 					}
-					tmpCandidates = append(candidates, node)
-				}
-				if len(candidates) == 0 {
-					candidates = tmpCandidates
-				} else {
-					newCandidates := []*resource_model.Node{}
-					for _, c := range candidates {
-						for _, tc := range tmpCandidates {
-							if c == tc {
-								newCandidates = append(newCandidates, c)
-								break
-							}
-						}
-					}
-					candidates = newCandidates
 				}
 			}
 
@@ -569,7 +556,7 @@ func (modelApi *ResourceClusterModelApi) AssignCompute(tctx *logger.TraceContext
 	defer tx.Rollback()
 	for _, nodeID := range updateNodes {
 		switch compute.Status {
-		case resource_model.StatusInitializing:
+		case resource_model.StatusUpdating:
 			tx.Create(&resource_model.ComputeAssignment{
 				ComputeID:    compute.ID,
 				NodeID:       nodeID,
@@ -579,11 +566,46 @@ func (modelApi *ResourceClusterModelApi) AssignCompute(tctx *logger.TraceContext
 		}
 	}
 
+	for _, nodeID := range assignNodes {
+		switch compute.Status {
+		case resource_model.StatusInitializing:
+			tx.Create(&resource_model.ComputeAssignment{
+				ComputeID:    compute.ID,
+				NodeID:       nodeID,
+				Status:       resource_model.StatusCreating,
+				StatusReason: resource_model.StatusMsgCreating,
+			})
+		}
+	}
+
 	switch compute.Status {
 	case resource_model.StatusInitializing:
 		compute.Status = resource_model.StatusCreatingScheduled
-		compute.Status = resource_model.StatusMsgInitializeSuccess
+		compute.StatusReason = resource_model.StatusMsgInitializeSuccess
 	}
 
+	tx.Save(compute)
 	tx.Commit()
+}
+
+func (modelApi *ResourceClusterModelApi) GetComputeAssignments(tctx *logger.TraceContext, db *gorm.DB,
+	nodeName string) ([]resource_model.ComputeAssignmentWithComputeAndNode, error) {
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	query := db.Table("compute_assignments as ca").
+		Select("ca.status, c.name as compute_name, c.spec as compute_spec, ca.node_id, n.name as node_name").
+		Joins("INNER JOIN computes AS c ON c.id = ca.compute_id").
+		Joins("INNER JOIN nodes AS n ON n.id = ca.node_id")
+	if nodeName != "" {
+		query = query.Where("n.name = ?", nodeName)
+	}
+
+	var computeAssignments []resource_model.ComputeAssignmentWithComputeAndNode
+	if err = query.Find(&computeAssignments).Error; err != nil {
+		return nil, err
+	}
+
+	return computeAssignments, nil
 }

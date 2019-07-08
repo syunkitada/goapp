@@ -33,7 +33,7 @@ func (modelApi *ResourceClusterModelApi) Action(tctx *logger.TraceContext,
 	for _, query := range req.Queries {
 		switch query.Kind {
 		case "update_node":
-			tmpStatusCode, err = modelApi.UpdateNode(tctx, db, query)
+			tmpStatusCode, err = modelApi.UpdateNode(tctx, db, query, data)
 		case "get_computes":
 			tmpStatusCode, err = modelApi.GetComputes(tctx, db, req, query, data)
 		case "create_compute":

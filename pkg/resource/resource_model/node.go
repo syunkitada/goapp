@@ -2,6 +2,7 @@ package resource_model
 
 import (
 	"github.com/jinzhu/gorm"
+	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_grpc_pb"
 	"github.com/syunkitada/goapp/pkg/authproxy/index_model"
 )
 
@@ -18,6 +19,7 @@ type Node struct {
 	StateReason  string `gorm:"not null;size:50;"`
 	ClusterName  string `gorm:"not null;size:50;"`
 	Labels       string `gorm:"not null;size:500;"`
+	Spec         string `gorm:"not null;size:5000;"`
 	Weight       int    `gorm:"-"`
 }
 
@@ -29,7 +31,33 @@ type NodeSpec struct {
 	StatusReason string
 	State        string
 	StateReason  string
+	NumaNodes    []NumaNodeSpec
+	Storages     []StorageSpec
 	Spec         interface{}
+}
+
+type NumaNodeSpec struct {
+	AvailableCpus   int
+	UsedCpus        int
+	AvailableMemory int
+	UsedMemory      int
+}
+
+type StorageSpec struct {
+	Kind               string
+	Path               string
+	AvailableGb        int
+	UsedGb             int
+	AvailableNumaNodes []int
+}
+
+type UpdateNodeResponse struct {
+	Tctx authproxy_grpc_pb.TraceContext
+	Data NodeTask
+}
+
+type NodeTask struct {
+	ComputeAssignments []ComputeAssignmentWithComputeAndNode
 }
 
 var NodeCmd map[string]index_model.Cmd = map[string]index_model.Cmd{
