@@ -40,6 +40,7 @@ type NodeSpec struct {
 }
 
 type NumaNodeSpec struct {
+	Id              int
 	AvailableCpus   int
 	UsedCpus        int
 	AvailableMemory int

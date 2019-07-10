@@ -39,6 +39,8 @@ func NewResourceClusterAgentServer(conf *config.Config) *ResourceClusterAgentSer
 		resourceLabels = append(resourceLabels, resource_model.ResourceKindCompute)
 	}
 
+	fmt.Println("DEBUG CPU", conf.Resource.Node.Compute.Libvirt.AvailableCpus)
+
 	metricsReaderMap := map[string]metrics_plugins.MetricsReader{}
 	metricsReaderMap["system"] = system_metrics_reader.New(&conf.Resource.Node.Metrics.System)
 

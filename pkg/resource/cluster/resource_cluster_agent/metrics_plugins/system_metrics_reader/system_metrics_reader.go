@@ -12,7 +12,6 @@ import (
 
 	"github.com/syunkitada/goapp/pkg/config"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
-	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_agent/metrics_plugins"
 	"github.com/syunkitada/goapp/pkg/resource/resource_model"
 )
 
@@ -25,14 +24,10 @@ type SystemMetricsReader struct {
 	uptimeStats  []UptimeStat
 	loginStats   []LoginStat
 	cpuStats     []CpuStat
-	numaNodes    []NumaNode
+	numaNodes    []resource_model.NumaNodeSpec
 }
 
-type NumaNode struct {
-	Name string
-}
-
-func New(conf *config.ResourceMetricsSystemConfig) metrics_plugins.MetricsReader {
+func New(conf *config.ResourceMetricsSystemConfig) *SystemMetricsReader {
 	// f, _ := os.Open("/sys/devices/system/node/online")
 	// /sys/devices/system/node/node0/meminfo
 	nodeOnline, err := os.Open("/sys/devices/system/node/online")
@@ -45,12 +40,16 @@ func New(conf *config.ResourceMetricsSystemConfig) metrics_plugins.MetricsReader
 	if err != nil {
 		logger.StdoutFatalf("Failed Initialize SystemMetricsReader: %v", err)
 	}
-	splitedNodes := strings.Split(string(nodeOnlineBytes), ",")
+	splitedNodes := strings.Split(strings.TrimRight(string(nodeOnlineBytes), "\n"), ",")
 
-	numaNodes := []NumaNode{}
+	numaNodes := []resource_model.NumaNodeSpec{}
 	for _, node := range splitedNodes {
-		numaNodes = append(numaNodes, NumaNode{
-			Name: "node" + node,
+		id, err := strconv.Atoi(node)
+		if err != nil {
+			logger.StdoutFatalf("Failed Initialize SystemMetricsReader: %v", err)
+		}
+		numaNodes = append(numaNodes, resource_model.NumaNodeSpec{
+			Id: id,
 		})
 	}
 
@@ -100,6 +99,10 @@ type CpuStat struct {
 	procs_running int64
 	procs_blocked int64
 	softirq       int64
+}
+
+func (reader *SystemMetricsReader) GetNumaNodes(tctx *logger.TraceContext) []resource_model.NumaNodeSpec {
+	return reader.numaNodes
 }
 
 func (reader *SystemMetricsReader) Read(tctx *logger.TraceContext) error {
