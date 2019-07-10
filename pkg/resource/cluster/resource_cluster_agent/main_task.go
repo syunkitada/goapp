@@ -20,15 +20,19 @@ func (srv *ResourceClusterAgentServer) MainTask(tctx *logger.TraceContext) error
 }
 
 func (srv *ResourceClusterAgentServer) UpdateNode(tctx *logger.TraceContext) error {
+	// systemMetricsReader := metricsReaderMap["system"]
+
 	nodes := []resource_model.NodeSpec{
 		resource_model.NodeSpec{
-			Name:         srv.conf.Default.Host,
-			Kind:         resource_model.KindResourceClusterAgent,
-			Role:         resource_model.RoleMember,
-			Status:       resource_model.StatusEnabled,
-			StatusReason: "Default",
-			State:        resource_model.StateUp,
-			StateReason:  "UpdateNode",
+			Name:           srv.conf.Default.Host,
+			Kind:           resource_model.KindResourceClusterAgent,
+			Role:           resource_model.RoleMember,
+			Labels:         srv.labels,
+			ResourceLabels: srv.resourceLabels,
+			Status:         resource_model.StatusEnabled,
+			StatusReason:   "Default",
+			State:          resource_model.StateUp,
+			StateReason:    "UpdateNode",
 		},
 	}
 	specs, err := json_utils.Marshal(nodes)
@@ -59,7 +63,6 @@ func (srv *ResourceClusterAgentServer) UpdateNode(tctx *logger.TraceContext) err
 		return err
 	}
 
-	// TODO Create Compute
-	fmt.Println(response.Data.ComputeAssignments)
+	srv.SyncComputeAssignments(tctx, response.Data.ComputeAssignments)
 	return nil
 }

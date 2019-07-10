@@ -39,6 +39,7 @@ type AppConfig struct {
 	CaFile             string
 	ServerHostOverride string
 	Targets            []string
+	Labels             []string
 }
 
 type AdminConfig struct {

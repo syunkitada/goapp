@@ -112,6 +112,9 @@ Targets = ["127.0.0.1:13301"]
 [Resource.Database]
 Connection = "goapp:goapppass@tcp(127.0.0.1:3306)/goapp_resource?charset=utf8&parseTime=true"
 
+[Resource.ClusterMap."tokyo1".Database]
+Connection = "goapp:goapppass@tcp(127.0.0.1:3306)/goapp_resource_tokyo1?charset=utf8&parseTime=true"
+
 [Resource.ClusterMap."tokyo1".ApiApp]
 Name = "api"
 ClientTimeout = 5
@@ -147,18 +150,27 @@ CaFile = "ca.pem"
 ServerHostOverride = "x.test.youtube.com"
 Listen = "127.0.0.1:13312"
 Targets = ["127.0.0.1:13312"]
-
-[Resource.ClusterMap."tokyo1".Database]
-Connection = "goapp:goapppass@tcp(127.0.0.1:3306)/goapp_resource_tokyo1?charset=utf8&parseTime=true"
+Labels = ["NwAz=nw1", "NodeAz=node1", "PowerAz=power1"]
 
 [Resource.Node]
 ClusterName = "tokyo1"
-Labels = "NwAz:nw1;NodeAz:node1;PowerAz:power1;"
 
 [Resource.Node.Compute]
+Enable = true
+Driver = "libvirt"
+
+[Resource.Node.Compute.Libvirt]
+AvailableCpus = "1-11"
 CpuMode = "host-model"
 CpuType = "kvm"
 MemoryType = "hugepage"
 DiskType = "local"
 NetworkType = "local-linuxbridge"
 NetworkVhostQueues = 1
+
+[Resource.Node.Metrics.System]
+Enable = true
+EnableLogin = true
+EnableCpu = true
+EnableMemory = true
+CacheLength = 10

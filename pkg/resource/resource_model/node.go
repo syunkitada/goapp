@@ -10,30 +10,33 @@ const NodeKind = "Node"
 
 type Node struct {
 	gorm.Model
-	Name         string `gorm:"not null;size:255;"`
-	Kind         string `gorm:"not null;size:25;"`
-	Role         string `gorm:"not null;size:25;"`
-	Status       string `gorm:"not null;size:25;"`
-	StatusReason string `gorm:"not null;size:50;"`
-	State        string `gorm:"not null;size:25;"`
-	StateReason  string `gorm:"not null;size:50;"`
-	ClusterName  string `gorm:"not null;size:50;"`
-	Labels       string `gorm:"not null;size:500;"`
-	Spec         string `gorm:"not null;size:5000;"`
-	Weight       int    `gorm:"-"`
+	Name           string `gorm:"not null;size:255;"`
+	Kind           string `gorm:"not null;size:25;"`
+	Role           string `gorm:"not null;size:25;"`
+	Status         string `gorm:"not null;size:25;"`
+	StatusReason   string `gorm:"not null;size:50;"`
+	State          string `gorm:"not null;size:25;"`
+	StateReason    string `gorm:"not null;size:50;"`
+	ClusterName    string `gorm:"not null;size:50;"`
+	Labels         string `gorm:"not null;size:500;"`
+	ResourceLabels string `gorm:"not null;size:500;"`
+	Spec           string `gorm:"not null;size:5000;"`
+	Weight         int    `gorm:"-"`
 }
 
 type NodeSpec struct {
-	Name         string `validate:"required"`
-	Kind         string `validate:"required"`
-	Role         string
-	Status       string
-	StatusReason string
-	State        string
-	StateReason  string
-	NumaNodes    []NumaNodeSpec
-	Storages     []StorageSpec
-	Spec         interface{}
+	Name           string `validate:"required"`
+	Kind           string `validate:"required"`
+	Role           string
+	Status         string
+	StatusReason   string
+	State          string
+	StateReason    string
+	Labels         []string
+	ResourceLabels []string
+	NumaNodes      []NumaNodeSpec
+	Storages       []StorageSpec
+	Spec           interface{}
 }
 
 type NumaNodeSpec struct {

@@ -5,8 +5,8 @@ type ResourceConfig struct {
 	ApiApp        AppConfig
 	ControllerApp ControllerAppConfig
 	Database      DatabaseConfig
-	Node          ResourceNodeConfig
 	ClusterMap    map[string]ResourceClusterConfig
+	Node          ResourceNodeConfig
 }
 
 type ControllerAppConfig struct {
@@ -23,21 +23,34 @@ type ResourceClusterConfig struct {
 
 type ResourceNodeConfig struct {
 	ClusterName string
-	Labels      string
+	Metrics     ResourceMetricsConfig
 	Compute     ResourceComputeConfig
 }
 
 type ResourceComputeConfig struct {
+	Enable  bool
 	Driver  string // libvirt
 	Libvirt ResourceLibvirtConfig
 }
 
 type ResourceLibvirtConfig struct {
-	Enable             bool
+	AvailableCpus      string
 	CpuMode            string // host-model
 	CpuType            string // kvm, qemu
 	MemoryType         string // local, hugepage
 	DiskType           string // local
 	NetworkType        string // local-linuxbridge
 	NetworkVhostQueues int
+}
+
+type ResourceMetricsConfig struct {
+	System ResourceMetricsSystemConfig
+}
+
+type ResourceMetricsSystemConfig struct {
+	Enable       bool
+	EnableLogin  bool
+	EnableCpu    bool
+	EnableMemory bool
+	CacheLength  int
 }

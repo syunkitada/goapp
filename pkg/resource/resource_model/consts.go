@@ -7,6 +7,7 @@ const (
 	ResourceKindRack             = "Rack"
 	ResourceKindPhysicalModel    = "PhysicalModel"
 	ResourceKindPhysicalResource = "PhysicalResource"
+	ResourceKindCompute          = "Compute"
 )
 
 const (
