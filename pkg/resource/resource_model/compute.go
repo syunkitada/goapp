@@ -52,6 +52,7 @@ type ComputeAssignmentWithComputeAndNode struct {
 type ComputeSpec struct {
 	Kind           string `validate:"required"`
 	Image          string `validate:"required"`
+	ImageSpec      ImageSpec
 	SchedulePolicy SchedulePolicySpec
 	NetworkPolicy  NetworkPolicySpec
 	Name           string

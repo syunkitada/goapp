@@ -8,6 +8,7 @@ import (
 	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_grpc_pb"
 	"github.com/syunkitada/goapp/pkg/lib/codes"
 	"github.com/syunkitada/goapp/pkg/lib/error_utils"
+	"github.com/syunkitada/goapp/pkg/lib/json_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/resource/resource_model"
 )
@@ -71,6 +72,11 @@ func (modelApi *ResourceModelApi) CreateImage(tctx *logger.TraceContext, db *gor
 			return codes.ClientBadRequest, err
 		}
 
+		var specBytes []byte
+		if specBytes, err = json_utils.Marshal(&spec); err != nil {
+			return codes.ClientBadRequest, err
+		}
+
 		var data resource_model.Image
 		if err = tx.Where("name = ?", spec.Name).First(&data).Error; err != nil {
 			if !gorm.IsRecordNotFoundError(err) {
@@ -82,6 +88,8 @@ func (modelApi *ResourceModelApi) CreateImage(tctx *logger.TraceContext, db *gor
 				Name:        spec.Name,
 				Description: spec.Description,
 				Region:      spec.Region,
+				Status:      resource_model.StatusActive,
+				Spec:        string(specBytes),
 			}
 			if err = tx.Create(&data).Error; err != nil {
 				return codes.RemoteDbError, err

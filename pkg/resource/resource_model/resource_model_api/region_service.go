@@ -213,6 +213,21 @@ func (modelApi *ResourceModelApi) SyncRegionService(tctx *logger.TraceContext) e
 		}
 	}
 
+	regionImageMap := map[string]map[string]resource_model.Image{}
+	var images []resource_model.Image
+	if err = db.Where(&resource_model.Image{Status: resource_model.StatusActive}).
+		Find(&images).Error; err != nil {
+		return err
+	}
+	for _, image := range images {
+		imageMap, ok := regionImageMap[image.Region]
+		if !ok {
+			imageMap = map[string]resource_model.Image{}
+		}
+		imageMap[image.Name] = image
+		regionImageMap[image.Region] = imageMap
+	}
+
 	var regionServices []resource_model.RegionService
 	if err = db.Find(&regionServices).Error; err != nil {
 		return err
@@ -222,7 +237,8 @@ func (modelApi *ResourceModelApi) SyncRegionService(tctx *logger.TraceContext) e
 		tctx.Metadata["RegionServiceId"] = strconv.FormatUint(uint64(service.ID), 10)
 		switch service.Status {
 		case resource_model.StatusInitializing:
-			modelApi.InitializeRegionService(tctx, db, &service, regionClustersMap, clusterNetworkV4sMap)
+			modelApi.InitializeRegionService(
+				tctx, db, &service, regionClustersMap, clusterNetworkV4sMap, regionImageMap)
 		case resource_model.StatusCreatingInitialized:
 			logger.Infof(tctx, "Found %v resource: %v", service.Status, service.Name)
 		case resource_model.StatusCreatingScheduled:
@@ -302,7 +318,9 @@ func (modelApi *ResourceModelApi) SyncRegionService(tctx *logger.TraceContext) e
 
 func (modelApi *ResourceModelApi) InitializeRegionService(tctx *logger.TraceContext, db *gorm.DB,
 	regionService *resource_model.RegionService, regionClustersMap map[string][]resource_model.Cluster,
-	clusterNetworkV4sMap map[string][]resource_model.NetworkV4) {
+	clusterNetworkV4sMap map[string][]resource_model.NetworkV4,
+	regionImageMap map[string]map[string]resource_model.Image) {
+
 	var err error
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
@@ -317,6 +335,22 @@ func (modelApi *ResourceModelApi) InitializeRegionService(tctx *logger.TraceCont
 		logger.Warningf(tctx, "cluster not found: region=%v", spec.Region)
 		return
 	}
+
+	imageMap, ok := regionImageMap[spec.Region]
+	if !ok {
+		logger.Warningf(tctx, "image not found: region=%v", spec.Region)
+		return
+	}
+	image, ok := imageMap[spec.Compute.Image]
+	if !ok {
+		logger.Warningf(tctx, "image not found: region=%v, image=%v", spec.Region, spec.Compute.Image)
+		return
+	}
+	var imageSpec resource_model.ImageSpec
+	if err = json_utils.Unmarshal(image.Spec, &imageSpec); err != nil {
+		return
+	}
+	spec.Compute.ImageSpec = imageSpec
 
 	policy := spec.Compute.SchedulePolicy
 	enableClusterFilters := false

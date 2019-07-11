@@ -46,7 +46,7 @@ func (srv *ResourceControllerServer) UpdateNode(tctx *logger.TraceContext) error
 	nodes := []resource_model.NodeSpec{
 		resource_model.NodeSpec{
 			Name:         srv.conf.Default.Host,
-			Kind:         resource_model.KindResourceApi,
+			Kind:         resource_model.KindResourceController,
 			Role:         resource_model.RoleMember,
 			Status:       resource_model.StatusEnabled,
 			StatusReason: "Default",

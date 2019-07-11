@@ -10,7 +10,7 @@ const ImageKind = "Image"
 type Image struct {
 	gorm.Model
 	Region       string `gorm:"not null;size:50;"`
-	Name         string `gorm:"not null;size:255;"`
+	Name         string `gorm:"not null;size:255;"` // Name is unique in Region
 	Kind         string `gorm:"not null;size:25;"`
 	Labels       string `gorm:"not null;size:255;"`
 	Description  string `gorm:"not null;size:255;"`
@@ -45,7 +45,7 @@ var ImageCmd map[string]index_model.Cmd = map[string]index_model.Cmd{
 		ArgType:     index_model.ArgTypeString,
 		ArgKind:     ImageKind,
 		Help:        "get images",
-		TableHeader: []string{"Name", "Kind", "Region"},
+		TableHeader: []string{"Name", "Kind", "Region", "Status"},
 	},
 	"get_image": index_model.Cmd{
 		Arg:     index_model.ArgRequired,
