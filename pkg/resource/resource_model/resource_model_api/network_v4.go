@@ -189,7 +189,6 @@ func (modelApi *ResourceModelApi) AssignNetworkV4Port(tctx *logger.TraceContext,
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
-	fmt.Println("DEBUG ASSIGN")
 	netIds := []uint{}
 	netPortMap := map[uint]map[string]bool{}
 	netMacMap := map[uint]map[string]bool{}
@@ -262,11 +261,12 @@ func (modelApi *ResourceModelApi) AssignNetworkV4Port(tctx *logger.TraceContext,
 				return nil, err
 			}
 			portSpecs = append(portSpecs, resource_model.PortSpec{
-				Version: 4,
-				Subnet:  net.Subnet,
-				Gateway: net.Gateway,
-				Ip:      ip,
-				Mac:     mac,
+				NetworkID: net.Id,
+				Version:   4,
+				Subnet:    net.Subnet,
+				Gateway:   net.Gateway,
+				Ip:        ip,
+				Mac:       mac,
 			})
 		}
 	}

@@ -45,7 +45,16 @@ type TraceContext struct {
 	App      string
 	Func     string
 	TraceId  string
+	timeout  int
 	Metadata map[string]string
+}
+
+func (tctx *TraceContext) SetTimeout(timeout int) {
+	tctx.timeout = timeout
+}
+
+func (tctx *TraceContext) GetTimeout() int {
+	return tctx.timeout
 }
 
 type ActionTraceContext struct {

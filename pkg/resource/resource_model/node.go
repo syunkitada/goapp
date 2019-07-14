@@ -61,7 +61,7 @@ type UpdateNodeResponse struct {
 }
 
 type NodeTask struct {
-	ComputeAssignments []ComputeAssignmentWithComputeAndNode
+	ComputeAssignments []ComputeAssignmentEx
 }
 
 var NodeCmd map[string]index_model.Cmd = map[string]index_model.Cmd{

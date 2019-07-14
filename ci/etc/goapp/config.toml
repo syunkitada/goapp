@@ -158,6 +158,8 @@ ClusterName = "tokyo1"
 [Resource.Node.Compute]
 Enable = true
 Driver = "libvirt"
+ConfirmRetryCount = 2
+ConfirmRetryInterval = 3
 
 [Resource.Node.Compute.Libvirt]
 AvailableCpus = "1-11"

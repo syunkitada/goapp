@@ -12,11 +12,12 @@ type NetworkPolicySpec struct {
 }
 
 type PortSpec struct {
-	Version int
-	Subnet  string
-	Gateway string
-	Ip      string
-	Mac     string
+	NetworkID uint
+	Version   int
+	Subnet    string
+	Gateway   string
+	Ip        string
+	Mac       string
 }
 
 type SchedulePolicySpec struct {

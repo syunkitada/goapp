@@ -28,9 +28,11 @@ type ResourceNodeConfig struct {
 }
 
 type ResourceComputeConfig struct {
-	Enable  bool
-	Driver  string // libvirt
-	Libvirt ResourceLibvirtConfig
+	Enable               bool
+	ConfirmRetryCount    int
+	ConfirmRetryInterval int
+	Driver               string // libvirt
+	Libvirt              ResourceLibvirtConfig
 }
 
 type ResourceLibvirtConfig struct {

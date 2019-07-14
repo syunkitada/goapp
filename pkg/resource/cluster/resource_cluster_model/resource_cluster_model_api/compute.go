@@ -595,7 +595,7 @@ func (modelApi *ResourceClusterModelApi) GetComputeAssignments(tctx *logger.Trac
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
 	query := db.Table("compute_assignments as ca").
-		Select("ca.status, c.name as compute_name, c.spec as compute_spec, ca.node_id, n.name as node_name").
+		Select("ca.id, ca.status, ca.compute_id, c.name as compute_name, c.spec as compute_spec, ca.node_id, n.name as node_name").
 		Joins("INNER JOIN computes AS c ON c.id = ca.compute_id").
 		Joins("INNER JOIN nodes AS n ON n.id = ca.node_id")
 	if nodeName != "" {

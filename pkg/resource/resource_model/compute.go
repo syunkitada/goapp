@@ -40,6 +40,8 @@ type ComputeAssignment struct {
 }
 
 type ComputeAssignmentWithComputeAndNode struct {
+	ID           uint
+	ComputeID    uint
 	ComputeSpec  string
 	ComputeName  string
 	NodeID       uint
@@ -47,6 +49,12 @@ type ComputeAssignmentWithComputeAndNode struct {
 	Status       string
 	StatusReason string
 	Cost         int // calcurated by vcpu, memory, disk
+}
+
+type ComputeAssignmentEx struct {
+	ID          uint
+	Status      string
+	ComputeSpec ComputeSpec
 }
 
 type ComputeSpec struct {

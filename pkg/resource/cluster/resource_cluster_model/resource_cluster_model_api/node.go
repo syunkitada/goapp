@@ -9,6 +9,7 @@ import (
 	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_grpc_pb"
 	"github.com/syunkitada/goapp/pkg/lib/codes"
 	"github.com/syunkitada/goapp/pkg/lib/error_utils"
+	"github.com/syunkitada/goapp/pkg/lib/json_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/resource/resource_model"
 )
@@ -107,7 +108,20 @@ func (modelApi *ResourceClusterModelApi) UpdateNode(tctx *logger.TraceContext, d
 	if computeAssignments, err = modelApi.GetComputeAssignments(tctx, db, ""); err != nil {
 		return codes.RemoteDbError, err
 	}
-	data["ComputeAssignments"] = computeAssignments
+	computeAssignmentExs := []resource_model.ComputeAssignmentEx{}
+	for _, assignment := range computeAssignments {
+		var spec resource_model.RegionServiceSpec
+		if err = json_utils.Unmarshal(assignment.ComputeSpec, &spec); err != nil {
+			return codes.ServerInternalError, err
+		}
+		computeAssignmentExs = append(computeAssignmentExs, resource_model.ComputeAssignmentEx{
+			ID:          assignment.ID,
+			Status:      assignment.Status,
+			ComputeSpec: spec.Compute,
+		})
+	}
+
+	data["ComputeAssignments"] = computeAssignmentExs
 
 	return codes.OkUpdated, nil
 }

@@ -1,11 +1,32 @@
 package compute_drivers
 
-import "github.com/syunkitada/goapp/pkg/lib/logger"
+import (
+	"github.com/syunkitada/goapp/pkg/config"
+	"github.com/syunkitada/goapp/pkg/lib/logger"
+	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_agent/compute_drivers/libvirt_driver"
+	"github.com/syunkitada/goapp/pkg/resource/resource_model"
+)
 
 type ComputeDriver interface {
 	GetName() string
-	Create(tctx *logger.TraceContext) error
-	ConfirmCreate(tctx *logger.TraceContext) error
-	Delete(tctx *logger.TraceContext) error
-	ConfirmDelete(tctx *logger.TraceContext) error
+	Deploy(tctx *logger.TraceContext) error
+	ConfirmDeploy(tctx *logger.TraceContext) (bool, error)
+	SyncActivatingAssignmentMap(tctx *logger.TraceContext,
+		assignmentMap map[uint]resource_model.ComputeAssignmentEx) error
+	ConfirmActivatingAssignmentMap(tctx *logger.TraceContext,
+		assignmentMap map[uint]resource_model.ComputeAssignmentEx) (bool, error)
+	SyncDeletingAssignmentMap(tctx *logger.TraceContext,
+		assignmentMap map[uint]resource_model.ComputeAssignmentEx) error
+	ConfirmDeletingAssignmentMap(tctx *logger.TraceContext,
+		assignmentMap map[uint]resource_model.ComputeAssignmentEx) (bool, error)
+}
+
+func Load(conf *config.Config) ComputeDriver {
+	switch conf.Resource.Node.Compute.Driver {
+	case "libvirt":
+		driver := libvirt_driver.New(conf)
+		return driver
+	}
+
+	return nil
 }
