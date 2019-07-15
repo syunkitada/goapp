@@ -6,6 +6,17 @@ import (
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
 
+func Mkdir(path string, perm os.FileMode) error {
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		if err := os.Mkdir(path, perm); err != nil {
+			return err
+		}
+	} else if err != nil {
+		return err
+	}
+	return nil
+}
+
 func MustMkdir(path string, perm os.FileMode) {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		if err := os.Mkdir(path, perm); err != nil {

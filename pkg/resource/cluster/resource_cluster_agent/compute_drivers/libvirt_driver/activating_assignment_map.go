@@ -3,6 +3,7 @@ package libvirt_driver
 import (
 	"encoding/xml"
 	"fmt"
+	"io/ioutil"
 	"path/filepath"
 	"strings"
 
@@ -35,28 +36,87 @@ func (driver *LibvirtDriver) syncActivatingAssignmentMap(tctx *logger.TraceConte
 	for _, assignment := range assignmentMap {
 		fmt.Println("DEBUG assignment", assignment)
 		compute := assignment.Spec.Compute
+		computeId := fmt.Sprintf("compute%d", assignment.ID)
+		pciSlot := 1
 
-		imagePath := filepath.Join(driver.imagesDir, compute.ImageSpec.Name)
-		if !os_utils.PathExists(imagePath) {
+		vmDir := filepath.Join(driver.vmsDir, computeId)
+		if err = os_utils.Mkdir(vmDir, 0755); err != nil {
+			return err
+		}
+		vmImagePath := filepath.Join(vmDir, "img")
+		vmDomainXmlPath := filepath.Join(vmDir, "domain.xml")
+
+		srcImagePath := filepath.Join(driver.imagesDir, compute.ImageSpec.Name)
+		if !os_utils.PathExists(srcImagePath) {
 			tctx.SetTimeout(3600)
-			if _, err = exec_utils.Cmdf(tctx, "wget -O %s %s", imagePath, compute.ImageSpec.Url); err != nil {
+			if _, err = exec_utils.Cmdf(tctx, "wget -O %s %s", srcImagePath, compute.ImageSpec.Url); err != nil {
+				return err
+			}
+		}
+		if !os_utils.PathExists(vmImagePath) {
+			if _, err = exec_utils.Cmdf(tctx, "cp %s %s", srcImagePath, vmImagePath); err != nil {
 				return err
 			}
 		}
 
-		devices := []interface{}{}
-		devices = append(devices, libvirt_models.DeviceEmulator{
+		emulators := []libvirt_models.DeviceEmulator{}
+		emulators = append(emulators, libvirt_models.DeviceEmulator{
 			Emulator: "/usr/bin/qemu-system-x86_64",
 		})
 
-		devices = append(devices, libvirt_models.DeviceDisk{
-			Driver:  libvirt_models.DiskDriver{Name: "qemu", Type: "qcow2", Cache: "none"},
-			Source:  libvirt_models.DiskSource{File: "imagepath"},
-			Target:  libvirt_models.DiskTarget{Dev: "hda", Bus: "ide"},
-			Alias:   libvirt_models.Alias{Name: "ide0-0-0"},
-			Address: libvirt_models.DriveAddress{Type: "drive", Controller: 0, Bus: 0, Target: 0, Unit: 0},
+		disks := []libvirt_models.DeviceDisk{}
+		disks = append(disks, libvirt_models.DeviceDisk{
+			Type:   "file",
+			Device: "disk",
+			Driver: libvirt_models.DiskDriver{
+				Name:  "qemu",
+				Type:  "qcow2",
+				Cache: "none",
+			},
+			Source: libvirt_models.DiskSource{File: vmImagePath},
+			Target: libvirt_models.DiskTarget{Dev: "hda", Bus: "ide"},
+			Alias:  libvirt_models.Alias{Name: "ide0-0-0"},
+			Address: libvirt_models.DriveAddress{
+				Type:       "drive",
+				Controller: 0,
+				Bus:        0,
+				Target:     0,
+				Unit:       0,
+			},
 		})
 
+		serials := []libvirt_models.DeviceSerial{}
+		serials = append(serials, libvirt_models.DeviceSerial{
+			Type:   "pty",
+			Source: libvirt_models.SerialSource{Path: "/dev/pts/8"},
+			Target: libvirt_models.SerialTarget{Port: 0},
+			Alias:  libvirt_models.Alias{Name: "serial0"},
+		})
+
+		consoles := []libvirt_models.DeviceConsole{}
+		consoles = append(consoles, libvirt_models.DeviceConsole{
+			Type:   "pty",
+			Tty:    "/dev/pts/8",
+			Source: libvirt_models.ConsoleSource{Path: "/dev/pts/8"},
+			Target: libvirt_models.ConsoleTarget{Type: "serial", Port: 0},
+			Alias:  libvirt_models.Alias{Name: "serial0"},
+		})
+
+		membaloons := []libvirt_models.DeviceMembaloon{}
+		membaloons = append(membaloons, libvirt_models.DeviceMembaloon{
+			Model: "virtio",
+			Alias: libvirt_models.Alias{Name: "balloon0"},
+			Address: libvirt_models.PciAddress{
+				Type:     "pci",
+				Domain:   "0x0000",
+				Bus:      "0x00",
+				Slot:     fmt.Sprintf("%#02X", pciSlot),
+				Function: "0x0",
+			},
+		})
+		pciSlot += 1
+
+		interfaces := []libvirt_models.DeviceInterface{}
 		for i, port := range compute.Ports {
 			bridgeName := fmt.Sprintf("br-compute%d", port.NetworkID)
 			interfaceMap, ok := bridgeInterfaceMap[bridgeName]
@@ -80,9 +140,9 @@ func (driver *LibvirtDriver) syncActivatingAssignmentMap(tctx *logger.TraceConte
 					return err
 				}
 			}
-			fmt.Println("DEBUG interfaceMap", interfaceMap)
+			fmt.Println("DEBUG interfaceMap", i, interfaceMap)
 
-			devices = append(devices, libvirt_models.DeviceInterface{
+			interfaces = append(interfaces, libvirt_models.DeviceInterface{
 				Type: "bridge",
 				Driver: libvirt_models.InterfaceDriver{
 					Name:   "vhost",
@@ -97,7 +157,7 @@ func (driver *LibvirtDriver) syncActivatingAssignmentMap(tctx *logger.TraceConte
 					Type:     "pci",
 					Domain:   "0x0000",
 					Bus:      "0x00",
-					Slot:     fmt.Sprintf("0x0%d", i),
+					Slot:     fmt.Sprintf("%#02X", pciSlot),
 					Function: "0x0",
 				},
 			})
@@ -139,14 +199,26 @@ func (driver *LibvirtDriver) syncActivatingAssignmentMap(tctx *logger.TraceConte
 			OnPoweroff: "destroy",
 			OnReboot:   "restart",
 			OnCrash:    "restart",
-			Devices:    devices,
+			Devices: libvirt_models.Devices{
+				Emulators:  emulators,
+				Interfaces: interfaces,
+				Disks:      disks,
+			},
 		}
 
 		var xmlBytes []byte
 		if xmlBytes, err = xml.Marshal(&domain); err != nil {
 			return err
 		}
+
+		if err = ioutil.WriteFile(vmDomainXmlPath, xmlBytes, 0644); err != nil {
+			return err
+		}
 		fmt.Println("DEBUG XML", string(xmlBytes))
+
+		if _, err = exec_utils.Cmdf(tctx, "virsh define %s", vmDomainXmlPath); err != nil {
+			return err
+		}
 	}
 
 	// out, err := exec_utils.Cmdf(1, "brctl addbr %s", "test")

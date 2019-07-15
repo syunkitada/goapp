@@ -19,7 +19,17 @@ type Domain struct {
 	OnPoweroff    string         `xml:"on_poweroff"`
 	OnReboot      string         `xml:"on_reboot"`
 	OnCrash       string         `xml:"on_crash"`
-	Devices       []interface{}  `xml:"devices"`
+	Devices       Devices        `xml:"devices"`
+}
+
+type Devices struct {
+	Emulators   []DeviceEmulator   `xml:"emulator"`
+	Interfaces  []DeviceInterface  `xml:"interface"`
+	Disks       []DeviceDisk       `xml:"disk"`
+	Controllers []DeviceController `xml:"controller"`
+	Serials     []DeviceSerial     `xml:"serial"`
+	Consoles    []DeviceConsole    `xml:"console"`
+	Membaloons  []DeviceMembaloon  `xml:"membaloon"`
 }
 
 type Memory struct {
@@ -88,19 +98,17 @@ type Clock struct {
 }
 
 type DeviceEmulator struct {
-	XMLName  xml.Name `xml:"emulator"`
-	Emulator string   `xml:",chardata"`
+	Emulator string `xml:",chardata"`
 }
 
 type DeviceDisk struct {
-	XMLName xml.Name    `xml:"disk"`
-	Type    string      `xml:"type,attr"`
-	Device  string      `xml:"device,attr"`
-	Driver  DiskDriver  `xml:"driver"`
-	Source  DiskSource  `xml:"source"`
-	Target  DiskTarget  `xml:"target"`
-	Alias   Alias       `xml:"alias"`
-	Address interface{} `xml:"address"`
+	Type    string       `xml:"type,attr"`
+	Device  string       `xml:"device,attr"`
+	Driver  DiskDriver   `xml:"driver"`
+	Source  DiskSource   `xml:"source"`
+	Target  DiskTarget   `xml:"target"`
+	Alias   Alias        `xml:"alias"`
+	Address DriveAddress `xml:"address"`
 }
 
 type DiskDriver struct {
@@ -124,18 +132,17 @@ type Alias struct {
 
 type DriveAddress struct {
 	Type       string `xml:"type,attr"`
-	Controller int    `xml:"controller,attr"`
-	Bus        int    `xml:"bus,attr"`
-	Target     int    `xml:"target,attr"`
-	Unit       int    `xml:"unit,attr"`
+	Controller uint   `xml:"controller,attr"`
+	Bus        uint   `xml:"bus,attr"`
+	Target     uint   `xml:"target,attr"`
+	Unit       uint   `xml:"unit,attr"`
 }
 
 type DeviceController struct {
-	XMLName xml.Name    `xml:"controller"`
-	Type    string      `xml:"type,attr"`
-	Index   int         `xml:"index,attr"`
-	Alias   Alias       `xml:"alias"`
-	Address interface{} `xml:"address"`
+	Type    string     `xml:"type,attr"`
+	Index   int        `xml:"index,attr"`
+	Alias   Alias      `xml:"alias"`
+	Address PciAddress `xml:"address"`
 }
 
 type PciAddress struct {
@@ -178,11 +185,10 @@ type InterfaceModel struct {
 }
 
 type DeviceSerial struct {
-	XMLName xml.Name     `xml:"serial"`
-	Type    string       `xml:"type,attr"`
-	Source  SerialSource `xml:"source"`
-	Target  SerialTarget `xml:"target"`
-	Alias   Alias        `xml:"alias"`
+	Type   string       `xml:"type,attr"`
+	Source SerialSource `xml:"source"`
+	Target SerialTarget `xml:"target"`
+	Alias  Alias        `xml:"alias"`
 }
 
 type SerialSource struct {
@@ -190,16 +196,15 @@ type SerialSource struct {
 }
 
 type SerialTarget struct {
-	Port int `xml:"port,attr"`
+	Port uint `xml:"port,attr"`
 }
 
 type DeviceConsole struct {
-	XMLName xml.Name      `xml:"console"`
-	Type    string        `xml:"type,attr"`
-	Tty     string        `xml:"tty,attr"`
-	Source  ConsoleSource `xml:"source"`
-	Target  ConsoleTarget `xml:"target"`
-	Alias   Alias         `xml:"alias"`
+	Type   string        `xml:"type,attr"`
+	Tty    string        `xml:"tty,attr"`
+	Source ConsoleSource `xml:"source"`
+	Target ConsoleTarget `xml:"target"`
+	Alias  Alias         `xml:"alias"`
 }
 
 type ConsoleSource struct {
@@ -208,11 +213,11 @@ type ConsoleSource struct {
 
 type ConsoleTarget struct {
 	Type string `xml:"type,attr"`
-	Port int    `xml:"port,attr"`
+	Port uint   `xml:"port,attr"`
 }
 
-type Membaloon struct {
-	XMLName xml.Name   `xml:"membaloon"`
+type DeviceMembaloon struct {
+	Model   string     `xml:"model,attr"`
 	Alias   Alias      `xml:"alias"`
 	Address PciAddress `xml:"address"`
 }
