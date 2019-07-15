@@ -7,14 +7,18 @@ import (
 )
 
 type LibvirtDriver struct {
-	name string
-	conf *config.Config
+	name      string
+	conf      *config.Config
+	vmsDir    string
+	imagesDir string
 }
 
 func New(conf *config.Config) *LibvirtDriver {
 	driver := LibvirtDriver{
-		name: "libvirt",
-		conf: conf,
+		name:      "libvirt",
+		conf:      conf,
+		vmsDir:    conf.Resource.Node.Compute.VmsDir,
+		imagesDir: conf.Resource.Node.Compute.ImagesDir,
 	}
 	return &driver
 }

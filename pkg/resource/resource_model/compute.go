@@ -52,9 +52,9 @@ type ComputeAssignmentWithComputeAndNode struct {
 }
 
 type ComputeAssignmentEx struct {
-	ID          uint
-	Status      string
-	ComputeSpec ComputeSpec
+	ID     uint
+	Status string
+	Spec   RegionServiceSpec
 }
 
 type ComputeSpec struct {

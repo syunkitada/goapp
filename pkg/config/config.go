@@ -17,6 +17,7 @@ var (
 	configFile        string
 	logDir            string
 	tmpDir            string
+	varDir            string
 	enableDebug       bool
 	enableDevelop     bool
 	enableDatabaseLog bool
@@ -33,10 +34,11 @@ var (
 )
 
 func InitFlags(rootCmd *cobra.Command) {
-	rootCmd.PersistentFlags().StringVar(&configDir, "config-dir", "", "config directory (default is $HOMEL/.goapp/etc)")
+	rootCmd.PersistentFlags().StringVar(&configDir, "config-dir", "", "config directory (default is $HOME/.goapp/etc)")
 	rootCmd.PersistentFlags().StringVar(&configFile, "config-file", "", "config file (default is config.toml)")
-	rootCmd.PersistentFlags().StringVar(&logDir, "log-dir", "", "config directory (default is $HOMEL/.goapp/logs)")
-	rootCmd.PersistentFlags().StringVar(&tmpDir, "tmp-dir", "", "config directory (default is $HOMEL/.goapp/tmp)")
+	rootCmd.PersistentFlags().StringVar(&logDir, "log-dir", "", "config directory (default is $HOME/.goapp/logs)")
+	rootCmd.PersistentFlags().StringVar(&tmpDir, "tmp-dir", "", "config directory (default is $HOME/.goapp/tmp)")
+	rootCmd.PersistentFlags().StringVar(&varDir, "var-dir", "", "config directory (default is $HOME/.goapp/var)")
 	rootCmd.PersistentFlags().BoolVar(&enableDebug, "debug", false, "enable debug mode")
 	rootCmd.PersistentFlags().BoolVar(&enableDevelop, "develop", false, "enable develop mode")
 	rootCmd.PersistentFlags().BoolVar(&enableDatabaseLog, "database-log", true, "enable database logging")
@@ -97,6 +99,13 @@ func InitConfig() {
 		}
 	}
 
+	if varDir == "" {
+		varDir = os.Getenv("VAR_DIR")
+		if varDir == "" {
+			varDir = filepath.Join(appDir, "var")
+		}
+	}
+
 	logTimeFormat := "2006-01-02T15:04:05Z09:00"
 
 	var err error
@@ -111,6 +120,7 @@ func InitConfig() {
 		ConfigDir:         configDir,
 		ConfigFile:        filepath.Join(configDir, configFile),
 		TmpDir:            tmpDir,
+		VarDir:            varDir,
 		LogDir:            logDir,
 		LogTimeFormat:     logTimeFormat,
 		EnableDebug:       enableDebug,

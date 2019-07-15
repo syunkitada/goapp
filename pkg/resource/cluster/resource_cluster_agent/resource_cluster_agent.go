@@ -2,6 +2,7 @@ package resource_cluster_agent
 
 import (
 	"fmt"
+	"path/filepath"
 	"time"
 
 	"github.com/golang/glog"
@@ -9,6 +10,7 @@ import (
 
 	"github.com/syunkitada/goapp/pkg/base"
 	"github.com/syunkitada/goapp/pkg/config"
+	"github.com/syunkitada/goapp/pkg/lib/os_utils"
 	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_agent/compute_drivers"
 	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_agent/metrics_plugins"
 	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_agent/metrics_plugins/system_metrics_reader"
@@ -31,6 +33,8 @@ type ResourceClusterAgentServer struct {
 	computeDriver               compute_drivers.ComputeDriver
 	computeConfirmRetryCount    int
 	computeConfirmRetryInterval time.Duration
+	computeVmsDir               string
+	computeImagesDir            string
 }
 
 func NewResourceClusterAgentServer(conf *config.Config) *ResourceClusterAgentServer {
@@ -45,6 +49,15 @@ func NewResourceClusterAgentServer(conf *config.Config) *ResourceClusterAgentSer
 	}
 
 	fmt.Println("DEBUG CPU", conf.Resource.Node.Compute.Libvirt.AvailableCpus)
+	computeDir := filepath.Join(conf.Default.VarDir, "compute")
+	computeVmsDir := filepath.Join(computeDir, "vms")
+	computeImagesDir := filepath.Join(computeDir, "images")
+	os_utils.MustMkdir(computeDir, 0755)
+	os_utils.MustMkdir(computeVmsDir, 0755)
+	os_utils.MustMkdir(computeImagesDir, 0755)
+	conf.Resource.Node.Compute.VarDir = computeDir
+	conf.Resource.Node.Compute.VmsDir = computeVmsDir
+	conf.Resource.Node.Compute.ImagesDir = computeImagesDir
 
 	computeDriver := compute_drivers.Load(conf)
 
@@ -63,6 +76,8 @@ func NewResourceClusterAgentServer(conf *config.Config) *ResourceClusterAgentSer
 		computeDriver:               computeDriver,
 		computeConfirmRetryCount:    conf.Resource.Node.Compute.ConfirmRetryCount,
 		computeConfirmRetryInterval: time.Duration(conf.Resource.Node.Compute.ConfirmRetryInterval) * time.Second,
+		computeVmsDir:               computeVmsDir,
+		computeImagesDir:            computeImagesDir,
 	}
 
 	server.RegisterDriver(&server)

@@ -20,6 +20,7 @@ type DefaultConfig struct {
 	ConfigDir         string
 	ConfigFile        string
 	TmpDir            string
+	VarDir            string
 	LogDir            string
 	LogTimeFormat     string
 	EnableTest        bool

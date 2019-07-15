@@ -31,6 +31,9 @@ type ResourceComputeConfig struct {
 	Enable               bool
 	ConfirmRetryCount    int
 	ConfirmRetryInterval int
+	VarDir               string
+	VmsDir               string
+	ImagesDir            string
 	Driver               string // libvirt
 	Libvirt              ResourceLibvirtConfig
 }

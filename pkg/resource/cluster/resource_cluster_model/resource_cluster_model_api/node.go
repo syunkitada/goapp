@@ -115,9 +115,9 @@ func (modelApi *ResourceClusterModelApi) UpdateNode(tctx *logger.TraceContext, d
 			return codes.ServerInternalError, err
 		}
 		computeAssignmentExs = append(computeAssignmentExs, resource_model.ComputeAssignmentEx{
-			ID:          assignment.ID,
-			Status:      assignment.Status,
-			ComputeSpec: spec.Compute,
+			ID:     assignment.ID,
+			Status: assignment.Status,
+			Spec:   spec,
 		})
 	}
 
