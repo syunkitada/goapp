@@ -11,7 +11,7 @@ import (
 func Cmd(tctx *logger.TraceContext, cmd string) (string, error) {
 	cmd = fmt.Sprintf("timeout %d %s", tctx.GetTimeout(), cmd)
 	cmds := strings.Split(cmd, " ")
-	out, err := exec.Command(cmds[0], cmds[1:]...).Output()
+	out, err := exec.Command(cmds[0], cmds[1:]...).CombinedOutput()
 	if err != nil {
 		logger.Warningf(tctx, "Failed Cmd: cmd=%s, out=%s, err=%s", cmd, string(out), err.Error())
 	}

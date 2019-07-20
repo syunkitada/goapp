@@ -5,18 +5,51 @@ import (
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/syunkitada/goapp/pkg/lib/exec_utils"
+	"github.com/syunkitada/goapp/pkg/lib/json_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/lib/os_utils"
 	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_agent/compute_drivers/libvirt_driver/libvirt_models"
 	"github.com/syunkitada/goapp/pkg/resource/resource_model"
 )
 
+var reVirshListLine = regexp.MustCompile(` ([-0-9]+) +([a-z0-9]+) +(.*)`)
+
 func (driver *LibvirtDriver) syncActivatingAssignmentMap(tctx *logger.TraceContext,
 	assignmentMap map[uint]resource_model.ComputeAssignmentEx) error {
-	fmt.Println("DEBUG driver", assignmentMap)
+
+	virshListAll, err := exec_utils.Cmdf(tctx, "virsh list --all")
+	if err != nil {
+		return err
+	}
+	domainMap := map[string]libvirt_models.Domain{}
+	for i, line := range strings.Split(virshListAll, "\n") {
+		if i == 0 {
+			continue
+		}
+		result := reVirshListLine.FindAllStringSubmatch(line, -1)
+		if result == nil {
+			continue
+		}
+		fmt.Println("DEBUG state", result[0][3])
+		var state string
+		switch result[0][3] {
+		case "shut off":
+			state = resource_model.StateDown
+		case "running":
+			state = resource_model.StateUp
+		default:
+			state = resource_model.StateUnknown
+		}
+		domainMap[result[0][2]] = libvirt_models.Domain{
+			Name:  result[0][2],
+			State: state,
+		}
+	}
+
 	out, err := exec_utils.Cmd(tctx, "brctl show")
 	if err != nil {
 		return err
@@ -34,7 +67,6 @@ func (driver *LibvirtDriver) syncActivatingAssignmentMap(tctx *logger.TraceConte
 	}
 
 	for _, assignment := range assignmentMap {
-		fmt.Println("DEBUG assignment", assignment)
 		compute := assignment.Spec.Compute
 		computeId := fmt.Sprintf("compute%d", assignment.ID)
 		pciSlot := 1
@@ -44,6 +76,7 @@ func (driver *LibvirtDriver) syncActivatingAssignmentMap(tctx *logger.TraceConte
 			return err
 		}
 		vmImagePath := filepath.Join(vmDir, "img")
+		vmConfigImagePath := filepath.Join(vmDir, "config.img")
 		vmDomainXmlPath := filepath.Join(vmDir, "domain.xml")
 
 		srcImagePath := filepath.Join(driver.imagesDir, compute.ImageSpec.Name)
@@ -59,6 +92,46 @@ func (driver *LibvirtDriver) syncActivatingAssignmentMap(tctx *logger.TraceConte
 			}
 		}
 
+		configDir := filepath.Join(vmDir, "config")
+		if err = os_utils.Mkdir(configDir, 0755); err != nil {
+			return err
+		}
+		configOpenstackDir := filepath.Join(configDir, "openstack")
+		if err = os_utils.Mkdir(configOpenstackDir, 0755); err != nil {
+			return err
+		}
+		configOpenstackLatestDir := filepath.Join(configOpenstackDir, "latest")
+		if err = os_utils.Mkdir(configOpenstackLatestDir, 0755); err != nil {
+			return err
+		}
+		vmMetaDataConfigFilePath := filepath.Join(configOpenstackLatestDir, "meta_data.json")
+		vmUserDataConfigFilePath := filepath.Join(configOpenstackLatestDir, "user_data")
+
+		metaData := map[string]interface{}{
+			"instance-id":    computeId,
+			"local-hostname": computeId,
+			"network": map[string]interface{}{
+				"config": "disabled",
+			},
+		}
+		metaDataBytes, err := json_utils.Marshal(metaData)
+		if err != nil {
+			return err
+		}
+		if err = ioutil.WriteFile(vmMetaDataConfigFilePath, []byte(metaDataBytes), 0644); err != nil {
+			return err
+		}
+
+		userData := fmt.Sprintf("#!/bin/sh\nhostname\necho 'hogelala'")
+		if err = ioutil.WriteFile(vmUserDataConfigFilePath, []byte(userData), 0644); err != nil {
+			return err
+		}
+
+		if _, err = exec_utils.Cmdf(tctx, "genisoimage -o %s -V config-2 -r -J %s",
+			vmConfigImagePath, configDir); err != nil {
+			return err
+		}
+
 		emulators := []libvirt_models.DeviceEmulator{}
 		emulators = append(emulators, libvirt_models.DeviceEmulator{
 			Emulator: "/usr/bin/qemu-system-x86_64",
@@ -68,7 +141,7 @@ func (driver *LibvirtDriver) syncActivatingAssignmentMap(tctx *logger.TraceConte
 		disks = append(disks, libvirt_models.DeviceDisk{
 			Type:   "file",
 			Device: "disk",
-			Driver: libvirt_models.DiskDriver{
+			Driver: libvirt_models.DiskDriverQcow2{
 				Name:  "qemu",
 				Type:  "qcow2",
 				Cache: "none",
@@ -80,6 +153,25 @@ func (driver *LibvirtDriver) syncActivatingAssignmentMap(tctx *logger.TraceConte
 				Type:       "drive",
 				Controller: 0,
 				Bus:        0,
+				Target:     0,
+				Unit:       0,
+			},
+		})
+
+		disks = append(disks, libvirt_models.DeviceDisk{
+			Type:   "file",
+			Device: "cdrom",
+			Driver: libvirt_models.DiskDriverRaw{
+				Name: "qemu",
+				Type: "raw",
+			},
+			Source: libvirt_models.DiskSource{File: vmConfigImagePath},
+			Target: libvirt_models.DiskTarget{Dev: "hdc", Bus: "ide"},
+			Alias:  libvirt_models.Alias{Name: "ide0-1-0"},
+			Address: libvirt_models.DriveAddress{
+				Type:       "drive",
+				Controller: 0,
+				Bus:        1,
 				Target:     0,
 				Unit:       0,
 			},
@@ -151,7 +243,7 @@ func (driver *LibvirtDriver) syncActivatingAssignmentMap(tctx *logger.TraceConte
 				Mac:    libvirt_models.InterfaceMac{Address: port.Mac},
 				Source: libvirt_models.InterfaceSource{Bridge: bridgeName},
 				Target: libvirt_models.InterfaceTarget{Dev: fmt.Sprintf("tap%d-%d", assignment.ID, i)},
-				Model:  libvirt_models.InterfaceModel{Type: ""},
+				Model:  libvirt_models.InterfaceModel{Type: "virtio"},
 				Alias:  libvirt_models.Alias{Name: fmt.Sprintf("net%d", i)},
 				Address: libvirt_models.PciAddress{
 					Type:     "pci",
@@ -163,10 +255,11 @@ func (driver *LibvirtDriver) syncActivatingAssignmentMap(tctx *logger.TraceConte
 			})
 		}
 
-		domain := libvirt_models.Domain{
-			ID:   assignment.ID,
-			Type: libvirt_models.DomainTypeKvm,
-			Name: fmt.Sprintf("compute%d", assignment.ID),
+		domainXml := libvirt_models.DomainXML{
+			ID: assignment.ID,
+			// Type: libvirt_models.DomainTypeKvm,
+			Type: libvirt_models.DomainTypeQemu,
+			Name: computeId,
 			Memory: libvirt_models.Memory{
 				Unit:   libvirt_models.UnitMb,
 				Memory: compute.Memory,
@@ -184,8 +277,9 @@ func (driver *LibvirtDriver) syncActivatingAssignmentMap(tctx *logger.TraceConte
 			},
 			Os: libvirt_models.Os{
 				Type: libvirt_models.OsType{
-					Arch: libvirt_models.OsTypeArchX8664,
-					Type: libvirt_models.OsTypeHvm,
+					Arch:    libvirt_models.OsTypeArchX8664,
+					Machine: libvirt_models.OsTypeMachinePc,
+					Type:    libvirt_models.OsTypeHvm,
 				}, Boot: libvirt_models.OsBoot{Dev: "hd"},
 			},
 			Cpu: libvirt_models.Cpu{
@@ -203,21 +297,37 @@ func (driver *LibvirtDriver) syncActivatingAssignmentMap(tctx *logger.TraceConte
 				Emulators:  emulators,
 				Interfaces: interfaces,
 				Disks:      disks,
+				Serials:    serials,
+				Consoles:   consoles,
 			},
 		}
 
 		var xmlBytes []byte
-		if xmlBytes, err = xml.Marshal(&domain); err != nil {
+		if xmlBytes, err = xml.Marshal(&domainXml); err != nil {
 			return err
 		}
 
 		if err = ioutil.WriteFile(vmDomainXmlPath, xmlBytes, 0644); err != nil {
 			return err
 		}
-		fmt.Println("DEBUG XML", string(xmlBytes))
 
-		if _, err = exec_utils.Cmdf(tctx, "virsh define %s", vmDomainXmlPath); err != nil {
-			return err
+		domain, domainExists := domainMap[computeId]
+		if !domainExists {
+			if _, err = exec_utils.Cmdf(tctx, "virsh define %s", vmDomainXmlPath); err != nil {
+				return err
+			}
+			if _, err = exec_utils.Cmdf(tctx, "virsh start %s", computeId); err != nil {
+				return err
+			}
+		} else {
+			fmt.Println("DEBUG domain.State", domain.State)
+			switch domain.State {
+			case resource_model.StateDown:
+				fmt.Println("DEBUG virsh start")
+				if _, err = exec_utils.Cmdf(tctx, "virsh start %s", computeId); err != nil {
+					return err
+				}
+			}
 		}
 	}
 

@@ -2,7 +2,7 @@ package libvirt_models
 
 import "encoding/xml"
 
-type Domain struct {
+type DomainXML struct {
 	XMLName       xml.Name       `xml:"domain"`
 	ID            uint           `xml:"id,attr"`
 	Type          string         `xml:"type,attr"`
@@ -47,8 +47,9 @@ type Resource struct {
 }
 
 type OsType struct {
-	Arch string `xml:"arch,attr"`
-	Type string `xml:",chardata"`
+	Arch    string `xml:"arch,attr"`
+	Machine string `xml:"machine,attr"`
+	Type    string `xml:",chardata"`
 }
 
 type OsBoot struct {
@@ -104,17 +105,22 @@ type DeviceEmulator struct {
 type DeviceDisk struct {
 	Type    string       `xml:"type,attr"`
 	Device  string       `xml:"device,attr"`
-	Driver  DiskDriver   `xml:"driver"`
+	Driver  interface{}  `xml:"driver"`
 	Source  DiskSource   `xml:"source"`
 	Target  DiskTarget   `xml:"target"`
 	Alias   Alias        `xml:"alias"`
 	Address DriveAddress `xml:"address"`
 }
 
-type DiskDriver struct {
+type DiskDriverQcow2 struct {
 	Name  string `xml:"name,attr"`
 	Type  string `xml:"type,attr"`
 	Cache string `xml:"cache,attr"`
+}
+
+type DiskDriverRaw struct {
+	Name string `xml:"name,attr"`
+	Type string `xml:"type,attr"`
 }
 
 type DiskSource struct {

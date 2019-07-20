@@ -65,6 +65,8 @@ func InitConfig() {
 		"log_backtrace_at": glogLogBacktraceAt,
 	})
 
+	os.Setenv("LANG", "en_US.UTF-8")
+
 	home := os.Getenv("HOME")
 	appDir := filepath.Join(home, ".goapp")
 	os.Mkdir(appDir, 0755)

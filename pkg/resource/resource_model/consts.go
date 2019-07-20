@@ -48,8 +48,9 @@ const (
 )
 
 const (
-	StateUp   = "Up"
-	StateDown = "Down"
+	StateUp      = "Up"
+	StateDown    = "Down"
+	StateUnknown = "Unknown"
 )
 
 const (
