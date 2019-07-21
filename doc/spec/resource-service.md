@@ -27,19 +27,42 @@
 - ResourceClusterController
   - Resource を Cluster 単位でバッチ処理するコントローラ
   - Resource を ResourceAgent にアサインする
-- ResourceAgent
+- ResourceClusterAgent
   - 各 Node 内で稼働する Agent
   - Region に所属し、アサインされた Resource を実体化し、状態を管理する
   - Node ごとに複数の Provider サポートできる
   - Provider を利用してノード自身を監視し、イベントがあれば Alert を MonitorController に通知する
     - またメトリクスをメトリクス DB に送信する
-- ResourceComputeAgent
+- ResourceClusterProxyAgent
+  - 各 Node 内で稼働する Agent
+  - マネジメントセグでリッスンする
+- ResourceClusterComputeAgent
   - 各 ComputeVM 内で稼働する Agent
-  - cluster-api をたたいて、Compute の Orchestration 情報を取得してサービスを制御する
-  - ユーザ、グループ、SSH 公開鍵などの情報を同期する
-  - stats 情報を報告する
-  - ローリングアップデートのサポート
-  - L3DSR の設定
+  - 各 ComputeVM は GRPC で ResourceClusterProxyAgent に、ログ、メトリクスを転送し、自身の Orchestration 情報を取得し、タスクを実行する
+    - ResourceClusterProxyAgent はそのホスト上の VM のログ、メトリクスをまとめて ResourceClusterApi へ転送し、Orchestration 情報をまとめて取得する
+    - ComputeVM は ResourceClusterProxyAgent と情報交換するためのローカルマネジメントセグを持つ
+    - マネジメントセグは ComputeNode 内で閉じて管理され、1 ノードに対して 1 つのブリッジが 全ノードが同じセグを持っている
+      - vm-host 間通信 192.168.0.0/20(192.168.0.1/192.168.15.254) を利用して vm gateway を一対一で紐づける
+      - vm1(mip: 192.168.0.2/30) - gateway1(192.168.0.1/30) - host1(192.168.10.121/24) - router1
+      - vm2(mip: 192.168.0.6/30) - gateway2(192.168.0.5/30) - host1(192.168.10.121/24) - router1
+      - vm3(mip: 192.168.0.2/30) - gateway1(192.168.0.1/30) - host2(192.168.10.122/24) - router1
+      - vm4(mip: 192.168.0.6/30) - gateway2(192.168.0.5/30) - host2(192.168.10.122/24) - router1
+    - マネジメントセグの IP 一つ目は ResourceClusterProxyAgent ようにアサインされる
+      - ResourceClusterComputeAgent は、その IP と通信することで情報交換ができる
+      - ComputeVM の認証は、IP アドレスおよび TLS 鍵認証によって行われる
+  - サービス IP
+    - サービス IP(sip) は host が router に広報する
+    - vm1(sip: 172.16.10.10/24) - gateway0(172.16.10.1/24) - host1(192.168.10.121/24) - router1
+    - vm2(sip: 172.16.10.11/24) - gateway0(172.16.10.1/24) - host2(192.168.10.122/24) - router1
+  - 初期化処理
+    - マネジメントセグ情報や鍵情報は ConfigDrive に保存してマウントしておく
+    - VM 起動時にネットワーク設定を行い、GRPC によって Orchestration 処理を開始する
+  - Orchestration
+    - ネットワークの設定
+    - ブロックデバイスの設定
+    - ユーザ、グループ、SSH 公開鍵などの設定
+    - ローリングアップデート
+    - L3DSR の設定
   - EtoE TLS のサポート
     - VM 単位でローカルに TLS プロキシサーバを立てて TLS 終端をする
       - 各 VM 上のサービスは 必ずこのプロキシサーバを経由してアクセスさせる

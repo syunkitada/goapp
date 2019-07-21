@@ -132,6 +132,21 @@ type DiskTarget struct {
 	Bus string `xml:"bus,attr"`
 }
 
+type DeviceFilesystem struct {
+	Type       string           `xml:"type,attr"`
+	Accessmode string           `xml:"accessmode,attr"`
+	Source     FilesystemSource `xml:"source"`
+	Target     FilesystemTarget `xml:"target"`
+}
+
+type FilesystemSource struct {
+	Dir string `xml:"dir,attr"`
+}
+
+type FilesystemTarget struct {
+	Dir string `xml:"dir,attr"`
+}
+
 type Alias struct {
 	Name string `xml:"name,attr"`
 }

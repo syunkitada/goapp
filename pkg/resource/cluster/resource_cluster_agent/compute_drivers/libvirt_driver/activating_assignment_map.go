@@ -122,7 +122,7 @@ func (driver *LibvirtDriver) syncActivatingAssignmentMap(tctx *logger.TraceConte
 			return err
 		}
 
-		userData := fmt.Sprintf("#!/bin/sh\nhostname\necho 'hogelala'")
+		userData := fmt.Sprintf("#cloud-config\nnetwork:\n  config: disabled\n")
 		if err = ioutil.WriteFile(vmUserDataConfigFilePath, []byte(userData), 0644); err != nil {
 			return err
 		}
