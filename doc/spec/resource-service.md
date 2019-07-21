@@ -42,18 +42,6 @@
     - ResourceClusterProxyAgent はそのホスト上の VM のログ、メトリクスをまとめて ResourceClusterApi へ転送し、Orchestration 情報をまとめて取得する
     - ComputeVM は ResourceClusterProxyAgent と情報交換するためのローカルマネジメントセグを持つ
     - マネジメントセグは ComputeNode 内で閉じて管理され、1 ノードに対して 1 つのブリッジが 全ノードが同じセグを持っている
-      - vm-host 間通信 192.168.0.0/20(192.168.0.1/192.168.15.254) を利用して vm gateway を一対一で紐づける
-      - vm1(mip: 192.168.0.2/30) - gateway1(192.168.0.1/30) - host1(192.168.10.121/24) - router1
-      - vm2(mip: 192.168.0.6/30) - gateway2(192.168.0.5/30) - host1(192.168.10.121/24) - router1
-      - vm3(mip: 192.168.0.2/30) - gateway1(192.168.0.1/30) - host2(192.168.10.122/24) - router1
-      - vm4(mip: 192.168.0.6/30) - gateway2(192.168.0.5/30) - host2(192.168.10.122/24) - router1
-    - マネジメントセグの IP 一つ目は ResourceClusterProxyAgent ようにアサインされる
-      - ResourceClusterComputeAgent は、その IP と通信することで情報交換ができる
-      - ComputeVM の認証は、IP アドレスおよび TLS 鍵認証によって行われる
-  - サービス IP
-    - サービス IP(sip) は host が router に広報する
-    - vm1(sip: 172.16.10.10/24) - gateway0(172.16.10.1/24) - host1(192.168.10.121/24) - router1
-    - vm2(sip: 172.16.10.11/24) - gateway0(172.16.10.1/24) - host2(192.168.10.122/24) - router1
   - 初期化処理
     - マネジメントセグ情報や鍵情報は ConfigDrive に保存してマウントしておく
     - VM 起動時にネットワーク設定を行い、GRPC によって Orchestration 処理を開始する
@@ -546,6 +534,21 @@ floor-1-1-1-rack-1-2-rack-reaf-router02 --- rack-1-2-server2
 ```
 internet --- gateway-router --- floor-spine-router --- floor-leaf-router --- rack-spine-router --- rack-leaf-router --- server
 ```
+
+## VM ネットワーク(L3 広報方式)
+
+- IP ごとに専用 netns と vm-netns 間、netns-host 間をつなぐ bridge を作成する
+  - netns-host 間の ip は、192.168.0.0/20(192.168.0.1/192.168.15.254) を利用して netns と host を一対一でつなぐ
+  - vm の ip は、host が router に bgp で広報し、外部からの通信は L3 通信により vm まで転送される
+- 例
+  - vm1(ip: 172.16.0.2/24) - bridge(172.16.0.1/24) netns bridge1(192.168.0.2/30) - host1(192.168.0.1/30) host1(192.168.10.1/24) - router1
+  - vm2(ip: 172.16.0.3/24) - bridge(172.16.0.1/24) netns bridge2(192.168.0.6/30) - host1(192.168.0.5/30) host1(192.168.10.1/24) - router1
+  - vm3(ip: 172.16.0.4/24) - bridge(172.16.0.1/24) netns bridge1(192.168.0.2/30) - host2(192.168.0.1/30) host1(192.168.10.2/24) - router1
+  - vm4(ip: 172.16.0.5/24) - bridge(172.16.0.1/24) netns bridge2(192.168.0.6/30) - host2(192.168.0.5/30) host1(192.168.10.2/24) - router1
+- VM と ResourceClusterProxyAgent との通信
+  - VM は、ホストの IP に対してリクエストを行う
+  - ResourceClusterComputeAgent は、src ip によってその VM の妥当性を確認する
+  - 内外の通信は VM の ip 以外からの通信は drop させ、ip 偽装はできなくする
 
 ## 物理機材の新陳代謝
 
