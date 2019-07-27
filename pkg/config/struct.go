@@ -35,6 +35,7 @@ type AppConfig struct {
 	ShutdownTimeout    int
 	LoopInterval       int
 	Listen             string
+	HttpListen         string
 	CertFile           string
 	KeyFile            string
 	CaFile             string

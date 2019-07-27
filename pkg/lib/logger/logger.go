@@ -72,6 +72,7 @@ func NewTraceContext(host string, app string) *TraceContext {
 		Host:     host,
 		App:      app,
 		Metadata: map[string]string{},
+		timeout:  3,
 	}
 }
 
@@ -81,6 +82,7 @@ func NewTraceContextWithTraceId(traceId string, host string, app string) *TraceC
 		Host:     host,
 		App:      app,
 		Metadata: map[string]string{},
+		timeout:  3,
 	}
 }
 
@@ -89,6 +91,7 @@ func NewCtlTraceContext(app string) *TraceContext {
 		TraceId: xid.New().String(),
 		Host:    config.Conf.Default.Host,
 		App:     app,
+		timeout: 3,
 		Metadata: map[string]string{
 			"Username": config.Conf.Ctl.Username,
 			"Project":  config.Conf.Ctl.Project,

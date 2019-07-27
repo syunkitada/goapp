@@ -22,20 +22,25 @@ type ResourceClusterConfig struct {
 }
 
 type ResourceNodeConfig struct {
-	ClusterName string
-	Metrics     ResourceMetricsConfig
-	Compute     ResourceComputeConfig
+	ClusterName  string
+	Metrics      ResourceMetricsConfig
+	Compute      ResourceComputeConfig
+	ComputeAgent AppConfig
 }
 
 type ResourceComputeConfig struct {
-	Enable               bool
-	ConfirmRetryCount    int
-	ConfirmRetryInterval int
-	VarDir               string
-	VmsDir               string
-	ImagesDir            string
-	Driver               string // libvirt
-	Libvirt              ResourceLibvirtConfig
+	Enable                  bool
+	ConfirmRetryCount       int
+	ConfirmRetryInterval    int
+	VarDir                  string
+	VmsDir                  string
+	ImagesDir               string
+	ShareNetNsSubnet        string
+	ShareNetNsHttpServiceIp string
+	ShareNetNsVmStartIp     string
+	VmNetNsSubnet           string
+	Driver                  string // libvirt
+	Libvirt                 ResourceLibvirtConfig
 }
 
 type ResourceLibvirtConfig struct {

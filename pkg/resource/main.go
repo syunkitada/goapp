@@ -7,6 +7,7 @@ import (
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_agent"
 	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_api"
+	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_compute_agent"
 	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_controller"
 	"github.com/syunkitada/goapp/pkg/resource/resource_api"
 	"github.com/syunkitada/goapp/pkg/resource/resource_controller"
@@ -29,4 +30,5 @@ func init() {
 	rootCmd.AddCommand(resource_cluster_api.RootCmd)
 	rootCmd.AddCommand(resource_cluster_controller.RootCmd)
 	rootCmd.AddCommand(resource_cluster_agent.RootCmd)
+	rootCmd.AddCommand(resource_cluster_compute_agent.RootCmd)
 }

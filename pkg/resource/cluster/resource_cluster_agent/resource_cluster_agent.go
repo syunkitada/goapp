@@ -5,11 +5,12 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/golang/glog"
 	"google.golang.org/grpc"
 
 	"github.com/syunkitada/goapp/pkg/base"
 	"github.com/syunkitada/goapp/pkg/config"
+	"github.com/syunkitada/goapp/pkg/lib/exec_utils"
+	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/lib/os_utils"
 	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_agent/compute_drivers"
 	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_agent/metrics_plugins"
@@ -40,12 +41,32 @@ type ResourceClusterAgentServer struct {
 func NewResourceClusterAgentServer(conf *config.Config) *ResourceClusterAgentServer {
 	cluster, ok := conf.Resource.ClusterMap[conf.Resource.Node.ClusterName]
 	if !ok {
-		glog.Fatal(fmt.Errorf("Cluster(%v) is not found in ClusterMap", conf.Resource.Node.ClusterName))
+		logger.StdoutFatalf("Cluster(%v) is not found in ClusterMap", conf.Resource.Node.ClusterName)
 	}
 
 	resourceLabels := []string{}
 	if conf.Resource.Node.Compute.Enable {
 		resourceLabels = append(resourceLabels, resource_model.ResourceKindCompute)
+	}
+
+	shareNetNsSubnet := conf.Resource.Node.Compute.ShareNetNsSubnet
+	if shareNetNsSubnet == "" {
+		shareNetNsSubnet = "192.168.192.0/19"
+	}
+
+	shareNetNsVmHttpServiceIp := conf.Resource.Node.Compute.ShareNetNsHttpServiceIp
+	if shareNetNsVmHttpServiceIp == "" {
+		shareNetNsVmHttpServiceIp = "192.168.192.1"
+	}
+
+	shareNetNsVmStartIp := conf.Resource.Node.Compute.ShareNetNsVmStartIp
+	if shareNetNsVmStartIp == "" {
+		shareNetNsVmStartIp = "192.168.192.40"
+	}
+
+	vmNetNsSubnet := conf.Resource.Node.Compute.VmNetNsSubnet
+	if vmNetNsSubnet == "" {
+		vmNetNsSubnet = "192.168.192.0/21"
 	}
 
 	fmt.Println("DEBUG CPU", conf.Resource.Node.Compute.Libvirt.AvailableCpus)
@@ -81,6 +102,38 @@ func NewResourceClusterAgentServer(conf *config.Config) *ResourceClusterAgentSer
 	}
 
 	server.RegisterDriver(&server)
+
+	tctx := server.NewTraceContext()
+	// init share-br
+	shareBr := "share-br"
+	if _, err := exec_utils.Shf(tctx, "ip netns | grep %s || ip netns add %s", shareBr, shareBr); err != nil {
+		logger.StdoutFatalf("Failed share netns: %v", err)
+	}
+
+	if _, err := exec_utils.Shf(tctx,
+		"ip netns exec %s brctl show | grep %s || ip netns exec %s brctl addbr %s",
+		shareBr, shareBr, shareBr, shareBr); err != nil {
+		logger.StdoutFatalf("Failed init share netns: %v", err)
+	}
+
+	if _, err := exec_utils.Shf(tctx,
+		"ip netns exec %s ip addr show %s | grep %s || ip netns exec %s ip addr add %s dev %s",
+		shareBr, shareBr, "192.168.248.1/21", shareBr, "192.168.248.1/21", shareBr); err != nil {
+		logger.StdoutFatalf("Failed init share netns: %v", err)
+	}
+
+	if _, err := exec_utils.Shf(tctx,
+		"ip netns exec %s ip addr show %s | grep %s || ip netns exec %s ip addr add %s dev %s",
+		shareBr, shareBr, "192.168.248.2/21", shareBr, "192.168.248.2/21", shareBr); err != nil {
+		logger.StdoutFatalf("Failed init share netns: %v", err)
+	}
+
+	if _, err := exec_utils.Shf(tctx,
+		"ip netns exec %s ip link show %s | egrep UP|UNKNOWN || ip netns exec %s ip link set %s up",
+		shareBr, shareBr, shareBr, shareBr); err != nil {
+		logger.StdoutFatalf("Failed init share netns: %v", err)
+	}
+
 	return &server
 }
 
