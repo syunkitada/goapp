@@ -36,11 +36,14 @@ type ResourceComputeConfig struct {
 	VarDir                  string
 	VmsDir                  string
 	ImagesDir               string
-	ShareNetNsSubnet        string
-	ShareNetNsHttpServiceIp string
-	ShareNetNsVmStartIp     string
-	VmNetNsStartIp          string
-	VmNetNsEndIp            string
+	ShareNetnsName          string
+	ShareNetnsBridgeName    string
+	ShareNetnsSubnet        string
+	ShareNetnsGateway       string
+	ShareNetnsHttpServiceIp string
+	ShareNetnsVmStartIp     string
+	VmNetnsStartIp          string
+	VmNetnsEndIp            string
 	Driver                  string // libvirt
 	Libvirt                 ResourceLibvirtConfig
 }

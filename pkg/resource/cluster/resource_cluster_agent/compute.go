@@ -48,27 +48,31 @@ func (srv *ResourceClusterAgentServer) SyncComputeAssignments(tctx *logger.Trace
 		for _, port := range assignment.Spec.Compute.Ports {
 			netnsPortId := compute_utils.AssignNetnsPortId(assignedNetnsPortIds)
 			netnsName := fmt.Sprintf("com%d", netnsPortId)
-			gatewayIp := ip_utils.AddIntToIp(srv.vmNetNsStartIp, netnsPortId*4)
+			gatewayIp := ip_utils.AddIntToIp(srv.vmNetnsStartIp, netnsPortId*4)
 			netnsGateway := gatewayIp.String()
 			ip_utils.IncrementIp(gatewayIp)
 			netnsAddr := fmt.Sprintf("%s/30", gatewayIp.String())
+
+			shareNetnsIp := ip_utils.AddIntToIp(srv.shareNetnsVmStartIp, netnsPortId)
+
 			splitedSubnet := strings.Split(port.Subnet, "/")
 			netnsPort := compute_models.NetnsPort{
-				Id:           netnsPortId,
-				Name:         netnsName,
-				NetnsGateway: netnsGateway,
-				NetnsAddr:    netnsAddr,
-				VmGateway:    port.Gateway,
-				VmIp:         port.Ip,
-				VmAddr:       fmt.Sprintf("%s/%s", port.Ip, splitedSubnet[1]),
-				VmMac:        port.Mac,
+				Id:             netnsPortId,
+				Name:           netnsName,
+				ShareNetnsAddr: fmt.Sprintf("%s/%s", shareNetnsIp, srv.shareNetnsAddrSuffix),
+				NetnsGateway:   netnsGateway,
+				NetnsAddr:      netnsAddr,
+				VmGateway:      port.Gateway,
+				VmIp:           port.Ip,
+				VmAddr:         fmt.Sprintf("%s/%s", port.Ip, splitedSubnet[1]),
+				VmMac:          port.Mac,
 			}
 
 			if _, ok := netnsSet[netnsName]; !ok {
 				if err = os_utils.AddNetns(tctx, netnsName); err != nil {
 					return err
 				}
-				if err = compute_utils.InitNetns(tctx, netnsName, netnsPort); err != nil {
+				if err = compute_utils.InitNetns(tctx, &srv.conf.Resource.Node.Compute, netnsName, netnsPort); err != nil {
 					return err
 				}
 			}

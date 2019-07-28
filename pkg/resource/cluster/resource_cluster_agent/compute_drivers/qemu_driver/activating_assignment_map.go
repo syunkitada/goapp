@@ -1,11 +1,9 @@
 package qemu_driver
 
 import (
-	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"strings"
 	"text/template"
 
 	"github.com/syunkitada/goapp/pkg/lib/exec_utils"
@@ -60,16 +58,10 @@ func (driver *QemuDriver) syncActivatingAssignment(tctx *logger.TraceContext,
 
 	// Initialize Network
 	defaultGateway := ""
-	ports := []map[string]string{}
 	for _, port := range compute.Ports {
 		if port.Gateway != "" {
 			defaultGateway = port.Gateway
 		}
-		splitedSubnet := strings.Split(port.Subnet, "/")
-		ports = append(ports, map[string]string{
-			"Mac":  port.Mac,
-			"Addr": fmt.Sprintf("%s/%s", port.Ip, splitedSubnet[1]),
-		})
 	}
 
 	// Create ConfigDrive
@@ -100,13 +92,15 @@ func (driver *QemuDriver) syncActivatingAssignment(tctx *logger.TraceContext,
 	t := template.Must(template.ParseFiles(driver.userdataTmpl))
 	t.Execute(userdataFile, map[string]interface{}{
 		"DefaultGateway": defaultGateway,
-		"Ports":          ports,
+		"Ports":          netnsPorts,
 	})
 
 	if _, err = exec_utils.Cmdf(tctx, "genisoimage -o %s -V config-2 -r -J %s",
 		vmConfigImagePath, configDir); err != nil {
 		return err
 	}
+
+	// TODO create systemd service and start vm
 
 	return nil
 }

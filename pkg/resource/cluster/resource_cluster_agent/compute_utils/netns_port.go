@@ -1,6 +1,10 @@
 package compute_utils
 
 import (
+	"fmt"
+	"strings"
+
+	"github.com/syunkitada/goapp/pkg/config"
 	"github.com/syunkitada/goapp/pkg/lib/exec_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_agent/compute_models"
@@ -17,10 +21,49 @@ func AssignNetnsPortId(assignedNetnsPortIds []bool) int {
 	return -1
 }
 
-func InitNetns(tctx *logger.TraceContext, netns string, port compute_models.NetnsPort) error {
+func InitShareNetns(tctx *logger.TraceContext, conf *config.ResourceComputeConfig) error {
+	shareNetns := "com-share"
+	shareBr := "com-share-br"
+	if _, err := exec_utils.Shf(tctx, "ip netns | grep %s || ip netns add %s", shareNetns, shareNetns); err != nil {
+		return err
+	}
+
+	if _, err := exec_utils.Shf(tctx,
+		"ip netns exec %s brctl show | grep %s || ip netns exec %s brctl addbr %s",
+		shareNetns, shareBr, shareNetns, shareBr); err != nil {
+		return err
+	}
+
+	if _, err := exec_utils.Shf(tctx,
+		"ip netns exec %s ip addr show %s | grep %s || ip netns exec %s ip addr add %s dev %s",
+		shareNetns, shareBr, conf.ShareNetnsGateway, shareNetns, conf.ShareNetnsGateway, shareBr); err != nil {
+		return err
+	}
+
+	splitedSubnet := strings.Split(conf.ShareNetnsSubnet, "/")
+	serviceAddr := fmt.Sprintf("%s/%s", conf.ShareNetnsHttpServiceIp, splitedSubnet[1])
+	if _, err := exec_utils.Shf(tctx,
+		"ip netns exec %s ip addr show %s | grep %s || ip netns exec %s ip addr add %s dev %s",
+		shareNetns, shareBr, serviceAddr, shareNetns, serviceAddr, shareBr); err != nil {
+		return err
+	}
+
+	if _, err := exec_utils.Shf(tctx,
+		"ip netns exec %s ip link show %s | egrep UP|UNKNOWN || ip netns exec %s ip link set %s up",
+		shareNetns, shareBr, shareNetns, shareBr); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func InitNetns(tctx *logger.TraceContext, conf *config.ResourceComputeConfig, netns string, port compute_models.NetnsPort) error {
 	bridgeName := netns + "-br"
 	externalLink := netns + "-ex"
 	internalLink := netns + "-in"
+	shareExLink := netns + "-shex"
+	shareInLink := netns + "-shin"
+
 	if _, err := exec_utils.Cmdf(tctx, "brctl addbr %s", bridgeName); err != nil {
 		return err
 	}
@@ -86,6 +129,37 @@ func InitNetns(tctx *logger.TraceContext, netns string, port compute_models.Netn
 	}
 
 	if _, err := exec_utils.Cmdf(tctx, "ip netns exec %s ip route add default via %s", netns, port.NetnsGateway); err != nil {
+		return err
+	}
+
+	// Link share netns
+	if _, err := exec_utils.Cmdf(tctx, "ip link add %s type veth peer name %s", shareExLink, shareInLink); err != nil {
+		return err
+	}
+
+	if _, err := exec_utils.Cmdf(tctx, "ip link set %s netns %s", shareInLink, netns); err != nil {
+		return err
+	}
+
+	if _, err := exec_utils.Cmdf(tctx, "ip netns exec %s ip addr add dev %s %s",
+		netns, shareInLink, port.ShareNetnsAddr); err != nil {
+		return err
+	}
+
+	if _, err := exec_utils.Cmdf(tctx, "ip netns exec %s ip link set %s up", netns, shareInLink); err != nil {
+		return err
+	}
+
+	if _, err := exec_utils.Cmdf(tctx, "ip link set %s netns %s", shareExLink, conf.ShareNetnsName); err != nil {
+		return err
+	}
+
+	if _, err := exec_utils.Cmdf(tctx, "ip netns exec %s brctl addif %s %s",
+		conf.ShareNetnsName, conf.ShareNetnsBridgeName, shareExLink); err != nil {
+		return err
+	}
+
+	if _, err := exec_utils.Cmdf(tctx, "ip netns exec %s ip link set %s up", conf.ShareNetnsName, shareExLink); err != nil {
 		return err
 	}
 

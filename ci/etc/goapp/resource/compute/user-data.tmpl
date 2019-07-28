@@ -13,8 +13,8 @@ echo 'owner:ownerpass' |chpasswd
 # Setup Network
 {{- range $i, $port := .Ports }}
 
-dev{{ $i }}=`grep {{ $port.Mac }} /sys/class/net/*/address -l | awk -F '/' '{print $5}'`
-ip addr add {{ $port.Addr }} dev $dev{{ $i }}
+dev{{ $i }}=`grep {{ $port.VmMac }} /sys/class/net/*/address -l | awk -F '/' '{print $5}'`
+ip addr add {{ $port.VmAddr }} dev $dev{{ $i }}
 ip link set $dev{{ $i }} up
 
 {{- end }}

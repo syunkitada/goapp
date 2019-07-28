@@ -4,16 +4,17 @@ import (
 	"fmt"
 	"net"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"google.golang.org/grpc"
 
 	"github.com/syunkitada/goapp/pkg/base"
 	"github.com/syunkitada/goapp/pkg/config"
-	"github.com/syunkitada/goapp/pkg/lib/exec_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/lib/os_utils"
 	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_agent/compute_drivers"
+	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_agent/compute_utils"
 	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_agent/metrics_plugins"
 	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_agent/metrics_plugins/system_metrics_reader"
 	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_agent/resource_cluster_agent_grpc_pb"
@@ -37,8 +38,11 @@ type ResourceClusterAgentServer struct {
 	computeConfirmRetryInterval time.Duration
 	computeVmsDir               string
 	computeImagesDir            string
-	vmNetNsStartIp              net.IP
-	vmNetNsEndIp                net.IP
+	shareNetnsGateway           string
+	shareNetnsAddrSuffix        string
+	shareNetnsVmStartIp         net.IP
+	vmNetnsStartIp              net.IP
+	vmNetnsEndIp                net.IP
 }
 
 func NewResourceClusterAgentServer(conf *config.Config) *ResourceClusterAgentServer {
@@ -52,30 +56,40 @@ func NewResourceClusterAgentServer(conf *config.Config) *ResourceClusterAgentSer
 		resourceLabels = append(resourceLabels, resource_model.ResourceKindCompute)
 	}
 
-	shareNetNsSubnet := conf.Resource.Node.Compute.ShareNetNsSubnet
-	if shareNetNsSubnet == "" {
-		shareNetNsSubnet = "192.168.192.0/19"
+	if conf.Resource.Node.Compute.ShareNetnsName == "" {
+		conf.Resource.Node.Compute.ShareNetnsName = "com-share"
 	}
 
-	shareNetNsVmHttpServiceIp := conf.Resource.Node.Compute.ShareNetNsHttpServiceIp
-	if shareNetNsVmHttpServiceIp == "" {
-		shareNetNsVmHttpServiceIp = "192.168.192.1"
+	if conf.Resource.Node.Compute.ShareNetnsBridgeName == "" {
+		conf.Resource.Node.Compute.ShareNetnsBridgeName = "com-share-br"
 	}
 
-	shareNetNsVmStartIp := conf.Resource.Node.Compute.ShareNetNsVmStartIp
-	if shareNetNsVmStartIp == "" {
-		shareNetNsVmStartIp = "192.168.192.40"
+	if conf.Resource.Node.Compute.ShareNetnsSubnet == "" {
+		conf.Resource.Node.Compute.ShareNetnsSubnet = "192.168.248.0/21"
 	}
 
-	if conf.Resource.Node.Compute.VmNetNsStartIp == "" {
-		conf.Resource.Node.Compute.VmNetNsStartIp = "192.168.192.1"
+	if conf.Resource.Node.Compute.ShareNetnsGateway == "" {
+		conf.Resource.Node.Compute.ShareNetnsGateway = "192.168.248.1/21"
 	}
-	vmNetNsStartIp := net.ParseIP(conf.Resource.Node.Compute.VmNetNsStartIp)
 
-	if conf.Resource.Node.Compute.VmNetNsEndIp == "" {
-		conf.Resource.Node.Compute.VmNetNsEndIp = "192.168.223.254"
+	if conf.Resource.Node.Compute.ShareNetnsHttpServiceIp == "" {
+		conf.Resource.Node.Compute.ShareNetnsHttpServiceIp = "192.168.248.2"
 	}
-	vmNetNsEndIp := net.ParseIP(conf.Resource.Node.Compute.VmNetNsEndIp)
+
+	if conf.Resource.Node.Compute.ShareNetnsVmStartIp == "" {
+		conf.Resource.Node.Compute.ShareNetnsVmStartIp = "192.168.248.40"
+	}
+	shareNetnsVmStartIp := net.ParseIP(conf.Resource.Node.Compute.ShareNetnsVmStartIp)
+
+	if conf.Resource.Node.Compute.VmNetnsStartIp == "" {
+		conf.Resource.Node.Compute.VmNetnsStartIp = "192.168.192.1"
+	}
+	vmNetnsStartIp := net.ParseIP(conf.Resource.Node.Compute.VmNetnsStartIp)
+
+	if conf.Resource.Node.Compute.VmNetnsEndIp == "" {
+		conf.Resource.Node.Compute.VmNetnsEndIp = "192.168.223.254"
+	}
+	vmNetnsEndIp := net.ParseIP(conf.Resource.Node.Compute.VmNetnsEndIp)
 
 	conf.Resource.Node.Compute.ConfigDir = conf.Path("resource/compute")
 
@@ -109,41 +123,18 @@ func NewResourceClusterAgentServer(conf *config.Config) *ResourceClusterAgentSer
 		computeConfirmRetryInterval: time.Duration(conf.Resource.Node.Compute.ConfirmRetryInterval) * time.Second,
 		computeVmsDir:               computeVmsDir,
 		computeImagesDir:            computeImagesDir,
-		vmNetNsStartIp:              vmNetNsStartIp,
-		vmNetNsEndIp:                vmNetNsEndIp,
+		shareNetnsGateway:           conf.Resource.Node.Compute.ShareNetnsGateway,
+		shareNetnsAddrSuffix:        strings.Split(conf.Resource.Node.Compute.ShareNetnsGateway, "/")[1],
+		shareNetnsVmStartIp:         shareNetnsVmStartIp,
+		vmNetnsStartIp:              vmNetnsStartIp,
+		vmNetnsEndIp:                vmNetnsEndIp,
 	}
 
 	server.RegisterDriver(&server)
 
 	tctx := server.NewTraceContext()
-	// init share-br
-	shareBr := "share-br"
-	if _, err := exec_utils.Shf(tctx, "ip netns | grep %s || ip netns add %s", shareBr, shareBr); err != nil {
+	if err := compute_utils.InitShareNetns(tctx, &conf.Resource.Node.Compute); err != nil {
 		logger.StdoutFatalf("Failed share netns: %v", err)
-	}
-
-	if _, err := exec_utils.Shf(tctx,
-		"ip netns exec %s brctl show | grep %s || ip netns exec %s brctl addbr %s",
-		shareBr, shareBr, shareBr, shareBr); err != nil {
-		logger.StdoutFatalf("Failed init share netns: %v", err)
-	}
-
-	if _, err := exec_utils.Shf(tctx,
-		"ip netns exec %s ip addr show %s | grep %s || ip netns exec %s ip addr add %s dev %s",
-		shareBr, shareBr, "192.168.248.1/21", shareBr, "192.168.248.1/21", shareBr); err != nil {
-		logger.StdoutFatalf("Failed init share netns: %v", err)
-	}
-
-	if _, err := exec_utils.Shf(tctx,
-		"ip netns exec %s ip addr show %s | grep %s || ip netns exec %s ip addr add %s dev %s",
-		shareBr, shareBr, "192.168.248.2/21", shareBr, "192.168.248.2/21", shareBr); err != nil {
-		logger.StdoutFatalf("Failed init share netns: %v", err)
-	}
-
-	if _, err := exec_utils.Shf(tctx,
-		"ip netns exec %s ip link show %s | egrep UP|UNKNOWN || ip netns exec %s ip link set %s up",
-		shareBr, shareBr, shareBr, shareBr); err != nil {
-		logger.StdoutFatalf("Failed init share netns: %v", err)
 	}
 
 	return &server
