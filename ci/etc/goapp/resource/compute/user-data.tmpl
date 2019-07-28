@@ -1,0 +1,27 @@
+#!/bin/sh -x
+
+# For DEBUG, TODO remove
+echo 'DEBUG Starting userdata'
+echo 'owner  ALL=(ALL:ALL) ALL' >> /etc/sudoers
+useradd owner -d /home/owner
+gpasswd --add owner sudo
+mkdir /home/owner
+chown owner:owner /home/owner
+echo 'owner:ownerpass' |chpasswd
+
+
+# Setup Network
+{{- range $i, $port := .Ports }}
+
+dev{{ $i }}=`grep {{ $port.Mac }} /sys/class/net/*/address -l | awk -F '/' '{print $5}'`
+ip addr add {{ $port.Addr }} dev $dev{{ $i }}
+ip link set $dev{{ $i }} up
+
+{{- end }}
+
+ip route add default via {{ .DefaultGateway }}
+
+
+# Disable cloud-init
+systemctl disable cloud-init
+systemctl stop cloud-init

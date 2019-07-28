@@ -2,6 +2,7 @@ package ip_utils
 
 import (
 	"crypto/rand"
+	"encoding/binary"
 	"fmt"
 	"net"
 
@@ -102,4 +103,24 @@ func GenerateUniqueRandomMac(macMap map[string]bool, limit int) (string, error) 
 	}
 
 	return "", fmt.Errorf("Failed Generate Mac: Exceeded Limit %d", limit)
+}
+
+func AddIntToIp(ip net.IP, value int) net.IP {
+	intIp := ip2int(ip)
+	intIp += uint32(value)
+	newIp := int2ip(intIp)
+	return newIp
+}
+
+func ip2int(ip net.IP) uint32 {
+	if len(ip) == 16 {
+		return binary.BigEndian.Uint32(ip[12:16])
+	}
+	return binary.BigEndian.Uint32(ip)
+}
+
+func int2ip(nn uint32) net.IP {
+	ip := make(net.IP, 4)
+	binary.BigEndian.PutUint32(ip, nn)
+	return ip
 }

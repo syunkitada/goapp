@@ -32,13 +32,15 @@ type ResourceComputeConfig struct {
 	Enable                  bool
 	ConfirmRetryCount       int
 	ConfirmRetryInterval    int
+	ConfigDir               string
 	VarDir                  string
 	VmsDir                  string
 	ImagesDir               string
 	ShareNetNsSubnet        string
 	ShareNetNsHttpServiceIp string
 	ShareNetNsVmStartIp     string
-	VmNetNsSubnet           string
+	VmNetNsStartIp          string
+	VmNetNsEndIp            string
 	Driver                  string // libvirt
 	Libvirt                 ResourceLibvirtConfig
 }

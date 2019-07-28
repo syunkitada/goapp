@@ -2,6 +2,7 @@ package resource_cluster_agent
 
 import (
 	"fmt"
+	"net"
 	"path/filepath"
 	"time"
 
@@ -36,6 +37,8 @@ type ResourceClusterAgentServer struct {
 	computeConfirmRetryInterval time.Duration
 	computeVmsDir               string
 	computeImagesDir            string
+	vmNetNsStartIp              net.IP
+	vmNetNsEndIp                net.IP
 }
 
 func NewResourceClusterAgentServer(conf *config.Config) *ResourceClusterAgentServer {
@@ -64,10 +67,17 @@ func NewResourceClusterAgentServer(conf *config.Config) *ResourceClusterAgentSer
 		shareNetNsVmStartIp = "192.168.192.40"
 	}
 
-	vmNetNsSubnet := conf.Resource.Node.Compute.VmNetNsSubnet
-	if vmNetNsSubnet == "" {
-		vmNetNsSubnet = "192.168.192.0/21"
+	if conf.Resource.Node.Compute.VmNetNsStartIp == "" {
+		conf.Resource.Node.Compute.VmNetNsStartIp = "192.168.192.1"
 	}
+	vmNetNsStartIp := net.ParseIP(conf.Resource.Node.Compute.VmNetNsStartIp)
+
+	if conf.Resource.Node.Compute.VmNetNsEndIp == "" {
+		conf.Resource.Node.Compute.VmNetNsEndIp = "192.168.223.254"
+	}
+	vmNetNsEndIp := net.ParseIP(conf.Resource.Node.Compute.VmNetNsEndIp)
+
+	conf.Resource.Node.Compute.ConfigDir = conf.Path("resource/compute")
 
 	fmt.Println("DEBUG CPU", conf.Resource.Node.Compute.Libvirt.AvailableCpus)
 	computeDir := filepath.Join(conf.Default.VarDir, "compute")
@@ -99,6 +109,8 @@ func NewResourceClusterAgentServer(conf *config.Config) *ResourceClusterAgentSer
 		computeConfirmRetryInterval: time.Duration(conf.Resource.Node.Compute.ConfirmRetryInterval) * time.Second,
 		computeVmsDir:               computeVmsDir,
 		computeImagesDir:            computeImagesDir,
+		vmNetNsStartIp:              vmNetNsStartIp,
+		vmNetNsEndIp:                vmNetNsEndIp,
 	}
 
 	server.RegisterDriver(&server)
