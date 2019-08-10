@@ -29,23 +29,22 @@ type ResourceNodeConfig struct {
 }
 
 type ResourceComputeConfig struct {
-	Enable                  bool
-	ConfirmRetryCount       int
-	ConfirmRetryInterval    int
-	ConfigDir               string
-	VarDir                  string
-	VmsDir                  string
-	ImagesDir               string
-	ShareNetnsName          string
-	ShareNetnsBridgeName    string
-	ShareNetnsSubnet        string
-	ShareNetnsGateway       string
-	ShareNetnsHttpServiceIp string
-	ShareNetnsVmStartIp     string
-	VmNetnsStartIp          string
-	VmNetnsEndIp            string
-	Driver                  string // libvirt
-	Libvirt                 ResourceLibvirtConfig
+	Enable               bool
+	ConfirmRetryCount    int
+	ConfirmRetryInterval int
+	ConfigDir            string
+	VarDir               string
+	VmsDir               string
+	ImagesDir            string
+
+	VmNetnsGatewayStartIp string
+	VmNetnsGatewayEndIp   string
+	VmNetnsServiceIp      string
+	VmNetnsStartIp        string
+	VmNetnsEndIp          string
+
+	Driver  string // libvirt
+	Libvirt ResourceLibvirtConfig
 }
 
 type ResourceLibvirtConfig struct {

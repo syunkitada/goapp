@@ -1,27 +1,34 @@
 #!/bin/sh -x
 
-# For DEBUG, TODO remove
-echo 'DEBUG Starting userdata'
-echo 'owner  ALL=(ALL:ALL) ALL' >> /etc/sudoers
-useradd owner -d /home/owner
-gpasswd --add owner sudo
-mkdir /home/owner
-chown owner:owner /home/owner
-echo 'owner:ownerpass' |chpasswd
+# Create Default User
+echo 'goapp:x:2000:2000:goapp,,,:/home/goapp:/bin/bash' >> /etc/passwd
+echo 'goapp:goapp' |chpasswd
+
+
+# Create Default Group
+echo "goapp:x:2000:goapp" >> /etc/group
+echo "%goapp  ALL=(ALL:ALL) ALL" >> /etc/sudoers
 
 
 # Setup Network
 {{- range $i, $port := .Ports }}
 
 dev{{ $i }}=`grep {{ $port.VmMac }} /sys/class/net/*/address -l | awk -F '/' '{print $5}'`
-ip addr add {{ $port.VmAddr }} dev $dev{{ $i }}
+ip addr add {{ $port.VmIp }}/32 dev $dev{{ $i }}
 ip link set $dev{{ $i }} up
 
 {{- end }}
 
+ip route add {{ .DefaultGateway }} dev $dev0
 ip route add default via {{ .DefaultGateway }}
 
 
 # Disable cloud-init
 systemctl disable cloud-init
 systemctl stop cloud-init
+
+
+# blkid
+# /dev/vda1: LABEL="cirros-rootfs" UUID="e65b9425-9b57-4801-bc6b-a1a34826dca7" TYPE="ext3" PARTUUID="41bc8213-5937-4083-bdc7-ed40d8939e36"
+# /dev/vda15: SEC_TYPE="msdos" UUID="23A0-8FEB" TYPE="vfat" PARTUUID="8d292d7f-06ca-4f62-ab5b-80f5d0fc1542"
+# /dev/sr0: UUID="2019-08-10-12-07-52-00" LABEL="config-2" TYPE="iso9660"

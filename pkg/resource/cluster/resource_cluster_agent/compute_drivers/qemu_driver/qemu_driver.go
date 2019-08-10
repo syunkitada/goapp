@@ -10,22 +10,30 @@ import (
 )
 
 type QemuDriver struct {
-	name         string
-	conf         *config.Config
-	vmsDir       string
-	imagesDir    string
-	userdataTmpl string
+	name            string
+	conf            *config.Config
+	vmsDir          string
+	imagesDir       string
+	systemdDir      string
+	userdataTmpl    string
+	vmServiceTmpl   string
+	vmServiceShTmpl string
 }
 
 func New(conf *config.Config) *QemuDriver {
 	userdataTmpl := filepath.Join(conf.Resource.Node.Compute.ConfigDir, "user-data.tmpl")
+	vmServiceTmpl := filepath.Join(conf.Resource.Node.Compute.ConfigDir, "vm-service.tmpl")
+	vmServiceShTmpl := filepath.Join(conf.Resource.Node.Compute.ConfigDir, "vm-service.sh.tmpl")
 
 	driver := QemuDriver{
-		name:         "qemu",
-		conf:         conf,
-		vmsDir:       conf.Resource.Node.Compute.VmsDir,
-		imagesDir:    conf.Resource.Node.Compute.ImagesDir,
-		userdataTmpl: userdataTmpl,
+		name:            "qemu",
+		conf:            conf,
+		vmsDir:          conf.Resource.Node.Compute.VmsDir,
+		imagesDir:       conf.Resource.Node.Compute.ImagesDir,
+		systemdDir:      "/etc/systemd/system",
+		userdataTmpl:    userdataTmpl,
+		vmServiceTmpl:   vmServiceTmpl,
+		vmServiceShTmpl: vmServiceShTmpl,
 	}
 	return &driver
 }

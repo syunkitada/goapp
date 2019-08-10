@@ -10,6 +10,7 @@ import (
 	"github.com/syunkitada/goapp/pkg/lib/json_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/lib/os_utils"
+	"github.com/syunkitada/goapp/pkg/lib/template_utils"
 	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_agent/compute_models"
 	"github.com/syunkitada/goapp/pkg/resource/resource_model"
 )
@@ -35,6 +36,8 @@ func (driver *QemuDriver) syncActivatingAssignment(tctx *logger.TraceContext,
 	vmImagePath := filepath.Join(vmDir, "img")
 	vmConfigImagePath := filepath.Join(vmDir, "config.img")
 	configDir := filepath.Join(vmDir, "config")
+	vmServiceShFilePath := filepath.Join(vmDir, "service.sh")
+	vmServiceFilePath := filepath.Join(driver.systemdDir, compute.Name+".service")
 	vmMetaDataConfigFilePath := filepath.Join(configDir, "meta-data")
 	vmUserDataConfigFilePath := filepath.Join(configDir, "user-data")
 
@@ -53,14 +56,6 @@ func (driver *QemuDriver) syncActivatingAssignment(tctx *logger.TraceContext,
 	if !os_utils.PathExists(vmImagePath) {
 		if _, err = exec_utils.Cmdf(tctx, "cp %s %s", srcImagePath, vmImagePath); err != nil {
 			return err
-		}
-	}
-
-	// Initialize Network
-	defaultGateway := ""
-	for _, port := range compute.Ports {
-		if port.Gateway != "" {
-			defaultGateway = port.Gateway
 		}
 	}
 
@@ -84,10 +79,13 @@ func (driver *QemuDriver) syncActivatingAssignment(tctx *logger.TraceContext,
 		return err
 	}
 	defer func() {
-		if err := userdataFile.Close(); err != nil {
-			logger.Warningf(tctx, "Failed close %s", vmUserDataConfigFilePath)
+		if tmpErr := userdataFile.Close(); err != nil {
+			logger.Warningf(tctx, "Failed close %s: %s", vmUserDataConfigFilePath, tmpErr.Error())
 		}
 	}()
+
+	// Initialize Network
+	defaultGateway := netnsPorts[0].NetnsGateway
 
 	t := template.Must(template.ParseFiles(driver.userdataTmpl))
 	t.Execute(userdataFile, map[string]interface{}{
@@ -95,12 +93,27 @@ func (driver *QemuDriver) syncActivatingAssignment(tctx *logger.TraceContext,
 		"Ports":          netnsPorts,
 	})
 
-	if _, err = exec_utils.Cmdf(tctx, "genisoimage -o %s -V config-2 -r -J %s",
-		vmConfigImagePath, configDir); err != nil {
+	if _, err = exec_utils.Cmdf(tctx, "genisoimage -o %s -V cidata -r -J %s %s",
+		vmConfigImagePath, vmMetaDataConfigFilePath, vmUserDataConfigFilePath); err != nil {
 		return err
 	}
 
+	template_utils.Template(tctx, driver.vmServiceShTmpl, vmServiceShFilePath, map[string]interface{}{
+		"Compute":           compute,
+		"Ports":             netnsPorts,
+		"VmImagePath":       vmImagePath,
+		"VmConfigImagePath": vmConfigImagePath,
+	})
+
+	template_utils.Template(tctx, driver.vmServiceTmpl, vmServiceFilePath, map[string]interface{}{
+		"Name": compute.Name,
+	})
+
 	// TODO create systemd service and start vm
+	// sysctl -w net.ipv4.conf.tap0.proxy_arp=1
+	// sysctl -w net.ipv4.conf.tap0.forwarding=1
+	// ip route add 192.168.100.2 dev tap0
+	// ip link set tap0 up
 
 	return nil
 }
