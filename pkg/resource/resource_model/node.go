@@ -1,6 +1,8 @@
 package resource_model
 
 import (
+	"time"
+
 	"github.com/jinzhu/gorm"
 	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_grpc_pb"
 	"github.com/syunkitada/goapp/pkg/authproxy/index_model"
@@ -62,6 +64,19 @@ type UpdateNodeResponse struct {
 
 type NodeTask struct {
 	ComputeAssignments []ComputeAssignmentEx
+}
+
+type AssignmentReportMap struct {
+	ComputeAssignmentReports []AssignmentReport
+}
+
+type AssignmentReport struct {
+	ID           uint
+	Status       string
+	StatusReason string
+	State        string
+	StateReason  string
+	UpdatedAt    time.Time
 }
 
 var NodeCmd map[string]index_model.Cmd = map[string]index_model.Cmd{

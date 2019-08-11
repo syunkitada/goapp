@@ -1,6 +1,8 @@
 package resource_model
 
 import (
+	"time"
+
 	"github.com/jinzhu/gorm"
 	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_grpc_pb"
 	"github.com/syunkitada/goapp/pkg/authproxy/index_model"
@@ -41,6 +43,7 @@ type ComputeAssignment struct {
 
 type ComputeAssignmentWithComputeAndNode struct {
 	ID           uint
+	UpdatedAt    time.Time
 	ComputeID    uint
 	ComputeSpec  string
 	ComputeName  string
@@ -52,9 +55,10 @@ type ComputeAssignmentWithComputeAndNode struct {
 }
 
 type ComputeAssignmentEx struct {
-	ID     uint
-	Status string
-	Spec   RegionServiceSpec
+	ID        uint
+	Status    string
+	Spec      RegionServiceSpec
+	UpdatedAt time.Time
 }
 
 type ComputeSpec struct {

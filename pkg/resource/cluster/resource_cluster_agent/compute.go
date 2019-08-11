@@ -12,7 +12,7 @@ import (
 )
 
 func (srv *ResourceClusterAgentServer) SyncComputeAssignments(tctx *logger.TraceContext,
-	assignments []resource_model.ComputeAssignmentEx) error {
+	assignments []resource_model.ComputeAssignmentEx) ([]resource_model.AssignmentReport, error) {
 	var err error
 	var ok bool
 	var retryCount int
@@ -22,6 +22,8 @@ func (srv *ResourceClusterAgentServer) SyncComputeAssignments(tctx *logger.Trace
 	tctx.SetTimeout(1)
 
 	fmt.Println("SyncComputeAssignments: ", assignments)
+
+	assignmentReports := []resource_model.AssignmentReport{}
 
 	// ユニークなID管理用
 	// ファイルに保存しておく
@@ -70,20 +72,20 @@ func (srv *ResourceClusterAgentServer) SyncComputeAssignments(tctx *logger.Trace
 	}
 
 	if err = srv.computeDriver.SyncActivatingAssignmentMap(tctx, activatingAssignmentMap, computeNetnsPortsMap); err != nil {
-		return err
+		return nil, err
 	}
 
 	ok = false
 	retryCount = srv.computeConfirmRetryCount
 	for {
 		if ok, err = srv.computeDriver.ConfirmActivatingAssignmentMap(tctx, activatingAssignmentMap); err != nil {
-			return err
+			return nil, err
 		}
 		if ok {
 			break
 		} else {
 			if retryCount == 0 {
-				return error_utils.NewTimeoutExceededError("ConfirmActivatingAssignmentMap")
+				return nil, error_utils.NewTimeoutExceededError("ConfirmActivatingAssignmentMap")
 			}
 			time.Sleep(srv.computeConfirmRetryInterval)
 			retryCount -= 1
@@ -91,25 +93,34 @@ func (srv *ResourceClusterAgentServer) SyncComputeAssignments(tctx *logger.Trace
 	}
 
 	if err = srv.computeDriver.SyncDeletingAssignmentMap(tctx, activatingAssignmentMap); err != nil {
-		return err
+		return nil, err
 	}
 
 	ok = false
 	retryCount = srv.computeConfirmRetryCount
 	for {
 		if ok, err = srv.computeDriver.ConfirmDeletingAssignmentMap(tctx, activatingAssignmentMap); err != nil {
-			return err
+			return nil, err
 		}
 		if ok {
 			break
 		} else {
 			if retryCount == 0 {
-				return error_utils.NewTimeoutExceededError("ConfirmActivatingAssignmentMap")
+				return nil, error_utils.NewTimeoutExceededError("ConfirmActivatingAssignmentMap")
 			}
 			time.Sleep(srv.computeConfirmRetryInterval)
 			retryCount -= 1
 		}
 	}
 
-	return nil
+	for _, assignment := range activatingAssignmentMap {
+		assignmentReports = append(assignmentReports, resource_model.AssignmentReport{
+			ID:           assignment.ID,
+			UpdatedAt:    assignment.UpdatedAt,
+			Status:       resource_model.StatusActive,
+			StatusReason: "",
+		})
+	}
+
+	return assignmentReports, nil
 }

@@ -2,9 +2,7 @@ package qemu_driver
 
 import (
 	"io/ioutil"
-	"os"
 	"path/filepath"
-	"text/template"
 
 	"github.com/syunkitada/goapp/pkg/lib/exec_utils"
 	"github.com/syunkitada/goapp/pkg/lib/json_utils"
@@ -74,46 +72,47 @@ func (driver *QemuDriver) syncActivatingAssignment(tctx *logger.TraceContext,
 	if err = ioutil.WriteFile(vmMetaDataConfigFilePath, []byte(metaDataBytes), 0644); err != nil {
 		return err
 	}
-	userdataFile, err := os.OpenFile(vmUserDataConfigFilePath, os.O_RDWR|os.O_CREATE, 0755)
-	if err != nil {
+
+	defaultGateway := netnsPorts[0].NetnsGateway
+	if err = template_utils.Template(tctx, vmUserDataConfigFilePath, 0644, driver.userdataTmpl,
+		map[string]interface{}{
+			"DefaultGateway": defaultGateway,
+			"Ports":          netnsPorts,
+		}); err != nil {
 		return err
 	}
-	defer func() {
-		if tmpErr := userdataFile.Close(); err != nil {
-			logger.Warningf(tctx, "Failed close %s: %s", vmUserDataConfigFilePath, tmpErr.Error())
-		}
-	}()
-
-	// Initialize Network
-	defaultGateway := netnsPorts[0].NetnsGateway
-
-	t := template.Must(template.ParseFiles(driver.userdataTmpl))
-	t.Execute(userdataFile, map[string]interface{}{
-		"DefaultGateway": defaultGateway,
-		"Ports":          netnsPorts,
-	})
 
 	if _, err = exec_utils.Cmdf(tctx, "genisoimage -o %s -V cidata -r -J %s %s",
 		vmConfigImagePath, vmMetaDataConfigFilePath, vmUserDataConfigFilePath); err != nil {
 		return err
 	}
 
-	template_utils.Template(tctx, driver.vmServiceShTmpl, vmServiceShFilePath, map[string]interface{}{
-		"Compute":           compute,
-		"Ports":             netnsPorts,
-		"VmImagePath":       vmImagePath,
-		"VmConfigImagePath": vmConfigImagePath,
-	})
+	if err = template_utils.Template(tctx, vmServiceShFilePath, 0755, driver.vmServiceShTmpl,
+		map[string]interface{}{
+			"Compute":           compute,
+			"Ports":             netnsPorts,
+			"VmImagePath":       vmImagePath,
+			"VmConfigImagePath": vmConfigImagePath,
+		}); err != nil {
+		return err
+	}
 
-	template_utils.Template(tctx, driver.vmServiceTmpl, vmServiceFilePath, map[string]interface{}{
-		"Name": compute.Name,
-	})
+	if err = template_utils.Template(tctx, vmServiceFilePath, 0755, driver.vmServiceTmpl,
+		map[string]interface{}{
+			"Compute":             compute,
+			"VmServiceShFilePath": vmServiceShFilePath,
+		}); err != nil {
+		return err
+	}
 
-	// TODO create systemd service and start vm
-	// sysctl -w net.ipv4.conf.tap0.proxy_arp=1
-	// sysctl -w net.ipv4.conf.tap0.forwarding=1
-	// ip route add 192.168.100.2 dev tap0
-	// ip link set tap0 up
+	tctx.SetTimeout(5)
+	if _, err = exec_utils.Cmdf(tctx, "systemctl daemon-reload"); err != nil {
+		return err
+	}
+
+	if _, err = exec_utils.Cmdf(tctx, "systemctl start %s", compute.Name); err != nil {
+		return err
+	}
 
 	return nil
 }

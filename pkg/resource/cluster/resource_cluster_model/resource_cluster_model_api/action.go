@@ -34,6 +34,8 @@ func (modelApi *ResourceClusterModelApi) Action(tctx *logger.TraceContext,
 		switch query.Kind {
 		case "update_node":
 			tmpStatusCode, err = modelApi.UpdateNode(tctx, db, query, data)
+		case "update_node_assignments":
+			tmpStatusCode, err = modelApi.UpdateNodeAssignments(tctx, db, query, data)
 		case "get_computes":
 			tmpStatusCode, err = modelApi.GetComputes(tctx, db, req, query, data)
 		case "create_compute":

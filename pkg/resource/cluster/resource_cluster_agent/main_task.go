@@ -63,6 +63,28 @@ func (srv *ResourceClusterAgentServer) UpdateNode(tctx *logger.TraceContext) err
 		return err
 	}
 
-	srv.SyncComputeAssignments(tctx, response.Data.ComputeAssignments)
+	var computeAssignmentReports []resource_model.AssignmentReport
+	if computeAssignmentReports, err = srv.SyncComputeAssignments(tctx, response.Data.ComputeAssignments); err != nil {
+		return err
+	}
+
+	assignmentReportMap := resource_model.AssignmentReportMap{
+		ComputeAssignmentReports: computeAssignmentReports,
+	}
+	assignmentReportMapBytes, err := json_utils.Marshal(assignmentReportMap)
+	queries = []authproxy_model.Query{
+		authproxy_model.Query{
+			Kind: "update_node_assignments",
+			StrParams: map[string]string{
+				"AssignmentReportMap": string(assignmentReportMapBytes),
+			},
+		},
+	}
+	rep, err = srv.resourceClusterApiClient.Action(
+		logger.NewActionTraceContext(tctx, "system", "system", queries))
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

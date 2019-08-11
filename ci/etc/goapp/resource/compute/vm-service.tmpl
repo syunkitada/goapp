@@ -1,11 +1,14 @@
 [Unit]
-Description=VM
+Description={{ .Compute.Name }}
 After=syslog.target network.target auditd.service
 
 
 [Service]
-ExecStartPre=/home/owner/.goapp/var/compute/vms/service01.r0.admin.tokyo1.vir.example.com/service.sh startpre
-ExecStart=/home/owner/.goapp/var/compute/vms/service01.r0.admin.tokyo1.vir.example.com/service.sh start
-KillMode=process
-Restart=on-failure
-RestartSec=42s
+User=root
+Type=simple
+
+ExecStartPre={{ .VmServiceShFilePath }} startpre
+ExecStart={{ .VmServiceShFilePath }} start
+
+KillMode=control-group
+Restart=always

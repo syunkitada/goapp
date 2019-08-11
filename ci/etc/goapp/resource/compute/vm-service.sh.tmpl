@@ -45,7 +45,6 @@ function start {
     {{- range $i, $port := .Ports }}
     ip link set {{ $port.Name }}-tap netns {{ $port.Name }}
     ip netns exec {{ $port.Name }} ip link set {{ $port.Name }}-tap up
-    ip netns exec {{ $port.Name }} ip route add $port
     ip netns exec {{ $port.Name }} ip route | grep {{ $port.VmIp }} || ip netns exec {{ $port.Name }} ip route add {{ $port.VmIp }} dev {{ $port.Name }}-tap
     ip netns exec {{ $port.Name }} sysctl -w net.ipv4.conf.{{ $port.Name }}-tap.forwarding=1
     ip netns exec {{ $port.Name }} sysctl -w net.ipv4.conf.{{ $port.Name }}-tap.forwarding=1

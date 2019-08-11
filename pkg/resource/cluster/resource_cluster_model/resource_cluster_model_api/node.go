@@ -2,6 +2,7 @@ package resource_cluster_model_api
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -115,14 +116,50 @@ func (modelApi *ResourceClusterModelApi) UpdateNode(tctx *logger.TraceContext, d
 			return codes.ServerInternalError, err
 		}
 		computeAssignmentExs = append(computeAssignmentExs, resource_model.ComputeAssignmentEx{
-			ID:     assignment.ID,
-			Status: assignment.Status,
-			Spec:   spec,
+			ID:        assignment.ID,
+			UpdatedAt: assignment.UpdatedAt,
+			Status:    assignment.Status,
+			Spec:      spec,
 		})
 	}
 
 	data["ComputeAssignments"] = computeAssignmentExs
 
+	return codes.OkUpdated, nil
+}
+
+func (modelApi *ResourceClusterModelApi) UpdateNodeAssignments(tctx *logger.TraceContext, db *gorm.DB,
+	query *authproxy_grpc_pb.Query, data map[string]interface{}) (int64, error) {
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	tx := db.Begin()
+	defer tx.Rollback()
+
+	strAssignmentReportMap, ok := query.StrParams["AssignmentReportMap"]
+	if !ok {
+		err = error_utils.NewInvalidRequestError("NotFound AssignmentReportMap")
+		return codes.ClientBadRequest, err
+	}
+	fmt.Println("DEBUG assignments", strAssignmentReportMap)
+
+	var assignmentReportMap resource_model.AssignmentReportMap
+	if err = json.Unmarshal([]byte(strAssignmentReportMap), &assignmentReportMap); err != nil {
+		return codes.ClientBadRequest, err
+	}
+
+	for _, report := range assignmentReportMap.ComputeAssignmentReports {
+		data := resource_model.ComputeAssignment{
+			Status:       report.Status,
+			StatusReason: report.StatusReason,
+		}
+		if err = tx.Model(&data).Where("id = ? AND updated_at = ?", report.ID, report.UpdatedAt).Updates(&data).Error; err != nil {
+			return codes.RemoteDbError, err
+		}
+	}
+
+	tx.Commit()
 	return codes.OkUpdated, nil
 }
 

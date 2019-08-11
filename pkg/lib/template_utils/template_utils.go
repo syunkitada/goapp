@@ -7,8 +7,8 @@ import (
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
 
-func Template(tctx *logger.TraceContext, templatePath string, path string, data interface{}) error {
-	file, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE, 0755)
+func Template(tctx *logger.TraceContext, path string, perm os.FileMode, templatePath string, data interface{}) error {
+	file, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, perm)
 	if err != nil {
 		return err
 	}
