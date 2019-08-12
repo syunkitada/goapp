@@ -190,12 +190,13 @@ func (ctl *CtlMain) Index(args []string) error {
 	if cmdInfo.FlagMap != nil {
 		for key, flag := range cmdInfo.FlagMap {
 			splitedKey := strings.Split(key, ",")
+			key = splitedKey[0]
 			var cmdFlag interface{}
 			var ok bool
 			if len(splitedKey) == 1 {
 				cmdFlag, ok = flagMap[key]
 			} else {
-				cmdFlag, ok = flagMap[splitedKey[0]]
+				cmdFlag, ok = flagMap[key]
 				if !ok {
 					cmdFlag, ok = shortFlagMap[splitedKey[1]]
 				}

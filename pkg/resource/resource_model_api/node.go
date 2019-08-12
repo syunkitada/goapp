@@ -2,6 +2,7 @@ package resource_model_api
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -34,10 +35,15 @@ func (modelApi *ResourceModelApi) GetNode(tctx *logger.TraceContext,
 func (modelApi *ResourceModelApi) GetNodes(tctx *logger.TraceContext,
 	db *gorm.DB, query *authproxy_grpc_pb.Query, data map[string]interface{}) (int64, error) {
 	var err error
-
 	var nodes []resource_model.Node
-	if err = db.Find(&nodes).Error; err != nil {
-		return codes.RemoteDbError, err
+	fmt.Println("DEBUG params", query.StrParams)
+	cluster, ok := query.StrParams["cluster"]
+	if ok {
+		fmt.Println("cluster", cluster)
+	} else {
+		if err = db.Find(&nodes).Error; err != nil {
+			return codes.RemoteDbError, err
+		}
 	}
 	data["Nodes"] = nodes
 	return codes.OkRead, nil
