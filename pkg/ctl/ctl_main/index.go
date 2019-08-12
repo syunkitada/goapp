@@ -2,8 +2,11 @@ package ctl_main
 
 import (
 	"fmt"
+	"os"
+	"sort"
 	"strings"
 
+	"github.com/olekukonko/tablewriter"
 	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_client"
 	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_model"
 	"github.com/syunkitada/goapp/pkg/authproxy/index_model"
@@ -48,19 +51,33 @@ func (ctl *CtlMain) Index(args []string) error {
 	}
 
 	if !ok {
+		fmt.Printf("Usage: %s [SERVICE] [COMMAND] [OPTION] [FLAGS...]\n\n", ctl.name)
+
 		fmt.Println("--- Available Services ---")
-		for serviceName, _ := range resp.Authority.ServiceMap {
-			fmt.Println(strings.ToLower(serviceName))
+		snames := make([]string, 0, len(resp.Authority.ServiceMap))
+		for s := range resp.Authority.ServiceMap {
+			snames = append(snames, strings.ToLower(s))
 		}
+		sort.Sort(sort.StringSlice(snames))
+		for _, s := range snames {
+			fmt.Println(s)
+		}
+
 		if project, ok := resp.Authority.ProjectServiceMap[ctl.conf.Ctl.Project]; ok {
-			fmt.Println("--- Available Project Services ---")
-			for serviceName, _ := range project.ServiceMap {
-				fmt.Println(strings.ToLower(serviceName))
+			fmt.Println("\n--- Available Project Services ---")
+			snames := make([]string, 0, len(resp.Authority.ServiceMap))
+			for s, _ := range project.ServiceMap {
+				snames = append(snames, strings.ToLower(s))
+			}
+			sort.Sort(sort.StringSlice(snames))
+			for _, s := range snames {
+				fmt.Println(s)
 			}
 		}
 		return nil
 	}
 
+	// Get ServiceIndex, and exec cmd
 	var indexResp *authproxy_client.ResponseGetIndex
 	if indexResp, err = ctl.client.GetIndex(tctx, resp.Token, serviceName); err != nil {
 		return err
@@ -98,14 +115,29 @@ func (ctl *CtlMain) Index(args []string) error {
 	var cmdInfo index_model.Cmd
 	argsStr := ""
 	lastArgs := []string{}
-	helpMsg := ""
+	helpMsgs := [][]string{}
 	for query, cmd := range indexResp.Index.CmdMap {
 		args := strings.Split(query, "_")
+		cmdQuery := strings.Join(args, " ")
+		var helpMsg []string
 		if cmd.Arg != "" {
-			helpMsg += fmt.Sprintf("%s [%s:%s]  :%s\n", query, cmd.ArgType, cmd.Arg, cmd.Help)
+			helpMsg = []string{cmdQuery, fmt.Sprintf("type=%s,kind=%s (%s)", cmd.ArgType, cmd.ArgKind, cmd.Arg)}
 		} else {
-			helpMsg += fmt.Sprintf("%s  :%s\n", query, cmd.Help)
+			helpMsg = []string{cmdQuery, "", cmd.Help}
 		}
+		flags := []string{}
+		for f, flag := range cmd.FlagMap {
+			sf := strings.Split(f, ",")
+			if len(sf) == 2 {
+				flags = append(flags, fmt.Sprintf("-%s, --%s [%s (%s)]", sf[0], sf[1], flag.FlagType, flag.Flag))
+			} else {
+				flags = append(flags, fmt.Sprintf("--%s [%s (%s)]", sf[0], flag.FlagType, flag.Flag))
+			}
+		}
+
+		sort.Sort(sort.StringSlice(flags))
+		helpMsg = append(helpMsg, strings.Join(flags, "\n"))
+		helpMsgs = append(helpMsgs, helpMsg)
 
 		if len(cmdArgs) < 2 {
 			continue
@@ -138,8 +170,23 @@ func (ctl *CtlMain) Index(args []string) error {
 	}
 
 	if cmdQuery == "" {
-		fmt.Printf("# Available Commands\n-----------------------\n")
-		fmt.Println(helpMsg)
+		fmt.Printf("Usage: %s [SERVICE] [COMMAND] [OPTION] [FLAGS...]\n\n", ctl.name)
+
+		fmt.Printf("# Available Commands\n\n")
+
+		sort.SliceStable(helpMsgs, func(i, j int) bool {
+			return helpMsgs[i][0] < helpMsgs[j][0]
+		})
+
+		table := tablewriter.NewWriter(os.Stdout)
+		table.SetHeader([]string{"COMMAND", "OPTION", "FLAGS"})
+		table.SetBorder(false)
+		table.SetAutoWrapText(false)
+		table.SetAlignment(tablewriter.ALIGN_LEFT)
+		table.SetRowLine(false)
+		table.AppendBulk(helpMsgs)
+		table.Render() // Send output
+
 		return nil
 	}
 

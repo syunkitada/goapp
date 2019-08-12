@@ -93,9 +93,16 @@ var NodeCmd map[string]index_model.Cmd = map[string]index_model.Cmd{
 		Help:    "update node",
 	},
 	"get_nodes": index_model.Cmd{
-		Arg:         index_model.ArgOptional,
-		ArgType:     index_model.ArgTypeString,
-		ArgKind:     NodeKind,
+		Arg:     index_model.ArgOptional,
+		ArgType: index_model.ArgTypeString,
+		ArgKind: NodeKind,
+		FlagMap: map[string]index_model.Flag{
+			"c,cluster": index_model.Flag{
+				Flag:     index_model.ArgOptional,
+				FlagType: index_model.ArgTypeString,
+				Help:     "cluster",
+			},
+		},
 		Help:        "get nodes",
 		TableHeader: []string{"Cluster", "Name", "Kind", "Role", "Status", "State"},
 	},

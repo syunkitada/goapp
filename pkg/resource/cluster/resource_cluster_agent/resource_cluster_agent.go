@@ -17,7 +17,7 @@ import (
 	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_agent/metrics_plugins/system_metrics_reader"
 	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_agent/resource_cluster_agent_grpc_pb"
 	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_api/resource_cluster_api_client"
-	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_model/resource_cluster_model_api"
+	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_model_api"
 	"github.com/syunkitada/goapp/pkg/resource/resource_model"
 )
 

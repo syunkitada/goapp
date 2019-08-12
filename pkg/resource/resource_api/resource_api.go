@@ -9,7 +9,7 @@ import (
 	"github.com/syunkitada/goapp/pkg/config"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/resource/resource_api/resource_api_grpc_pb"
-	"github.com/syunkitada/goapp/pkg/resource/resource_model/resource_model_api"
+	"github.com/syunkitada/goapp/pkg/resource/resource_model_api"
 )
 
 type ResourceApiServer struct {

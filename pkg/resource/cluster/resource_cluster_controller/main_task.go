@@ -8,7 +8,6 @@ import (
 	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_model"
 	"github.com/syunkitada/goapp/pkg/lib/json_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
-	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_model"
 	"github.com/syunkitada/goapp/pkg/resource/resource_model"
 )
 
@@ -19,7 +18,7 @@ func (srv *ResourceClusterControllerServer) MainTask(tctx *logger.TraceContext) 
 	if err := srv.SyncRole(tctx); err != nil {
 		return err
 	}
-	if srv.role == resource_cluster_model.RoleMember {
+	if srv.role == resource_model.RoleMember {
 		return nil
 	}
 
@@ -70,7 +69,7 @@ func (srv *ResourceClusterControllerServer) UpdateNode(tctx *logger.TraceContext
 
 func (srv *ResourceClusterControllerServer) SyncRole(tctx *logger.TraceContext) error {
 	var err error
-	nodes, err := srv.resourceClusterModelApi.SyncRole(tctx, resource_cluster_model.KindResourceClusterController)
+	nodes, err := srv.resourceClusterModelApi.SyncRole(tctx, resource_model.KindResourceClusterController)
 	if err != nil {
 		return err
 	}
@@ -78,15 +77,15 @@ func (srv *ResourceClusterControllerServer) SyncRole(tctx *logger.TraceContext) 
 	existsSelfNode := false
 	existsActiveLeader := false
 	for _, node := range nodes {
-		if node.Kind != resource_cluster_model.KindResourceClusterController {
+		if node.Kind != resource_model.KindResourceClusterController {
 			continue
 		}
-		if node.Name == srv.conf.Default.Host && node.Status == resource_cluster_model.StatusEnabled && node.State == resource_cluster_model.StateUp {
+		if node.Name == srv.conf.Default.Host && node.Status == resource_model.StatusEnabled && node.State == resource_model.StateUp {
 			existsSelfNode = true
 			srv.role = node.Role
 		}
-		if node.Status == resource_cluster_model.StatusEnabled && node.State == resource_cluster_model.StateUp {
-			if node.Role == resource_cluster_model.RoleLeader {
+		if node.Status == resource_model.StatusEnabled && node.State == resource_model.StateUp {
+			if node.Role == resource_model.RoleLeader {
 				existsActiveLeader = true
 			}
 		}
