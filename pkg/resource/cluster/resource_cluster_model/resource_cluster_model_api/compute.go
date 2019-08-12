@@ -213,11 +213,51 @@ func (modelApi *ResourceClusterModelApi) SyncCompute(tctx *logger.TraceContext) 
 		switch compute.Status {
 		case resource_model.StatusInitializing:
 			modelApi.AssignCompute(tctx, db, &compute, nodeMap, nodeAssignmentsMap, computeAssignmentsMap, false)
+		case resource_model.StatusCreatingScheduled:
+			modelApi.ConfirmCreatingScheduledCompute(tctx, db, &compute, computeAssignmentsMap)
 		}
 	}
 
 	fmt.Println("TODO SyncCompute")
 	return nil
+}
+
+func (modelApi *ResourceClusterModelApi) ConfirmCreatingScheduledCompute(tctx *logger.TraceContext, db *gorm.DB,
+	compute *resource_model.Compute,
+	assignmentsMap map[string][]resource_model.ComputeAssignmentWithComputeAndNode) {
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	assignments, ok := assignmentsMap[compute.Name]
+	if !ok {
+		err = error_utils.NewConflictNotFoundError(compute.Name)
+		return
+	}
+
+	existsNonActiveAssignments := false
+	for _, assignment := range assignments {
+		if assignment.Status != resource_model.StatusActive {
+			existsNonActiveAssignments = true
+			break
+		}
+	}
+
+	if existsNonActiveAssignments {
+		logger.Info(tctx, "Waiting: exists non active assignments")
+		return
+	}
+
+	tx := db.Begin()
+	defer tx.Rollback()
+	tmpCompute := resource_model.Compute{
+		Status:       resource_model.StatusActive,
+		StatusReason: "ConfirmedCreagingScheduled",
+	}
+	if err = tx.Model(&tmpCompute).Where("id = ?", compute.ID).Updates(&tmpCompute).Error; err != nil {
+		return
+	}
+	tx.Commit()
 }
 
 func (modelApi *ResourceClusterModelApi) AssignCompute(tctx *logger.TraceContext, db *gorm.DB,

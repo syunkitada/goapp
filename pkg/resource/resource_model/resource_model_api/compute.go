@@ -202,3 +202,41 @@ func (modelApi *ResourceModelApi) CreateClusterCompute(tctx *logger.TraceContext
 	tx.Commit()
 	return
 }
+
+func (modelApi *ResourceModelApi) ConfirmCreatingScheduledCompute(tctx *logger.TraceContext, db *gorm.DB,
+	compute *resource_model.Compute, clusterComputeMap map[string]map[string]resource_model.Compute) {
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	computeMap, ok := clusterComputeMap[compute.Cluster]
+	if !ok {
+		err = error_utils.NewConflictNotFoundError(compute.Cluster)
+		return
+	}
+
+	clusterCompute, ok := computeMap[compute.Name]
+	if !ok {
+		err = error_utils.NewConflictNotFoundError(compute.Name)
+		return
+	}
+
+	if clusterCompute.Status != resource_model.StatusActive {
+		logger.Info(tctx, "Waiting: status is not Active")
+		return
+	}
+
+	tx := db.Begin()
+	defer tx.Rollback()
+
+	tmpCompute := resource_model.Compute{
+		Status:       resource_model.StatusActive,
+		StatusReason: "ConfirmedCreagingScheduled",
+	}
+	if err = tx.Model(&tmpCompute).Where("id = ?", compute.ID).Updates(&tmpCompute).Error; err != nil {
+		return
+	}
+	tx.Commit()
+
+	return
+}

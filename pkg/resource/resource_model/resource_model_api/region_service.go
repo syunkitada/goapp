@@ -300,7 +300,7 @@ func (modelApi *ResourceModelApi) SyncRegionService(tctx *logger.TraceContext) e
 		case resource_model.StatusCreating:
 			modelApi.CreateClusterCompute(tctx, db, &compute, clusterComputeMap)
 		case resource_model.StatusCreatingScheduled:
-			logger.Infof(tctx, "Found %v resource: %v", compute.Status, compute.Name)
+			modelApi.ConfirmCreatingScheduledCompute(tctx, db, &compute, clusterComputeMap)
 		case resource_model.StatusUpdating:
 			logger.Infof(tctx, "Found %v resource: %v", compute.Status, compute.Name)
 		case resource_model.StatusUpdatingScheduled:
