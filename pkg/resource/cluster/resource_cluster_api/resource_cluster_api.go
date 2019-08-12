@@ -1,9 +1,6 @@
 package resource_cluster_api
 
 import (
-	"fmt"
-
-	"github.com/golang/glog"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 
@@ -25,7 +22,7 @@ type ResourceClusterApiServer struct {
 func NewResourceClusterApiServer(conf *config.Config) *ResourceClusterApiServer {
 	cluster, ok := conf.Resource.ClusterMap[conf.Resource.Node.ClusterName]
 	if !ok {
-		glog.Fatal(fmt.Errorf("Cluster(%v) is not found in ClusterMap", conf.Resource.Node.ClusterName))
+		logger.StdoutFatalf("Cluster(%s) is not found in ClusterMap", conf.Resource.Node.ClusterName)
 	}
 
 	cluster.ApiApp.Name = "resource.cluster.api"

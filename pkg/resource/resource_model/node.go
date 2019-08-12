@@ -97,7 +97,7 @@ var NodeCmd map[string]index_model.Cmd = map[string]index_model.Cmd{
 		ArgType: index_model.ArgTypeString,
 		ArgKind: NodeKind,
 		FlagMap: map[string]index_model.Flag{
-			"c,cluster": index_model.Flag{
+			"cluster,c": index_model.Flag{
 				Flag:     index_model.ArgOptional,
 				FlagType: index_model.ArgTypeString,
 				Help:     "cluster",

@@ -42,15 +42,6 @@ func InitFlags(rootCmd *cobra.Command) {
 	rootCmd.PersistentFlags().BoolVar(&enableDebug, "debug", false, "enable debug mode")
 	rootCmd.PersistentFlags().BoolVar(&enableDevelop, "develop", false, "enable develop mode")
 	rootCmd.PersistentFlags().BoolVar(&enableDatabaseLog, "database-log", true, "enable database logging")
-
-	// glog flags
-	rootCmd.PersistentFlags().IntVar(&glogV, "glog-v", 0, "log level for V logs")
-	rootCmd.PersistentFlags().BoolVar(&glogLogtostderr, "glog-logtostderr", true, "log to standard error instead of files")
-	rootCmd.PersistentFlags().IntVar(&glogStderrthreshold, "glog-stderrthreshold", 0, "logs at or above this threshold go to stderr")
-	rootCmd.PersistentFlags().BoolVar(&glogAlsologtostderr, "glog-alsologtostderr", false, "log to standard error as well as files")
-	rootCmd.PersistentFlags().StringVar(&glogVmodule, "glog-vmodule", "", "comma-separated list of pattern=N settings for file-filtered logging")
-	rootCmd.PersistentFlags().StringVar(&glogLogDir, "glog-log-dir", "", "If non-empty, write log files in this directory")
-	rootCmd.PersistentFlags().StringVar(&glogLogBacktraceAt, "glog-log-backtrace-at", ":0", "when logging hits line file:N, emit a stack trace")
 }
 
 func InitConfig() {

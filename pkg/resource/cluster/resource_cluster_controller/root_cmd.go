@@ -1,7 +1,6 @@
 package resource_cluster_controller
 
 import (
-	"github.com/golang/glog"
 	"github.com/spf13/cobra"
 
 	"github.com/syunkitada/goapp/pkg/config"
@@ -14,12 +13,7 @@ var RootCmd = &cobra.Command{
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
 		server := NewResourceClusterControllerServer(&config.Conf)
-		if err := server.StartMainLoop(); err != nil {
-			glog.Fatal(err)
-		}
-
-		if err := server.Serve(); err != nil {
-			glog.Fatal(err)
-		}
+		server.StartMainLoop()
+		server.Serve()
 	},
 }

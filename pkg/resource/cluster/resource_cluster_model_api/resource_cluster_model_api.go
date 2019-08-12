@@ -1,10 +1,8 @@
 package resource_cluster_model_api
 
 import (
-	"fmt"
 	"time"
 
-	"github.com/golang/glog"
 	"github.com/jinzhu/gorm"
 	validator "gopkg.in/go-playground/validator.v9"
 
@@ -23,7 +21,7 @@ type ResourceClusterModelApi struct {
 func NewResourceClusterModelApi(conf *config.Config) *ResourceClusterModelApi {
 	cluster, ok := conf.Resource.ClusterMap[conf.Resource.Node.ClusterName]
 	if !ok {
-		glog.Fatal(fmt.Errorf("Cluster(%v) is not found in ClusterMap", conf.Resource.Node.ClusterName))
+		logger.StdoutFatalf("Cluster(%v) is not found in ClusterMap", conf.Resource.Node.ClusterName)
 	}
 
 	modelApi := ResourceClusterModelApi{

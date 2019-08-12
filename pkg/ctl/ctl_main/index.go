@@ -85,6 +85,7 @@ func (ctl *CtlMain) Index(args []string) error {
 
 	cmdArgs := []string{}
 	flagMap := map[string]interface{}{}
+	shortFlagMap := map[string]interface{}{}
 	lastIndex := len(args) - 1
 	isFlag := false
 	for index, arg := range args {
@@ -95,12 +96,26 @@ func (ctl *CtlMain) Index(args []string) error {
 			}
 
 			// bool
-			if index == lastIndex || strings.Index(args[index+1], "--") == 0 {
+			if index == lastIndex || strings.Index(args[index+1], "-") == 0 {
 				flagMap[arg[2:]] = true
 				continue
 			}
 
 			flagMap[arg[2:]] = args[index+1]
+			isFlag = true
+		} else if strings.Index(arg, "-") == 0 {
+			if len(arg) == 1 {
+				cmdArgs = append(cmdArgs, strings.Join(args[index+1:], " "))
+				break
+			}
+
+			// bool
+			if index == lastIndex || strings.Index(args[index+1], "-") == 0 {
+				shortFlagMap[arg[1:]] = true
+				continue
+			}
+
+			shortFlagMap[arg[1:]] = args[index+1]
 			isFlag = true
 		} else {
 			if isFlag {
@@ -113,23 +128,22 @@ func (ctl *CtlMain) Index(args []string) error {
 
 	cmdQuery := ""
 	var cmdInfo index_model.Cmd
-	argsStr := ""
 	lastArgs := []string{}
 	helpMsgs := [][]string{}
 	for query, cmd := range indexResp.Index.CmdMap {
 		args := strings.Split(query, "_")
-		cmdQuery := strings.Join(args, " ")
+		helpQuery := strings.Join(args, " ")
 		var helpMsg []string
 		if cmd.Arg != "" {
-			helpMsg = []string{cmdQuery, fmt.Sprintf("type=%s,kind=%s (%s)", cmd.ArgType, cmd.ArgKind, cmd.Arg)}
+			helpMsg = []string{helpQuery, fmt.Sprintf("type=%s,kind=%s (%s)", cmd.ArgType, cmd.ArgKind, cmd.Arg)}
 		} else {
-			helpMsg = []string{cmdQuery, "", cmd.Help}
+			helpMsg = []string{helpQuery, "", cmd.Help}
 		}
 		flags := []string{}
 		for f, flag := range cmd.FlagMap {
 			sf := strings.Split(f, ",")
 			if len(sf) == 2 {
-				flags = append(flags, fmt.Sprintf("-%s, --%s [%s (%s)]", sf[0], sf[1], flag.FlagType, flag.Flag))
+				flags = append(flags, fmt.Sprintf("--%s, -%s [%s (%s)]", sf[0], sf[1], flag.FlagType, flag.Flag))
 			} else {
 				flags = append(flags, fmt.Sprintf("--%s [%s (%s)]", sf[0], flag.FlagType, flag.Flag))
 			}
@@ -143,7 +157,7 @@ func (ctl *CtlMain) Index(args []string) error {
 			continue
 		}
 
-		if len(cmdArgs)+1 >= len(args) {
+		if len(cmdArgs) > len(args) {
 			isMatch := true
 			for i, arg := range args {
 				if arg != cmdArgs[i+1] {
@@ -152,6 +166,7 @@ func (ctl *CtlMain) Index(args []string) error {
 				}
 			}
 			if isMatch {
+				helpMsgs = [][]string{helpMsg}
 				cmdQuery = query
 				cmdInfo = cmd
 				if len(cmdArgs)+1 > len(args) {
@@ -160,8 +175,8 @@ func (ctl *CtlMain) Index(args []string) error {
 					}
 
 					if cmd.Arg == "required" && len(lastArgs) == 0 {
-						ctl.outputCmdHelp(argsStr, cmd)
-						return nil
+						cmdQuery = ""
+						break
 					}
 				}
 				break
@@ -169,7 +184,56 @@ func (ctl *CtlMain) Index(args []string) error {
 		}
 	}
 
-	if cmdQuery == "" {
+	strParams := map[string]string{}
+	boolParams := map[string]bool{}
+	intParams := map[string]int{}
+	if cmdInfo.FlagMap != nil {
+		for key, flag := range cmdInfo.FlagMap {
+			splitedKey := strings.Split(key, ",")
+			var cmdFlag interface{}
+			var ok bool
+			if len(splitedKey) == 1 {
+				cmdFlag, ok = flagMap[key]
+			} else {
+				cmdFlag, ok = flagMap[splitedKey[0]]
+				if !ok {
+					cmdFlag, ok = shortFlagMap[splitedKey[1]]
+				}
+			}
+			if flag.Flag == index_model.ArgRequired {
+				if !ok {
+					cmdQuery = ""
+					break
+				}
+			}
+			if ok {
+				switch cmdFlag.(type) {
+				case string:
+					if flag.FlagType == index_model.ArgTypeString {
+						strParams[key] = cmdFlag.(string)
+					}
+				case bool:
+					if flag.FlagType == index_model.ArgTypeBool {
+						boolParams[key] = cmdFlag.(bool)
+					}
+				case int:
+					if flag.FlagType == index_model.ArgTypeInt {
+						intParams[key] = cmdFlag.(int)
+					}
+				}
+			}
+		}
+	}
+
+	if ctl.conf.Default.EnableDebug {
+		fmt.Println("DEBUG flagMap", flagMap)
+		fmt.Println("DEBUG shortFlagMap", shortFlagMap)
+		fmt.Println("DEBUG lastArg", lastArgs)
+	}
+
+	_, isHelp := flagMap["help"]
+	_, isShortHelp := shortFlagMap["h"]
+	if cmdQuery == "" || isHelp || isShortHelp {
 		fmt.Printf("Usage: %s [SERVICE] [COMMAND] [OPTION] [FLAGS...]\n\n", ctl.name)
 
 		fmt.Printf("# Available Commands\n\n")
@@ -188,22 +252,6 @@ func (ctl *CtlMain) Index(args []string) error {
 		table.Render() // Send output
 
 		return nil
-	}
-
-	strParams := map[string]string{}
-	if cmdInfo.FlagMap != nil {
-		for key, flag := range cmdInfo.FlagMap {
-			cmdFlag, ok := flagMap[key]
-			if flag.Flag == index_model.ArgRequired {
-				if !ok {
-					ctl.outputCmdHelp(argsStr, cmdInfo)
-					return nil
-				}
-			}
-			if flag.FlagType == index_model.ArgTypeString {
-				strParams[key] = cmdFlag.(string)
-			}
-		}
 	}
 
 	if cmdInfo.ArgType == "file" && len(lastArgs) > 0 {

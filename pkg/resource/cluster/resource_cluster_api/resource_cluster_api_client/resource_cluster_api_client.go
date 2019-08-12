@@ -1,10 +1,6 @@
 package resource_cluster_api_client
 
 import (
-	"fmt"
-
-	"github.com/golang/glog"
-
 	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_grpc_pb"
 	"github.com/syunkitada/goapp/pkg/base"
 	"github.com/syunkitada/goapp/pkg/config"
@@ -23,7 +19,7 @@ type ResourceClusterApiClient struct {
 func NewResourceClusterApiClient(conf *config.Config, localServer *resource_cluster_api.ResourceClusterApiServer) *ResourceClusterApiClient {
 	cluster, ok := conf.Resource.ClusterMap[conf.Resource.Node.ClusterName]
 	if !ok {
-		glog.Fatal(fmt.Errorf("Cluster(%v) is not found in ClusterMap", conf.Resource.Node.ClusterName))
+		logger.StdoutFatalf("Cluster(%v) is not found in ClusterMap", conf.Resource.Node.ClusterName)
 	}
 
 	resourceClient := ResourceClusterApiClient{
