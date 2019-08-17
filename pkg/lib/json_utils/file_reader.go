@@ -2,6 +2,7 @@ package json_utils
 
 import (
 	"bytes"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -59,4 +60,15 @@ func ReadFiles(filePath string) ([]map[string]interface{}, error) {
 		result = append(result, data)
 	}
 	return result, err
+}
+
+func ReadFile(filePath string, data interface{}) error {
+	bytes, err := ioutil.ReadFile(filePath)
+	if err != nil {
+		return err
+	}
+	fmt.Println(string(bytes))
+	fmt.Println(data)
+	err = yaml.Unmarshal(bytes, data)
+	return err
 }

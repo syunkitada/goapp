@@ -1,0 +1,150 @@
+package base_app
+
+import (
+	"net/http"
+	"os"
+	"os/signal"
+	"path/filepath"
+	"syscall"
+	"time"
+
+	"golang.org/x/net/context"
+
+	"github.com/syunkitada/goapp/pkg/base/base_config"
+	"github.com/syunkitada/goapp/pkg/lib/logger"
+)
+
+type BaseAppDriver interface {
+	MainTask(*logger.TraceContext) error
+}
+
+type BaseApp struct {
+	host               string
+	name               string
+	conf               *base_config.Config
+	appConf            *base_config.AppConfig
+	driver             BaseAppDriver
+	Monitors           int
+	loopInterval       time.Duration
+	isGracefulShutdown bool
+	server             *http.Server
+	handler            http.Handler
+	shutdownTimeout    time.Duration
+}
+
+func New(conf *base_config.Config, appConf *base_config.AppConfig) BaseApp {
+	if appConf.LoopInterval == 0 {
+		appConf.LoopInterval = 5
+	}
+
+	return BaseApp{
+		host:               conf.Host,
+		name:               appConf.Name,
+		conf:               conf,
+		appConf:            appConf,
+		loopInterval:       time.Duration(appConf.LoopInterval) * time.Second,
+		isGracefulShutdown: false,
+		shutdownTimeout:    time.Duration(appConf.ShutdownTimeout) * time.Second,
+	}
+}
+
+func (app *BaseApp) SetHandler(handler http.Handler) {
+	app.handler = handler
+}
+
+func (app *BaseApp) StartMainLoop() {
+	go app.mainLoop()
+}
+
+func (app *BaseApp) mainLoop() {
+	var tctx *logger.TraceContext
+	var startTime time.Time
+	var err error
+	logger.StdoutInfof("Start mainLoop")
+	for {
+		tctx = logger.NewTraceContext(app.host, app.name)
+		startTime = logger.StartTrace(tctx)
+		err = app.driver.MainTask(tctx)
+		logger.EndTrace(tctx, startTime, err, 0)
+
+		if app.isGracefulShutdown {
+			logger.Info(tctx, "Completed graceful shutdown mainTask")
+			logger.Info(tctx, "Starting graceful shutdown server")
+			startTime = logger.StartTrace(tctx)
+
+			ctx, cancel := context.WithTimeout(context.Background(), app.shutdownTimeout)
+			defer cancel()
+			if err = app.server.Shutdown(ctx); err != nil {
+				logger.Fatalf(tctx, "Failed graceful shutdown: %v", err)
+			}
+
+			logger.Info(tctx, "Completed graceful shutdown")
+			logger.EndTrace(tctx, startTime, nil, 0)
+			os.Exit(0)
+		}
+
+		time.Sleep(app.loopInterval)
+	}
+}
+
+func (app *BaseApp) NewTraceContext() *logger.TraceContext {
+	return logger.NewTraceContext(app.host, app.name)
+}
+
+func (app *BaseApp) Serve() {
+	var err error
+	tctx := logger.NewTraceContext(app.host, app.name)
+	startTime := logger.StartTrace(tctx)
+	defer func() {
+		logger.EndTrace(tctx, startTime, err, 0)
+	}()
+
+	go func() {
+		shutdown := make(chan os.Signal, 1)
+		signal.Notify(shutdown, syscall.SIGTERM)
+		<-shutdown
+		if err = app.gracefulShutdown(context.Background()); err != nil {
+			logger.Error(tctx, err, "Failed gracefulShutdown")
+		}
+	}()
+
+	app.server = &http.Server{
+		Addr:           app.appConf.Listen,
+		Handler:        app.handler,
+		ReadTimeout:    10 * time.Second,
+		WriteTimeout:   10 * time.Second,
+		MaxHeaderBytes: 1 << 20,
+	}
+
+	logger.Infof(tctx, "Serve: %v", app.appConf.Listen)
+
+	err = app.server.ListenAndServeTLS(app.appConf.CertFile,
+		filepath.Join(app.conf.ConfigDir, app.appConf.KeyFile))
+	if err != nil {
+		logger.Fatal(tctx, err)
+	}
+
+	logger.Infof(tctx, "Completed Serve: %v", app.appConf.Listen)
+}
+
+func (app *BaseApp) gracefulShutdown(ctx context.Context) error {
+	var err error
+	tctx := logger.NewTraceContext(app.host, app.name)
+	startTime := logger.StartTrace(tctx)
+	defer func() {
+		logger.EndTrace(tctx, startTime, err, 0)
+	}()
+
+	ctx, cancel := context.WithTimeout(ctx, app.shutdownTimeout)
+	defer cancel()
+
+	app.isGracefulShutdown = true
+
+	select {
+	case <-ctx.Done():
+		err = ctx.Err()
+		os.Exit(1)
+	}
+
+	return nil
+}

@@ -20,10 +20,10 @@ func Mkdir(path string, perm os.FileMode) error {
 func MustMkdir(path string, perm os.FileMode) {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		if err := os.Mkdir(path, perm); err != nil {
-			logger.StdoutFatal(err)
+			logger.StdoutFatalf("Failed Mkdir: path=%s, err=%v", path, err)
 		}
 	} else if err != nil {
-		logger.StdoutFatalf("Failed Mkdir: path=%s, err=%s", path, err.Error())
+		logger.StdoutFatalf("Failed Mkdir: path=%s, err=%v", path, err)
 	}
 }
 
