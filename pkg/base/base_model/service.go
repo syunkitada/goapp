@@ -9,6 +9,7 @@ type Spec struct {
 type Api struct {
 	Name            string
 	Cmds            map[string]string
+	RequiredAuth    bool
 	RequiredProject bool
 	RequiredService bool
 	View            View

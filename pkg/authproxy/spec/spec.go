@@ -9,6 +9,15 @@ var Spec = base_model.Spec{
 	Name: "authproxy",
 	Apis: []base_model.Api{
 		base_model.Api{
+			Name:         "auth",
+			RequiredAuth: false,
+			QueryModels: []base_model.QueryModel{
+				base_model.QueryModel{
+					Model: IssueToken{},
+				},
+			},
+		},
+		base_model.Api{
 			Name:            "service",
 			RequiredService: true,
 			QueryModels: []base_model.QueryModel{

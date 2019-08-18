@@ -36,6 +36,12 @@ func New(conf *base_config.Config, appConf *base_config.AppConfig) BaseApp {
 	if appConf.LoopInterval == 0 {
 		appConf.LoopInterval = 5
 	}
+	if appConf.CertFile == "" {
+		appConf.CertFile = "server.pem"
+	}
+	if appConf.KeyFile == "" {
+		appConf.KeyFile = "server.key"
+	}
 
 	return BaseApp{
 		host:               conf.Host,
@@ -118,10 +124,11 @@ func (app *BaseApp) Serve() {
 
 	logger.Infof(tctx, "Serve: %v", app.appConf.Listen)
 
-	err = app.server.ListenAndServeTLS(app.appConf.CertFile,
-		filepath.Join(app.conf.ConfigDir, app.appConf.KeyFile))
+	certFile := filepath.Join(app.conf.ConfigDir, app.appConf.CertFile)
+	keyFile := filepath.Join(app.conf.ConfigDir, app.appConf.KeyFile)
+	err = app.server.ListenAndServeTLS(certFile, keyFile)
 	if err != nil {
-		logger.Fatal(tctx, err)
+		logger.Fatalf(tctx, "Failed ListenAndServeTLS: certFile=%s, keyFile=%s, %v", certFile, keyFile, err)
 	}
 
 	logger.Infof(tctx, "Completed Serve: %v", app.appConf.Listen)

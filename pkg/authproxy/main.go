@@ -1,7 +1,6 @@
 package authproxy
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 
@@ -9,23 +8,21 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/syunkitada/goapp/pkg/authproxy/config"
+	"github.com/syunkitada/goapp/pkg/authproxy/server"
 	"github.com/syunkitada/goapp/pkg/base/base_config"
+	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
 
-var baseConfig base_config.Config
-var appConfig config.Config
+var baseConf base_config.Config
+var appConf config.Config
 
 var rootCmd = &cobra.Command{
 	Use:   "goapp-authproxy",
 	Short: "goapp-authproxy",
-	Long: `goapp-authproxy
-                This is sample description1.
-                This is sample description2.`,
+	Long:  "goapp-authproxy",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println(baseConfig)
-		fmt.Println(appConfig)
-		// authproxy := core.NewAuthproxy(&config.Conf)
-		// authproxy.Serv()
+		srv := server.New(&baseConf, &appConf)
+		srv.Serve()
 	},
 }
 
@@ -36,18 +33,14 @@ func Main() {
 }
 
 func init() {
-	cobra.OnInitialize(initConfig, initLogger)
-	base_config.InitFlags(rootCmd, &baseConfig)
+	cobra.OnInitialize(initMain)
+	base_config.InitFlags(rootCmd, &baseConf)
 }
 
-func initConfig() {
+func initMain() {
 	os.Setenv("LANG", "en_US.UTF-8")
-	baseConfig.BaseDir = filepath.Join(os.Getenv("HOME"), ".goapp")
-	baseConfig.LogTimeFormat = "2006-01-02T15:04:05Z09:00"
-	base_config.InitConfig(&baseConfig, &appConfig)
-	fmt.Println("DEBUG Config")
-}
-
-func initLogger() {
-	fmt.Println("DEBUG Logger")
+	baseConf.BaseDir = filepath.Join(os.Getenv("HOME"), ".goapp")
+	baseConf.LogTimeFormat = "2006-01-02T15:04:05Z09:00"
+	base_config.InitConfig(&baseConf, &appConf)
+	logger.InitLogger(&baseConf)
 }

@@ -8,6 +8,7 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -17,6 +18,7 @@ import (
 
 	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_grpc_pb"
 	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_model"
+	"github.com/syunkitada/goapp/pkg/base/base_config"
 	"github.com/syunkitada/goapp/pkg/config"
 	"github.com/syunkitada/goapp/pkg/lib/codes"
 	"github.com/syunkitada/goapp/pkg/lib/error_utils"
@@ -41,6 +43,9 @@ const (
 )
 
 type TraceContext struct {
+	mtx      *sync.Mutex
+	code     uint8
+	err      error
 	Host     string
 	App      string
 	Func     string
@@ -57,6 +62,10 @@ func (tctx *TraceContext) GetTimeout() int {
 	return tctx.timeout
 }
 
+func (tctx *TraceContext) GetTraceId() string {
+	return tctx.TraceId
+}
+
 type ActionTraceContext struct {
 	TraceContext
 	UserName        string
@@ -68,11 +77,14 @@ type ActionTraceContext struct {
 
 func NewTraceContext(host string, app string) *TraceContext {
 	return &TraceContext{
+		mtx:      new(sync.Mutex),
 		TraceId:  xid.New().String(),
 		Host:     host,
 		App:      app,
 		Metadata: map[string]string{},
 		timeout:  3,
+		code:     0,
+		err:      nil,
 	}
 }
 
@@ -83,6 +95,8 @@ func NewTraceContextWithTraceId(traceId string, host string, app string) *TraceC
 		App:      app,
 		Metadata: map[string]string{},
 		timeout:  3,
+		code:     0,
+		err:      nil,
 	}
 }
 
@@ -218,6 +232,13 @@ func NewGrpcAuthproxyTraceContext(host string, app string, ctx context.Context, 
 	return tctx
 }
 
+func (tctx *TraceContext) SetError(code uint8, err error) {
+	tctx.mtx.Lock()
+	tctx.code = code
+	tctx.err = err
+	tctx.mtx.Unlock()
+}
+
 func SetErrorTraceContext(tctx *authproxy_grpc_pb.TraceContext, statusCode int64, data interface{}) {
 	tctx.StatusCode = statusCode
 	tctx.Err = codes.GetMsg(statusCode, data)
@@ -249,6 +270,39 @@ func Init() {
 		Logger = log.New(os.Stdout, "", 0)
 	} else {
 		logfilePath := filepath.Join(conf.Default.LogDir, name+".log")
+		logfile, err := os.OpenFile(logfilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
+		if err != nil {
+			StdoutFatalf("Failed open logfile: %v", logfile)
+		} else {
+			Logger = log.New(logfile, "", 0)
+		}
+	}
+}
+
+func InitLogger(baseConf *base_config.Config) {
+	stdoutLogger = log.New(os.Stdout, "", log.Ldate|log.Ltime)
+	LogTimeFormat = baseConf.LogTimeFormat
+
+	name = os.Getenv("LOG_FILE")
+	if name == "" {
+		for _, arg := range os.Args {
+			option := strings.Index(arg, "-")
+			if option == 0 {
+				continue
+			}
+			slash := strings.LastIndex(arg, "/")
+			if slash > 0 {
+				arg = arg[slash+1:]
+			}
+			name += "-" + arg
+		}
+		name = name[1:]
+	}
+
+	if baseConf.LogDir == "stdout" {
+		Logger = log.New(os.Stdout, "", 0)
+	} else {
+		logfilePath := filepath.Join(baseConf.LogDir, name+".log")
 		logfile, err := os.OpenFile(logfilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
 		if err != nil {
 			StdoutFatalf("Failed open logfile: %v", logfile)
