@@ -20,6 +20,7 @@ type Api struct {
 type QueryModel struct {
 	Cmd          string
 	Help         string
+	RequiredAuth bool
 	ProjectRoles []string
 	Roles        []string
 	Model        interface{}
@@ -45,4 +46,9 @@ type Flag struct {
 	Type      string
 	CobraType string
 	Required  bool
+}
+
+type ServiceRouter struct {
+	QueryMap  map[string]QueryModel
+	Endpoints []string
 }

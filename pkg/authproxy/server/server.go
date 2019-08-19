@@ -9,6 +9,7 @@ import (
 	"github.com/syunkitada/goapp/pkg/authproxy/config"
 	"github.com/syunkitada/goapp/pkg/base/base_app"
 	"github.com/syunkitada/goapp/pkg/base/base_config"
+	"github.com/syunkitada/goapp/pkg/base/base_model"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
 
@@ -35,7 +36,7 @@ func (srv *Server) NewHandler() http.Handler {
 	handler := http.NewServeMux()
 	handler.HandleFunc("/q", func(w http.ResponseWriter, r *http.Request) {
 		var err error
-		tctx, req, rep, startTime, err := srv.Start(r)
+		tctx, service, req, rep, startTime, err := srv.Start(r)
 		defer func() { srv.End(tctx, startTime, err) }()
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
@@ -49,10 +50,21 @@ func (srv *Server) NewHandler() http.Handler {
 			return
 		}
 
-		fmt.Println(req)
+		fmt.Println(service)
+		// resolver.IssueToken
+		err = srv.Exec(req, rep)
+		fmt.Println(err)
 
 		fmt.Fprintf(w, "Hello, %q", html.EscapeString(r.URL.Path))
 	})
 
 	return handler
+}
+
+func (srv *Server) Exec(req *base_model.Request, rep *base_model.Reply) error {
+	fmt.Println(req)
+	for _, query := range req.Queries {
+		fmt.Println("TODO Exec", query.Name)
+	}
+	return nil
 }

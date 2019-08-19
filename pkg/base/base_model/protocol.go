@@ -3,13 +3,14 @@ package base_model
 import "github.com/syunkitada/goapp/pkg/lib/logger"
 
 type ReqQuery struct {
-	Kind string
+	Name string
 	Data string
 }
 
 type Request struct {
 	Tctx    *logger.TraceContext
 	Token   string
+	Service string
 	Queries []ReqQuery
 }
 

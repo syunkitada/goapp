@@ -14,7 +14,16 @@ import (
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
 
-func (app *BaseApp) Start(r *http.Request) (*logger.TraceContext, *base_model.Request, *base_model.Reply, time.Time, error) {
+var serviceMap = map[string]base_model.ServiceRouter{
+	"Auth": base_model.ServiceRouter{
+		Endpoints: []string{"self"},
+		QueryMap: map[string]base_model.QueryModel{
+			"IssueToken": base_model.QueryModel{},
+		},
+	},
+}
+
+func (app *BaseApp) Start(r *http.Request) (*logger.TraceContext, *base_model.ServiceRouter, *base_model.Request, *base_model.Reply, time.Time, error) {
 	var err error
 	tctx := logger.NewTraceContext(app.host, app.name)
 	startTime := logger.StartTrace(tctx)
@@ -27,10 +36,32 @@ func (app *BaseApp) Start(r *http.Request) (*logger.TraceContext, *base_model.Re
 	if err = json.Unmarshal(bufbody.Bytes(), &req); err != nil {
 		rep.Code = base_const.CodeServerInternalError
 		rep.Error = err.Error()
-		return tctx, nil, &rep, startTime, err
+		return tctx, nil, nil, &rep, startTime, err
 	}
 
-	return tctx, &req, &rep, startTime, err
+	service, ok := serviceMap[req.Service]
+	if !ok {
+		rep.Code = base_const.CodeClientBadRequest
+		err = fmt.Errorf("InvalidService")
+		rep.Error = err.Error()
+		return tctx, nil, nil, &rep, startTime, err
+	}
+
+	for _, query := range req.Queries {
+		queryModel, ok := service.QueryMap[query.Name]
+		if !ok {
+			rep.Code = base_const.CodeClientBadRequest
+			err = fmt.Errorf("InvalidQuery")
+			rep.Error = err.Error()
+			return tctx, nil, nil, &rep, startTime, err
+		}
+
+		if queryModel.RequiredAuth {
+			fmt.Println("Valid Auth")
+		}
+	}
+
+	return tctx, &service, &req, &rep, startTime, err
 }
 
 func (app *BaseApp) End(tctx *logger.TraceContext, startTime time.Time, err error) {

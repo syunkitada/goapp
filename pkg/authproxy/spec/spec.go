@@ -9,7 +9,7 @@ var Spec = base_model.Spec{
 	Name: "authproxy",
 	Apis: []base_model.Api{
 		base_model.Api{
-			Name:         "auth",
+			Name:         "Auth",
 			RequiredAuth: false,
 			QueryModels: []base_model.QueryModel{
 				base_model.QueryModel{
@@ -18,7 +18,7 @@ var Spec = base_model.Spec{
 			},
 		},
 		base_model.Api{
-			Name:            "service",
+			Name:            "Service",
 			RequiredService: true,
 			QueryModels: []base_model.QueryModel{
 				base_model.QueryModel{
@@ -28,7 +28,7 @@ var Spec = base_model.Spec{
 			},
 		},
 		base_model.Api{
-			Name: "home",
+			Name: "Home",
 			QueryModels: []base_model.QueryModel{
 				base_model.QueryModel{
 					Model:        GetAllUsers{},
@@ -41,7 +41,7 @@ var Spec = base_model.Spec{
 			},
 		},
 		base_model.Api{
-			Name:            "home.project",
+			Name:            "Home.Project",
 			RequiredProject: true,
 			QueryModels: []base_model.QueryModel{
 				base_model.QueryModel{
