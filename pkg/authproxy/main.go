@@ -8,6 +8,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/syunkitada/goapp/pkg/authproxy/config"
+	"github.com/syunkitada/goapp/pkg/authproxy/resolver"
 	"github.com/syunkitada/goapp/pkg/authproxy/server"
 	"github.com/syunkitada/goapp/pkg/base/base_config"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
@@ -21,7 +22,7 @@ var rootCmd = &cobra.Command{
 	Short: "goapp-authproxy",
 	Long:  "goapp-authproxy",
 	Run: func(cmd *cobra.Command, args []string) {
-		srv := server.New(&baseConf, &appConf)
+		srv := server.New(&baseConf, &appConf, resolver.New())
 		srv.Serve()
 	},
 }

@@ -1,6 +1,10 @@
 package spec
 
 type IssueToken struct {
-	Name     string `validate:"required;"`
+	User     string `validate:"required;"`
 	Password string `validate:"required;"`
+}
+
+type IssueTokenData struct {
+	Token string
 }

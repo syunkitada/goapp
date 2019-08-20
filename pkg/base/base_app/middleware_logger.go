@@ -27,7 +27,7 @@ func (app *BaseApp) Start(r *http.Request) (*logger.TraceContext, *base_model.Se
 	var err error
 	tctx := logger.NewTraceContext(app.host, app.name)
 	startTime := logger.StartTrace(tctx)
-	rep := base_model.Reply{TraceId: tctx.GetTraceId()}
+	rep := base_model.Reply{TraceId: tctx.GetTraceId(), Data: map[string]interface{}{}}
 
 	var req base_model.Request
 	bufbody := new(bytes.Buffer)

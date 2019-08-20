@@ -18,5 +18,5 @@ type Reply struct {
 	TraceId string
 	Code    uint8
 	Error   string
-	Data    interface{}
+	Data    map[string]interface{}
 }
