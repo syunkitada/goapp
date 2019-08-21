@@ -4,33 +4,31 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/syunkitada/goapp/pkg/authproxy/autogen"
 	"github.com/syunkitada/goapp/pkg/authproxy/config"
-	"github.com/syunkitada/goapp/pkg/authproxy/spec"
+	"github.com/syunkitada/goapp/pkg/authproxy/resolver"
 	"github.com/syunkitada/goapp/pkg/base/base_app"
 	"github.com/syunkitada/goapp/pkg/base/base_config"
-	"github.com/syunkitada/goapp/pkg/base/base_model"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
 
-type IResolver interface {
-	IssueToken(input *spec.IssueToken) (*spec.IssueTokenData, error)
-}
-
 type Server struct {
 	base_app.BaseApp
-	baseConf *base_config.Config
-	mainConf *config.Config
-	resolver IResolver
+	baseConf     *base_config.Config
+	mainConf     *config.Config
+	queryHandler *autogen.QueryHandler
 }
 
-func New(baseConf *base_config.Config, mainConf *config.Config, resolver IResolver) *Server {
+func New(baseConf *base_config.Config, mainConf *config.Config) *Server {
 	baseApp := base_app.New(baseConf, &mainConf.Authproxy.App)
+	resolver := resolver.New()
+	queryHandler := autogen.NewQueryHandler(resolver)
 
 	srv := &Server{
-		BaseApp:  baseApp,
-		baseConf: baseConf,
-		mainConf: mainConf,
-		resolver: resolver,
+		BaseApp:      baseApp,
+		baseConf:     baseConf,
+		mainConf:     mainConf,
+		queryHandler: queryHandler,
 	}
 	handler := srv.NewHandler()
 	srv.SetHandler(handler)
@@ -57,7 +55,7 @@ func (srv *Server) NewHandler() http.Handler {
 
 		for _, endpoint := range service.Endpoints {
 			if endpoint == "self" {
-				err = srv.Exec(req, rep)
+				err = srv.queryHandler.Exec(req, rep)
 				break
 			}
 
@@ -76,22 +74,4 @@ func (srv *Server) NewHandler() http.Handler {
 	})
 
 	return handler
-}
-
-func (srv *Server) Exec(req *base_model.Request, rep *base_model.Reply) error {
-	var err error
-	for _, query := range req.Queries {
-		switch query.Name {
-		case "IssueToken":
-			var input spec.IssueToken
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
-			}
-			data, err := srv.resolver.IssueToken(&input)
-			rep.Data["IssueToken"] = data
-			return err
-		}
-	}
-	return nil
 }
