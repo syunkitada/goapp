@@ -21,8 +21,8 @@ type Server struct {
 
 func New(baseConf *base_config.Config, mainConf *config.Config) *Server {
 	baseApp := base_app.New(baseConf, &mainConf.Authproxy.App)
-	resolver := resolver.New()
-	queryHandler := autogen.NewQueryHandler(resolver)
+	resolver := resolver.New(baseConf, mainConf)
+	queryHandler := autogen.NewQueryHandler(baseConf, mainConf, resolver)
 
 	srv := &Server{
 		BaseApp:      baseApp,
@@ -55,7 +55,7 @@ func (srv *Server) NewHandler() http.Handler {
 
 		for _, endpoint := range service.Endpoints {
 			if endpoint == "self" {
-				err = srv.queryHandler.Exec(req, rep)
+				err = srv.queryHandler.Exec(tctx, req, rep)
 				break
 			}
 

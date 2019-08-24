@@ -39,6 +39,11 @@ type AppConfig struct {
 	ServerHostOverride       string
 	Targets                  []string
 	Labels                   []string
+	Database                 DatabaseConfig
+}
+
+type DatabaseConfig struct {
+	Connection string
 }
 
 func InitFlags(rootCmd *cobra.Command, conf *Config) {

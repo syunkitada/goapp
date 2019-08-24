@@ -27,16 +27,10 @@ type QueryModel struct {
 }
 
 type Query struct {
-	AuthRequired bool
+	RequiredAuth bool
 	PkgPath      string
 	PkgName      string
 	Name         string
-	Method       string
-	Path         string
-	RootCmd      string
-	Cmd          string
-	CmdFlags     []Flag
-	Help         string
 }
 
 type Flag struct {

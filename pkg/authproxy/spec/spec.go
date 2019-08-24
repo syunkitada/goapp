@@ -6,7 +6,7 @@ type Meta struct{}
 
 var Spec = base_model.Spec{
 	Meta: Meta{},
-	Name: "authproxy",
+	Name: "Authproxy",
 	Apis: []base_model.Api{
 		base_model.Api{
 			Name:         "Auth",
