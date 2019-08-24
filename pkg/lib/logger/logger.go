@@ -370,12 +370,14 @@ func Fatal(tctx *TraceContext, args ...interface{}) {
 	tctx.Func = getFunc(0)
 	Logger.Print(timePrefix() + " Level=\"" + fatalLog +
 		"\" Msg=\"" + fmt.Sprint(args...) + "\"" + convertTags(tctx))
+	os.Exit(1)
 }
 
 func Fatalf(tctx *TraceContext, format string, args ...interface{}) {
 	tctx.Func = getFunc(0)
 	Logger.Print(timePrefix() + " Level=\"" + fatalLog +
 		"\" Msg=\"" + fmt.Sprintf(format, args...) + "\"" + convertTags(tctx))
+	os.Exit(1)
 }
 
 func Info(tctx *TraceContext, args ...interface{}) {

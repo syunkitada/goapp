@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/syunkitada/goapp/pkg/authproxy/autogen"
 	"github.com/syunkitada/goapp/pkg/authproxy/config"
 	"github.com/syunkitada/goapp/pkg/authproxy/resolver"
+	"github.com/syunkitada/goapp/pkg/authproxy/spec/genpkg"
 	"github.com/syunkitada/goapp/pkg/base/base_app"
 	"github.com/syunkitada/goapp/pkg/base/base_config"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
@@ -16,13 +16,13 @@ type Server struct {
 	base_app.BaseApp
 	baseConf     *base_config.Config
 	mainConf     *config.Config
-	queryHandler *autogen.QueryHandler
+	queryHandler *genpkg.QueryHandler
 }
 
 func New(baseConf *base_config.Config, mainConf *config.Config) *Server {
 	baseApp := base_app.New(baseConf, &mainConf.Authproxy.App)
 	resolver := resolver.New(baseConf, mainConf)
-	queryHandler := autogen.NewQueryHandler(baseConf, mainConf, resolver)
+	queryHandler := genpkg.NewQueryHandler(baseConf, mainConf, resolver)
 
 	srv := &Server{
 		BaseApp:      baseApp,

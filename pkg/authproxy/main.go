@@ -7,8 +7,9 @@ import (
 	"github.com/golang/glog"
 	"github.com/spf13/cobra"
 
+	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_api"
 	"github.com/syunkitada/goapp/pkg/authproxy/config"
-	"github.com/syunkitada/goapp/pkg/authproxy/server"
+	"github.com/syunkitada/goapp/pkg/authproxy/ctl"
 	"github.com/syunkitada/goapp/pkg/base/base_config"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
@@ -16,15 +17,7 @@ import (
 var baseConf base_config.Config
 var appConf config.Config
 
-var rootCmd = &cobra.Command{
-	Use:   "goapp-authproxy",
-	Short: "goapp-authproxy",
-	Long:  "goapp-authproxy",
-	Run: func(cmd *cobra.Command, args []string) {
-		srv := server.New(&baseConf, &appConf)
-		srv.Serve()
-	},
-}
+var rootCmd = &cobra.Command{}
 
 func Main() {
 	if err := rootCmd.Execute(); err != nil {
@@ -35,6 +28,9 @@ func Main() {
 func init() {
 	cobra.OnInitialize(initMain)
 	base_config.InitFlags(rootCmd, &baseConf)
+
+	rootCmd.AddCommand(authproxy_api.RootCmd)
+	rootCmd.AddCommand(ctl.RootCmd)
 }
 
 func initMain() {
