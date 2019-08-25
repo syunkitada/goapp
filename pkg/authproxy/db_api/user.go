@@ -11,6 +11,26 @@ import (
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
 
+func (api *Api) GetUserWithValidatePassword(tctx *logger.TraceContext, db *gorm.DB, name string, password string) (user *db_model.User, err error) {
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	var tmpUser db_model.User
+	if err = db.Where("name = ?", name).First(&tmpUser).Error; err != nil {
+		return
+	}
+
+	hashedPassword, err := api.generateHashFromPassword(password)
+	if err != nil {
+		return
+	}
+	if tmpUser.Password != hashedPassword {
+		err = error_utils.NewInvalidAuthError(name)
+	}
+	user = &tmpUser
+	return
+}
+
 func (api *Api) CreateUser(tctx *logger.TraceContext, db *gorm.DB, name string, password string) (err error) {
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
