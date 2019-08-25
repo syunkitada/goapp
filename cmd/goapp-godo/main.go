@@ -12,8 +12,8 @@ func tasks(p *do.Project) {
 		c.Bash("make compile-pb")
 	}).Src("pkg/model/**/*.go")
 
-	p.Task("goapp-authproxy", nil, func(c *do.Context) {
-		c.Start("main.go", do.M{"$in": "cmd/goapp-authproxy"})
+	p.Task("goapp-authproxy-api", nil, func(c *do.Context) {
+		c.Start("main.go api", do.M{"$in": "cmd/goapp-authproxy"})
 	}).Src("pkg/**/*.go")
 
 	p.Task("goapp-dashboard", nil, func(c *do.Context) {

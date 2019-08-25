@@ -34,6 +34,7 @@ func (ctl *CtlMain) Index(args []string) error {
 		serviceName = ""
 	}
 
+	// TODO Login
 	var resp *authproxy_client.ResponseLogin
 	// This should get userauthority
 	if resp, err = ctl.client.Login(tctx, serviceName); err != nil {

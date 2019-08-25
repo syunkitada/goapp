@@ -18,6 +18,7 @@ const (
 	CodeClientBadRequest     uint8 = 100
 	CodeClientInvalidRequest uint8 = 101
 	CodeClientNotFound       uint8 = 102
+	CodeClientInvalidAuth    uint8 = 103
 
 	// 11x Client Request Data Errors
 	CodeClientConflict      uint8 = 110

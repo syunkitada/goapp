@@ -7,11 +7,13 @@ import (
 )
 
 type Resolver struct {
-	dbApi *db_api.Api
+	dbApi   *db_api.Api
+	appConf base_config.AppConfig
 }
 
 func New(baseConf *base_config.Config, mainConf *config.Config) *Resolver {
 	return &Resolver{
-		dbApi: db_api.New(baseConf, mainConf),
+		appConf: mainConf.Authproxy.App,
+		dbApi:   db_api.New(baseConf, mainConf),
 	}
 }

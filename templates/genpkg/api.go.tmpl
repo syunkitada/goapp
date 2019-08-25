@@ -9,6 +9,7 @@ import (
 	"github.com/syunkitada/goapp/pkg/authproxy/config"
 	"github.com/syunkitada/goapp/pkg/authproxy/db_api"
 	"github.com/syunkitada/goapp/pkg/base/base_config"
+	"github.com/syunkitada/goapp/pkg/base/base_const"
 	"github.com/syunkitada/goapp/pkg/base/base_model"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
     {{- range $api := $spec.Apis }}
@@ -21,7 +22,7 @@ import (
 type QueryResolver interface {
     {{- range $api := $spec.Apis }}
     {{- range $query := $api.Queries }}
-    {{ $query.Name }}(tctx *logger.TraceContext, db *gorm.DB, input *{{ $query.PkgName }}.{{ $query.Name }}) (*{{ $query.PkgName }}.{{ $query.Name }}Data, error)
+    {{ $query.Name }}(tctx *logger.TraceContext, db *gorm.DB, input *{{ $query.PkgName }}.{{ $query.Name }}) (*{{ $query.PkgName }}.{{ $query.Name }}Data, uint8, error)
     {{- end }}
     {{- end }}
 }
@@ -57,7 +58,14 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, req *base_model.Req
 			}
 			defer handler.dbApi.Close(tctx, db)
 
-            data, err := handler.resolver.{{ $query.Name }}(tctx, db, &input)
+            data, code, err := handler.resolver.{{ $query.Name }}(tctx, db, &input)
+            if err != nil {
+                if code == 0 {
+                    code = base_const.CodeServerInternalError
+                }
+                rep.Error = err.Error()
+            }
+            rep.Code = code
 			rep.Data["{{ $query.Name }}"] = data
 			return err
         {{- end }}

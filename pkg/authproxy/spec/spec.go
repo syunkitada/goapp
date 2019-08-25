@@ -9,26 +9,22 @@ var Spec = base_model.Spec{
 	Name: "Authproxy",
 	Apis: []base_model.Api{
 		base_model.Api{
-			Name:         "Auth",
-			RequiredAuth: false,
+			Name:            "Auth",
+			RequiredAuth:    false,
+			RequiredProject: false,
 			QueryModels: []base_model.QueryModel{
 				base_model.QueryModel{
 					Model: IssueToken{},
 				},
-			},
-		},
-		base_model.Api{
-			Name:            "Service",
-			RequiredService: true,
-			QueryModels: []base_model.QueryModel{
 				base_model.QueryModel{
-					Model:        UpdateService{},
-					ProjectRoles: []string{"admin", "service"},
+					Model: UpdateService{},
 				},
 			},
 		},
 		base_model.Api{
-			Name: "Home",
+			Name:            "Home",
+			RequiredAuth:    true,
+			RequiredProject: false,
 			QueryModels: []base_model.QueryModel{
 				base_model.QueryModel{
 					Model:        GetAllUsers{},
@@ -42,6 +38,7 @@ var Spec = base_model.Spec{
 		},
 		base_model.Api{
 			Name:            "Home.Project",
+			RequiredAuth:    true,
 			RequiredProject: true,
 			QueryModels: []base_model.QueryModel{
 				base_model.QueryModel{

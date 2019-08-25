@@ -9,16 +9,17 @@ import (
 	"github.com/syunkitada/goapp/pkg/authproxy/db_api"
 	"github.com/syunkitada/goapp/pkg/authproxy/spec"
 	"github.com/syunkitada/goapp/pkg/base/base_config"
+	"github.com/syunkitada/goapp/pkg/base/base_const"
 	"github.com/syunkitada/goapp/pkg/base/base_model"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
 
 type QueryResolver interface {
-	IssueToken(tctx *logger.TraceContext, db *gorm.DB, input *spec.IssueToken) (*spec.IssueTokenData, error)
-	UpdateService(tctx *logger.TraceContext, db *gorm.DB, input *spec.UpdateService) (*spec.UpdateServiceData, error)
-	GetAllUsers(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetAllUsers) (*spec.GetAllUsersData, error)
-	GetUser(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetUser) (*spec.GetUserData, error)
-	GetUsers(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetUsers) (*spec.GetUsersData, error)
+	IssueToken(tctx *logger.TraceContext, db *gorm.DB, input *spec.IssueToken) (*spec.IssueTokenData, uint8, error)
+	UpdateService(tctx *logger.TraceContext, db *gorm.DB, input *spec.UpdateService) (*spec.UpdateServiceData, uint8, error)
+	GetAllUsers(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetAllUsers) (*spec.GetAllUsersData, uint8, error)
+	GetUser(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetUser) (*spec.GetUserData, uint8, error)
+	GetUsers(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetUsers) (*spec.GetUsersData, uint8, error)
 }
 
 type QueryHandler struct {
@@ -50,7 +51,14 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, req *base_model.Req
 			}
 			defer handler.dbApi.Close(tctx, db)
 
-			data, err := handler.resolver.IssueToken(tctx, db, &input)
+			data, code, err := handler.resolver.IssueToken(tctx, db, &input)
+			if err != nil {
+				if code == 0 {
+					code = base_const.CodeServerInternalError
+				}
+				rep.Error = err.Error()
+			}
+			rep.Code = code
 			rep.Data["IssueToken"] = data
 			return err
 		case "UpdateService":
@@ -66,7 +74,14 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, req *base_model.Req
 			}
 			defer handler.dbApi.Close(tctx, db)
 
-			data, err := handler.resolver.UpdateService(tctx, db, &input)
+			data, code, err := handler.resolver.UpdateService(tctx, db, &input)
+			if err != nil {
+				if code == 0 {
+					code = base_const.CodeServerInternalError
+				}
+				rep.Error = err.Error()
+			}
+			rep.Code = code
 			rep.Data["UpdateService"] = data
 			return err
 		case "GetAllUsers":
@@ -82,7 +97,14 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, req *base_model.Req
 			}
 			defer handler.dbApi.Close(tctx, db)
 
-			data, err := handler.resolver.GetAllUsers(tctx, db, &input)
+			data, code, err := handler.resolver.GetAllUsers(tctx, db, &input)
+			if err != nil {
+				if code == 0 {
+					code = base_const.CodeServerInternalError
+				}
+				rep.Error = err.Error()
+			}
+			rep.Code = code
 			rep.Data["GetAllUsers"] = data
 			return err
 		case "GetUser":
@@ -98,7 +120,14 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, req *base_model.Req
 			}
 			defer handler.dbApi.Close(tctx, db)
 
-			data, err := handler.resolver.GetUser(tctx, db, &input)
+			data, code, err := handler.resolver.GetUser(tctx, db, &input)
+			if err != nil {
+				if code == 0 {
+					code = base_const.CodeServerInternalError
+				}
+				rep.Error = err.Error()
+			}
+			rep.Code = code
 			rep.Data["GetUser"] = data
 			return err
 		case "GetUsers":
@@ -114,7 +143,14 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, req *base_model.Req
 			}
 			defer handler.dbApi.Close(tctx, db)
 
-			data, err := handler.resolver.GetUsers(tctx, db, &input)
+			data, code, err := handler.resolver.GetUsers(tctx, db, &input)
+			if err != nil {
+				if code == 0 {
+					code = base_const.CodeServerInternalError
+				}
+				rep.Error = err.Error()
+			}
+			rep.Code = code
 			rep.Data["GetUsers"] = data
 			return err
 		}
