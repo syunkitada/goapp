@@ -14,9 +14,6 @@ import (
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
 
-var baseConf base_config.Config
-var appConf config.Config
-
 var rootCmd = &cobra.Command{}
 
 func Main() {
@@ -26,8 +23,8 @@ func Main() {
 }
 
 func init() {
+	base_config.InitFlags(rootCmd, &config.BaseConf)
 	cobra.OnInitialize(initMain)
-	base_config.InitFlags(rootCmd, &baseConf)
 
 	rootCmd.AddCommand(authproxy_api.RootCmd)
 	rootCmd.AddCommand(ctl.RootCmd)
@@ -35,8 +32,8 @@ func init() {
 
 func initMain() {
 	os.Setenv("LANG", "en_US.UTF-8")
-	baseConf.BaseDir = filepath.Join(os.Getenv("HOME"), ".goapp")
-	baseConf.LogTimeFormat = "2006-01-02T15:04:05Z09:00"
-	base_config.InitConfig(&baseConf, &appConf)
-	logger.InitLogger(&baseConf)
+	config.BaseConf.BaseDir = filepath.Join(os.Getenv("HOME"), ".goapp")
+	config.BaseConf.LogTimeFormat = "2006-01-02T15:04:05Z09:00"
+	base_config.InitConfig(&config.BaseConf, &config.MainConf)
+	logger.InitLogger(&config.BaseConf)
 }

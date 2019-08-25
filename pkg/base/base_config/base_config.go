@@ -6,8 +6,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/ghodss/yaml"
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v2"
 )
 
 type Config struct {
@@ -40,10 +40,40 @@ type AppConfig struct {
 	Targets                  []string
 	Labels                   []string
 	Database                 DatabaseConfig
+	Auth                     AuthConfig
 }
 
 type DatabaseConfig struct {
 	Connection string
+}
+
+type AuthConfig struct {
+	Secrets             []string
+	DefaultUsers        []AuthUser
+	DefaultRoles        []AuthRole
+	DefaultProjects     []AuthProject
+	DefaultProjectRoles []AuthProjectRole
+}
+
+type AuthUser struct {
+	Name     string
+	Password string
+	Roles    []string
+}
+
+type AuthRole struct {
+	Name    string
+	Project string
+}
+
+type AuthProject struct {
+	Name        string
+	ProjectRole string
+}
+
+type AuthProjectRole struct {
+	Name     string
+	Services []string
 }
 
 func InitFlags(rootCmd *cobra.Command, conf *Config) {

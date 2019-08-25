@@ -4,6 +4,8 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+
+	"github.com/syunkitada/goapp/pkg/authproxy/config"
 	"github.com/syunkitada/goapp/pkg/authproxy/db_api"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
@@ -13,7 +15,7 @@ var bootstrapCmd = &cobra.Command{
 	Short: "bootstrap",
 	Run: func(cmd *cobra.Command, args []string) {
 		tctx := logger.NewTraceContext(baseConf.Host, "bootstrap")
-		dbApi := db_api.New(&baseConf, &mainConf)
+		dbApi := db_api.New(&config.BaseConf, &config.MainConf)
 		if err := dbApi.Bootstrap(tctx, false); err != nil {
 			logger.Fatalf(tctx, "Failed Bootstrap: %v", err)
 		}

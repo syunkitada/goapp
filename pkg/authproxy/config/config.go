@@ -1,6 +1,8 @@
 package config
 
-import "github.com/syunkitada/goapp/pkg/base/base_config"
+import (
+	"github.com/syunkitada/goapp/pkg/base/base_config"
+)
 
 type Config struct {
 	Authproxy AuthproxyConfig
@@ -9,3 +11,8 @@ type Config struct {
 type AuthproxyConfig struct {
 	App base_config.AppConfig
 }
+
+var (
+	BaseConf base_config.Config
+	MainConf Config
+)
