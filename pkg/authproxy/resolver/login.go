@@ -11,7 +11,7 @@ import (
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
 
-func (resolver *Resolver) IssueToken(tctx *logger.TraceContext, db *gorm.DB, input *spec.IssueToken) (data *spec.IssueTokenData, code uint8, err error) {
+func (resolver *Resolver) Login(tctx *logger.TraceContext, db *gorm.DB, input *spec.Login) (data *spec.LoginData, code uint8, err error) {
 	user, code, err := resolver.dbApi.GetUserWithValidatePassword(tctx, db, input.User, input.Password)
 	if err != nil {
 		return
@@ -22,7 +22,16 @@ func (resolver *Resolver) IssueToken(tctx *logger.TraceContext, db *gorm.DB, inp
 		return
 	}
 
-	data = &spec.IssueTokenData{Token: token}
+	userAuthority, err := resolver.dbApi.GetUserAuthority(tctx, db, input.User)
+	if err != nil {
+		return
+	}
+
+	data = &spec.LoginData{
+		Name:      input.User,
+		Token:     token,
+		Authority: *userAuthority,
+	}
 	return
 }
 

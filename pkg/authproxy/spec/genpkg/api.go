@@ -15,8 +15,8 @@ import (
 )
 
 type QueryResolver interface {
-	IssueToken(tctx *logger.TraceContext, db *gorm.DB, input *spec.IssueToken) (*spec.IssueTokenData, uint8, error)
 	UpdateService(tctx *logger.TraceContext, db *gorm.DB, input *spec.UpdateService) (*spec.UpdateServiceData, uint8, error)
+	Login(tctx *logger.TraceContext, db *gorm.DB, input *spec.Login) (*spec.LoginData, uint8, error)
 	GetAllUsers(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetAllUsers) (*spec.GetAllUsersData, uint8, error)
 	GetUser(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetUser) (*spec.GetUserData, uint8, error)
 	GetUsers(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetUsers) (*spec.GetUsersData, uint8, error)
@@ -38,29 +38,6 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, req *base_model.Req
 	var err error
 	for _, query := range req.Queries {
 		switch query.Name {
-		case "IssueToken":
-			var input spec.IssueToken
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
-			}
-
-			var db *gorm.DB
-			if db, err = handler.dbApi.Open(tctx); err != nil {
-				return err
-			}
-			defer handler.dbApi.Close(tctx, db)
-
-			data, code, err := handler.resolver.IssueToken(tctx, db, &input)
-			if err != nil {
-				if code == 0 {
-					code = base_const.CodeServerInternalError
-				}
-				rep.Error = err.Error()
-			}
-			rep.Code = code
-			rep.Data["IssueToken"] = data
-			return err
 		case "UpdateService":
 			var input spec.UpdateService
 			err = json.Unmarshal([]byte(query.Data), &input)
@@ -83,6 +60,29 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, req *base_model.Req
 			}
 			rep.Code = code
 			rep.Data["UpdateService"] = data
+			return err
+		case "Login":
+			var input spec.Login
+			err = json.Unmarshal([]byte(query.Data), &input)
+			if err != nil {
+				return err
+			}
+
+			var db *gorm.DB
+			if db, err = handler.dbApi.Open(tctx); err != nil {
+				return err
+			}
+			defer handler.dbApi.Close(tctx, db)
+
+			data, code, err := handler.resolver.Login(tctx, db, &input)
+			if err != nil {
+				if code == 0 {
+					code = base_const.CodeServerInternalError
+				}
+				rep.Error = err.Error()
+			}
+			rep.Code = code
+			rep.Data["Login"] = data
 			return err
 		case "GetAllUsers":
 			var input spec.GetAllUsers

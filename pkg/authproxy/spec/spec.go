@@ -14,10 +14,10 @@ var Spec = base_model.Spec{
 			RequiredProject: false,
 			QueryModels: []base_model.QueryModel{
 				base_model.QueryModel{
-					Model: IssueToken{},
+					Model: UpdateService{},
 				},
 				base_model.QueryModel{
-					Model: UpdateService{},
+					Model: Login{},
 				},
 			},
 		},
