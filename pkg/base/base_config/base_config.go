@@ -3,6 +3,7 @@ package base_config
 import (
 	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
 	"path/filepath"
 
@@ -41,6 +42,12 @@ type AppConfig struct {
 	Labels                   []string
 	Database                 DatabaseConfig
 	Auth                     AuthConfig
+}
+
+type ClientConfig struct {
+	Targets               []string
+	TlsInsecureSkipVerify bool
+	LocalHandler          http.Handler
 }
 
 type DatabaseConfig struct {
