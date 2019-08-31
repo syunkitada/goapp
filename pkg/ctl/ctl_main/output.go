@@ -9,7 +9,7 @@ import (
 	"github.com/syunkitada/goapp/pkg/authproxy/index_model"
 )
 
-func (ctl *CtlMain) outputCmdHelp(cmd string, cmdInfo index_model.Cmd) {
+func (ctl *Ctl) outputCmdHelp(cmd string, cmdInfo index_model.Cmd) {
 	cmdHelp := cmd
 	if cmdInfo.Arg != "" {
 		cmdHelp += fmt.Sprintf(" [%s:%s]", cmdInfo.ArgType, cmdInfo.Arg)
@@ -28,7 +28,7 @@ func (ctl *CtlMain) outputCmdHelp(cmd string, cmdInfo index_model.Cmd) {
 	// fmt.Printf("Invalid args: %s %s %v :%s\n", cmd, cmdInfo.Arg, cmdInfo.FlagMap, cmdInfo.Help)
 }
 
-func (ctl *CtlMain) output(cmdInfo *index_model.Cmd, resp *authproxy_model.ActionResponse, flagMap map[string]interface{}) {
+func (ctl *Ctl) output(cmdInfo *index_model.Cmd, resp *authproxy_model.ActionResponse, flagMap map[string]interface{}) {
 	fmt.Printf("ResponseStatus: %d %s\n", resp.Tctx.StatusCode, resp.Tctx.Err)
 	for key, data := range resp.Data {
 		fmt.Printf("# %s\n", key)

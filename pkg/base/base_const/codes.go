@@ -5,7 +5,7 @@ const (
 	CodeUnknown uint8 = 10
 
 	// 2x Success
-	CodeOkRead           uint8 = 20
+	CodeOk               uint8 = 20
 	CodeOkCreated        uint8 = 21
 	CodeOkUpdated        uint8 = 22
 	CodeOkDeleted        uint8 = 23

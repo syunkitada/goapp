@@ -23,37 +23,37 @@ var serviceMap = map[string]base_model.ServiceRouter{
 	},
 }
 
-func (app *BaseApp) Start(r *http.Request) (*logger.TraceContext, *base_model.ServiceRouter, *base_model.Request, *base_model.Reply, time.Time, error) {
+func (app *BaseApp) Start(r *http.Request) (*logger.TraceContext, *base_model.ServiceRouter, *base_model.Request, *base_model.Response, time.Time, error) {
 	var err error
 	tctx := logger.NewTraceContext(app.host, app.name)
 	startTime := logger.StartTrace(tctx)
-	rep := base_model.Reply{TraceId: tctx.GetTraceId(), Data: map[string]interface{}{}}
+	res := base_model.Response{TraceId: tctx.GetTraceId(), Data: map[string]interface{}{}}
 
 	var req base_model.Request
 	bufbody := new(bytes.Buffer)
 	bufbody.ReadFrom(r.Body)
 
 	if err = json.Unmarshal(bufbody.Bytes(), &req); err != nil {
-		rep.Code = base_const.CodeServerInternalError
-		rep.Error = err.Error()
-		return tctx, nil, nil, &rep, startTime, err
+		res.Code = base_const.CodeServerInternalError
+		res.Error = err.Error()
+		return tctx, nil, nil, &res, startTime, err
 	}
 
 	service, ok := serviceMap[req.Service]
 	if !ok {
-		rep.Code = base_const.CodeClientBadRequest
+		res.Code = base_const.CodeClientBadRequest
 		err = fmt.Errorf("InvalidService")
-		rep.Error = err.Error()
-		return tctx, nil, nil, &rep, startTime, err
+		res.Error = err.Error()
+		return tctx, nil, nil, &res, startTime, err
 	}
 
 	for _, query := range req.Queries {
 		queryModel, ok := service.QueryMap[query.Name]
 		if !ok {
-			rep.Code = base_const.CodeClientBadRequest
+			res.Code = base_const.CodeClientBadRequest
 			err = fmt.Errorf("InvalidQuery")
-			rep.Error = err.Error()
-			return tctx, nil, nil, &rep, startTime, err
+			res.Error = err.Error()
+			return tctx, nil, nil, &res, startTime, err
 		}
 
 		if queryModel.RequiredAuth {
@@ -61,7 +61,7 @@ func (app *BaseApp) Start(r *http.Request) (*logger.TraceContext, *base_model.Se
 		}
 	}
 
-	return tctx, &service, &req, &rep, startTime, err
+	return tctx, &service, &req, &res, startTime, err
 }
 
 func (app *BaseApp) End(tctx *logger.TraceContext, startTime time.Time, err error) {

@@ -14,7 +14,7 @@ type Request struct {
 	Queries []ReqQuery
 }
 
-type Reply struct {
+type Response struct {
 	TraceId string
 	Code    uint8
 	Error   string

@@ -74,5 +74,11 @@ func (api *Api) Bootstrap(tctx *logger.TraceContext, isRecreate bool) (err error
 		fmt.Printf("Created User: %s\n", user.Name)
 	}
 
+	for _, service := range api.appConf.Auth.DefaultServices {
+		if err = api.CreateOrUpdateService(tctx, db, &service); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }

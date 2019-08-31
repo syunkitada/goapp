@@ -7,7 +7,7 @@ authproxy:
     keyFile: 'tls-assets/server.key'
     gracefulTimeout: 10
     database:
-      connection: 'goapp:goapppass@tcp(127.0.0.1:3306)/goapp_monitor?charset=utf8&parseTime=true'
+      connection: 'goapp:goapppass@tcp(127.0.0.1:3306)/goapp_authproxy?charset=utf8&parseTime=true'
     auth:
       secrets: ['changeme1', 'changeme2']
       defaultUsers:
@@ -23,6 +23,22 @@ authproxy:
         - {name: 'service', projectRole: 'service'}
         - {name: 'guestpj', projectRole: 'tenant'}
       defaultProjectRoles:
-        - {name: 'admin', services: ['Auth', 'Service', 'Home', 'Home.Project']}
-        - {name: 'service', services: ['Auth', 'Service']}
-        - {name: 'tenant', services: ['Auth', 'Home', 'Home.Project']}
+        - {name: 'admin'}
+        - {name: 'service'}
+        - {name: 'tenant'}
+      defaultServices:
+        - name: 'Auth'
+          scope: 'user'
+          projectRoles: ['admin', 'service', 'tenant']
+        - name: 'Service'
+          scope: 'user'
+          projectRoles: ['admin', 'service']
+        - name: 'Home'
+          scope: 'user'
+          projectRoles: ['tenant']
+        - name: 'Home.Project'
+          scope: 'project'
+          projectRoles: ['tenant']
+
+ctl:
+  project: 'guestpj'

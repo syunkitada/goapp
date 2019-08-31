@@ -2,6 +2,7 @@ package db_api
 
 import (
 	"encoding/hex"
+	"fmt"
 
 	"github.com/jinzhu/gorm"
 	"golang.org/x/crypto/scrypt"
@@ -36,6 +37,7 @@ func (api *Api) GetUserWithValidatePassword(tctx *logger.TraceContext, db *gorm.
 		code = base_const.CodeClientInvalidAuth
 		err = error_utils.NewInvalidAuthError(name)
 	}
+	code = base_const.CodeOk
 	user = &tmpUser
 	return
 }
@@ -61,6 +63,8 @@ func (api *Api) GetUserAuthority(tctx *logger.TraceContext, db *gorm.DB, usernam
 	if err = db.Raw(query+"WHERE u.name = ?", username).Scan(&users).Error; err != nil {
 		return nil, err
 	}
+
+	fmt.Println("DEBUG user", users)
 
 	serviceMap := map[string]uint{}
 	projectServiceMap := map[string]spec.ProjectService{}

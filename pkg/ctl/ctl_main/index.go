@@ -7,14 +7,14 @@ import (
 	"strings"
 
 	"github.com/olekukonko/tablewriter"
-	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_client"
 	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_model"
 	"github.com/syunkitada/goapp/pkg/authproxy/index_model"
+	"github.com/syunkitada/goapp/pkg/authproxy/spec"
 	"github.com/syunkitada/goapp/pkg/lib/json_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
 
-func (ctl *CtlMain) Index(args []string) error {
+func (ctl *Ctl) index(args []string) error {
 	var err error
 	tctx := logger.NewCtlTraceContext(ctl.name)
 	startTime := logger.StartTrace(tctx)
@@ -34,17 +34,16 @@ func (ctl *CtlMain) Index(args []string) error {
 		serviceName = ""
 	}
 
-	// TODO Login
-	var resp *authproxy_client.ResponseLogin
-	// This should get userauthority
-	if resp, err = ctl.client.Login(tctx, serviceName); err != nil {
-		return err
-	}
+	var loginData *spec.LoginData
+	loginData, err = ctl.client.Login(tctx, &spec.Login{
+		User:     "guest",
+		Password: "guest",
+	})
 
 	if len(args) > 0 {
-		if _, ok = resp.Authority.ServiceMap[serviceName]; !ok {
-			var project authproxy_model.ProjectService
-			project, ok = resp.Authority.ProjectServiceMap[ctl.conf.Ctl.Project]
+		if _, ok = loginData.Authority.ServiceMap[serviceName]; !ok {
+			var project spec.ProjectService
+			project, ok = loginData.Authority.ProjectServiceMap[ctl.mainConf.Ctl.Project]
 			if ok {
 				_, ok = project.ServiceMap[serviceName]
 			}
@@ -55,8 +54,8 @@ func (ctl *CtlMain) Index(args []string) error {
 		fmt.Printf("Usage: %s [SERVICE] [COMMAND] [OPTION] [FLAGS...]\n\n", ctl.name)
 
 		fmt.Println("--- Available Services ---")
-		snames := make([]string, 0, len(resp.Authority.ServiceMap))
-		for s := range resp.Authority.ServiceMap {
+		snames := make([]string, 0, len(loginData.Authority.ServiceMap))
+		for s := range loginData.Authority.ServiceMap {
 			snames = append(snames, strings.ToLower(s))
 		}
 		sort.Sort(sort.StringSlice(snames))
@@ -64,9 +63,9 @@ func (ctl *CtlMain) Index(args []string) error {
 			fmt.Println(s)
 		}
 
-		if project, ok := resp.Authority.ProjectServiceMap[ctl.conf.Ctl.Project]; ok {
+		if project, ok := loginData.Authority.ProjectServiceMap[ctl.mainConf.Ctl.Project]; ok {
 			fmt.Println("\n--- Available Project Services ---")
-			snames := make([]string, 0, len(resp.Authority.ServiceMap))
+			snames := make([]string, 0, len(loginData.Authority.ServiceMap))
 			for s, _ := range project.ServiceMap {
 				snames = append(snames, strings.ToLower(s))
 			}
@@ -79,8 +78,8 @@ func (ctl *CtlMain) Index(args []string) error {
 	}
 
 	// Get ServiceIndex, and exec cmd
-	var indexResp *authproxy_client.ResponseGetIndex
-	if indexResp, err = ctl.client.GetIndex(tctx, resp.Token, serviceName); err != nil {
+	var getServiceIndexData *spec.GetServiceIndexData
+	if getServiceIndexData, err = ctl.client.GetServiceIndex(tctx, &spec.GetServiceIndex{Name: serviceName}); err != nil {
 		return err
 	}
 
@@ -131,7 +130,7 @@ func (ctl *CtlMain) Index(args []string) error {
 	var cmdInfo index_model.Cmd
 	lastArgs := []string{}
 	helpMsgs := [][]string{}
-	for query, cmd := range indexResp.Index.CmdMap {
+	for query, cmd := range getServiceIndexData.Index.CmdMap {
 		args := strings.Split(query, "_")
 		helpQuery := strings.Join(args, " ")
 		var helpMsg []string
@@ -227,7 +226,7 @@ func (ctl *CtlMain) Index(args []string) error {
 		}
 	}
 
-	if ctl.conf.Default.EnableDebug {
+	if ctl.baseConf.EnableDebug {
 		fmt.Println("DEBUG flagMap", flagMap)
 		fmt.Println("DEBUG shortFlagMap", shortFlagMap)
 		fmt.Println("DEBUG lastArg", lastArgs)
@@ -285,12 +284,14 @@ func (ctl *CtlMain) Index(args []string) error {
 			},
 		}
 
-		var tmpResp *authproxy_model.ActionResponse
-		if tmpResp, err = ctl.client.Action(tctx, resp.Token, serviceName, queries); err != nil {
-			return err
-		}
+		fmt.Println(queries)
 
-		ctl.output(&cmdInfo, tmpResp, flagMap)
+		// var tmpResp *authproxy_model.ActionResponse
+		// if tmpResp, err = ctl.client.Action(tctx, loginData.Token, serviceName, queries); err != nil {
+		// 	return err
+		// }
+
+		// ctl.output(&cmdInfo, tmpResp, flagMap)
 		return nil
 	} else if len(lastArgs) > 0 {
 		specsBytes, err := json_utils.Marshal(lastArgs)
@@ -307,11 +308,13 @@ func (ctl *CtlMain) Index(args []string) error {
 		},
 	}
 
-	var tmpResp *authproxy_model.ActionResponse
-	if tmpResp, err = ctl.client.Action(tctx, resp.Token, serviceName, queries); err != nil {
-		return err
-	}
-	ctl.output(&cmdInfo, tmpResp, flagMap)
+	fmt.Println(queries)
+
+	// var tmpResp *authproxy_model.ActionResponse
+	// if tmpResp, err = ctl.client.Action(tctx, loginData.Token, serviceName, queries); err != nil {
+	// 	return err
+	// }
+	// ctl.output(&cmdInfo, tmpResp, flagMap)
 
 	return nil
 }

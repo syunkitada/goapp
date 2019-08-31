@@ -4,6 +4,7 @@ import "github.com/jinzhu/gorm"
 
 type Service struct {
 	gorm.Model
-	Name  string
-	Scope string
+	Name      string
+	Scope     string
+	Endpoints string
 }

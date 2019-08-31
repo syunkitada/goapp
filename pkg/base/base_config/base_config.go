@@ -60,6 +60,7 @@ type AuthConfig struct {
 	DefaultRoles        []AuthRole
 	DefaultProjects     []AuthProject
 	DefaultProjectRoles []AuthProjectRole
+	DefaultServices     []AuthService
 }
 
 type AuthUser struct {
@@ -79,8 +80,13 @@ type AuthProject struct {
 }
 
 type AuthProjectRole struct {
-	Name     string
-	Services []string
+	Name string
+}
+
+type AuthService struct {
+	Name         string
+	Scope        string
+	ProjectRoles []string
 }
 
 func InitFlags(rootCmd *cobra.Command, conf *Config) {

@@ -15,6 +15,7 @@ import (
 )
 
 type QueryResolver interface {
+	GetServiceIndex(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetServiceIndex) (*spec.GetServiceIndexData, uint8, error)
 	UpdateService(tctx *logger.TraceContext, db *gorm.DB, input *spec.UpdateService) (*spec.UpdateServiceData, uint8, error)
 	Login(tctx *logger.TraceContext, db *gorm.DB, input *spec.Login) (*spec.LoginData, uint8, error)
 	GetAllUsers(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetAllUsers) (*spec.GetAllUsersData, uint8, error)
@@ -34,10 +35,33 @@ func NewQueryHandler(baseConf *base_config.Config, mainConf *config.Config, reso
 	}
 }
 
-func (handler *QueryHandler) Exec(tctx *logger.TraceContext, req *base_model.Request, rep *base_model.Reply) error {
+func (handler *QueryHandler) Exec(tctx *logger.TraceContext, req *base_model.Request, rep *base_model.Response) error {
 	var err error
 	for _, query := range req.Queries {
 		switch query.Name {
+		case "GetServiceIndex":
+			var input spec.GetServiceIndex
+			err = json.Unmarshal([]byte(query.Data), &input)
+			if err != nil {
+				return err
+			}
+
+			var db *gorm.DB
+			if db, err = handler.dbApi.Open(tctx); err != nil {
+				return err
+			}
+			defer handler.dbApi.Close(tctx, db)
+
+			data, code, err := handler.resolver.GetServiceIndex(tctx, db, &input)
+			if err != nil {
+				if code == 0 {
+					code = base_const.CodeServerInternalError
+				}
+				rep.Error = err.Error()
+			}
+			rep.Code = code
+			rep.Data["GetServiceIndex"] = data
+			return err
 		case "UpdateService":
 			var input spec.UpdateService
 			err = json.Unmarshal([]byte(query.Data), &input)

@@ -3,15 +3,17 @@ package error_utils
 import "fmt"
 
 type InvalidResponseError struct {
-	data interface{}
+	code uint8
+	err  string
 }
 
-func NewInvalidResponseError(data interface{}) *InvalidResponseError {
+func NewInvalidResponseError(code uint8, err string) *InvalidResponseError {
 	return &InvalidResponseError{
-		data: data,
+		code: code,
+		err:  err,
 	}
 }
 
 func (err *InvalidResponseError) Error() string {
-	return fmt.Sprintf("InvalidResponse: %v", err.data)
+	return fmt.Sprintf("InvalidResponse: code=%d, err=%s", err.code, err.err)
 }
