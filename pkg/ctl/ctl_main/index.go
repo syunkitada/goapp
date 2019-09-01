@@ -8,9 +8,9 @@ import (
 
 	"github.com/olekukonko/tablewriter"
 	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_model"
-	"github.com/syunkitada/goapp/pkg/authproxy/spec"
 	"github.com/syunkitada/goapp/pkg/base/base_const"
 	"github.com/syunkitada/goapp/pkg/base/base_model/index_model"
+	"github.com/syunkitada/goapp/pkg/base/base_spec"
 	"github.com/syunkitada/goapp/pkg/lib/json_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
@@ -35,15 +35,19 @@ func (ctl *Ctl) index(args []string) error {
 		serviceName = ""
 	}
 
-	var loginData *spec.LoginData
-	loginData, err = ctl.client.Login(tctx, &spec.Login{
+	var loginData *base_spec.LoginData
+	loginData, err = ctl.client.Login(tctx, &base_spec.Login{
 		User:     "guest",
 		Password: "guest",
 	})
+	if err != nil {
+		fmt.Printf("Failed Login: %v\n", err)
+		os.Exit(1)
+	}
 
 	if len(args) > 0 {
 		if _, ok = loginData.Authority.ServiceMap[serviceName]; !ok {
-			var project spec.ProjectService
+			var project base_spec.ProjectService
 			project, ok = loginData.Authority.ProjectServiceMap[ctl.mainConf.Ctl.Project]
 			if ok {
 				_, ok = project.ServiceMap[serviceName]
@@ -79,8 +83,8 @@ func (ctl *Ctl) index(args []string) error {
 	}
 
 	// Get ServiceIndex, and exec cmd
-	var getServiceIndexData *spec.GetServiceIndexData
-	if getServiceIndexData, err = ctl.client.GetServiceIndex(tctx, &spec.GetServiceIndex{Name: serviceName}); err != nil {
+	var getServiceIndexData *base_spec.GetServiceIndexData
+	if getServiceIndexData, err = ctl.client.GetServiceIndex(tctx, &base_spec.GetServiceIndex{Name: serviceName}); err != nil {
 		return err
 	}
 

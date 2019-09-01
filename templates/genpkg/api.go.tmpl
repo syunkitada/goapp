@@ -11,32 +11,37 @@ import (
 	"github.com/syunkitada/goapp/pkg/base/base_config"
 	"github.com/syunkitada/goapp/pkg/base/base_const"
 	"github.com/syunkitada/goapp/pkg/base/base_model"
+	"github.com/syunkitada/goapp/pkg/base/base_spec"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
-    {{- range $api := $spec.Apis }}
-    {{- range $query := $api.Queries }}
-    "{{ $query.PkgPath }}"
-    {{- end }}
-    {{- end }}
+	{{- range $api := $spec.Apis }}
+	{{- range $query := $api.Queries }}
+	"{{ $query.PkgPath }}"
+	{{- end }}
+	{{- end }}
 )
 
 type QueryResolver interface {
-	GetServiceIndex(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetServiceIndex) (*spec.GetServiceIndexData, uint8, error)
-    {{- range $api := $spec.Apis }}
-    {{- range $query := $api.Queries }}
-    {{ $query.Name }}(tctx *logger.TraceContext, db *gorm.DB, input *{{ $query.PkgName }}.{{ $query.Name }}) (*{{ $query.PkgName }}.{{ $query.Name }}Data, uint8, error)
-    {{- end }}
-    {{- end }}
+	GetServiceIndex(tctx *logger.TraceContext, db *gorm.DB, input *base_spec.GetServiceIndex) (*base_spec.GetServiceIndexData, uint8, error)
+	{{- range $api := $spec.Apis }}
+	{{- range $query := $api.Queries }}
+	{{ $query.Name }}(tctx *logger.TraceContext, db *gorm.DB, input *{{ $query.PkgName }}.{{ $query.Name }}) (*{{ $query.PkgName }}.{{ $query.Name }}Data, uint8, error)
+	{{- end }}
+	{{- end }}
 }
 
 type QueryHandler struct {
+	baseConf *base_config.Config
+	appConf  *base_config.AppConfig
+	dbApi	 base_db_api.IApi
 	resolver QueryResolver
-	dbApi    *db_api.Api
 }
 
-func NewQueryHandler(baseConf *base_config.Config, mainConf *config.Config, resolver QueryResolver) *QueryHandler {
+func NewQueryHandler(baseConf *base_config.Config, appConf *base_config.AppConfig, dbApi base_db_api.IApi, resolver QueryResolver) *QueryHandler {
 	return &QueryHandler{
+		baseConf: baseConf,
+		appConf:  appConf,
+		dbApi:    dbApi,
 		resolver: resolver,
-		dbApi:    db_api.New(baseConf, mainConf),
 	}
 }
 
@@ -45,7 +50,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, req *base_model.Req
 	for _, query := range req.Queries {
 		switch query.Name {
 		case "GetServiceIndex":
-			var input spec.GetServiceIndex
+			var input base_spec.GetServiceIndex
 			err = json.Unmarshal([]byte(query.Data), &input)
 			if err != nil {
 				return err
@@ -67,9 +72,9 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, req *base_model.Req
 			rep.Code = code
 			rep.Data["GetServiceIndex"] = data
 			return err
-        {{- range $api := $spec.Apis }}
-        {{- range $query := $api.Queries }}
-        case "{{ $query.Name }}":
+		{{- range $api := $spec.Apis }}
+		{{- range $query := $api.Queries }}
+		case "{{ $query.Name }}":
 			var input {{ $query.PkgName }}.{{ $query.Name }}
 			err = json.Unmarshal([]byte(query.Data), &input)
 			if err != nil {
@@ -82,18 +87,18 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, req *base_model.Req
 			}
 			defer handler.dbApi.Close(tctx, db)
 
-            data, code, err := handler.resolver.{{ $query.Name }}(tctx, db, &input)
-            if err != nil {
-                if code == 0 {
-                    code = base_const.CodeServerInternalError
-                }
-                rep.Error = err.Error()
-            }
-            rep.Code = code
+			data, code, err := handler.resolver.{{ $query.Name }}(tctx, db, &input)
+			if err != nil {
+				if code == 0 {
+					code = base_const.CodeServerInternalError
+				}
+				rep.Error = err.Error()
+			}
+			rep.Code = code
 			rep.Data["{{ $query.Name }}"] = data
 			return err
-        {{- end }}
-        {{- end }}
+		{{- end }}
+		{{- end }}
 		}
 	}
 	return nil

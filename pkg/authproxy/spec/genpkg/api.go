@@ -5,33 +5,36 @@ import (
 
 	"github.com/jinzhu/gorm"
 
-	"github.com/syunkitada/goapp/pkg/authproxy/config"
-	"github.com/syunkitada/goapp/pkg/authproxy/db_api"
-	"github.com/syunkitada/goapp/pkg/authproxy/spec"
 	"github.com/syunkitada/goapp/pkg/base/base_config"
 	"github.com/syunkitada/goapp/pkg/base/base_const"
+	"github.com/syunkitada/goapp/pkg/base/base_db_api"
 	"github.com/syunkitada/goapp/pkg/base/base_model"
+	"github.com/syunkitada/goapp/pkg/base/base_spec"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
 
 type QueryResolver interface {
-	GetServiceIndex(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetServiceIndex) (*spec.GetServiceIndexData, uint8, error)
-	UpdateService(tctx *logger.TraceContext, db *gorm.DB, input *spec.UpdateService) (*spec.UpdateServiceData, uint8, error)
-	Login(tctx *logger.TraceContext, db *gorm.DB, input *spec.Login) (*spec.LoginData, uint8, error)
-	GetAllUsers(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetAllUsers) (*spec.GetAllUsersData, uint8, error)
-	GetUser(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetUser) (*spec.GetUserData, uint8, error)
-	GetUsers(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetUsers) (*spec.GetUsersData, uint8, error)
+	GetServiceIndex(tctx *logger.TraceContext, db *gorm.DB, input *base_spec.GetServiceIndex) (*base_spec.GetServiceIndexData, uint8, error)
+	UpdateService(tctx *logger.TraceContext, db *gorm.DB, input *base_spec.UpdateService) (*base_spec.UpdateServiceData, uint8, error)
+	Login(tctx *logger.TraceContext, db *gorm.DB, input *base_spec.Login) (*base_spec.LoginData, uint8, error)
+	GetAllUsers(tctx *logger.TraceContext, db *gorm.DB, input *base_spec.GetAllUsers) (*base_spec.GetAllUsersData, uint8, error)
+	GetUser(tctx *logger.TraceContext, db *gorm.DB, input *base_spec.GetUser) (*base_spec.GetUserData, uint8, error)
+	GetUsers(tctx *logger.TraceContext, db *gorm.DB, input *base_spec.GetUsers) (*base_spec.GetUsersData, uint8, error)
 }
 
 type QueryHandler struct {
+	baseConf *base_config.Config
+	appConf  *base_config.AppConfig
+	dbApi    base_db_api.IApi
 	resolver QueryResolver
-	dbApi    *db_api.Api
 }
 
-func NewQueryHandler(baseConf *base_config.Config, mainConf *config.Config, resolver QueryResolver) *QueryHandler {
+func NewQueryHandler(baseConf *base_config.Config, appConf *base_config.AppConfig, dbApi base_db_api.IApi, resolver QueryResolver) *QueryHandler {
 	return &QueryHandler{
+		baseConf: baseConf,
+		appConf:  appConf,
+		dbApi:    dbApi,
 		resolver: resolver,
-		dbApi:    db_api.New(baseConf, mainConf),
 	}
 }
 
@@ -40,7 +43,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, req *base_model.Req
 	for _, query := range req.Queries {
 		switch query.Name {
 		case "GetServiceIndex":
-			var input spec.GetServiceIndex
+			var input base_spec.GetServiceIndex
 			err = json.Unmarshal([]byte(query.Data), &input)
 			if err != nil {
 				return err
@@ -63,7 +66,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, req *base_model.Req
 			rep.Data["GetServiceIndex"] = data
 			return err
 		case "UpdateService":
-			var input spec.UpdateService
+			var input base_spec.UpdateService
 			err = json.Unmarshal([]byte(query.Data), &input)
 			if err != nil {
 				return err
@@ -86,7 +89,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, req *base_model.Req
 			rep.Data["UpdateService"] = data
 			return err
 		case "Login":
-			var input spec.Login
+			var input base_spec.Login
 			err = json.Unmarshal([]byte(query.Data), &input)
 			if err != nil {
 				return err
@@ -109,7 +112,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, req *base_model.Req
 			rep.Data["Login"] = data
 			return err
 		case "GetAllUsers":
-			var input spec.GetAllUsers
+			var input base_spec.GetAllUsers
 			err = json.Unmarshal([]byte(query.Data), &input)
 			if err != nil {
 				return err
@@ -132,7 +135,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, req *base_model.Req
 			rep.Data["GetAllUsers"] = data
 			return err
 		case "GetUser":
-			var input spec.GetUser
+			var input base_spec.GetUser
 			err = json.Unmarshal([]byte(query.Data), &input)
 			if err != nil {
 				return err
@@ -155,7 +158,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, req *base_model.Req
 			rep.Data["GetUser"] = data
 			return err
 		case "GetUsers":
-			var input spec.GetUsers
+			var input base_spec.GetUsers
 			err = json.Unmarshal([]byte(query.Data), &input)
 			if err != nil {
 				return err

@@ -5,30 +5,34 @@ import (
 
 	"github.com/jinzhu/gorm"
 
-	"github.com/syunkitada/goapp/pkg/authproxy/config"
-	"github.com/syunkitada/goapp/pkg/authproxy/db_api"
 	"github.com/syunkitada/goapp/pkg/base/base_config"
 	"github.com/syunkitada/goapp/pkg/base/base_const"
+	"github.com/syunkitada/goapp/pkg/base/base_db_api"
 	"github.com/syunkitada/goapp/pkg/base/base_model"
+	"github.com/syunkitada/goapp/pkg/base/base_spec"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/resource/spec"
 )
 
 type QueryResolver interface {
-	GetServiceIndex(tctx *logger.TraceContext, db *gorm.DB, input *base_model.GetServiceIndex) (*base_model.GetServiceIndexData, uint8, error)
+	GetServiceIndex(tctx *logger.TraceContext, db *gorm.DB, input *base_spec.GetServiceIndex) (*base_spec.GetServiceIndexData, uint8, error)
 	GetRegions(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetRegions) (*spec.GetRegionsData, uint8, error)
 	GetClusters(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetClusters) (*spec.GetClustersData, uint8, error)
 }
 
 type QueryHandler struct {
+	baseConf *base_config.Config
+	appConf  *base_config.AppConfig
+	dbApi    base_db_api.IApi
 	resolver QueryResolver
-	dbApi    *db_api.Api
 }
 
-func NewQueryHandler(baseConf *base_config.Config, mainConf *config.Config, resolver QueryResolver) *QueryHandler {
+func NewQueryHandler(baseConf *base_config.Config, appConf *base_config.AppConfig, dbApi base_db_api.IApi, resolver QueryResolver) *QueryHandler {
 	return &QueryHandler{
+		baseConf: baseConf,
+		appConf:  appConf,
+		dbApi:    dbApi,
 		resolver: resolver,
-		dbApi:    db_api.New(baseConf, mainConf),
 	}
 }
 
@@ -37,7 +41,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, req *base_model.Req
 	for _, query := range req.Queries {
 		switch query.Name {
 		case "GetServiceIndex":
-			var input base_model.GetServiceIndex
+			var input base_spec.GetServiceIndex
 			err = json.Unmarshal([]byte(query.Data), &input)
 			if err != nil {
 				return err

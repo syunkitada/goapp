@@ -36,6 +36,7 @@ func (api *Api) GetUserWithValidatePassword(tctx *logger.TraceContext, db *gorm.
 	if tmpUser.Password != hashedPassword {
 		code = base_const.CodeClientInvalidAuth
 		err = error_utils.NewInvalidAuthError(name)
+		return
 	}
 	code = base_const.CodeOk
 	user = &tmpUser

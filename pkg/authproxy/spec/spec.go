@@ -1,6 +1,9 @@
 package spec
 
-import "github.com/syunkitada/goapp/pkg/base/base_model"
+import (
+	"github.com/syunkitada/goapp/pkg/base/base_model"
+	"github.com/syunkitada/goapp/pkg/base/base_spec"
+)
 
 type Meta struct{}
 
@@ -14,10 +17,10 @@ var Spec = base_model.Spec{
 			RequiredProject: false,
 			QueryModels: []base_model.QueryModel{
 				base_model.QueryModel{
-					Model: UpdateService{},
+					Model: base_spec.UpdateService{},
 				},
 				base_model.QueryModel{
-					Model: Login{},
+					Model: base_spec.Login{},
 				},
 			},
 		},
@@ -27,11 +30,11 @@ var Spec = base_model.Spec{
 			RequiredProject: false,
 			QueryModels: []base_model.QueryModel{
 				base_model.QueryModel{
-					Model:        GetAllUsers{},
+					Model:        base_spec.GetAllUsers{},
 					ProjectRoles: []string{"admin"},
 				},
 				base_model.QueryModel{
-					Model:        GetUser{},
+					Model:        base_spec.GetUser{},
 					ProjectRoles: []string{"tenant", "admin"},
 				},
 			},
@@ -42,7 +45,7 @@ var Spec = base_model.Spec{
 			RequiredProject: true,
 			QueryModels: []base_model.QueryModel{
 				base_model.QueryModel{
-					Model:        GetUsers{},
+					Model:        base_spec.GetUsers{},
 					ProjectRoles: []string{"tenant"},
 				},
 			},

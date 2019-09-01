@@ -9,10 +9,10 @@ import (
 	"net/http"
 	"net/http/httptest"
 
-	"github.com/syunkitada/goapp/pkg/authproxy/spec"
 	"github.com/syunkitada/goapp/pkg/base/base_config"
 	"github.com/syunkitada/goapp/pkg/base/base_const"
 	"github.com/syunkitada/goapp/pkg/base/base_model"
+	"github.com/syunkitada/goapp/pkg/base/base_spec"
 	"github.com/syunkitada/goapp/pkg/lib/error_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
@@ -136,10 +136,10 @@ type LoginResponse struct {
 }
 
 type LoginResponseData struct {
-	Login spec.LoginData
+	Login base_spec.LoginData
 }
 
-func (client *Client) Login(tctx *logger.TraceContext, input *spec.Login) (data *spec.LoginData, err error) {
+func (client *Client) Login(tctx *logger.TraceContext, input *base_spec.Login) (data *base_spec.LoginData, err error) {
 	queries := []Query{Query{Name: "Login", Data: input}}
 	var reply LoginResponse
 	err = client.Request(tctx, queries, &reply, false)
@@ -160,10 +160,10 @@ type GetServiceIndexResponse struct {
 }
 
 type GetServiceIndexResponseData struct {
-	GetServiceIndex spec.GetServiceIndexData
+	GetServiceIndex base_spec.GetServiceIndexData
 }
 
-func (client *Client) GetServiceIndex(tctx *logger.TraceContext, input *spec.GetServiceIndex) (data *spec.GetServiceIndexData, err error) {
+func (client *Client) GetServiceIndex(tctx *logger.TraceContext, input *base_spec.GetServiceIndex) (data *base_spec.GetServiceIndexData, err error) {
 	queries := []Query{Query{Name: "GetServiceIndex", Data: input}}
 	var reply GetServiceIndexResponse
 	err = client.Request(tctx, queries, &reply, false)

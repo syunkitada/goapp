@@ -4,13 +4,13 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/syunkitada/goapp/pkg/authproxy/config"
-	"github.com/syunkitada/goapp/pkg/authproxy/db_api"
-	"github.com/syunkitada/goapp/pkg/authproxy/resolver"
-	"github.com/syunkitada/goapp/pkg/authproxy/spec/genpkg"
 	"github.com/syunkitada/goapp/pkg/base/base_app"
 	"github.com/syunkitada/goapp/pkg/base/base_config"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
+	"github.com/syunkitada/goapp/pkg/resource/config"
+	"github.com/syunkitada/goapp/pkg/resource/db_api"
+	"github.com/syunkitada/goapp/pkg/resource/resolver"
+	"github.com/syunkitada/goapp/pkg/resource/spec/genpkg"
 )
 
 type Server struct {
@@ -21,10 +21,10 @@ type Server struct {
 }
 
 func New(baseConf *base_config.Config, mainConf *config.Config) *Server {
-	baseApp := base_app.New(baseConf, &mainConf.Authproxy.App)
+	baseApp := base_app.New(baseConf, &mainConf.Resource.App)
+	resolver := resolver.New(baseConf, mainConf)
 	dbApi := db_api.New(baseConf, mainConf)
-	resolver := resolver.New(baseConf, mainConf, dbApi)
-	queryHandler := genpkg.NewQueryHandler(baseConf, &mainConf.Authproxy.App, dbApi, resolver)
+	queryHandler := genpkg.NewQueryHandler(baseConf, &mainConf.Resource.App, dbApi, resolver)
 
 	srv := &Server{
 		BaseApp:      baseApp,
@@ -34,6 +34,7 @@ func New(baseConf *base_config.Config, mainConf *config.Config) *Server {
 	}
 	handler := srv.NewHandler()
 	srv.SetHandler(handler)
+	srv.SetDriver(srv)
 	return srv
 }
 

@@ -58,6 +58,10 @@ func (app *BaseApp) SetHandler(handler http.Handler) {
 	app.handler = handler
 }
 
+func (app *BaseApp) SetDriver(driver BaseAppDriver) {
+	app.driver = driver
+}
+
 func (app *BaseApp) StartMainLoop() {
 	go app.mainLoop()
 }

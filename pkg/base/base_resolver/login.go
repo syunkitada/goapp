@@ -1,17 +1,18 @@
-package resolver
+package base_resolver
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/jinzhu/gorm"
 
-	"github.com/syunkitada/goapp/pkg/authproxy/spec"
 	"github.com/syunkitada/goapp/pkg/base/base_model"
+	"github.com/syunkitada/goapp/pkg/base/base_spec"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
 
-func (resolver *Resolver) Login(tctx *logger.TraceContext, db *gorm.DB, input *spec.Login) (data *spec.LoginData, code uint8, err error) {
+func (resolver *Resolver) Login(tctx *logger.TraceContext, db *gorm.DB, input *base_spec.Login) (data *base_spec.LoginData, code uint8, err error) {
 	user, code, err := resolver.dbApi.GetUserWithValidatePassword(tctx, db, input.User, input.Password)
 	if err != nil {
 		return
@@ -27,7 +28,8 @@ func (resolver *Resolver) Login(tctx *logger.TraceContext, db *gorm.DB, input *s
 		return
 	}
 
-	data = &spec.LoginData{
+	fmt.Println("DEBUG LOGIN")
+	data = &base_spec.LoginData{
 		Name:      input.User,
 		Token:     token,
 		Authority: *userAuthority,
