@@ -1,5 +1,7 @@
 package base_model
 
+import "github.com/syunkitada/goapp/pkg/base/base_model/index_model"
+
 type Spec struct {
 	Meta interface{}
 	Name string
@@ -45,4 +47,12 @@ type Flag struct {
 type ServiceRouter struct {
 	QueryMap  map[string]QueryModel
 	Endpoints []string
+}
+
+type GetServiceIndex struct {
+	Name string
+}
+
+type GetServiceIndexData struct {
+	Index index_model.Index
 }

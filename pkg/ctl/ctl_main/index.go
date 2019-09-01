@@ -8,8 +8,9 @@ import (
 
 	"github.com/olekukonko/tablewriter"
 	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_model"
-	"github.com/syunkitada/goapp/pkg/authproxy/index_model"
 	"github.com/syunkitada/goapp/pkg/authproxy/spec"
+	"github.com/syunkitada/goapp/pkg/base/base_const"
+	"github.com/syunkitada/goapp/pkg/base/base_model/index_model"
 	"github.com/syunkitada/goapp/pkg/lib/json_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
@@ -201,7 +202,7 @@ func (ctl *Ctl) index(args []string) error {
 					cmdFlag, ok = shortFlagMap[splitedKey[1]]
 				}
 			}
-			if flag.Flag == index_model.ArgRequired {
+			if flag.Flag == base_const.ArgRequired {
 				if !ok {
 					cmdQuery = ""
 					break
@@ -210,15 +211,15 @@ func (ctl *Ctl) index(args []string) error {
 			if ok {
 				switch cmdFlag.(type) {
 				case string:
-					if flag.FlagType == index_model.ArgTypeString {
+					if flag.FlagType == base_const.ArgTypeString {
 						strParams[key] = cmdFlag.(string)
 					}
 				case bool:
-					if flag.FlagType == index_model.ArgTypeBool {
+					if flag.FlagType == base_const.ArgTypeBool {
 						boolParams[key] = cmdFlag.(bool)
 					}
 				case int:
-					if flag.FlagType == index_model.ArgTypeInt {
+					if flag.FlagType == base_const.ArgTypeInt {
 						intParams[key] = cmdFlag.(int)
 					}
 				}

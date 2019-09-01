@@ -42,6 +42,7 @@ type AppConfig struct {
 	Labels                   []string
 	Database                 DatabaseConfig
 	Auth                     AuthConfig
+	RootCluster              RootClusterConfig
 }
 
 type ClientConfig struct {
@@ -84,9 +85,16 @@ type AuthProjectRole struct {
 }
 
 type AuthService struct {
-	Name         string
-	Scope        string
-	ProjectRoles []string
+	Name            string
+	Scope           string
+	SyncRootCluster bool
+	ProjectRoles    []string
+}
+
+type RootClusterConfig struct {
+	User      string
+	Password  string
+	Endpoints []string
 }
 
 func InitFlags(rootCmd *cobra.Command, conf *Config) {

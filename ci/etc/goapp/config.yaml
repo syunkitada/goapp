@@ -40,5 +40,53 @@ authproxy:
           scope: 'project'
           projectRoles: ['tenant']
 
+resource:
+  app:
+    listen: '0.0.0.0:13300'
+    allowedHosts: ['127.0.0.1:13300']
+    accessControlAllowOrigin: '127.0.0.1:13300'
+    certFile: 'tls-assets/server.pem'
+    keyFile: 'tls-assets/server.key'
+    gracefulTimeout: 10
+    database:
+      connection: 'goapp:goapppass@tcp(127.0.0.1:3306)/goapp_resource?charset=utf8&parseTime=true'
+    auth:
+      secrets: ['changeme1', 'changeme2']
+      defaultUsers:
+        - {name: 'admin', password: 'admin', roles: ['admin']}
+        - {name: 'service', password: 'service', roles: ['service']}
+        - {name: 'guest', password: 'guest', roles: ['guestpj-member']}
+      defaultRoles:
+        - {name: 'admin', project: 'admin'}
+        - {name: 'service', project: 'service'}
+        - {name: 'guestpj-member', project: 'guestpj'}
+      defaultProjects:
+        - {name: 'admin', projectRole: 'admin'}
+        - {name: 'service', projectRole: 'service'}
+        - {name: 'guestpj', projectRole: 'tenant'}
+      defaultProjectRoles:
+        - {name: 'admin'}
+        - {name: 'service'}
+        - {name: 'tenant'}
+      defaultServices:
+        - name: 'Auth'
+          scope: 'user'
+          projectRoles: ['admin', 'service', 'tenant']
+        - name: 'Service'
+          scope: 'user'
+          projectRoles: ['admin', 'service']
+        - name: 'Resource.Physical'
+          scope: 'project'
+          projectRoles: ['tenant']
+          syncRootCluster: true
+        - name: 'Resource.Virtual'
+          scope: 'project'
+          projectRoles: ['tenant']
+          syncRootCluster: true
+    rootCluster:
+      user: 'service'
+      password: 'service'
+      endpoints: ['127.0.0.1:8000']
+
 ctl:
   project: 'guestpj'

@@ -18,7 +18,8 @@ var serviceMap = map[string]base_model.ServiceRouter{
 	"Auth": base_model.ServiceRouter{
 		Endpoints: []string{"self"},
 		QueryMap: map[string]base_model.QueryModel{
-			"Login": base_model.QueryModel{},
+			"Login":           base_model.QueryModel{},
+			"GetServiceIndex": base_model.QueryModel{},
 		},
 	},
 }

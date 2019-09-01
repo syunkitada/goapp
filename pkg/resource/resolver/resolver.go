@@ -3,8 +3,8 @@ package resolver
 import (
 	"github.com/syunkitada/goapp/pkg/base/base_config"
 
-	"github.com/syunkitada/goapp/pkg/authproxy/config"
-	"github.com/syunkitada/goapp/pkg/authproxy/db_api"
+	"github.com/syunkitada/goapp/pkg/resource/config"
+	"github.com/syunkitada/goapp/pkg/resource/db_api"
 )
 
 type Resolver struct {
@@ -14,7 +14,7 @@ type Resolver struct {
 
 func New(baseConf *base_config.Config, mainConf *config.Config) *Resolver {
 	return &Resolver{
-		appConf: mainConf.Authproxy.App,
+		appConf: mainConf.Resource.App,
 		dbApi:   db_api.New(baseConf, mainConf),
 	}
 }

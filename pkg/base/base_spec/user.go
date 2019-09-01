@@ -1,4 +1,4 @@
-package spec
+package base_spec
 
 import (
 	"github.com/syunkitada/goapp/pkg/base/base_const"
