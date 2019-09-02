@@ -43,6 +43,7 @@ authproxy:
 resource:
   app:
     listen: '0.0.0.0:13300'
+    endpoints: ['https://127.0.0.1:8000']
     allowedHosts: ['127.0.0.1:13300']
     accessControlAllowOrigin: '127.0.0.1:13300'
     certFile: 'tls-assets/server.pem'
@@ -83,10 +84,11 @@ resource:
           scope: 'project'
           projectRoles: ['tenant']
           syncRootCluster: true
-    rootCluster:
+    rootClient:
       user: 'service'
       password: 'service'
-      endpoints: ['127.0.0.1:8000']
+      tlsInsecureSkipVerify: true
+      endpoints: ['https://127.0.0.1:8000']
 
 ctl:
   project: 'guestpj'

@@ -62,7 +62,6 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, req *base_model.Req
 			}
 			rep.Code = code
 			rep.Data["GetServiceIndex"] = data
-			return err
 		case "GetRegions":
 			var input spec.GetRegions
 			err = json.Unmarshal([]byte(query.Data), &input)
@@ -85,7 +84,6 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, req *base_model.Req
 			}
 			rep.Code = code
 			rep.Data["GetRegions"] = data
-			return err
 		case "GetClusters":
 			var input spec.GetClusters
 			err = json.Unmarshal([]byte(query.Data), &input)
@@ -108,7 +106,6 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, req *base_model.Req
 			}
 			rep.Code = code
 			rep.Data["GetClusters"] = data
-			return err
 		}
 	}
 	return nil

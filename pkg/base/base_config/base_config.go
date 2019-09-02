@@ -33,6 +33,7 @@ type AppConfig struct {
 	LoopInterval             int
 	Listen                   string
 	HttpListen               string
+	Endpoints                []string
 	CertFile                 string
 	KeyFile                  string
 	CaFile                   string
@@ -42,11 +43,13 @@ type AppConfig struct {
 	Labels                   []string
 	Database                 DatabaseConfig
 	Auth                     AuthConfig
-	RootCluster              RootClusterConfig
+	RootClient               ClientConfig
 }
 
 type ClientConfig struct {
-	Targets               []string
+	User                  string
+	Password              string
+	Endpoints             []string
 	TlsInsecureSkipVerify bool
 	LocalHandler          http.Handler
 }
@@ -89,12 +92,6 @@ type AuthService struct {
 	Scope           string
 	SyncRootCluster bool
 	ProjectRoles    []string
-}
-
-type RootClusterConfig struct {
-	User      string
-	Password  string
-	Endpoints []string
 }
 
 func InitFlags(rootCmd *cobra.Command, conf *Config) {

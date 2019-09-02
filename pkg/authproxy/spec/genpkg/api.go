@@ -64,7 +64,6 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, req *base_model.Req
 			}
 			rep.Code = code
 			rep.Data["GetServiceIndex"] = data
-			return err
 		case "UpdateService":
 			var input base_spec.UpdateService
 			err = json.Unmarshal([]byte(query.Data), &input)
@@ -87,7 +86,6 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, req *base_model.Req
 			}
 			rep.Code = code
 			rep.Data["UpdateService"] = data
-			return err
 		case "Login":
 			var input base_spec.Login
 			err = json.Unmarshal([]byte(query.Data), &input)
@@ -110,7 +108,6 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, req *base_model.Req
 			}
 			rep.Code = code
 			rep.Data["Login"] = data
-			return err
 		case "GetAllUsers":
 			var input base_spec.GetAllUsers
 			err = json.Unmarshal([]byte(query.Data), &input)
@@ -133,7 +130,6 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, req *base_model.Req
 			}
 			rep.Code = code
 			rep.Data["GetAllUsers"] = data
-			return err
 		case "GetUser":
 			var input base_spec.GetUser
 			err = json.Unmarshal([]byte(query.Data), &input)
@@ -156,7 +152,6 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, req *base_model.Req
 			}
 			rep.Code = code
 			rep.Data["GetUser"] = data
-			return err
 		case "GetUsers":
 			var input base_spec.GetUsers
 			err = json.Unmarshal([]byte(query.Data), &input)
@@ -179,7 +174,6 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, req *base_model.Req
 			}
 			rep.Code = code
 			rep.Data["GetUsers"] = data
-			return err
 		}
 	}
 	return nil

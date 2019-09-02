@@ -71,7 +71,6 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, req *base_model.Req
 			}
 			rep.Code = code
 			rep.Data["GetServiceIndex"] = data
-			return err
 		{{- range $api := $spec.Apis }}
 		{{- range $query := $api.Queries }}
 		case "{{ $query.Name }}":
@@ -96,7 +95,6 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, req *base_model.Req
 			}
 			rep.Code = code
 			rep.Data["{{ $query.Name }}"] = data
-			return err
 		{{- end }}
 		{{- end }}
 		}

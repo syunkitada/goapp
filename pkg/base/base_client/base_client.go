@@ -1,4 +1,4 @@
-package genpkg
+package base_client
 
 import (
 	"bytes"
@@ -17,7 +17,6 @@ import (
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
 
-// AuthproxyClient is http client for authproxy
 type Client struct {
 	httpClient   *http.Client
 	localHandler http.Handler
@@ -175,5 +174,28 @@ func (client *Client) GetServiceIndex(tctx *logger.TraceContext, input *base_spe
 		return
 	}
 	data = &reply.Data.GetServiceIndex
+	return
+}
+
+type UpdateServiceResponse struct {
+	base_model.Response
+	Data UpdateServiceResponseData
+}
+
+type UpdateServiceResponseData struct {
+	UpdateService base_spec.UpdateServiceData
+}
+
+func (client *Client) UpdateServices(tctx *logger.TraceContext, queries []Query) (data *base_spec.UpdateServiceData, err error) {
+	var reply UpdateServiceResponse
+	err = client.Request(tctx, queries, &reply, false)
+	if err != nil {
+		return
+	}
+	if reply.Code != base_const.CodeOk || reply.Error != "" {
+		err = error_utils.NewInvalidResponseError(reply.Code, reply.Error)
+		return
+	}
+	data = &reply.Data.UpdateService
 	return
 }

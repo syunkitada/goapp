@@ -103,34 +103,28 @@ func (api *Api) CreateUser(tctx *logger.TraceContext, db *gorm.DB, name string, 
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
-	tx := db.Begin()
-	defer func() {
-		if tmpErr := recover(); tmpErr != nil {
-			err = error_utils.NewRecoveredError(tmpErr)
-		}
-		api.Rollback(tctx, tx, err)
-	}()
+	err = api.Transact(tctx, db, func(tx *gorm.DB) (err error) {
+		var user base_db_model.User
+		if err = tx.Where("name = ?", name).First(&user).Error; err != nil {
+			if !gorm.IsRecordNotFoundError(err) {
+				return
+			}
 
-	var user base_db_model.User
-	if err = tx.Where("name = ?", name).First(&user).Error; err != nil {
-		if !gorm.IsRecordNotFoundError(err) {
-			return err
-		}
+			var hashedPassword string
+			hashedPassword, err = api.generateHashFromPassword(password)
+			if err != nil {
+				return
+			}
 
-		var hashedPassword string
-		hashedPassword, err = api.generateHashFromPassword(password)
-		if err != nil {
-			return err
+			user = base_db_model.User{
+				Name:     name,
+				Password: hashedPassword,
+			}
+			err = tx.Create(&user).Error
 		}
-
-		user = base_db_model.User{
-			Name:     name,
-			Password: hashedPassword,
-		}
-		tx.Create(&user)
-		err = tx.Commit().Error
-	}
-	return err
+		return
+	})
+	return
 }
 
 func (api *Api) generateHashFromPassword(password string) (string, error) {

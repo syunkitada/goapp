@@ -6,6 +6,7 @@ import (
 	"github.com/syunkitada/goapp/pkg/base/base_config"
 	"github.com/syunkitada/goapp/pkg/base/base_db_model"
 	"github.com/syunkitada/goapp/pkg/base/base_spec"
+	"github.com/syunkitada/goapp/pkg/lib/error_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
 
@@ -14,6 +15,7 @@ type IApi interface {
 	Close(tctx *logger.TraceContext, db *gorm.DB)
 	GetUserWithValidatePassword(tctx *logger.TraceContext, db *gorm.DB, name string, password string) (user *base_db_model.User, code uint8, err error)
 	GetUserAuthority(tctx *logger.TraceContext, db *gorm.DB, username string) (*base_spec.UserAuthority, error)
+	CreateOrUpdateService(tctx *logger.TraceContext, db *gorm.DB, input *base_spec.UpdateService) (err error)
 }
 
 type Api struct {
@@ -55,11 +57,29 @@ func (api *Api) Close(tctx *logger.TraceContext, db *gorm.DB) {
 	}
 }
 
-func (api *Api) Rollback(tctx *logger.TraceContext, tx *gorm.DB, err error) {
-	if err != nil {
-		logger.Error(tctx, err)
-		if err = tx.Rollback().Error; err != nil {
-			logger.Error(tctx, err)
-		}
+func (api *Api) Transact(tctx *logger.TraceContext, db *gorm.DB, txFunc func(tx *gorm.DB) (err error)) (err error) {
+	tx := db.Begin()
+	if err = tx.Error; err != nil {
+		return
 	}
+	defer func() {
+		if p := recover(); p != nil {
+			if tmpErr := tx.Rollback().Error; tmpErr != nil {
+				logger.Errorf(tctx, tmpErr, "Failed rollback on recover")
+			}
+			err = error_utils.NewRecoveredError(p)
+		} else if err != nil {
+			if tmpErr := tx.Rollback().Error; tmpErr != nil {
+				logger.Errorf(tctx, tmpErr, "Failed rollback on err")
+			}
+			err = error_utils.NewRecoveredError(p)
+		} else {
+			if err = tx.Commit().Error; err != nil {
+				if tmpErr := tx.Rollback().Error; tmpErr != nil {
+					logger.Errorf(tctx, tmpErr, "Failed rollback on commit")
+				}
+			}
+		}
+	}()
+	return
 }

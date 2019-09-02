@@ -19,7 +19,7 @@ func New(baseConf *base_config.Config, mainConf *config.Config) *Ctl {
 		baseConf: baseConf,
 		mainConf: mainConf,
 		client: genpkg.NewClient(&base_config.ClientConfig{
-			Targets:               []string{"https://localhost:8000"},
+			Endpoints:             []string{"https://localhost:8000"},
 			TlsInsecureSkipVerify: true,
 		}),
 	}

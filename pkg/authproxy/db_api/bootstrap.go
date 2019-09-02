@@ -6,6 +6,7 @@ import (
 	"github.com/jinzhu/gorm"
 
 	"github.com/syunkitada/goapp/pkg/authproxy/db_model"
+	"github.com/syunkitada/goapp/pkg/base/base_spec"
 	"github.com/syunkitada/goapp/pkg/lib/exec_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
@@ -75,7 +76,12 @@ func (api *Api) Bootstrap(tctx *logger.TraceContext, isRecreate bool) (err error
 	}
 
 	for _, service := range api.appConf.Auth.DefaultServices {
-		if err = api.CreateOrUpdateService(tctx, db, &service); err != nil {
+		if err = api.CreateOrUpdateService(tctx, db, &base_spec.UpdateService{
+			Name:         service.Name,
+			Scope:        service.Scope,
+			ProjectRoles: service.ProjectRoles,
+			Endpoints:    []string{},
+		}); err != nil {
 			return err
 		}
 	}

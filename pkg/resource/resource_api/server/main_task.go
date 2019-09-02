@@ -7,6 +7,8 @@ import (
 )
 
 func (srv *Server) MainTask(tctx *logger.TraceContext) error {
+	srv.UpdateService(tctx)
+
 	if err := srv.UpdateNodeTask(tctx); err != nil {
 		return err
 	}

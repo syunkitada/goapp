@@ -1,6 +1,7 @@
 package base_app
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
@@ -10,7 +11,9 @@ import (
 
 	"golang.org/x/net/context"
 
+	"github.com/syunkitada/goapp/pkg/base/base_client"
 	"github.com/syunkitada/goapp/pkg/base/base_config"
+	"github.com/syunkitada/goapp/pkg/base/base_spec"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
 
@@ -30,6 +33,7 @@ type BaseApp struct {
 	server             *http.Server
 	handler            http.Handler
 	shutdownTimeout    time.Duration
+	rootClient         *base_client.Client
 }
 
 func New(conf *base_config.Config, appConf *base_config.AppConfig) BaseApp {
@@ -51,6 +55,7 @@ func New(conf *base_config.Config, appConf *base_config.AppConfig) BaseApp {
 		loopInterval:       time.Duration(appConf.LoopInterval) * time.Second,
 		isGracefulShutdown: false,
 		shutdownTimeout:    time.Duration(appConf.ShutdownTimeout) * time.Second,
+		rootClient:         base_client.NewClient(&appConf.RootClient),
 	}
 }
 
@@ -60,6 +65,26 @@ func (app *BaseApp) SetHandler(handler http.Handler) {
 
 func (app *BaseApp) SetDriver(driver BaseAppDriver) {
 	app.driver = driver
+}
+
+func (app *BaseApp) UpdateService(tctx *logger.TraceContext) {
+	queries := []base_client.Query{}
+	for _, service := range app.appConf.Auth.DefaultServices {
+		if !service.SyncRootCluster {
+			continue
+		}
+		queries = append(queries, base_client.Query{
+			Name: "UpdateService",
+			Data: base_spec.UpdateService{
+				Name:         service.Name,
+				Endpoints:    app.appConf.Endpoints,
+				Scope:        service.Scope,
+				ProjectRoles: service.ProjectRoles,
+			},
+		})
+	}
+	data, err := app.rootClient.UpdateServices(tctx, queries)
+	fmt.Println(data, err)
 }
 
 func (app *BaseApp) StartMainLoop() {
