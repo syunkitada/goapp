@@ -7,6 +7,7 @@ type Index struct {
 }
 
 type Cmd struct {
+	QueryName   string
 	Arg         string
 	ArgType     string
 	ArgKind     string
@@ -16,8 +17,10 @@ type Cmd struct {
 }
 
 type Flag struct {
-	Flag     string
-	FlagType string
+	Required bool
+	Flag     string // depricated
+	FlagType string // string, int, ...
+	FlagKind string // empty or file
 	Help     string
 }
 

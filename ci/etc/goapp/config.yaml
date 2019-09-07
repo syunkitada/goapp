@@ -36,7 +36,7 @@ authproxy:
         - name: 'Home'
           scope: 'user'
           projectRoles: ['tenant']
-        - name: 'Home.Project'
+        - name: 'HomeProject'
           scope: 'project'
           projectRoles: ['tenant']
 
@@ -76,11 +76,11 @@ resource:
         - name: 'Service'
           scope: 'user'
           projectRoles: ['admin', 'service']
-        - name: 'Resource.Physical'
+        - name: 'ResourcePhysical'
           scope: 'project'
           projectRoles: ['tenant']
           syncRootCluster: true
-        - name: 'Resource.Virtual'
+        - name: 'ResourceVirtual'
           scope: 'project'
           projectRoles: ['tenant']
           syncRootCluster: true

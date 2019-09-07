@@ -33,13 +33,16 @@ type Query struct {
 	PkgPath      string
 	PkgName      string
 	Name         string
+	CmdName      string
+	Flags        []Flag
 }
 
 type Flag struct {
 	Name      string
 	FlagName  string
 	ShortName string
-	Type      string
+	FlagType  string
+	FlagKind  string
 	CobraType string
 	Required  bool
 }

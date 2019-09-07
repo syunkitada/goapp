@@ -1,6 +1,8 @@
 package resolver
 
 import (
+	"fmt"
+
 	"github.com/jinzhu/gorm"
 
 	"github.com/syunkitada/goapp/pkg/base/base_const"
@@ -10,6 +12,11 @@ import (
 )
 
 func (resolver *Resolver) GetServiceIndex(tctx *logger.TraceContext, db *gorm.DB, input *base_spec.GetServiceIndex) (data *base_spec.GetServiceIndexData, code uint8, err error) {
+	fmt.Println("DEBUG index", input.Name)
+	// switch input.Name {
+	// case "Resource.Physical":
+
+	// }
 	cmdMap := map[string]index_model.Cmd{}
 	cmdMaps := []map[string]index_model.Cmd{}
 	for _, tmpCmdMap := range cmdMaps {

@@ -1,0 +1,26 @@
+package genpkg
+{{- $spec := . }}
+
+import (
+    "github.com/syunkitada/goapp/pkg/base/base_model/index_model"
+)
+
+{{- range $api := $spec.Apis }}
+var {{ $api.Name }}CmdMap = map[string]index_model.Cmd{
+{{- range $query := $api.Queries }}
+    "{{ $query.CmdName }}": index_model.Cmd{
+        QueryName:   "{{ $query.Name }}",
+        FlagMap:     map[string]index_model.Flag{
+        {{- range $flag := $query.Flags }}
+            "{{ $flag.FlagName }}": index_model.Flag{
+                Required: {{ $flag.Required }},
+                FlagType: "{{ $flag.FlagType }}",
+                FlagKind: "{{ $flag.FlagKind }}",
+            },
+        {{- end }}
+        },
+        TableHeader: []string{},
+    },
+{{- end }}
+}
+{{- end }}

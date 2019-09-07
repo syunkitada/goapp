@@ -22,7 +22,7 @@ var Spec = base_model.Spec{
 		// 	},
 		// },
 		base_model.Api{
-			Name:            "Resource.Physical",
+			Name:            "ResourcePhysical",
 			RequiredAuth:    true,
 			RequiredProject: true,
 			QueryModels: []base_model.QueryModel{
@@ -32,7 +32,7 @@ var Spec = base_model.Spec{
 			},
 		},
 		base_model.Api{
-			Name:            "Resource.Virtual",
+			Name:            "ResourceVirtual",
 			RequiredAuth:    true,
 			RequiredProject: true,
 			QueryModels: []base_model.QueryModel{

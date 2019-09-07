@@ -40,7 +40,7 @@ var Spec = base_model.Spec{
 			},
 		},
 		base_model.Api{
-			Name:            "Home.Project",
+			Name:            "HomeProject",
 			RequiredAuth:    true,
 			RequiredProject: true,
 			QueryModels: []base_model.QueryModel{
