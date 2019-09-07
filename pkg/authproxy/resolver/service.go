@@ -2,6 +2,7 @@ package resolver
 
 import (
 	"github.com/jinzhu/gorm"
+
 	"github.com/syunkitada/goapp/pkg/base/base_const"
 	"github.com/syunkitada/goapp/pkg/base/base_model/index_model"
 	"github.com/syunkitada/goapp/pkg/base/base_spec"

@@ -49,6 +49,7 @@ type AppConfig struct {
 type ClientConfig struct {
 	User                  string
 	Password              string
+	Service               string
 	Endpoints             []string
 	TlsInsecureSkipVerify bool
 	LocalHandler          http.Handler

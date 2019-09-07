@@ -36,6 +36,7 @@ func NewClient(conf *base_config.ClientConfig) *Client {
 	client := &Client{
 		httpClient:   httpClient,
 		localHandler: conf.LocalHandler,
+		service:      conf.Service,
 		endpoints:    conf.Endpoints,
 	}
 
@@ -47,7 +48,7 @@ type Query struct {
 	Data interface{}
 }
 
-func (client *Client) Request(tctx *logger.TraceContext, queries []Query, resp interface{}, requiredAuth bool) error {
+func (client *Client) Request(tctx *logger.TraceContext, service string, queries []Query, resp interface{}, requiredAuth bool) error {
 	var err error
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
@@ -67,7 +68,7 @@ func (client *Client) Request(tctx *logger.TraceContext, queries []Query, resp i
 
 	req := base_model.Request{
 		Tctx:    tctx,
-		Service: "Auth",
+		Service: service,
 		Queries: reqQueries,
 	}
 	if requiredAuth {
@@ -141,7 +142,7 @@ type LoginResponseData struct {
 func (client *Client) Login(tctx *logger.TraceContext, input *base_spec.Login) (data *base_spec.LoginData, err error) {
 	queries := []Query{Query{Name: "Login", Data: input}}
 	var reply LoginResponse
-	err = client.Request(tctx, queries, &reply, false)
+	err = client.Request(tctx, "Auth", queries, &reply, false)
 	if err != nil {
 		return
 	}
@@ -165,7 +166,7 @@ type GetServiceIndexResponseData struct {
 func (client *Client) GetServiceIndex(tctx *logger.TraceContext, input *base_spec.GetServiceIndex) (data *base_spec.GetServiceIndexData, err error) {
 	queries := []Query{Query{Name: "GetServiceIndex", Data: input}}
 	var reply GetServiceIndexResponse
-	err = client.Request(tctx, queries, &reply, false)
+	err = client.Request(tctx, input.Name, queries, &reply, false)
 	if err != nil {
 		return
 	}
@@ -188,7 +189,7 @@ type UpdateServiceResponseData struct {
 
 func (client *Client) UpdateServices(tctx *logger.TraceContext, queries []Query) (data *base_spec.UpdateServiceData, err error) {
 	var reply UpdateServiceResponse
-	err = client.Request(tctx, queries, &reply, false)
+	err = client.Request(tctx, "Auth", queries, &reply, false)
 	if err != nil {
 		return
 	}

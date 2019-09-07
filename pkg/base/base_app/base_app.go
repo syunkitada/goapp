@@ -1,24 +1,31 @@
 package base_app
 
 import (
+	"bytes"
+	"crypto/tls"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"os/signal"
 	"path/filepath"
+	"strings"
 	"syscall"
 	"time"
 
 	"golang.org/x/net/context"
 
+	"github.com/jinzhu/gorm"
 	"github.com/syunkitada/goapp/pkg/base/base_client"
 	"github.com/syunkitada/goapp/pkg/base/base_config"
+	"github.com/syunkitada/goapp/pkg/base/base_db_api"
+	"github.com/syunkitada/goapp/pkg/base/base_model"
 	"github.com/syunkitada/goapp/pkg/base/base_spec"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
 
 type BaseAppDriver interface {
-	MainTask(*logger.TraceContext) error
+	MainTask(*logger.TraceContext, *gorm.DB) error
 }
 
 type BaseApp struct {
@@ -27,16 +34,17 @@ type BaseApp struct {
 	conf               *base_config.Config
 	appConf            *base_config.AppConfig
 	driver             BaseAppDriver
-	Monitors           int
 	loopInterval       time.Duration
 	isGracefulShutdown bool
 	server             *http.Server
 	handler            http.Handler
 	shutdownTimeout    time.Duration
 	rootClient         *base_client.Client
+	dbApi              base_db_api.IApi
+	serviceMap         map[string]base_model.ServiceRouter
 }
 
-func New(conf *base_config.Config, appConf *base_config.AppConfig) BaseApp {
+func New(conf *base_config.Config, appConf *base_config.AppConfig, dbApi base_db_api.IApi) BaseApp {
 	if appConf.LoopInterval == 0 {
 		appConf.LoopInterval = 5
 	}
@@ -56,6 +64,7 @@ func New(conf *base_config.Config, appConf *base_config.AppConfig) BaseApp {
 		isGracefulShutdown: false,
 		shutdownTimeout:    time.Duration(appConf.ShutdownTimeout) * time.Second,
 		rootClient:         base_client.NewClient(&appConf.RootClient),
+		dbApi:              dbApi,
 	}
 }
 
@@ -67,24 +76,47 @@ func (app *BaseApp) SetDriver(driver BaseAppDriver) {
 	app.driver = driver
 }
 
-func (app *BaseApp) UpdateService(tctx *logger.TraceContext) {
+func (app *BaseApp) SyncService(tctx *logger.TraceContext, db *gorm.DB) (err error) {
 	queries := []base_client.Query{}
-	for _, service := range app.appConf.Auth.DefaultServices {
-		if !service.SyncRootCluster {
-			continue
-		}
-		queries = append(queries, base_client.Query{
-			Name: "UpdateService",
-			Data: base_spec.UpdateService{
-				Name:         service.Name,
-				Endpoints:    app.appConf.Endpoints,
-				Scope:        service.Scope,
-				ProjectRoles: service.ProjectRoles,
-			},
-		})
+	fmt.Println("DEBUG SyncService")
+	var data *base_spec.GetServicesData
+	if data, err = app.dbApi.GetServices(tctx, db, &base_spec.GetServices{}); err != nil {
+		return
 	}
-	data, err := app.rootClient.UpdateServices(tctx, queries)
-	fmt.Println(data, err)
+
+	serviceMap := map[string]base_model.ServiceRouter{}
+	for _, service := range data.Services {
+		serviceMap[service.Name] = base_model.ServiceRouter{
+			Endpoints: strings.Split(service.Endpoints, ","),
+			QueryMap: map[string]base_model.QueryModel{
+				"Login":           base_model.QueryModel{},
+				"GetServiceIndex": base_model.QueryModel{},
+				"UpdateService":   base_model.QueryModel{},
+			},
+		}
+	}
+	app.serviceMap = serviceMap
+
+	for _, service := range app.appConf.Auth.DefaultServices {
+		if service.SyncRootCluster {
+			queries = append(queries, base_client.Query{
+				Name: "UpdateService",
+				Data: base_spec.UpdateService{
+					Name:         service.Name,
+					Scope:        service.Scope,
+					Endpoints:    app.appConf.Endpoints,
+					ProjectRoles: service.ProjectRoles,
+				},
+			})
+		}
+	}
+	if len(queries) > 0 {
+		// var data *base_spec.UpdateServiceData,
+		if _, err = app.rootClient.UpdateServices(tctx, queries); err != nil {
+			return
+		}
+	}
+	return
 }
 
 func (app *BaseApp) StartMainLoop() {
@@ -98,10 +130,7 @@ func (app *BaseApp) mainLoop() {
 	logger.StdoutInfof("Start mainLoop")
 	for {
 		tctx = logger.NewTraceContext(app.host, app.name)
-		startTime = logger.StartTrace(tctx)
-		err = app.driver.MainTask(tctx)
-		logger.EndTrace(tctx, startTime, err, 0)
-
+		app.mainTask(tctx)
 		if app.isGracefulShutdown {
 			logger.Info(tctx, "Completed graceful shutdown mainTask")
 			logger.Info(tctx, "Starting graceful shutdown server")
@@ -117,8 +146,26 @@ func (app *BaseApp) mainLoop() {
 			logger.EndTrace(tctx, startTime, nil, 0)
 			os.Exit(0)
 		}
-
 		time.Sleep(app.loopInterval)
+	}
+}
+
+func (app *BaseApp) mainTask(tctx *logger.TraceContext) {
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 0) }()
+
+	var db *gorm.DB
+	if db, err = app.dbApi.Open(tctx); err != nil {
+		return
+	}
+	defer app.dbApi.Close(tctx, db)
+	if err = app.SyncService(tctx, db); err != nil {
+		return
+	}
+
+	if err = app.driver.MainTask(tctx, db); err != nil {
+		return
 	}
 }
 
@@ -183,4 +230,33 @@ func (app *BaseApp) gracefulShutdown(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+func (app *BaseApp) Proxy(tctx *logger.TraceContext, endpoint string, rawReq []byte) (repBytes []byte, statusCode int, err error) {
+	var httpResp *http.Response
+	reqBuffer := bytes.NewBuffer(rawReq)
+	var httpReq *http.Request
+	if httpReq, err = http.NewRequest("POST", endpoint+"/q", reqBuffer); err != nil {
+		return
+	}
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+	httpClient := &http.Client{
+		Transport: tr,
+	}
+
+	httpResp, err = httpClient.Do(httpReq)
+	if err != nil {
+		return
+	}
+
+	defer func() {
+		if tmpErr := httpResp.Body.Close(); tmpErr != nil {
+			logger.Errorf(tctx, err, "Failed httpResp.Body.Close()")
+		}
+	}()
+	statusCode = httpResp.StatusCode
+	repBytes, err = ioutil.ReadAll(httpResp.Body)
+	return
 }

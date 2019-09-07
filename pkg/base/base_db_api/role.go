@@ -29,10 +29,7 @@ func (api *Api) CreateRole(tctx *logger.TraceContext, db *gorm.DB, name string, 
 				Name:      name,
 				ProjectID: project.ID,
 			}
-			if err = tx.Create(&role).Error; err != nil {
-				return
-			}
-			err = tx.Commit().Error
+			err = tx.Create(&role).Error
 		}
 		return
 	})
@@ -54,9 +51,7 @@ func (api *Api) AssignRoleToUser(tctx *logger.TraceContext, db *gorm.DB, roleNam
 			return
 		}
 
-		if err = tx.Model(&user).Association("Roles").Append(&role).Error; err != nil {
-			return
-		}
+		err = tx.Model(&user).Association("Roles").Append(&role).Error
 		return
 	})
 	return

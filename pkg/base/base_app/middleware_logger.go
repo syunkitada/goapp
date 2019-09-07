@@ -14,56 +14,45 @@ import (
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
 
-var serviceMap = map[string]base_model.ServiceRouter{
-	"Auth": base_model.ServiceRouter{
-		Endpoints: []string{"self"},
-		QueryMap: map[string]base_model.QueryModel{
-			"Login":           base_model.QueryModel{},
-			"GetServiceIndex": base_model.QueryModel{},
-			"UpdateService":   base_model.QueryModel{},
-		},
-	},
-}
+func (app *BaseApp) Start(r *http.Request) (tctx *logger.TraceContext, service *base_model.ServiceRouter,
+	rawReq []byte, req *base_model.Request, res *base_model.Response, startTime time.Time, err error) {
+	tctx = logger.NewTraceContext(app.host, app.name)
+	startTime = logger.StartTrace(tctx)
+	res = &base_model.Response{TraceId: tctx.GetTraceId(), Data: map[string]interface{}{}}
 
-func (app *BaseApp) Start(r *http.Request) (*logger.TraceContext, *base_model.ServiceRouter, *base_model.Request, *base_model.Response, time.Time, error) {
-	var err error
-	tctx := logger.NewTraceContext(app.host, app.name)
-	startTime := logger.StartTrace(tctx)
-	res := base_model.Response{TraceId: tctx.GetTraceId(), Data: map[string]interface{}{}}
-
-	var req base_model.Request
+	req = &base_model.Request{}
 	bufbody := new(bytes.Buffer)
 	bufbody.ReadFrom(r.Body)
-
-	if err = json.Unmarshal(bufbody.Bytes(), &req); err != nil {
+	rawReq = bufbody.Bytes()
+	if err = json.Unmarshal(rawReq, &req); err != nil {
 		res.Code = base_const.CodeServerInternalError
 		res.Error = err.Error()
-		return tctx, nil, nil, &res, startTime, err
+		return
 	}
 
-	service, ok := serviceMap[req.Service]
+	tmpService, ok := app.serviceMap[req.Service]
 	if !ok {
 		res.Code = base_const.CodeClientBadRequest
 		err = fmt.Errorf("InvalidService")
 		res.Error = err.Error()
-		return tctx, nil, nil, &res, startTime, err
+		return
 	}
 
 	for _, query := range req.Queries {
-		queryModel, ok := service.QueryMap[query.Name]
+		queryModel, ok := tmpService.QueryMap[query.Name]
 		if !ok {
 			res.Code = base_const.CodeClientBadRequest
 			err = fmt.Errorf("InvalidQuery")
 			res.Error = err.Error()
-			return tctx, nil, nil, &res, startTime, err
+			return
 		}
 
 		if queryModel.RequiredAuth {
 			fmt.Println("Valid Auth")
 		}
 	}
-
-	return tctx, &service, &req, &res, startTime, err
+	service = &tmpService
+	return
 }
 
 func (app *BaseApp) End(tctx *logger.TraceContext, startTime time.Time, err error) {

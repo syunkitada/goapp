@@ -16,6 +16,7 @@ type IApi interface {
 	GetUserWithValidatePassword(tctx *logger.TraceContext, db *gorm.DB, name string, password string) (user *base_db_model.User, code uint8, err error)
 	GetUserAuthority(tctx *logger.TraceContext, db *gorm.DB, username string) (*base_spec.UserAuthority, error)
 	CreateOrUpdateService(tctx *logger.TraceContext, db *gorm.DB, input *base_spec.UpdateService) (err error)
+	GetServices(tctx *logger.TraceContext, db *gorm.DB, input *base_spec.GetServices) (*base_spec.GetServicesData, error)
 }
 
 type Api struct {
@@ -81,5 +82,6 @@ func (api *Api) Transact(tctx *logger.TraceContext, db *gorm.DB, txFunc func(tx 
 			}
 		}
 	}()
+	err = txFunc(tx)
 	return
 }

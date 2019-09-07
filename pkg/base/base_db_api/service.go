@@ -31,7 +31,7 @@ func (api *Api) CreateOrUpdateService(tctx *logger.TraceContext, db *gorm.DB, in
 			}
 		} else {
 			service.Scope = input.Scope
-			service.Endpoints = ""
+			service.Endpoints = strings.Join(input.Endpoints, ",")
 			if err = tx.Save(&service).Error; err != nil {
 				return
 			}
@@ -49,5 +49,19 @@ func (api *Api) CreateOrUpdateService(tctx *logger.TraceContext, db *gorm.DB, in
 		}
 		return
 	})
+	return
+}
+
+func (api *Api) GetServices(tctx *logger.TraceContext, db *gorm.DB, input *base_spec.GetServices) (data *base_spec.GetServicesData, err error) {
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	var services []base_spec.Service
+	if err = db.Find(&services).Error; err != nil {
+		return
+	}
+	data = &base_spec.GetServicesData{
+		Services: services,
+	}
 	return
 }

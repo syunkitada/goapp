@@ -12,6 +12,7 @@ var RootCmd = &cobra.Command{
 	Short: "api",
 	Run: func(cmd *cobra.Command, args []string) {
 		srv := server.New(&config.BaseConf, &config.MainConf)
+		srv.StartMainLoop()
 		srv.Serve()
 	},
 }
