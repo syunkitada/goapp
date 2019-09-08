@@ -124,7 +124,11 @@ func (client *Client) Request(tctx *logger.TraceContext, service string, queries
 	}
 
 	if statusCode != 200 {
-		return fmt.Errorf("Invalid StatusCode: get=%v, want=%v", statusCode, 200)
+		var baseResponse base_model.Response
+		if err = json.Unmarshal(body, &baseResponse); err != nil {
+			return fmt.Errorf("Invalid StatusCode: got=%d, want=%d", statusCode, 200)
+		}
+		return fmt.Errorf("Invalid StatusCode: got=%d, want=%d, err=%s", statusCode, 200, baseResponse.Error)
 	}
 
 	return nil

@@ -1,12 +1,17 @@
 package base_spec
 
-import "github.com/syunkitada/goapp/pkg/base/base_model/index_model"
+import (
+	"github.com/syunkitada/goapp/pkg/base/base_model"
+	"github.com/syunkitada/goapp/pkg/base/base_model/index_model"
+)
 
 type UpdateService struct {
-	Name         string
-	Scope        string
-	ProjectRoles []string
-	Endpoints    []string
+	Name            string
+	Scope           string
+	SyncRootCluster bool
+	ProjectRoles    []string
+	Endpoints       []string
+	QueryMap        map[string]base_model.QueryModel
 }
 
 type UpdateServiceData struct {
@@ -20,9 +25,12 @@ type GetServicesData struct {
 }
 
 type Service struct {
-	Name      string
-	Scope     string
-	Endpoints string
+	Name            string
+	Scope           string
+	Endpoints       string
+	ProjectRoles    string
+	QueryMap        string
+	SyncRootCluster bool
 }
 
 type GetServiceIndex struct {

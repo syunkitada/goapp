@@ -1,6 +1,7 @@
 package base_db_api
 
 import (
+	"encoding/json"
 	"strings"
 
 	"github.com/jinzhu/gorm"
@@ -14,6 +15,9 @@ func (api *Api) CreateOrUpdateService(tctx *logger.TraceContext, db *gorm.DB, in
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
+	var queryMapBytes []byte
+	queryMapBytes, err = json.Marshal(&input.QueryMap)
+
 	err = api.Transact(tctx, db, func(tx *gorm.DB) (err error) {
 		var service base_db_model.Service
 		if err = tx.Where("name = ?", input.Name).First(&service).Error; err != nil {
@@ -22,16 +26,21 @@ func (api *Api) CreateOrUpdateService(tctx *logger.TraceContext, db *gorm.DB, in
 			}
 
 			service = base_db_model.Service{
-				Name:      input.Name,
-				Scope:     input.Scope,
-				Endpoints: strings.Join(input.Endpoints, ","),
+				Name:            input.Name,
+				Scope:           input.Scope,
+				SyncRootCluster: input.SyncRootCluster,
+				Endpoints:       strings.Join(input.Endpoints, ","),
+				QueryMap:        string(queryMapBytes),
 			}
 			if err = tx.Create(&service).Error; err != nil {
 				return
 			}
 		} else {
 			service.Scope = input.Scope
+			service.SyncRootCluster = input.SyncRootCluster
 			service.Endpoints = strings.Join(input.Endpoints, ",")
+			service.ProjectRoles = strings.Join(input.ProjectRoles, ",")
+			service.QueryMap = string(queryMapBytes)
 			if err = tx.Save(&service).Error; err != nil {
 				return
 			}

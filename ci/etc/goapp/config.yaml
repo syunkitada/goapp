@@ -27,12 +27,6 @@ authproxy:
         - {name: 'service'}
         - {name: 'tenant'}
       defaultServices:
-        - name: 'Auth'
-          scope: 'user'
-          projectRoles: ['admin', 'service', 'tenant']
-        - name: 'Service'
-          scope: 'user'
-          projectRoles: ['admin', 'service']
         - name: 'Home'
           scope: 'user'
           projectRoles: ['tenant']
@@ -70,12 +64,6 @@ resource:
         - {name: 'service'}
         - {name: 'tenant'}
       defaultServices:
-        - name: 'Auth'
-          scope: 'user'
-          projectRoles: ['admin', 'service', 'tenant']
-        - name: 'Service'
-          scope: 'user'
-          projectRoles: ['admin', 'service']
         - name: 'ResourcePhysical'
           scope: 'project'
           projectRoles: ['tenant']

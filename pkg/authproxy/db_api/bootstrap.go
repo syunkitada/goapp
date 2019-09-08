@@ -5,7 +5,9 @@ import (
 
 	"github.com/jinzhu/gorm"
 
-	"github.com/syunkitada/goapp/pkg/authproxy/db_model"
+	"github.com/syunkitada/goapp/pkg/authproxy/spec/genpkg"
+	"github.com/syunkitada/goapp/pkg/base/base_db_model"
+	"github.com/syunkitada/goapp/pkg/base/base_model"
 	"github.com/syunkitada/goapp/pkg/base/base_spec"
 	"github.com/syunkitada/goapp/pkg/lib/exec_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
@@ -25,19 +27,19 @@ func (api *Api) Bootstrap(tctx *logger.TraceContext, isRecreate bool) (err error
 	}
 	defer api.Close(tctx, db)
 
-	if err = db.AutoMigrate(&db_model.User{}).Error; err != nil {
+	if err = db.AutoMigrate(&base_db_model.User{}).Error; err != nil {
 		return err
 	}
-	if err = db.AutoMigrate(&db_model.Role{}).Error; err != nil {
+	if err = db.AutoMigrate(&base_db_model.Role{}).Error; err != nil {
 		return err
 	}
-	if err = db.AutoMigrate(&db_model.Project{}).Error; err != nil {
+	if err = db.AutoMigrate(&base_db_model.Project{}).Error; err != nil {
 		return err
 	}
-	if err = db.AutoMigrate(&db_model.ProjectRole{}).Error; err != nil {
+	if err = db.AutoMigrate(&base_db_model.ProjectRole{}).Error; err != nil {
 		return err
 	}
-	if err = db.AutoMigrate(&db_model.Service{}).Error; err != nil {
+	if err = db.AutoMigrate(&base_db_model.Service{}).Error; err != nil {
 		return err
 	}
 
@@ -75,12 +77,35 @@ func (api *Api) Bootstrap(tctx *logger.TraceContext, isRecreate bool) (err error
 		fmt.Printf("Created User: %s\n", user.Name)
 	}
 
+	if err = api.CreateOrUpdateService(tctx, db, &base_spec.UpdateService{
+		Name:            "Auth",
+		Scope:           "user",
+		SyncRootCluster: false,
+		ProjectRoles:    []string{"admin", "service", "tenant"},
+		Endpoints:       []string{},
+		QueryMap: map[string]base_model.QueryModel{
+			"Login":         base_model.QueryModel{},
+			"UpdateService": base_model.QueryModel{},
+		},
+	}); err != nil {
+		return err
+	}
+
 	for _, service := range api.appConf.Auth.DefaultServices {
+		queryMap, ok := genpkg.ApiQueryMap[service.Name]
+		if !ok {
+			fmt.Printf("Invalid service: querymap not found: %s\n", service.Name)
+			continue
+		}
+		queryMap["GetServiceIndex"] = base_model.QueryModel{}
+
 		if err = api.CreateOrUpdateService(tctx, db, &base_spec.UpdateService{
-			Name:         service.Name,
-			Scope:        service.Scope,
-			ProjectRoles: service.ProjectRoles,
-			Endpoints:    []string{},
+			Name:            service.Name,
+			Scope:           service.Scope,
+			SyncRootCluster: service.SyncRootCluster,
+			ProjectRoles:    service.ProjectRoles,
+			Endpoints:       []string{},
+			QueryMap:        queryMap,
 		}); err != nil {
 			return err
 		}

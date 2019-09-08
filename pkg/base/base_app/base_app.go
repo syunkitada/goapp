@@ -3,7 +3,7 @@ package base_app
 import (
 	"bytes"
 	"crypto/tls"
-	"fmt"
+	"encoding/json"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -78,7 +78,6 @@ func (app *BaseApp) SetDriver(driver BaseAppDriver) {
 
 func (app *BaseApp) SyncService(tctx *logger.TraceContext, db *gorm.DB) (err error) {
 	queries := []base_client.Query{}
-	fmt.Println("DEBUG SyncService")
 	var data *base_spec.GetServicesData
 	if data, err = app.dbApi.GetServices(tctx, db, &base_spec.GetServices{}); err != nil {
 		return
@@ -86,30 +85,31 @@ func (app *BaseApp) SyncService(tctx *logger.TraceContext, db *gorm.DB) (err err
 
 	serviceMap := map[string]base_model.ServiceRouter{}
 	for _, service := range data.Services {
+		var queryMap map[string]base_model.QueryModel
+		if err = json.Unmarshal([]byte(service.QueryMap), &queryMap); err != nil {
+			return
+		}
 		serviceMap[service.Name] = base_model.ServiceRouter{
 			Endpoints: strings.Split(service.Endpoints, ","),
-			QueryMap: map[string]base_model.QueryModel{
-				"Login":           base_model.QueryModel{},
-				"GetServiceIndex": base_model.QueryModel{},
-				"UpdateService":   base_model.QueryModel{},
-			},
+			QueryMap:  queryMap,
 		}
-	}
-	app.serviceMap = serviceMap
 
-	for _, service := range app.appConf.Auth.DefaultServices {
 		if service.SyncRootCluster {
 			queries = append(queries, base_client.Query{
 				Name: "UpdateService",
 				Data: base_spec.UpdateService{
-					Name:         service.Name,
-					Scope:        service.Scope,
-					Endpoints:    app.appConf.Endpoints,
-					ProjectRoles: service.ProjectRoles,
+					Name:            service.Name,
+					Scope:           service.Scope,
+					Endpoints:       app.appConf.Endpoints,
+					ProjectRoles:    strings.Split(service.ProjectRoles, ","),
+					QueryMap:        queryMap,
+					SyncRootCluster: false,
 				},
 			})
 		}
 	}
+	app.serviceMap = serviceMap
+
 	if len(queries) > 0 {
 		// var data *base_spec.UpdateServiceData,
 		if _, err = app.rootClient.UpdateServices(tctx, queries); err != nil {

@@ -24,3 +24,17 @@ var {{ $api.Name }}CmdMap = map[string]index_model.Cmd{
 {{- end }}
 }
 {{- end }}
+
+var ApiQueryMap = map[string]map[string]base_model.QueryModel{
+    "Auth": map[string]base_model.QueryModel{
+        "Login": base_model.QueryModel{},
+        "UpdateService": base_model.QueryModel{},
+    },
+{{- range $api := $spec.Apis }}
+    "{{ $api.Name }}": map[string]base_model.QueryModel{
+    {{- range $query := $api.Queries }}
+        "{{ $query.Name }}": base_model.QueryModel{},
+    {{- end }}
+    },
+{{- end }}
+}

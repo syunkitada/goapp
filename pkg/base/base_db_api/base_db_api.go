@@ -73,7 +73,6 @@ func (api *Api) Transact(tctx *logger.TraceContext, db *gorm.DB, txFunc func(tx 
 			if tmpErr := tx.Rollback().Error; tmpErr != nil {
 				logger.Errorf(tctx, tmpErr, "Failed rollback on err")
 			}
-			err = error_utils.NewRecoveredError(p)
 		} else {
 			if err = tx.Commit().Error; err != nil {
 				if tmpErr := tx.Rollback().Error; tmpErr != nil {

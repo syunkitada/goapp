@@ -9,10 +9,10 @@ import (
 	"reflect"
 	"strings"
 	"text/template"
-	"unicode"
 
 	"github.com/syunkitada/goapp/pkg/base/base_model"
 	"github.com/syunkitada/goapp/pkg/lib/os_utils"
+	"github.com/syunkitada/goapp/pkg/lib/str_utils"
 )
 
 func Generate(spec *base_model.Spec) {
@@ -82,20 +82,6 @@ func convertApi(api *base_model.Api) {
 		splitedPath := strings.Split(pkgPath, "/")
 		pkgName := splitedPath[len(splitedPath)-1]
 		name := modelType.Name()
-
-		cmdRunes := []rune{}
-		for i, r := range name {
-			if i == 0 {
-				cmdRunes = append(cmdRunes, unicode.ToLower(r))
-				continue
-			}
-			if unicode.IsUpper(r) {
-				cmdRunes = append(cmdRunes, '_', unicode.ToLower(r))
-			} else {
-				cmdRunes = append(cmdRunes, r)
-			}
-		}
-
 		flags := []base_model.Flag{}
 		lenFields := modelType.NumField()
 		for i := 0; i < lenFields; i++ {
@@ -104,8 +90,8 @@ func convertApi(api *base_model.Api) {
 			if binding, ok := f.Tag.Lookup("binding"); ok && binding == "required" {
 				required = true
 			}
-			flagName := strings.ToLower(f.Name)
-			shortName := strings.ToLower(f.Name[:1])
+			flagName := str_utils.ConvertToLowerFormat(f.Name)
+			shortName := flagName[:1]
 			if flag, ok := f.Tag.Lookup("flag"); ok {
 				splitedFlag := strings.Split(flag, ",")
 				flagName = splitedFlag[0]
@@ -134,7 +120,7 @@ func convertApi(api *base_model.Api) {
 			PkgPath:      pkgPath,
 			PkgName:      pkgName,
 			Name:         name,
-			CmdName:      string(cmdRunes),
+			CmdName:      str_utils.ConvertToLowerFormat(name),
 			Flags:        flags,
 		})
 	}

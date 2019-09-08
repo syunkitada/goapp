@@ -8,11 +8,13 @@ import (
 
 	"github.com/olekukonko/tablewriter"
 	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_model"
+	"github.com/syunkitada/goapp/pkg/base/base_client"
 	"github.com/syunkitada/goapp/pkg/base/base_const"
 	"github.com/syunkitada/goapp/pkg/base/base_model/index_model"
 	"github.com/syunkitada/goapp/pkg/base/base_spec"
 	"github.com/syunkitada/goapp/pkg/lib/json_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
+	"github.com/syunkitada/goapp/pkg/lib/str_utils"
 )
 
 func (ctl *Ctl) index(args []string) error {
@@ -24,13 +26,7 @@ func (ctl *Ctl) index(args []string) error {
 	var ok bool
 	var serviceName string
 	if len(args) > 0 {
-		serviceName = args[0]
-		tmpServiceNames := []string{}
-		splitedServiceName := strings.Split(serviceName, ".")
-		for _, str := range splitedServiceName {
-			tmpServiceNames = append(tmpServiceNames, strings.ToUpper(str[:1])+strings.ToLower(str[1:]))
-		}
-		serviceName = strings.Join(tmpServiceNames, ".")
+		serviceName = str_utils.ConvertToCamelFormat(args[0])
 	} else {
 		serviceName = ""
 	}
@@ -61,7 +57,7 @@ func (ctl *Ctl) index(args []string) error {
 		fmt.Println("--- Available Services ---")
 		snames := make([]string, 0, len(loginData.Authority.ServiceMap))
 		for s := range loginData.Authority.ServiceMap {
-			snames = append(snames, strings.ToLower(s))
+			snames = append(snames, str_utils.ConvertToLowerFormat(s))
 		}
 		sort.Sort(sort.StringSlice(snames))
 		for _, s := range snames {
@@ -72,7 +68,7 @@ func (ctl *Ctl) index(args []string) error {
 			fmt.Println("\n--- Available Project Services ---")
 			snames := make([]string, 0, len(loginData.Authority.ServiceMap))
 			for s, _ := range project.ServiceMap {
-				snames = append(snames, strings.ToLower(s))
+				snames = append(snames, str_utils.ConvertToLowerFormat(s))
 			}
 			sort.Sort(sort.StringSlice(snames))
 			for _, s := range snames {
@@ -136,7 +132,7 @@ func (ctl *Ctl) index(args []string) error {
 	lastArgs := []string{}
 	helpMsgs := [][]string{}
 	for query, cmd := range getServiceIndexData.Index.CmdMap {
-		args := strings.Split(query, "_")
+		args := strings.Split(query, ".")
 		helpQuery := strings.Join(args, " ")
 		var helpMsg []string
 		if cmd.Arg != "" {
@@ -306,14 +302,20 @@ func (ctl *Ctl) index(args []string) error {
 		strParams["Args"] = string(specsBytes)
 	}
 
-	queries := []authproxy_model.Query{
-		authproxy_model.Query{
-			Kind:      cmdQuery,
-			StrParams: strParams,
+	queries := []base_client.Query{
+		base_client.Query{
+			Name: str_utils.ConvertToCamelFormat(cmdQuery),
+			Data: map[string]interface{}{},
 		},
 	}
 
-	fmt.Println(queries)
+	fmt.Println("DEBUG queries", queries)
+
+	var resp interface{}
+	if err = ctl.client.Request(tctx, serviceName, queries, &resp, true); err != nil {
+		return err
+	}
+	fmt.Println(resp)
 
 	// var tmpResp *authproxy_model.ActionResponse
 	// if tmpResp, err = ctl.client.Action(tctx, loginData.Token, serviceName, queries); err != nil {

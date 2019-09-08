@@ -12,19 +12,6 @@ var Spec = base_model.Spec{
 	Name: "Authproxy",
 	Apis: []base_model.Api{
 		base_model.Api{
-			Name:            "Auth",
-			RequiredAuth:    false,
-			RequiredProject: false,
-			QueryModels: []base_model.QueryModel{
-				base_model.QueryModel{
-					Model: base_spec.UpdateService{},
-				},
-				base_model.QueryModel{
-					Model: base_spec.Login{},
-				},
-			},
-		},
-		base_model.Api{
 			Name:            "Home",
 			RequiredAuth:    true,
 			RequiredProject: false,

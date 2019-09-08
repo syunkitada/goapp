@@ -24,7 +24,7 @@ type Server struct {
 func New(baseConf *base_config.Config, mainConf *config.Config) *Server {
 	dbApi := db_api.New(baseConf, mainConf)
 	baseApp := base_app.New(baseConf, &mainConf.Resource.App, dbApi)
-	resolver := resolver.New(baseConf, mainConf)
+	resolver := resolver.New(baseConf, mainConf, dbApi)
 	queryHandler := genpkg.NewQueryHandler(baseConf, &mainConf.Resource.App, dbApi, resolver)
 
 	srv := &Server{
