@@ -19,7 +19,8 @@ var {{ $api.Name }}CmdMap = map[string]index_model.Cmd{
             },
         {{- end }}
         },
-        TableHeader: []string{},
+        OutputKind: "{{ $query.CmdOutputKind }}",
+        OutputFormat: "{{ $query.CmdOutputFormat }}",
     },
 {{- end }}
 }

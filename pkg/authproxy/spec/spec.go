@@ -16,14 +16,8 @@ var Spec = base_model.Spec{
 			RequiredAuth:    true,
 			RequiredProject: false,
 			QueryModels: []base_model.QueryModel{
-				base_model.QueryModel{
-					Model:        base_spec.GetAllUsers{},
-					ProjectRoles: []string{"admin"},
-				},
-				base_model.QueryModel{
-					Model:        base_spec.GetUser{},
-					ProjectRoles: []string{"tenant", "admin"},
-				},
+				base_model.QueryModel{Req: base_spec.GetAllUsers{}, Rep: base_spec.GetAllUsersData{}},
+				base_model.QueryModel{Req: base_spec.GetUser{}, Rep: base_spec.GetUserData{}},
 			},
 		},
 		base_model.Api{
@@ -31,10 +25,7 @@ var Spec = base_model.Spec{
 			RequiredAuth:    true,
 			RequiredProject: true,
 			QueryModels: []base_model.QueryModel{
-				base_model.QueryModel{
-					Model:        base_spec.GetUsers{},
-					ProjectRoles: []string{"tenant"},
-				},
+				base_model.QueryModel{Req: base_spec.GetUsers{}, Rep: base_spec.GetUsersData{}},
 			},
 		},
 	},

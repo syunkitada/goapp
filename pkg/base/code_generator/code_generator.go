@@ -77,15 +77,15 @@ func generateCodeFromTemplate(templatePath string, pkgDir string, outputFile str
 func convertApi(api *base_model.Api) {
 	queries := []base_model.Query{}
 	for _, queryModel := range api.QueryModels {
-		modelType := reflect.TypeOf(queryModel.Model)
-		pkgPath := modelType.PkgPath()
+		reqType := reflect.TypeOf(queryModel.Req)
+		pkgPath := reqType.PkgPath()
 		splitedPath := strings.Split(pkgPath, "/")
 		pkgName := splitedPath[len(splitedPath)-1]
-		name := modelType.Name()
+		name := reqType.Name()
 		flags := []base_model.Flag{}
-		lenFields := modelType.NumField()
+		lenFields := reqType.NumField()
 		for i := 0; i < lenFields; i++ {
-			f := modelType.Field(i)
+			f := reqType.Field(i)
 			required := false
 			if validate, ok := f.Tag.Lookup("validate"); ok {
 				splitedValidate := strings.Split(validate, ",")
@@ -122,13 +122,35 @@ func convertApi(api *base_model.Api) {
 			})
 		}
 
+		repType := reflect.TypeOf(queryModel.Rep)
+		repLenFields := repType.NumField()
+		outputKind := ""
+		outputFormat := ""
+		for i := 0; i < repLenFields; i++ {
+			f := repType.Field(i)
+			switch f.Type.Kind() {
+			case reflect.Slice:
+				elem := f.Type.Elem()
+				lenFields := elem.NumField()
+				outputKind = "table"
+				columns := []string{}
+				for j := 0; j < lenFields; j++ {
+					c := elem.Field(j)
+					columns = append(columns, c.Name)
+				}
+				outputFormat = strings.Join(columns, ",")
+			}
+		}
+
 		queries = append(queries, base_model.Query{
-			RequiredAuth: queryModel.RequiredAuth,
-			PkgPath:      pkgPath,
-			PkgName:      pkgName,
-			Name:         name,
-			CmdName:      str_utils.ConvertToLowerFormat(name),
-			Flags:        flags,
+			RequiredAuth:    queryModel.RequiredAuth,
+			PkgPath:         pkgPath,
+			PkgName:         pkgName,
+			Name:            name,
+			CmdName:         str_utils.ConvertToLowerFormat(name),
+			CmdOutputKind:   outputKind,
+			CmdOutputFormat: outputFormat,
+			Flags:           flags,
 		})
 	}
 

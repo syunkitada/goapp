@@ -1,8 +1,8 @@
 package spec
 
 type Region struct {
-	Name string
-	Kind string
+	Name string `validate:"required"`
+	Kind string `validate:"required"`
 }
 
 type GetRegion struct {

@@ -15,7 +15,8 @@ var HomeCmdMap = map[string]index_model.Cmd{
 				FlagKind: "",
 			},
 		},
-		TableHeader: []string{},
+		OutputKind:   "",
+		OutputFormat: "",
 	},
 	"get.user": index_model.Cmd{
 		QueryName: "GetUser",
@@ -26,7 +27,8 @@ var HomeCmdMap = map[string]index_model.Cmd{
 				FlagKind: "",
 			},
 		},
-		TableHeader: []string{},
+		OutputKind:   "",
+		OutputFormat: "",
 	},
 }
 var HomeProjectCmdMap = map[string]index_model.Cmd{
@@ -39,7 +41,8 @@ var HomeProjectCmdMap = map[string]index_model.Cmd{
 				FlagKind: "",
 			},
 		},
-		TableHeader: []string{},
+		OutputKind:   "",
+		OutputFormat: "",
 	},
 }
 

@@ -7,13 +7,14 @@ type Index struct {
 }
 
 type Cmd struct {
-	QueryName   string
-	Arg         string
-	ArgType     string
-	ArgKind     string
-	FlagMap     map[string]Flag
-	TableHeader []string
-	Help        string
+	QueryName    string
+	Arg          string
+	ArgType      string
+	ArgKind      string
+	FlagMap      map[string]Flag
+	OutputKind   string
+	OutputFormat string
+	Help         string
 }
 
 type Flag struct {

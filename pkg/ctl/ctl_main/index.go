@@ -272,17 +272,17 @@ func (ctl *Ctl) index(args []string) error {
 		},
 	}
 
-	var resp interface{}
+	var resp Response
 	if err = ctl.client.Request(tctx, serviceName, queries, &resp, true); err != nil {
 		return err
 	}
-	fmt.Println(resp)
-
-	// var tmpResp *authproxy_model.ActionResponse
-	// if tmpResp, err = ctl.client.Action(tctx, loginData.Token, serviceName, queries); err != nil {
-	// 	return err
-	// }
-	// ctl.output(&cmdInfo, tmpResp, flagMap)
-
+	ctl.output(&cmdInfo, &resp, flagMap, shortFlagMap)
 	return nil
+}
+
+type Response struct {
+	TraceId string
+	Code    int
+	Error   string
+	Data    map[string]map[string]interface{}
 }

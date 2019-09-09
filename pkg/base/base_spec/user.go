@@ -45,11 +45,10 @@ var UserCmd map[string]index_model.Cmd = map[string]index_model.Cmd{
 		Help:    "helptext",
 	},
 	"get_users": index_model.Cmd{
-		Arg:         base_const.ArgOptional,
-		ArgType:     base_const.ArgTypeString,
-		ArgKind:     UserKind,
-		Help:        "helptext",
-		TableHeader: []string{"Name", "Kind", "user"},
+		Arg:     base_const.ArgOptional,
+		ArgType: base_const.ArgTypeString,
+		ArgKind: UserKind,
+		Help:    "helptext",
 	},
 	"get_user": index_model.Cmd{
 		Arg:     base_const.ArgRequired,

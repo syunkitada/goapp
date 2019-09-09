@@ -25,16 +25,19 @@ type QueryModel struct {
 	RequiredAuth bool
 	ProjectRoles []string
 	Roles        []string
-	Model        interface{}
+	Req          interface{}
+	Rep          interface{}
 }
 
 type Query struct {
-	RequiredAuth bool
-	PkgPath      string
-	PkgName      string
-	Name         string
-	CmdName      string
-	Flags        []Flag
+	RequiredAuth    bool
+	PkgPath         string
+	PkgName         string
+	Name            string
+	CmdName         string
+	CmdOutputKind   string
+	CmdOutputFormat string
+	Flags           []Flag
 }
 
 type Flag struct {

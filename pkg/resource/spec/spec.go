@@ -13,11 +13,11 @@ var Spec = base_model.Spec{
 			RequiredAuth:    true,
 			RequiredProject: true,
 			QueryModels: []base_model.QueryModel{
-				base_model.QueryModel{Model: GetRegion{}},
-				base_model.QueryModel{Model: GetRegions{}},
-				base_model.QueryModel{Model: CreateRegion{}},
-				base_model.QueryModel{Model: UpdateRegion{}},
-				base_model.QueryModel{Model: DeleteRegion{}},
+				base_model.QueryModel{Req: GetRegion{}, Rep: GetRegionData{}},
+				base_model.QueryModel{Req: GetRegions{}, Rep: GetRegionsData{}},
+				base_model.QueryModel{Req: CreateRegion{}, Rep: CreateRegionData{}},
+				base_model.QueryModel{Req: UpdateRegion{}, Rep: UpdateRegionData{}},
+				base_model.QueryModel{Req: DeleteRegion{}, Rep: DeleteRegionData{}},
 			},
 		},
 		base_model.Api{
@@ -25,9 +25,7 @@ var Spec = base_model.Spec{
 			RequiredAuth:    true,
 			RequiredProject: true,
 			QueryModels: []base_model.QueryModel{
-				base_model.QueryModel{
-					Model: GetClusters{},
-				},
+				base_model.QueryModel{Req: GetClusters{}, Rep: GetClustersData{}},
 			},
 		},
 	},

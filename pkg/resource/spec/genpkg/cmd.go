@@ -15,12 +15,14 @@ var ResourcePhysicalCmdMap = map[string]index_model.Cmd{
 				FlagKind: "",
 			},
 		},
-		TableHeader: []string{},
+		OutputKind:   "",
+		OutputFormat: "",
 	},
 	"get.regions": index_model.Cmd{
-		QueryName:   "GetRegions",
-		FlagMap:     map[string]index_model.Flag{},
-		TableHeader: []string{},
+		QueryName:    "GetRegions",
+		FlagMap:      map[string]index_model.Flag{},
+		OutputKind:   "table",
+		OutputFormat: "Name,Kind",
 	},
 	"create.region": index_model.Cmd{
 		QueryName: "CreateRegion",
@@ -31,7 +33,8 @@ var ResourcePhysicalCmdMap = map[string]index_model.Cmd{
 				FlagKind: "file",
 			},
 		},
-		TableHeader: []string{},
+		OutputKind:   "",
+		OutputFormat: "",
 	},
 	"update.region": index_model.Cmd{
 		QueryName: "UpdateRegion",
@@ -42,7 +45,8 @@ var ResourcePhysicalCmdMap = map[string]index_model.Cmd{
 				FlagKind: "file",
 			},
 		},
-		TableHeader: []string{},
+		OutputKind:   "",
+		OutputFormat: "",
 	},
 	"delete.region": index_model.Cmd{
 		QueryName: "DeleteRegion",
@@ -53,14 +57,16 @@ var ResourcePhysicalCmdMap = map[string]index_model.Cmd{
 				FlagKind: "",
 			},
 		},
-		TableHeader: []string{},
+		OutputKind:   "",
+		OutputFormat: "",
 	},
 }
 var ResourceVirtualCmdMap = map[string]index_model.Cmd{
 	"get.clusters": index_model.Cmd{
-		QueryName:   "GetClusters",
-		FlagMap:     map[string]index_model.Flag{},
-		TableHeader: []string{},
+		QueryName:    "GetClusters",
+		FlagMap:      map[string]index_model.Flag{},
+		OutputKind:   "table",
+		OutputFormat: "Region,Datacenter,Name,Kind,Description,DomainSuffix,Labels",
 	},
 }
 

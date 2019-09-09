@@ -8,6 +8,12 @@ import (
 	"github.com/syunkitada/goapp/pkg/resource/spec"
 )
 
+func (api *Api) GetRegion(tctx *logger.TraceContext, db *gorm.DB, name string) (data *spec.Region, err error) {
+	data = &spec.Region{}
+	err = db.Where("name = ?", name).First(data).Error
+	return
+}
+
 func (api *Api) GetRegions(tctx *logger.TraceContext, db *gorm.DB) (data []spec.Region, err error) {
 	err = db.Find(&data).Error
 	return
@@ -30,6 +36,28 @@ func (api *Api) CreateRegions(tctx *logger.TraceContext, db *gorm.DB, regions []
 				}
 			}
 		}
+		return
+	})
+	return
+}
+
+func (api *Api) UpdateRegions(tctx *logger.TraceContext, db *gorm.DB, regions []spec.Region) (err error) {
+	err = api.Transact(tctx, db, func(tx *gorm.DB) (err error) {
+		for _, region := range regions {
+			if err = tx.Model(&db_model.Region{}).Where("name = ?", region.Name).Updates(&db_model.Region{
+				Kind: region.Kind,
+			}).Error; err != nil {
+				return
+			}
+		}
+		return
+	})
+	return
+}
+
+func (api *Api) DeleteRegion(tctx *logger.TraceContext, db *gorm.DB, name string) (err error) {
+	err = api.Transact(tctx, db, func(tx *gorm.DB) (err error) {
+		err = tx.Where("name = ?", name).Unscoped().Delete(&db_model.Region{}).Error
 		return
 	})
 	return
