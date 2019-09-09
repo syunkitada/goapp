@@ -10,10 +10,10 @@ import (
 	"github.com/ghodss/yaml"
 )
 
-func ReadFilesFromMultiPath(filePaths []string) ([]map[string]interface{}, error) {
+func ReadFilesFromMultiPath(filePaths []string) ([]interface{}, error) {
 	var err error
-	var result []map[string]interface{}
-	var tmpResult []map[string]interface{}
+	var result []interface{}
+	var tmpResult []interface{}
 	for _, filePath := range filePaths {
 		if tmpResult, err = ReadFiles(filePath); err != nil {
 			return tmpResult, err
@@ -23,8 +23,8 @@ func ReadFilesFromMultiPath(filePaths []string) ([]map[string]interface{}, error
 	return result, err
 }
 
-func ReadFiles(filePath string) ([]map[string]interface{}, error) {
-	var result []map[string]interface{}
+func ReadFiles(filePath string) ([]interface{}, error) {
+	var result []interface{}
 
 	fileStat, err := os.Stat(filePath)
 	if err != nil {
@@ -35,7 +35,7 @@ func ReadFiles(filePath string) ([]map[string]interface{}, error) {
 		files, err := ioutil.ReadDir(filePath)
 		for _, file := range files {
 			path := filepath.Join(filePath, file.Name())
-			var tmpResult []map[string]interface{}
+			var tmpResult []interface{}
 			if tmpResult, err = ReadFiles(path); err != nil {
 				return result, err
 			}

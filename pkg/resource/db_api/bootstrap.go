@@ -10,6 +10,7 @@ import (
 	"github.com/syunkitada/goapp/pkg/base/base_spec"
 	"github.com/syunkitada/goapp/pkg/lib/exec_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
+	"github.com/syunkitada/goapp/pkg/resource/db_model"
 	"github.com/syunkitada/goapp/pkg/resource/spec/genpkg"
 )
 
@@ -40,6 +41,9 @@ func (api *Api) Bootstrap(tctx *logger.TraceContext, isRecreate bool) (err error
 		return err
 	}
 	if err = db.AutoMigrate(&base_db_model.Service{}).Error; err != nil {
+		return err
+	}
+	if err = db.AutoMigrate(&db_model.Region{}).Error; err != nil {
 		return err
 	}
 

@@ -20,20 +20,16 @@ type GetRegionsData struct {
 }
 
 type CreateRegion struct {
-	Spec string `validate:"required" flagKine:"file"`
+	Spec string `validate:"required" flagKind:"file"`
 }
 
-type CreateRegionData struct {
-	Region Region
-}
+type CreateRegionData struct{}
 
 type UpdateRegion struct {
-	Spec string `validate:"required" flagKine:"file"`
+	Spec string `validate:"required" flagKind:"file"`
 }
 
-type UpdateRegionData struct {
-	Region Region
-}
+type UpdateRegionData struct{}
 
 type DeleteRegion struct {
 	Name string `validate:"required"`

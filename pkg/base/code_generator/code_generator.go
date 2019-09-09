@@ -87,8 +87,13 @@ func convertApi(api *base_model.Api) {
 		for i := 0; i < lenFields; i++ {
 			f := modelType.Field(i)
 			required := false
-			if binding, ok := f.Tag.Lookup("binding"); ok && binding == "required" {
-				required = true
+			if validate, ok := f.Tag.Lookup("validate"); ok {
+				splitedValidate := strings.Split(validate, ",")
+				for _, tag := range splitedValidate {
+					if tag == "required" {
+						required = true
+					}
+				}
 			}
 			flagName := str_utils.ConvertToLowerFormat(f.Name)
 			shortName := flagName[:1]
@@ -99,6 +104,9 @@ func convertApi(api *base_model.Api) {
 					shortName = splitedFlag[1]
 				}
 			}
+			if shortName != "" {
+				flagName += "," + shortName
+			}
 
 			flagKind, ok := f.Tag.Lookup("flagKind")
 			if !ok {
@@ -106,12 +114,11 @@ func convertApi(api *base_model.Api) {
 			}
 			flagType := f.Type.String()
 			flags = append(flags, base_model.Flag{
-				Name:      f.Name,
-				FlagName:  flagName,
-				ShortName: shortName,
-				FlagType:  flagType,
-				FlagKind:  flagKind,
-				Required:  required,
+				Name:     f.Name,
+				FlagName: flagName,
+				FlagType: flagType,
+				FlagKind: flagKind,
+				Required: required,
 			})
 		}
 

@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/olekukonko/tablewriter"
-	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_model"
 	"github.com/syunkitada/goapp/pkg/base/base_client"
 	"github.com/syunkitada/goapp/pkg/base/base_const"
 	"github.com/syunkitada/goapp/pkg/base/base_model/index_model"
@@ -52,7 +51,7 @@ func (ctl *Ctl) index(args []string) error {
 	}
 
 	if !ok {
-		fmt.Printf("Usage: %s [SERVICE] [COMMAND] [OPTION] [FLAGS...]\n\n", ctl.name)
+		fmt.Printf("Usage: %s [SERVICE] [COMMAND] [FLAGS...]\n\n", ctl.name)
 
 		fmt.Println("--- Available Services ---")
 		snames := make([]string, 0, len(loginData.Authority.ServiceMap))
@@ -134,19 +133,14 @@ func (ctl *Ctl) index(args []string) error {
 	for query, cmd := range getServiceIndexData.Index.CmdMap {
 		args := strings.Split(query, ".")
 		helpQuery := strings.Join(args, " ")
-		var helpMsg []string
-		if cmd.Arg != "" {
-			helpMsg = []string{helpQuery, fmt.Sprintf("type=%s,kind=%s (%s)", cmd.ArgType, cmd.ArgKind, cmd.Arg)}
-		} else {
-			helpMsg = []string{helpQuery, "", cmd.Help}
-		}
+		helpMsg := []string{helpQuery}
 		flags := []string{}
 		for f, flag := range cmd.FlagMap {
 			sf := strings.Split(f, ",")
 			if len(sf) == 2 {
-				flags = append(flags, fmt.Sprintf("--%s, -%s [%s (%s)]", sf[0], sf[1], flag.FlagType, flag.Flag))
+				flags = append(flags, fmt.Sprintf("--%s, -%s [%s (%s)]", sf[0], sf[1], flag.FlagType, flag.FlagKind))
 			} else {
-				flags = append(flags, fmt.Sprintf("--%s [%s (%s)]", sf[0], flag.FlagType, flag.Flag))
+				flags = append(flags, fmt.Sprintf("--%s [%s (%s)]", sf[0], flag.FlagType, flag.FlagKind))
 			}
 		}
 
@@ -174,20 +168,13 @@ func (ctl *Ctl) index(args []string) error {
 					if len(cmdArgs) > len(args)+1 {
 						lastArgs = cmdArgs[len(args)+1:]
 					}
-
-					if cmd.Arg == "required" && len(lastArgs) == 0 {
-						cmdQuery = ""
-						break
-					}
 				}
 				break
 			}
 		}
 	}
 
-	strParams := map[string]string{}
-	boolParams := map[string]bool{}
-	intParams := map[string]int{}
+	params := map[string]interface{}{}
 	if cmdInfo.FlagMap != nil {
 		for key, flag := range cmdInfo.FlagMap {
 			splitedKey := strings.Split(key, ",")
@@ -212,31 +199,41 @@ func (ctl *Ctl) index(args []string) error {
 				switch cmdFlag.(type) {
 				case string:
 					if flag.FlagType == base_const.ArgTypeString {
-						strParams[key] = cmdFlag.(string)
+						flagStr := cmdFlag.(string)
+						switch flag.FlagKind {
+						case "file":
+							splitedFlag := strings.Split(flagStr, " ")
+							data, err := json_utils.ReadFilesFromMultiPath(splitedFlag)
+							if err != nil {
+								return err
+							}
+
+							dataBytes, err := json_utils.Marshal(data)
+							if err != nil {
+								return err
+							}
+							params[key] = string(dataBytes)
+						default:
+							params[key] = cmdFlag.(string)
+						}
 					}
 				case bool:
 					if flag.FlagType == base_const.ArgTypeBool {
-						boolParams[key] = cmdFlag.(bool)
+						params[key] = cmdFlag.(bool)
 					}
 				case int:
 					if flag.FlagType == base_const.ArgTypeInt {
-						intParams[key] = cmdFlag.(int)
+						params[key] = cmdFlag.(int)
 					}
 				}
 			}
 		}
 	}
 
-	if ctl.baseConf.EnableDebug {
-		fmt.Println("DEBUG flagMap", flagMap)
-		fmt.Println("DEBUG shortFlagMap", shortFlagMap)
-		fmt.Println("DEBUG lastArg", lastArgs)
-	}
-
 	_, isHelp := flagMap["help"]
 	_, isShortHelp := shortFlagMap["h"]
 	if cmdQuery == "" || isHelp || isShortHelp {
-		fmt.Printf("Usage: %s [SERVICE] [COMMAND] [OPTION] [FLAGS...]\n\n", ctl.name)
+		fmt.Printf("Usage: %s [SERVICE] [COMMAND] [FLAGS...]\n\n", ctl.name)
 
 		fmt.Printf("# Available Commands\n\n")
 
@@ -245,7 +242,7 @@ func (ctl *Ctl) index(args []string) error {
 		})
 
 		table := tablewriter.NewWriter(os.Stdout)
-		table.SetHeader([]string{"COMMAND", "OPTION", "FLAGS"})
+		table.SetHeader([]string{"COMMAND", "FLAGS"})
 		table.SetBorder(false)
 		table.SetAutoWrapText(false)
 		table.SetAlignment(tablewriter.ALIGN_LEFT)
@@ -256,60 +253,24 @@ func (ctl *Ctl) index(args []string) error {
 		return nil
 	}
 
-	if cmdInfo.ArgType == "file" && len(lastArgs) > 0 {
-		data, err := json_utils.ReadFilesFromMultiPath(lastArgs)
-		if err != nil {
-			return err
-		}
-
-		specs := []interface{}{}
-		for _, d := range data {
-			if _, ok := d["Kind"]; ok && d["Kind"].(string) == cmdInfo.ArgKind {
-				if spec, ok := d["Spec"]; ok {
-					specs = append(specs, spec)
-				}
-			}
-		}
-
-		specsBytes, err := json_utils.Marshal(specs)
-		if err != nil {
-			return err
-		}
-
-		queries := []authproxy_model.Query{
-			authproxy_model.Query{
-				Kind: cmdQuery,
-				StrParams: map[string]string{
-					"Specs": string(specsBytes),
-				},
-			},
-		}
-
-		fmt.Println(queries)
-
-		// var tmpResp *authproxy_model.ActionResponse
-		// if tmpResp, err = ctl.client.Action(tctx, loginData.Token, serviceName, queries); err != nil {
-		// 	return err
-		// }
-
-		// ctl.output(&cmdInfo, tmpResp, flagMap)
-		return nil
-	} else if len(lastArgs) > 0 {
+	if len(lastArgs) > 0 {
 		specsBytes, err := json_utils.Marshal(lastArgs)
 		if err != nil {
 			return err
 		}
-		strParams["Args"] = string(specsBytes)
+		params["Args"] = string(specsBytes)
+	}
+
+	if ctl.baseConf.EnableDebug {
+		fmt.Println("DEBUG params", params)
 	}
 
 	queries := []base_client.Query{
 		base_client.Query{
 			Name: str_utils.ConvertToCamelFormat(cmdQuery),
-			Data: map[string]interface{}{},
+			Data: params,
 		},
 	}
-
-	fmt.Println("DEBUG queries", queries)
 
 	var resp interface{}
 	if err = ctl.client.Request(tctx, serviceName, queries, &resp, true); err != nil {

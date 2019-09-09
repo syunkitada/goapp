@@ -9,8 +9,8 @@ var ResourcePhysicalCmdMap = map[string]index_model.Cmd{
 	"get.region": index_model.Cmd{
 		QueryName: "GetRegion",
 		FlagMap: map[string]index_model.Flag{
-			"name": index_model.Flag{
-				Required: false,
+			"name,n": index_model.Flag{
+				Required: true,
 				FlagType: "string",
 				FlagKind: "",
 			},
@@ -25,10 +25,10 @@ var ResourcePhysicalCmdMap = map[string]index_model.Cmd{
 	"create.region": index_model.Cmd{
 		QueryName: "CreateRegion",
 		FlagMap: map[string]index_model.Flag{
-			"spec": index_model.Flag{
-				Required: false,
+			"spec,s": index_model.Flag{
+				Required: true,
 				FlagType: "string",
-				FlagKind: "",
+				FlagKind: "file",
 			},
 		},
 		TableHeader: []string{},
@@ -36,10 +36,10 @@ var ResourcePhysicalCmdMap = map[string]index_model.Cmd{
 	"update.region": index_model.Cmd{
 		QueryName: "UpdateRegion",
 		FlagMap: map[string]index_model.Flag{
-			"spec": index_model.Flag{
-				Required: false,
+			"spec,s": index_model.Flag{
+				Required: true,
 				FlagType: "string",
-				FlagKind: "",
+				FlagKind: "file",
 			},
 		},
 		TableHeader: []string{},
@@ -47,8 +47,8 @@ var ResourcePhysicalCmdMap = map[string]index_model.Cmd{
 	"delete.region": index_model.Cmd{
 		QueryName: "DeleteRegion",
 		FlagMap: map[string]index_model.Flag{
-			"name": index_model.Flag{
-				Required: false,
+			"name,n": index_model.Flag{
+				Required: true,
 				FlagType: "string",
 				FlagKind: "",
 			},

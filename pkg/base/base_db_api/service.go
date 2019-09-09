@@ -2,6 +2,7 @@ package base_db_api
 
 import (
 	"encoding/json"
+	"fmt"
 	"strings"
 
 	"github.com/jinzhu/gorm"
@@ -30,8 +31,10 @@ func (api *Api) CreateOrUpdateService(tctx *logger.TraceContext, db *gorm.DB, in
 				Scope:           input.Scope,
 				SyncRootCluster: input.SyncRootCluster,
 				Endpoints:       strings.Join(input.Endpoints, ","),
+				ProjectRoles:    strings.Join(input.ProjectRoles, ","),
 				QueryMap:        string(queryMapBytes),
 			}
+
 			if err = tx.Create(&service).Error; err != nil {
 				return
 			}
@@ -49,6 +52,7 @@ func (api *Api) CreateOrUpdateService(tctx *logger.TraceContext, db *gorm.DB, in
 		for _, projectRoleName := range input.ProjectRoles {
 			var projectRole base_db_model.ProjectRole
 			if err = db.Where("name = ?", projectRoleName).First(&projectRole).Error; err != nil {
+				err = fmt.Errorf("Failed find projectRole: name=%s, err=%v", projectRoleName, err)
 				return
 			}
 

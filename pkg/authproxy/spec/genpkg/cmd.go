@@ -9,7 +9,7 @@ var HomeCmdMap = map[string]index_model.Cmd{
 	"get.all.users": index_model.Cmd{
 		QueryName: "GetAllUsers",
 		FlagMap: map[string]index_model.Flag{
-			"name": index_model.Flag{
+			"name,n": index_model.Flag{
 				Required: false,
 				FlagType: "string",
 				FlagKind: "",
@@ -20,7 +20,7 @@ var HomeCmdMap = map[string]index_model.Cmd{
 	"get.user": index_model.Cmd{
 		QueryName: "GetUser",
 		FlagMap: map[string]index_model.Flag{
-			"name": index_model.Flag{
+			"name,n": index_model.Flag{
 				Required: false,
 				FlagType: "string",
 				FlagKind: "",
@@ -33,7 +33,7 @@ var HomeProjectCmdMap = map[string]index_model.Cmd{
 	"get.users": index_model.Cmd{
 		QueryName: "GetUsers",
 		FlagMap: map[string]index_model.Flag{
-			"name": index_model.Flag{
+			"name,n": index_model.Flag{
 				Required: false,
 				FlagType: "string",
 				FlagKind: "",
