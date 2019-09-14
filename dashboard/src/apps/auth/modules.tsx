@@ -1,9 +1,17 @@
 import fetch from 'cross-fetch';
 
-function syncState() {
-  const body = JSON.stringify({});
+function loginWithToken() {
+  const body = JSON.stringify({
+    Queries: [
+      {
+        Data: JSON.stringify({}),
+        Name: 'LoginWithToken',
+      },
+    ],
+    Service: 'Auth',
+  });
 
-  return fetch(process.env.REACT_APP_AUTHPROXY_URL + '/dashboard/state', {
+  return fetch(process.env.REACT_APP_AUTHPROXY_URL + '/q', {
     body,
     credentials: 'include',
     method: 'POST',
@@ -11,9 +19,7 @@ function syncState() {
   })
     .then(res => res.json())
     .then(payload => {
-      return {
-        payload,
-      };
+      return {payload};
     })
     .catch(error => {
       return {error};
@@ -22,13 +28,18 @@ function syncState() {
 
 function login({username, password}) {
   const body = JSON.stringify({
-    password,
-    username,
+    Queries: [
+      {
+        Data: JSON.stringify({User: username, Password: password}),
+        Name: 'Login',
+      },
+    ],
+    Service: 'Auth',
   });
 
   console.log('debug login', username, password);
 
-  return fetch(process.env.REACT_APP_AUTHPROXY_URL + '/dashboard/login', {
+  return fetch(process.env.REACT_APP_AUTHPROXY_URL + '/q', {
     body,
     credentials: 'include',
     method: 'POST',
@@ -44,7 +55,18 @@ function login({username, password}) {
 }
 
 function logout() {
-  return fetch(process.env.REACT_APP_AUTHPROXY_URL + '/dashboard/logout', {
+  const body = JSON.stringify({
+    Queries: [
+      {
+        Data: JSON.stringify({}),
+        Name: 'Logout',
+      },
+    ],
+    Service: 'Auth',
+  });
+
+  return fetch(process.env.REACT_APP_AUTHPROXY_URL + '/q', {
+    body,
     credentials: 'include',
     method: 'POST',
     mode: 'cors',
@@ -60,6 +82,6 @@ function logout() {
 
 export default {
   login,
+  loginWithToken,
   logout,
-  syncState,
 };

@@ -5,18 +5,21 @@ import (
 
 	"github.com/syunkitada/goapp/pkg/base/base_config"
 	"github.com/syunkitada/goapp/pkg/base/base_db_model"
+	"github.com/syunkitada/goapp/pkg/base/base_model"
 	"github.com/syunkitada/goapp/pkg/base/base_spec"
 	"github.com/syunkitada/goapp/pkg/lib/error_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
 
 type IApi interface {
-	Open(tctx *logger.TraceContext) (*gorm.DB, error)
+	Open(tctx *logger.TraceContext) (db *gorm.DB, err error)
 	Close(tctx *logger.TraceContext, db *gorm.DB)
 	GetUserWithValidatePassword(tctx *logger.TraceContext, db *gorm.DB, name string, password string) (user *base_db_model.User, code uint8, err error)
-	GetUserAuthority(tctx *logger.TraceContext, db *gorm.DB, username string) (*base_spec.UserAuthority, error)
+	GetUserAuthority(tctx *logger.TraceContext, db *gorm.DB, username string) (data *base_spec.UserAuthority, err error)
 	CreateOrUpdateService(tctx *logger.TraceContext, db *gorm.DB, input *base_spec.UpdateService) (err error)
-	GetServices(tctx *logger.TraceContext, db *gorm.DB, input *base_spec.GetServices) (*base_spec.GetServicesData, error)
+	GetServices(tctx *logger.TraceContext, db *gorm.DB, input *base_spec.GetServices) (data *base_spec.GetServicesData, err error)
+	LoginWithToken(tctx *logger.TraceContext, db *gorm.DB, token string) (data *base_spec.UserAuthority, err error)
+	IssueToken(userName string) (token string, err error)
 }
 
 type Api struct {
@@ -24,14 +27,16 @@ type Api struct {
 	appConf      *base_config.AppConfig
 	databaseConf base_config.DatabaseConfig
 	secrets      []string
+	apiQueryMap  map[string]map[string]base_model.QueryModel
 }
 
-func New(baseConf *base_config.Config, appConf *base_config.AppConfig) *Api {
+func New(baseConf *base_config.Config, appConf *base_config.AppConfig, apiQueryMap map[string]map[string]base_model.QueryModel) *Api {
 	api := Api{
 		baseConf:     baseConf,
 		appConf:      appConf,
 		databaseConf: appConf.Database,
 		secrets:      appConf.Auth.Secrets,
+		apiQueryMap:  apiQueryMap,
 	}
 
 	return &api

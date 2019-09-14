@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/tls"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -21,6 +22,7 @@ import (
 	"github.com/syunkitada/goapp/pkg/base/base_db_api"
 	"github.com/syunkitada/goapp/pkg/base/base_model"
 	"github.com/syunkitada/goapp/pkg/base/base_spec"
+	"github.com/syunkitada/goapp/pkg/lib/error_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
 
@@ -37,14 +39,18 @@ type BaseApp struct {
 	loopInterval       time.Duration
 	isGracefulShutdown bool
 	server             *http.Server
-	handler            http.Handler
 	shutdownTimeout    time.Duration
 	rootClient         *base_client.Client
 	dbApi              base_db_api.IApi
 	serviceMap         map[string]base_model.ServiceRouter
+	queryHandler       IQueryHandler
 }
 
-func New(conf *base_config.Config, appConf *base_config.AppConfig, dbApi base_db_api.IApi) BaseApp {
+type IQueryHandler interface {
+	Exec(tctx *logger.TraceContext, userAuthority *base_spec.UserAuthority, httpReq *http.Request, rw http.ResponseWriter, req *base_model.Request, rep *base_model.Response) error
+}
+
+func New(conf *base_config.Config, appConf *base_config.AppConfig, dbApi base_db_api.IApi, queryHandler IQueryHandler) BaseApp {
 	if appConf.LoopInterval == 0 {
 		appConf.LoopInterval = 5
 	}
@@ -65,11 +71,8 @@ func New(conf *base_config.Config, appConf *base_config.AppConfig, dbApi base_db
 		shutdownTimeout:    time.Duration(appConf.ShutdownTimeout) * time.Second,
 		rootClient:         base_client.NewClient(&appConf.RootClient),
 		dbApi:              dbApi,
+		queryHandler:       queryHandler,
 	}
-}
-
-func (app *BaseApp) SetHandler(handler http.Handler) {
-	app.handler = handler
 }
 
 func (app *BaseApp) SetDriver(driver BaseAppDriver) {
@@ -192,7 +195,7 @@ func (app *BaseApp) Serve() {
 
 	app.server = &http.Server{
 		Addr:           app.appConf.Listen,
-		Handler:        app.handler,
+		Handler:        app.NewHandler(),
 		ReadTimeout:    10 * time.Second,
 		WriteTimeout:   10 * time.Second,
 		MaxHeaderBytes: 1 << 20,
@@ -259,4 +262,79 @@ func (app *BaseApp) Proxy(tctx *logger.TraceContext, endpoint string, rawReq []b
 	statusCode = httpResp.StatusCode
 	repBytes, err = ioutil.ReadAll(httpResp.Body)
 	return
+}
+
+func (app *BaseApp) NewHandler() http.Handler {
+	handler := http.NewServeMux()
+	handler.HandleFunc("/q", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println("DEBUGHOST req", r.Host)
+		var err error
+		tctx := logger.NewTraceContext(app.host, app.name)
+		startTime := logger.StartTrace(tctx)
+		defer func() {
+			if p := recover(); p != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				err = error_utils.NewRecoveredError(p)
+				logger.Errorf(tctx, err, "Panic occured")
+			}
+		}()
+
+		w.Header().Set("Access-Control-Allow-Origin", "http://192.168.10.121:3000") // TODO FIXME
+		w.Header().Set("Access-Control-Allow-Credentials", "true")                  // TODO FIXME
+
+		var db *gorm.DB
+		if db, err = app.dbApi.Open(tctx); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			// TODO write body
+			return
+		}
+		defer app.dbApi.Close(tctx, db)
+
+		service, userAuthority, rawReq, req, rep, err := app.Start(tctx, db, r)
+		defer func() { app.End(tctx, startTime, err) }()
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			var bytes []byte
+			bytes, err = json.Marshal(&rep)
+			if err != nil {
+				logger.Error(tctx, err, "Failed json.Marshal")
+				return
+			}
+			w.Write(bytes)
+			return
+		}
+
+		statusCode := 0
+		var repBytes []byte
+		for _, endpoint := range service.Endpoints {
+			if endpoint == "" {
+				if err = app.queryHandler.Exec(tctx, userAuthority, r, w, req, rep); err != nil {
+					continue
+				}
+				repBytes, err = json.Marshal(&rep)
+				break
+			}
+
+			if repBytes, statusCode, err = app.Proxy(tctx, endpoint, rawReq); err != nil {
+				fmt.Println("DEBUG Failed err", err)
+				continue
+			} else {
+				fmt.Println("DEBUG success")
+				break
+			}
+		}
+
+		if statusCode != 0 {
+			w.WriteHeader(statusCode)
+		} else {
+			if err == nil {
+				w.WriteHeader(http.StatusOK)
+			} else {
+				w.WriteHeader(http.StatusInternalServerError)
+			}
+		}
+		w.Write(repBytes)
+	})
+
+	return handler
 }

@@ -127,7 +127,10 @@ export default reducerWithInitialState(defaultState)
     }
 
     const actionType = payload.action.type;
-    const tctx = payload.result.Tctx;
+    const tctx: any = {
+      StatusCode: payload.result.Code,
+      TraceId: payload.result.TraceId,
+    };
 
     let isGetIndex = false;
     switch (actionType) {
@@ -146,10 +149,6 @@ export default reducerWithInitialState(defaultState)
       default:
         console.log('DEBUG unknownaction', actionType);
         break;
-    }
-    if (!tctx) {
-      logger.error('reducers', 'servicePostError: not found tctx', newState);
-      return newState;
     }
 
     if (tctx.StatusCode >= 300) {

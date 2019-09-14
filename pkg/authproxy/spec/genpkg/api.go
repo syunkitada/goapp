@@ -2,6 +2,8 @@ package genpkg
 
 import (
 	"encoding/json"
+	"net/http"
+	"time"
 
 	"github.com/jinzhu/gorm"
 
@@ -15,8 +17,10 @@ import (
 
 type QueryResolver interface {
 	Login(tctx *logger.TraceContext, db *gorm.DB, input *base_spec.Login) (*base_spec.LoginData, uint8, error)
+	LoginWithToken(tctx *logger.TraceContext, db *gorm.DB, input *base_spec.LoginWithToken, user *base_spec.UserAuthority) (*base_spec.LoginWithTokenData, uint8, error)
 	UpdateService(tctx *logger.TraceContext, db *gorm.DB, input *base_spec.UpdateService) (*base_spec.UpdateServiceData, uint8, error)
 	GetServiceIndex(tctx *logger.TraceContext, db *gorm.DB, input *base_spec.GetServiceIndex) (*base_spec.GetServiceIndexData, uint8, error)
+	GetServiceDashboardIndex(tctx *logger.TraceContext, db *gorm.DB, input *base_spec.GetServiceDashboardIndex) (*base_spec.GetServiceDashboardIndexData, uint8, error)
 	GetAllUsers(tctx *logger.TraceContext, db *gorm.DB, input *base_spec.GetAllUsers) (*base_spec.GetAllUsersData, uint8, error)
 	GetUser(tctx *logger.TraceContext, db *gorm.DB, input *base_spec.GetUser) (*base_spec.GetUserData, uint8, error)
 	GetUsers(tctx *logger.TraceContext, db *gorm.DB, input *base_spec.GetUsers) (*base_spec.GetUsersData, uint8, error)
@@ -38,7 +42,8 @@ func NewQueryHandler(baseConf *base_config.Config, appConf *base_config.AppConfi
 	}
 }
 
-func (handler *QueryHandler) Exec(tctx *logger.TraceContext, req *base_model.Request, rep *base_model.Response) error {
+func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.UserAuthority, httpReq *http.Request, rw http.ResponseWriter,
+	req *base_model.Request, rep *base_model.Response) error {
 	var err error
 	for _, query := range req.Queries {
 		switch query.Name {
@@ -56,6 +61,36 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, req *base_model.Req
 			defer handler.dbApi.Close(tctx, db)
 
 			data, code, err := handler.resolver.Login(tctx, db, &input)
+			if err != nil {
+				if code == 0 {
+					code = base_const.CodeServerInternalError
+				}
+				rep.Error = err.Error()
+			}
+			rep.Code = code
+			rep.Data["Login"] = data
+			cookie := http.Cookie{
+				Name:     "X-Auth-Token",
+				Value:    data.Token,
+				Secure:   true,
+				HttpOnly: true,
+				Expires:  time.Now().Add(1 * time.Hour), // TODO Configurable
+			} // FIXME SameSite, Expires
+			http.SetCookie(rw, &cookie)
+		case "LoginWithToken":
+			var input base_spec.LoginWithToken
+			err = json.Unmarshal([]byte(query.Data), &input)
+			if err != nil {
+				return err
+			}
+
+			var db *gorm.DB
+			if db, err = handler.dbApi.Open(tctx); err != nil {
+				return err
+			}
+			defer handler.dbApi.Close(tctx, db)
+
+			data, code, err := handler.resolver.LoginWithToken(tctx, db, &input, user)
 			if err != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -108,6 +143,28 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, req *base_model.Req
 			}
 			rep.Code = code
 			rep.Data["GetServiceIndex"] = data
+		case "GetServiceDashboardIndex":
+			var input base_spec.GetServiceDashboardIndex
+			err = json.Unmarshal([]byte(query.Data), &input)
+			if err != nil {
+				return err
+			}
+
+			var db *gorm.DB
+			if db, err = handler.dbApi.Open(tctx); err != nil {
+				return err
+			}
+			defer handler.dbApi.Close(tctx, db)
+
+			data, code, err := handler.resolver.GetServiceDashboardIndex(tctx, db, &input)
+			if err != nil {
+				if code == 0 {
+					code = base_const.CodeServerInternalError
+				}
+				rep.Error = err.Error()
+			}
+			rep.Code = code
+			rep.Data["GetServiceDashboardIndex"] = data
 		case "GetAllUsers":
 			var input base_spec.GetAllUsers
 			err = json.Unmarshal([]byte(query.Data), &input)

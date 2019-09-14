@@ -1,14 +1,11 @@
 package base_resolver
 
 import (
-	"fmt"
-	"time"
-
-	"github.com/dgrijalva/jwt-go"
 	"github.com/jinzhu/gorm"
 
-	"github.com/syunkitada/goapp/pkg/base/base_model"
+	"github.com/syunkitada/goapp/pkg/base/base_const"
 	"github.com/syunkitada/goapp/pkg/base/base_spec"
+	"github.com/syunkitada/goapp/pkg/lib/error_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
 
@@ -18,7 +15,7 @@ func (resolver *Resolver) Login(tctx *logger.TraceContext, db *gorm.DB, input *b
 		return
 	}
 
-	token, err := resolver.issueToken(user.Name)
+	token, err := resolver.dbApi.IssueToken(user.Name)
 	if err != nil {
 		return
 	}
@@ -28,25 +25,20 @@ func (resolver *Resolver) Login(tctx *logger.TraceContext, db *gorm.DB, input *b
 		return
 	}
 
-	fmt.Println("DEBUG LOGIN")
 	data = &base_spec.LoginData{
-		Name:      input.User,
 		Token:     token,
 		Authority: *userAuthority,
 	}
 	return
 }
 
-func (resolver *Resolver) issueToken(userName string) (string, error) {
-	claims := base_model.JwtClaims{
-		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(time.Hour * 24).Unix(),
-			Issuer:    userName,
-		},
+func (resolver *Resolver) LoginWithToken(tctx *logger.TraceContext, db *gorm.DB, input *base_spec.LoginWithToken, user *base_spec.UserAuthority) (data *base_spec.LoginWithTokenData, code uint8, err error) {
+	data = &base_spec.LoginWithTokenData{Authority: *user}
+	if user == nil {
+		code = base_const.CodeClientInvalidAuth
+		err = error_utils.NewInvalidAuthError("Invalid Token")
+		return
 	}
-	newToken := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-
-	// Sign token with key
-	tokenString, tokenErr := newToken.SignedString([]byte(resolver.appConf.Auth.Secrets[0]))
-	return tokenString, tokenErr
+	code = base_const.CodeOk
+	return
 }

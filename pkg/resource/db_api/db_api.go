@@ -4,6 +4,7 @@ import (
 	"github.com/syunkitada/goapp/pkg/base/base_config"
 	"github.com/syunkitada/goapp/pkg/base/base_db_api"
 	"github.com/syunkitada/goapp/pkg/resource/config"
+	"github.com/syunkitada/goapp/pkg/resource/spec/genpkg"
 )
 
 type Api struct {
@@ -16,7 +17,7 @@ type Api struct {
 
 func New(baseConf *base_config.Config, mainConf *config.Config) *Api {
 	api := Api{
-		Api:          base_db_api.New(baseConf, &mainConf.Resource.App),
+		Api:          base_db_api.New(baseConf, &mainConf.Resource.App, genpkg.ApiQueryMap),
 		databaseConf: mainConf.Resource.App.Database,
 		baseConf:     baseConf,
 		mainConf:     mainConf,

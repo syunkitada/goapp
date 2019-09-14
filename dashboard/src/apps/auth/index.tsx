@@ -7,14 +7,14 @@ import logger from '../../lib/logger';
 interface IAuth {
   auth;
   children;
-  syncState: () => null;
+  loginWithToken: () => null;
 }
 
 class Auth extends React.Component<IAuth> {
   public componentWillMount() {
     if (!this.props.auth.isSyncState) {
       logger.info('Auth', 'componentWillMount()');
-      this.props.syncState();
+      this.props.loginWithToken();
     }
   }
 
@@ -34,8 +34,8 @@ function mapStateToProps(state, ownProps) {
 
 function mapDispatchToProps(dispatch, ownProps) {
   return {
-    syncState: () => {
-      dispatch(actions.auth.authSyncState());
+    loginWithToken: () => {
+      dispatch(actions.auth.authLoginWithToken());
     },
   };
 }

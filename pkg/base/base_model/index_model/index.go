@@ -1,5 +1,10 @@
 package index_model
 
+type DashboardIndex struct {
+	SyncDelay uint
+	View      interface{}
+}
+
 type Index struct {
 	SyncDelay uint
 	CmdMap    map[string]Cmd

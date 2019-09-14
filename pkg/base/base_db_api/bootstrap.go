@@ -1,11 +1,9 @@
-package db_api
+package base_db_api
 
 import (
 	"fmt"
 
 	"github.com/jinzhu/gorm"
-
-	"github.com/syunkitada/goapp/pkg/authproxy/spec/genpkg"
 	"github.com/syunkitada/goapp/pkg/base/base_db_model"
 	"github.com/syunkitada/goapp/pkg/base/base_model"
 	"github.com/syunkitada/goapp/pkg/base/base_spec"
@@ -84,20 +82,22 @@ func (api *Api) Bootstrap(tctx *logger.TraceContext, isRecreate bool) (err error
 		ProjectRoles:    []string{"admin", "service", "tenant"},
 		Endpoints:       []string{},
 		QueryMap: map[string]base_model.QueryModel{
-			"Login":         base_model.QueryModel{},
-			"UpdateService": base_model.QueryModel{},
+			"Login":          base_model.QueryModel{},
+			"LoginWithToken": base_model.QueryModel{},
+			"UpdateService":  base_model.QueryModel{},
 		},
 	}); err != nil {
 		return err
 	}
 
 	for _, service := range api.appConf.Auth.DefaultServices {
-		queryMap, ok := genpkg.ApiQueryMap[service.Name]
+		queryMap, ok := api.apiQueryMap[service.Name]
 		if !ok {
 			fmt.Printf("Invalid service: querymap not found: %s\n", service.Name)
 			continue
 		}
 		queryMap["GetServiceIndex"] = base_model.QueryModel{}
+		queryMap["GetServiceDashboardIndex"] = base_model.QueryModel{}
 
 		if err = api.CreateOrUpdateService(tctx, db, &base_spec.UpdateService{
 			Name:            service.Name,

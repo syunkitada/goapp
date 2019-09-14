@@ -121,7 +121,7 @@ func (authproxy *Authproxy) AuthRequired() gin.HandlerFunc {
 			return
 		}
 
-		value, cookieErr := c.Cookie("token")
+		value, cookieErr := c.Cookie("X-Auth-Token")
 		if cookieErr == nil {
 			tokenAuthRequest.Token = value
 		}

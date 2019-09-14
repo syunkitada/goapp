@@ -9,20 +9,35 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jinzhu/gorm"
 	"github.com/syunkitada/goapp/pkg/base/base_const"
 	"github.com/syunkitada/goapp/pkg/base/base_model"
+	"github.com/syunkitada/goapp/pkg/base/base_spec"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
 
-func (app *BaseApp) Start(r *http.Request) (tctx *logger.TraceContext, service *base_model.ServiceRouter,
-	rawReq []byte, req *base_model.Request, res *base_model.Response, startTime time.Time, err error) {
-	tctx = logger.NewTraceContext(app.host, app.name)
-	startTime = logger.StartTrace(tctx)
+func (app *BaseApp) Start(tctx *logger.TraceContext, db *gorm.DB, httpReq *http.Request) (service *base_model.ServiceRouter,
+	userAuthority *base_spec.UserAuthority, rawReq []byte, req *base_model.Request, res *base_model.Response, err error) {
 	res = &base_model.Response{TraceId: tctx.GetTraceId(), Data: map[string]interface{}{}}
+
+	token := httpReq.Header.Get("X-Auth-Token")
+	if token == "" {
+		var tokenCookie *http.Cookie
+		if tokenCookie, err = httpReq.Cookie("X-Auth-Token"); err != nil {
+			fmt.Println("cookie is err:", err) // FIXME debug print
+		} else {
+			token = tokenCookie.Value
+		}
+	}
+	var tokenErr error
+	if token != "" {
+		userAuthority, tokenErr = app.dbApi.LoginWithToken(tctx, db, token)
+		fmt.Println("debug tokenErr", tokenErr) // FIXME debug print
+	}
 
 	req = &base_model.Request{}
 	bufbody := new(bytes.Buffer)
-	bufbody.ReadFrom(r.Body)
+	bufbody.ReadFrom(httpReq.Body)
 	rawReq = bufbody.Bytes()
 	if err = json.Unmarshal(rawReq, &req); err != nil {
 		res.Code = base_const.CodeServerInternalError
@@ -42,7 +57,7 @@ func (app *BaseApp) Start(r *http.Request) (tctx *logger.TraceContext, service *
 		queryModel, ok := tmpService.QueryMap[query.Name]
 		if !ok {
 			res.Code = base_const.CodeClientBadRequest
-			err = fmt.Errorf("InvalidQuery")
+			err = fmt.Errorf("InvalidQuery: %s", query.Name)
 			res.Error = err.Error()
 			return
 		}

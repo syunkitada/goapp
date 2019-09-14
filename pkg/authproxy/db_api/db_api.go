@@ -2,6 +2,7 @@ package db_api
 
 import (
 	"github.com/syunkitada/goapp/pkg/authproxy/config"
+	"github.com/syunkitada/goapp/pkg/authproxy/spec/genpkg"
 	"github.com/syunkitada/goapp/pkg/base/base_config"
 	"github.com/syunkitada/goapp/pkg/base/base_db_api"
 )
@@ -16,7 +17,7 @@ type Api struct {
 
 func New(baseConf *base_config.Config, mainConf *config.Config) *Api {
 	api := Api{
-		Api:          base_db_api.New(baseConf, &mainConf.Authproxy.App),
+		Api:          base_db_api.New(baseConf, &mainConf.Authproxy.App, genpkg.ApiQueryMap),
 		databaseConf: mainConf.Authproxy.App.Database,
 		baseConf:     baseConf,
 		mainConf:     mainConf,

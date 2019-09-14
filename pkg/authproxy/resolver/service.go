@@ -1,6 +1,8 @@
 package resolver
 
 import (
+	"fmt"
+
 	"github.com/jinzhu/gorm"
 
 	"github.com/syunkitada/goapp/pkg/base/base_const"
@@ -27,5 +29,10 @@ func (resolver *Resolver) GetServiceIndex(tctx *logger.TraceContext, db *gorm.DB
 		},
 	}
 
+	return
+}
+
+func (resolver *Resolver) GetServiceDashboardIndex(tctx *logger.TraceContext, db *gorm.DB, input *base_spec.GetServiceDashboardIndex) (data *base_spec.GetServiceDashboardIndexData, code uint8, err error) {
+	fmt.Println("GetServiceDashboardIndex")
 	return
 }

@@ -16,11 +16,18 @@ type Login struct {
 
 type LoginData struct {
 	Token     string
-	Name      string
+	Authority UserAuthority
+}
+
+type LoginWithToken struct {
+}
+
+type LoginWithTokenData struct {
 	Authority UserAuthority
 }
 
 type UserAuthority struct {
+	Name                 string
 	ServiceMap           map[string]uint
 	ProjectServiceMap    map[string]ProjectService
 	ActionProjectService ProjectService

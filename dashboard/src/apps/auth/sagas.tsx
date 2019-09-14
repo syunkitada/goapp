@@ -3,18 +3,18 @@ import {call, put, takeEvery} from 'redux-saga/effects';
 import actions from '../../actions';
 import modules from '../../modules';
 
-function* syncState(action) {
-  const {payload, error} = yield call(modules.auth.syncState);
+function* loginWithToken(action) {
+  const {payload, error} = yield call(modules.auth.loginWithToken);
 
   if (error) {
     yield put(actions.auth.authLoginFailure({error: error.message}));
-  } else if (payload.Err && payload.Err !== '') {
-    yield put(actions.auth.authLoginFailure({error: payload.Err}));
+  } else if (payload.Error && payload.Error !== '') {
+    yield put(actions.auth.authLoginFailure({error: payload.Error}));
   } else {
     yield put(
       actions.auth.authLoginSuccess({
-        authority: payload.Authority,
-        username: payload.Name,
+        authority: payload.Data.Login.Authority,
+        username: payload.Data.Login.Authority.Name,
       }),
     );
   }
@@ -25,14 +25,15 @@ function* login(action) {
 
   if (error) {
     yield put(actions.auth.authLoginFailure(error.message));
-  } else if (payload.error && payload.error !== '') {
+  } else if (payload.Error && payload.Error !== '') {
     yield put(actions.auth.authLoginFailure(payload.error));
   } else {
-    const user = {
-      authority: payload.Authority,
-      username: payload.Name,
-    };
-    yield put(actions.auth.authLoginSuccess(user));
+    yield put(
+      actions.auth.authLoginSuccess({
+        authority: payload.Data.Login.Authority,
+        username: payload.Data.Login.Authority.Name,
+      }),
+    );
   }
 }
 
@@ -50,8 +51,8 @@ function* watchLogin() {
   yield takeEvery(actions.auth.authLogin, login);
 }
 
-function* watchSyncState() {
-  yield takeEvery(actions.auth.authSyncState, syncState);
+function* watchLoginWithToken() {
+  yield takeEvery(actions.auth.authLoginWithToken, loginWithToken);
 }
 
 function* watchLogout() {
@@ -60,6 +61,6 @@ function* watchLogout() {
 
 export default {
   watchLogin,
+  watchLoginWithToken,
   watchLogout,
-  watchSyncState,
 };

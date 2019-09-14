@@ -3,12 +3,15 @@ package base_db_api
 import (
 	"encoding/hex"
 	"fmt"
+	"time"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/jinzhu/gorm"
 	"golang.org/x/crypto/scrypt"
 
 	"github.com/syunkitada/goapp/pkg/base/base_const"
 	"github.com/syunkitada/goapp/pkg/base/base_db_model"
+	"github.com/syunkitada/goapp/pkg/base/base_model"
 	"github.com/syunkitada/goapp/pkg/base/base_spec"
 	"github.com/syunkitada/goapp/pkg/lib/error_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
@@ -92,6 +95,7 @@ func (api *Api) GetUserAuthority(tctx *logger.TraceContext, db *gorm.DB, usernam
 	}
 
 	userAuthority := base_spec.UserAuthority{
+		Name:              username,
 		ServiceMap:        serviceMap,
 		ProjectServiceMap: projectServiceMap,
 	}
@@ -134,4 +138,46 @@ func (api *Api) generateHashFromPassword(password string) (string, error) {
 	}
 
 	return hex.EncodeToString(converted[:]), nil
+}
+
+func (api *Api) IssueToken(userName string) (string, error) {
+	claims := base_model.JwtClaims{
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: time.Now().Add(time.Hour * 24).Unix(),
+			Issuer:    userName,
+		},
+	}
+	newToken := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	// Sign token with key
+	tokenString, tokenErr := newToken.SignedString([]byte(api.secrets[0]))
+	return tokenString, tokenErr
+}
+
+func (api *Api) LoginWithToken(tctx *logger.TraceContext, db *gorm.DB, token string) (data *base_spec.UserAuthority, err error) {
+	parsedToken, err := jwt.Parse(token, func(t *jwt.Token) (interface{}, error) {
+		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+			msg := fmt.Errorf("Unexpected signing method: %v", t.Header["alg"])
+			return nil, msg
+		}
+		return []byte(api.secrets[0]), nil
+	})
+
+	if err != nil {
+		return
+	}
+
+	claims, ok := parsedToken.Claims.(jwt.MapClaims)
+	if !ok {
+		err = error_utils.NewInvalidAuthError("Token is ng")
+		return
+	}
+	if !parsedToken.Valid {
+		err = error_utils.NewInvalidAuthError("Invalid Token")
+		return
+	}
+
+	issuer := claims["iss"].(string)
+	data, err = api.GetUserAuthority(tctx, db, issuer)
+	return
 }

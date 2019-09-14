@@ -1,17 +1,12 @@
 package server
 
 import (
-	"encoding/json"
-	"fmt"
-	"net/http"
-
 	"github.com/syunkitada/goapp/pkg/authproxy/config"
 	"github.com/syunkitada/goapp/pkg/authproxy/db_api"
 	"github.com/syunkitada/goapp/pkg/authproxy/resolver"
 	"github.com/syunkitada/goapp/pkg/authproxy/spec/genpkg"
 	"github.com/syunkitada/goapp/pkg/base/base_app"
 	"github.com/syunkitada/goapp/pkg/base/base_config"
-	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
 
 type Server struct {
@@ -23,71 +18,15 @@ type Server struct {
 
 func New(baseConf *base_config.Config, mainConf *config.Config) *Server {
 	dbApi := db_api.New(baseConf, mainConf)
-	baseApp := base_app.New(baseConf, &mainConf.Authproxy.App, dbApi)
 	resolver := resolver.New(baseConf, mainConf, dbApi)
 	queryHandler := genpkg.NewQueryHandler(baseConf, &mainConf.Authproxy.App, dbApi, resolver)
+	baseApp := base_app.New(baseConf, &mainConf.Authproxy.App, dbApi, queryHandler)
 
 	srv := &Server{
-		BaseApp:      baseApp,
-		baseConf:     baseConf,
-		mainConf:     mainConf,
-		queryHandler: queryHandler,
+		BaseApp:  baseApp,
+		baseConf: baseConf,
+		mainConf: mainConf,
 	}
-	handler := srv.NewHandler()
-	srv.SetHandler(handler)
 	srv.SetDriver(srv)
 	return srv
-}
-
-func (srv *Server) NewHandler() http.Handler {
-	handler := http.NewServeMux()
-	handler.HandleFunc("/q", func(w http.ResponseWriter, r *http.Request) {
-		var err error
-		tctx, service, rawReq, req, rep, startTime, err := srv.Start(r)
-		defer func() { srv.End(tctx, startTime, err) }()
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			var bytes []byte
-			bytes, err = json.Marshal(&rep)
-			if err != nil {
-				logger.Error(tctx, err, "Failed json.Marshal")
-				return
-			}
-			w.Write(bytes)
-			return
-		}
-
-		statusCode := 0
-		var repBytes []byte
-		for _, endpoint := range service.Endpoints {
-			if endpoint == "" {
-				if err = srv.queryHandler.Exec(tctx, req, rep); err != nil {
-					continue
-				}
-				repBytes, err = json.Marshal(&rep)
-				break
-			}
-
-			if repBytes, statusCode, err = srv.Proxy(tctx, endpoint, rawReq); err != nil {
-				fmt.Println("DEBUG Failed err", err)
-				continue
-			} else {
-				fmt.Println("DEBUG success")
-				break
-			}
-		}
-
-		if statusCode != 0 {
-			w.WriteHeader(statusCode)
-		} else {
-			if err == nil {
-				w.WriteHeader(http.StatusOK)
-			} else {
-				w.WriteHeader(http.StatusInternalServerError)
-			}
-		}
-		w.Write(repBytes)
-	})
-
-	return handler
 }

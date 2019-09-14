@@ -40,3 +40,12 @@ type GetServiceIndex struct {
 type GetServiceIndexData struct {
 	Index index_model.Index
 }
+
+type GetServiceDashboardIndex struct {
+	Name string
+}
+
+type GetServiceDashboardIndexData struct {
+	Index index_model.Index
+	Data  interface{}
+}

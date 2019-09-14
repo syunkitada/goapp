@@ -2,7 +2,7 @@ import actionCreatorFactory from 'typescript-fsa';
 
 const actionCreator = actionCreatorFactory();
 
-export const authSyncState = actionCreator('AUTH_SYNC_STATE');
+export const authLoginWithToken = actionCreator('AUTH_LOGIN_WITH_TOKEN');
 
 export const authLogin = actionCreator<{username: string; password: string}>(
   'AUTH_LOGIN',

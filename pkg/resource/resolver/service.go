@@ -32,3 +32,27 @@ func (resolver *Resolver) GetServiceIndex(tctx *logger.TraceContext, db *gorm.DB
 
 	return
 }
+
+func (resolver *Resolver) GetServiceDashboardIndex(tctx *logger.TraceContext, db *gorm.DB,
+	input *base_spec.GetServiceDashboardIndex) (data *base_spec.GetServiceDashboardIndexData, code uint8, err error) {
+	switch input.Name {
+	case "ResourcePhysical":
+		data = &base_spec.GetServiceDashboardIndexData{
+			Index: index_model.Index{
+				CmdMap: genpkg.ResourcePhysicalCmdMap,
+			},
+		}
+		code = base_const.CodeOk
+	case "ResourceVirtual":
+		data = &base_spec.GetServiceDashboardIndexData{
+			Index: index_model.Index{
+				CmdMap: genpkg.ResourceVirtualCmdMap,
+			},
+		}
+		code = base_const.CodeOk
+	default:
+		code = base_const.CodeClientNotFound
+	}
+
+	return
+}

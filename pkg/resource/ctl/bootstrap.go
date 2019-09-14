@@ -20,6 +20,10 @@ var bootstrapCmd = &cobra.Command{
 			logger.Fatalf(tctx, "Failed Bootstrap: %v", err)
 		}
 		fmt.Println("Success Bootstrap")
+		if err := dbApi.BootstrapResource(tctx, false); err != nil {
+			logger.Fatalf(tctx, "Failed BootstrapResource: %v", err)
+		}
+		fmt.Println("Success BootstrapResource")
 	},
 }
 
