@@ -316,10 +316,10 @@ func (app *BaseApp) NewHandler() http.Handler {
 			}
 
 			if repBytes, statusCode, err = app.Proxy(tctx, endpoint, rawReq); err != nil {
-				fmt.Println("DEBUG Failed err", err)
+				fmt.Println("DEBUG proxy failed", err)
 				continue
 			} else {
-				fmt.Println("DEBUG success")
+				fmt.Println("DEBUG proxy success", endpoint, req, string(rawReq))
 				break
 			}
 		}

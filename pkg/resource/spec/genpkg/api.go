@@ -32,6 +32,26 @@ type QueryResolver interface {
 	CreateDatacenter(tctx *logger.TraceContext, db *gorm.DB, input *spec.CreateDatacenter) (*spec.CreateDatacenterData, uint8, error)
 	UpdateDatacenter(tctx *logger.TraceContext, db *gorm.DB, input *spec.UpdateDatacenter) (*spec.UpdateDatacenterData, uint8, error)
 	DeleteDatacenter(tctx *logger.TraceContext, db *gorm.DB, input *spec.DeleteDatacenter) (*spec.DeleteDatacenterData, uint8, error)
+	GetFloor(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetFloor) (*spec.GetFloorData, uint8, error)
+	GetFloors(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetFloors) (*spec.GetFloorsData, uint8, error)
+	CreateFloor(tctx *logger.TraceContext, db *gorm.DB, input *spec.CreateFloor) (*spec.CreateFloorData, uint8, error)
+	UpdateFloor(tctx *logger.TraceContext, db *gorm.DB, input *spec.UpdateFloor) (*spec.UpdateFloorData, uint8, error)
+	DeleteFloor(tctx *logger.TraceContext, db *gorm.DB, input *spec.DeleteFloor) (*spec.DeleteFloorData, uint8, error)
+	GetRack(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetRack) (*spec.GetRackData, uint8, error)
+	GetRacks(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetRacks) (*spec.GetRacksData, uint8, error)
+	CreateRack(tctx *logger.TraceContext, db *gorm.DB, input *spec.CreateRack) (*spec.CreateRackData, uint8, error)
+	UpdateRack(tctx *logger.TraceContext, db *gorm.DB, input *spec.UpdateRack) (*spec.UpdateRackData, uint8, error)
+	DeleteRack(tctx *logger.TraceContext, db *gorm.DB, input *spec.DeleteRack) (*spec.DeleteRackData, uint8, error)
+	GetPhysicalModel(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetPhysicalModel) (*spec.GetPhysicalModelData, uint8, error)
+	GetPhysicalModels(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetPhysicalModels) (*spec.GetPhysicalModelsData, uint8, error)
+	CreatePhysicalModel(tctx *logger.TraceContext, db *gorm.DB, input *spec.CreatePhysicalModel) (*spec.CreatePhysicalModelData, uint8, error)
+	UpdatePhysicalModel(tctx *logger.TraceContext, db *gorm.DB, input *spec.UpdatePhysicalModel) (*spec.UpdatePhysicalModelData, uint8, error)
+	DeletePhysicalModel(tctx *logger.TraceContext, db *gorm.DB, input *spec.DeletePhysicalModel) (*spec.DeletePhysicalModelData, uint8, error)
+	GetPhysicalResource(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetPhysicalResource) (*spec.GetPhysicalResourceData, uint8, error)
+	GetPhysicalResources(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetPhysicalResources) (*spec.GetPhysicalResourcesData, uint8, error)
+	CreatePhysicalResource(tctx *logger.TraceContext, db *gorm.DB, input *spec.CreatePhysicalResource) (*spec.CreatePhysicalResourceData, uint8, error)
+	UpdatePhysicalResource(tctx *logger.TraceContext, db *gorm.DB, input *spec.UpdatePhysicalResource) (*spec.UpdatePhysicalResourceData, uint8, error)
+	DeletePhysicalResource(tctx *logger.TraceContext, db *gorm.DB, input *spec.DeletePhysicalResource) (*spec.DeletePhysicalResourceData, uint8, error)
 	GetClusters(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetClusters) (*spec.GetClustersData, uint8, error)
 }
 
@@ -313,6 +333,326 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 			}
 			rep.Code = code
 			rep.Data["DeleteDatacenter"] = data
+		case "GetFloor":
+			var input spec.GetFloor
+			err = json.Unmarshal([]byte(query.Data), &input)
+			if err != nil {
+				return err
+			}
+
+			data, code, err := handler.resolver.GetFloor(tctx, db, &input)
+			if err != nil {
+				if code == 0 {
+					code = base_const.CodeServerInternalError
+				}
+				rep.Error = err.Error()
+			}
+			rep.Code = code
+			rep.Data["GetFloor"] = data
+		case "GetFloors":
+			var input spec.GetFloors
+			err = json.Unmarshal([]byte(query.Data), &input)
+			if err != nil {
+				return err
+			}
+
+			data, code, err := handler.resolver.GetFloors(tctx, db, &input)
+			if err != nil {
+				if code == 0 {
+					code = base_const.CodeServerInternalError
+				}
+				rep.Error = err.Error()
+			}
+			rep.Code = code
+			rep.Data["GetFloors"] = data
+		case "CreateFloor":
+			var input spec.CreateFloor
+			err = json.Unmarshal([]byte(query.Data), &input)
+			if err != nil {
+				return err
+			}
+
+			data, code, err := handler.resolver.CreateFloor(tctx, db, &input)
+			if err != nil {
+				if code == 0 {
+					code = base_const.CodeServerInternalError
+				}
+				rep.Error = err.Error()
+			}
+			rep.Code = code
+			rep.Data["CreateFloor"] = data
+		case "UpdateFloor":
+			var input spec.UpdateFloor
+			err = json.Unmarshal([]byte(query.Data), &input)
+			if err != nil {
+				return err
+			}
+
+			data, code, err := handler.resolver.UpdateFloor(tctx, db, &input)
+			if err != nil {
+				if code == 0 {
+					code = base_const.CodeServerInternalError
+				}
+				rep.Error = err.Error()
+			}
+			rep.Code = code
+			rep.Data["UpdateFloor"] = data
+		case "DeleteFloor":
+			var input spec.DeleteFloor
+			err = json.Unmarshal([]byte(query.Data), &input)
+			if err != nil {
+				return err
+			}
+
+			data, code, err := handler.resolver.DeleteFloor(tctx, db, &input)
+			if err != nil {
+				if code == 0 {
+					code = base_const.CodeServerInternalError
+				}
+				rep.Error = err.Error()
+			}
+			rep.Code = code
+			rep.Data["DeleteFloor"] = data
+		case "GetRack":
+			var input spec.GetRack
+			err = json.Unmarshal([]byte(query.Data), &input)
+			if err != nil {
+				return err
+			}
+
+			data, code, err := handler.resolver.GetRack(tctx, db, &input)
+			if err != nil {
+				if code == 0 {
+					code = base_const.CodeServerInternalError
+				}
+				rep.Error = err.Error()
+			}
+			rep.Code = code
+			rep.Data["GetRack"] = data
+		case "GetRacks":
+			var input spec.GetRacks
+			err = json.Unmarshal([]byte(query.Data), &input)
+			if err != nil {
+				return err
+			}
+
+			data, code, err := handler.resolver.GetRacks(tctx, db, &input)
+			if err != nil {
+				if code == 0 {
+					code = base_const.CodeServerInternalError
+				}
+				rep.Error = err.Error()
+			}
+			rep.Code = code
+			rep.Data["GetRacks"] = data
+		case "CreateRack":
+			var input spec.CreateRack
+			err = json.Unmarshal([]byte(query.Data), &input)
+			if err != nil {
+				return err
+			}
+
+			data, code, err := handler.resolver.CreateRack(tctx, db, &input)
+			if err != nil {
+				if code == 0 {
+					code = base_const.CodeServerInternalError
+				}
+				rep.Error = err.Error()
+			}
+			rep.Code = code
+			rep.Data["CreateRack"] = data
+		case "UpdateRack":
+			var input spec.UpdateRack
+			err = json.Unmarshal([]byte(query.Data), &input)
+			if err != nil {
+				return err
+			}
+
+			data, code, err := handler.resolver.UpdateRack(tctx, db, &input)
+			if err != nil {
+				if code == 0 {
+					code = base_const.CodeServerInternalError
+				}
+				rep.Error = err.Error()
+			}
+			rep.Code = code
+			rep.Data["UpdateRack"] = data
+		case "DeleteRack":
+			var input spec.DeleteRack
+			err = json.Unmarshal([]byte(query.Data), &input)
+			if err != nil {
+				return err
+			}
+
+			data, code, err := handler.resolver.DeleteRack(tctx, db, &input)
+			if err != nil {
+				if code == 0 {
+					code = base_const.CodeServerInternalError
+				}
+				rep.Error = err.Error()
+			}
+			rep.Code = code
+			rep.Data["DeleteRack"] = data
+		case "GetPhysicalModel":
+			var input spec.GetPhysicalModel
+			err = json.Unmarshal([]byte(query.Data), &input)
+			if err != nil {
+				return err
+			}
+
+			data, code, err := handler.resolver.GetPhysicalModel(tctx, db, &input)
+			if err != nil {
+				if code == 0 {
+					code = base_const.CodeServerInternalError
+				}
+				rep.Error = err.Error()
+			}
+			rep.Code = code
+			rep.Data["GetPhysicalModel"] = data
+		case "GetPhysicalModels":
+			var input spec.GetPhysicalModels
+			err = json.Unmarshal([]byte(query.Data), &input)
+			if err != nil {
+				return err
+			}
+
+			data, code, err := handler.resolver.GetPhysicalModels(tctx, db, &input)
+			if err != nil {
+				if code == 0 {
+					code = base_const.CodeServerInternalError
+				}
+				rep.Error = err.Error()
+			}
+			rep.Code = code
+			rep.Data["GetPhysicalModels"] = data
+		case "CreatePhysicalModel":
+			var input spec.CreatePhysicalModel
+			err = json.Unmarshal([]byte(query.Data), &input)
+			if err != nil {
+				return err
+			}
+
+			data, code, err := handler.resolver.CreatePhysicalModel(tctx, db, &input)
+			if err != nil {
+				if code == 0 {
+					code = base_const.CodeServerInternalError
+				}
+				rep.Error = err.Error()
+			}
+			rep.Code = code
+			rep.Data["CreatePhysicalModel"] = data
+		case "UpdatePhysicalModel":
+			var input spec.UpdatePhysicalModel
+			err = json.Unmarshal([]byte(query.Data), &input)
+			if err != nil {
+				return err
+			}
+
+			data, code, err := handler.resolver.UpdatePhysicalModel(tctx, db, &input)
+			if err != nil {
+				if code == 0 {
+					code = base_const.CodeServerInternalError
+				}
+				rep.Error = err.Error()
+			}
+			rep.Code = code
+			rep.Data["UpdatePhysicalModel"] = data
+		case "DeletePhysicalModel":
+			var input spec.DeletePhysicalModel
+			err = json.Unmarshal([]byte(query.Data), &input)
+			if err != nil {
+				return err
+			}
+
+			data, code, err := handler.resolver.DeletePhysicalModel(tctx, db, &input)
+			if err != nil {
+				if code == 0 {
+					code = base_const.CodeServerInternalError
+				}
+				rep.Error = err.Error()
+			}
+			rep.Code = code
+			rep.Data["DeletePhysicalModel"] = data
+		case "GetPhysicalResource":
+			var input spec.GetPhysicalResource
+			err = json.Unmarshal([]byte(query.Data), &input)
+			if err != nil {
+				return err
+			}
+
+			data, code, err := handler.resolver.GetPhysicalResource(tctx, db, &input)
+			if err != nil {
+				if code == 0 {
+					code = base_const.CodeServerInternalError
+				}
+				rep.Error = err.Error()
+			}
+			rep.Code = code
+			rep.Data["GetPhysicalResource"] = data
+		case "GetPhysicalResources":
+			var input spec.GetPhysicalResources
+			err = json.Unmarshal([]byte(query.Data), &input)
+			if err != nil {
+				return err
+			}
+
+			data, code, err := handler.resolver.GetPhysicalResources(tctx, db, &input)
+			if err != nil {
+				if code == 0 {
+					code = base_const.CodeServerInternalError
+				}
+				rep.Error = err.Error()
+			}
+			rep.Code = code
+			rep.Data["GetPhysicalResources"] = data
+		case "CreatePhysicalResource":
+			var input spec.CreatePhysicalResource
+			err = json.Unmarshal([]byte(query.Data), &input)
+			if err != nil {
+				return err
+			}
+
+			data, code, err := handler.resolver.CreatePhysicalResource(tctx, db, &input)
+			if err != nil {
+				if code == 0 {
+					code = base_const.CodeServerInternalError
+				}
+				rep.Error = err.Error()
+			}
+			rep.Code = code
+			rep.Data["CreatePhysicalResource"] = data
+		case "UpdatePhysicalResource":
+			var input spec.UpdatePhysicalResource
+			err = json.Unmarshal([]byte(query.Data), &input)
+			if err != nil {
+				return err
+			}
+
+			data, code, err := handler.resolver.UpdatePhysicalResource(tctx, db, &input)
+			if err != nil {
+				if code == 0 {
+					code = base_const.CodeServerInternalError
+				}
+				rep.Error = err.Error()
+			}
+			rep.Code = code
+			rep.Data["UpdatePhysicalResource"] = data
+		case "DeletePhysicalResource":
+			var input spec.DeletePhysicalResource
+			err = json.Unmarshal([]byte(query.Data), &input)
+			if err != nil {
+				return err
+			}
+
+			data, code, err := handler.resolver.DeletePhysicalResource(tctx, db, &input)
+			if err != nil {
+				if code == 0 {
+					code = base_const.CodeServerInternalError
+				}
+				rep.Error = err.Error()
+			}
+			rep.Code = code
+			rep.Data["DeletePhysicalResource"] = data
 		case "GetClusters":
 			var input spec.GetClusters
 			err = json.Unmarshal([]byte(query.Data), &input)

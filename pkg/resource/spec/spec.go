@@ -24,6 +24,30 @@ var Spec = base_model.Spec{
 				base_model.QueryModel{Req: CreateDatacenter{}, Rep: CreateDatacenterData{}},
 				base_model.QueryModel{Req: UpdateDatacenter{}, Rep: UpdateDatacenterData{}},
 				base_model.QueryModel{Req: DeleteDatacenter{}, Rep: DeleteDatacenterData{}},
+
+				base_model.QueryModel{Req: GetFloor{}, Rep: GetFloorData{}},
+				base_model.QueryModel{Req: GetFloors{}, Rep: GetFloorsData{}},
+				base_model.QueryModel{Req: CreateFloor{}, Rep: CreateFloorData{}},
+				base_model.QueryModel{Req: UpdateFloor{}, Rep: UpdateFloorData{}},
+				base_model.QueryModel{Req: DeleteFloor{}, Rep: DeleteFloorData{}},
+
+				base_model.QueryModel{Req: GetRack{}, Rep: GetRackData{}},
+				base_model.QueryModel{Req: GetRacks{}, Rep: GetRacksData{}},
+				base_model.QueryModel{Req: CreateRack{}, Rep: CreateRackData{}},
+				base_model.QueryModel{Req: UpdateRack{}, Rep: UpdateRackData{}},
+				base_model.QueryModel{Req: DeleteRack{}, Rep: DeleteRackData{}},
+
+				base_model.QueryModel{Req: GetPhysicalModel{}, Rep: GetPhysicalModelData{}},
+				base_model.QueryModel{Req: GetPhysicalModels{}, Rep: GetPhysicalModelsData{}},
+				base_model.QueryModel{Req: CreatePhysicalModel{}, Rep: CreatePhysicalModelData{}},
+				base_model.QueryModel{Req: UpdatePhysicalModel{}, Rep: UpdatePhysicalModelData{}},
+				base_model.QueryModel{Req: DeletePhysicalModel{}, Rep: DeletePhysicalModelData{}},
+
+				base_model.QueryModel{Req: GetPhysicalResource{}, Rep: GetPhysicalResourceData{}},
+				base_model.QueryModel{Req: GetPhysicalResources{}, Rep: GetPhysicalResourcesData{}},
+				base_model.QueryModel{Req: CreatePhysicalResource{}, Rep: CreatePhysicalResourceData{}},
+				base_model.QueryModel{Req: UpdatePhysicalResource{}, Rep: UpdatePhysicalResourceData{}},
+				base_model.QueryModel{Req: DeletePhysicalResource{}, Rep: DeletePhysicalResourceData{}},
 			},
 		},
 		base_model.Api{

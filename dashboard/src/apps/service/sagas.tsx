@@ -32,7 +32,12 @@ function* post(action) {
     case 'SERVICE_GET_INDEX':
       payload = {
         projectName: params.project,
-        queries: [{Name: 'GetServiceDashboardIndex', Data: JSON.stringify({})}],
+        queries: [
+          {
+            Data: JSON.stringify({Name: params.service}),
+            Name: 'GetServiceDashboardIndex',
+          },
+        ],
         serviceName: params.service,
         stateKey: 'index',
       };
