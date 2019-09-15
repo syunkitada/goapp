@@ -47,7 +47,7 @@ type BaseApp struct {
 }
 
 type IQueryHandler interface {
-	Exec(tctx *logger.TraceContext, userAuthority *base_spec.UserAuthority, httpReq *http.Request, rw http.ResponseWriter, req *base_model.Request, rep *base_model.Response) error
+	Exec(tctx *logger.TraceContext, db *gorm.DB, userAuthority *base_spec.UserAuthority, httpReq *http.Request, rw http.ResponseWriter, req *base_model.Request, rep *base_model.Response) error
 }
 
 func New(conf *base_config.Config, appConf *base_config.AppConfig, dbApi base_db_api.IApi, queryHandler IQueryHandler) BaseApp {
@@ -308,7 +308,7 @@ func (app *BaseApp) NewHandler() http.Handler {
 		var repBytes []byte
 		for _, endpoint := range service.Endpoints {
 			if endpoint == "" {
-				if err = app.queryHandler.Exec(tctx, userAuthority, r, w, req, rep); err != nil {
+				if err = app.queryHandler.Exec(tctx, db, userAuthority, r, w, req, rep); err != nil {
 					continue
 				}
 				repBytes, err = json.Marshal(&rep)

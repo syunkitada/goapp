@@ -68,8 +68,6 @@ func (api *Api) GetUserAuthority(tctx *logger.TraceContext, db *gorm.DB, usernam
 		return nil, err
 	}
 
-	fmt.Println("DEBUG user", users)
-
 	serviceMap := map[string]uint{}
 	projectServiceMap := map[string]base_spec.ProjectService{}
 	for _, user := range users {

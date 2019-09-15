@@ -46,6 +46,6 @@ type GetServiceDashboardIndex struct {
 }
 
 type GetServiceDashboardIndexData struct {
-	Index index_model.Index
+	Index index_model.DashboardIndex
 	Data  interface{}
 }

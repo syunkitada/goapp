@@ -38,16 +38,12 @@ func (resolver *Resolver) GetServiceDashboardIndex(tctx *logger.TraceContext, db
 	switch input.Name {
 	case "ResourcePhysical":
 		data = &base_spec.GetServiceDashboardIndexData{
-			Index: index_model.Index{
-				CmdMap: genpkg.ResourcePhysicalCmdMap,
-			},
+			Index: index_model.DashboardIndex{},
 		}
 		code = base_const.CodeOk
 	case "ResourceVirtual":
 		data = &base_spec.GetServiceDashboardIndexData{
-			Index: index_model.Index{
-				CmdMap: genpkg.ResourceVirtualCmdMap,
-			},
+			Index: index_model.DashboardIndex{},
 		}
 		code = base_const.CodeOk
 	default:

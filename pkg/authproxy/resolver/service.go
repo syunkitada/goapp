@@ -1,8 +1,7 @@
 package resolver
 
 import (
-	"fmt"
-
+	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
 
 	"github.com/syunkitada/goapp/pkg/base/base_const"
@@ -33,6 +32,26 @@ func (resolver *Resolver) GetServiceIndex(tctx *logger.TraceContext, db *gorm.DB
 }
 
 func (resolver *Resolver) GetServiceDashboardIndex(tctx *logger.TraceContext, db *gorm.DB, input *base_spec.GetServiceDashboardIndex) (data *base_spec.GetServiceDashboardIndexData, code uint8, err error) {
-	fmt.Println("GetServiceDashboardIndex")
+	data = &base_spec.GetServiceDashboardIndexData{
+		Index: index_model.DashboardIndex{
+			View: index_model.Panels{
+				Name: "Root",
+				Kind: "RoutePanels",
+				Panels: []interface{}{
+					gin.H{
+						"Name":  "Hoge",
+						"Kind":  "Msg",
+						"Route": "",
+					},
+					gin.H{
+						"Name":  "Piyo",
+						"Kind":  "Msg",
+						"Route": "/Piyo",
+					},
+				},
+			},
+		},
+	}
+
 	return
 }

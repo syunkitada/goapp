@@ -166,8 +166,9 @@ export default reducerWithInitialState(defaultState)
       );
     }
 
-    const index = payload.result.Index;
-    if (index) {
+    let index: any = null;
+    if (isGetIndex) {
+      index = payload.result.Data.GetServiceDashboardIndex.Index;
       if (index.SyncDelay && index.SyncDelay > 1000) {
         newState.syncDelay = index.SyncDelay;
       }
@@ -178,8 +179,7 @@ export default reducerWithInitialState(defaultState)
     if (project) {
       newState.projectServiceMap[project][service].isFetching = false;
       if (isGetIndex) {
-        newState.projectServiceMap[project][service].Index =
-          payload.result.Index;
+        newState.projectServiceMap[project][service].Index = index;
       }
       if (newState.projectServiceMap[project][service].Data) {
         for (const key of Object.keys(payload.result.Data)) {
@@ -192,7 +192,7 @@ export default reducerWithInitialState(defaultState)
     } else {
       newState.serviceMap[service].isFetching = false;
       if (isGetIndex) {
-        newState.serviceMap[service].Index = payload.result.Index;
+        newState.serviceMap[service].Index = index;
       }
       if (newState.serviceMap[service].Data) {
         for (const key of Object.keys(payload.result.Data)) {

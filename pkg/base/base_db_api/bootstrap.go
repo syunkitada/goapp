@@ -84,6 +84,7 @@ func (api *Api) Bootstrap(tctx *logger.TraceContext, isRecreate bool) (err error
 		QueryMap: map[string]base_model.QueryModel{
 			"Login":          base_model.QueryModel{},
 			"LoginWithToken": base_model.QueryModel{},
+			"Logout":         base_model.QueryModel{},
 			"UpdateService":  base_model.QueryModel{},
 		},
 	}); err != nil {

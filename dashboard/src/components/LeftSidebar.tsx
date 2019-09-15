@@ -16,17 +16,12 @@ import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 
-import AssessmentIcon from '@material-ui/icons/Assessment';
-import ChatIcon from '@material-ui/icons/Chat';
-import CloudIcon from '@material-ui/icons/Cloud';
-import CloudQueueIcon from '@material-ui/icons/CloudQueue';
 import DashboardIcon from '@material-ui/icons/Dashboard';
 import ExpandLess from '@material-ui/icons/ExpandLess';
 import ExpandMore from '@material-ui/icons/ExpandMore';
 import HomeIcon from '@material-ui/icons/Home';
-import LayersIcon from '@material-ui/icons/Layers';
-import NoteAddIcon from '@material-ui/icons/NoteAdd';
-import ReceiptIcon from '@material-ui/icons/Receipt';
+
+import icon_utils from '../modules/icon_utils';
 
 const styles = (theme: Theme): StyleRules =>
   createStyles({
@@ -54,18 +49,6 @@ class LeftSidebar extends React.Component<ILeftSidebar> {
       return null;
     }
 
-    // https://material.io/tools/icons/?style=baseline
-    const serviceLinks: any[] = [
-      ['Chat', <ChatIcon key={'Chat'} />],
-      ['Wiki', <ReceiptIcon key={'Wiki'} />],
-      ['Ticket', <NoteAddIcon key={'Ticket'} />],
-      ['Datacenter', <LayersIcon key={'Datacenter'} />],
-      ['Home.Project', <HomeIcon key={'Home.Project'} />],
-      ['Resource.Physical', <CloudIcon key={'Resource.Physical'} />],
-      ['Resource.Virtual', <CloudQueueIcon key={'Resource.Virtual'} />],
-      ['Monitor', <AssessmentIcon key={'Monitor'} />],
-    ];
-
     const services: any[] = [];
     let serviceMap: any = null;
     let projectText: any = null;
@@ -81,26 +64,32 @@ class LeftSidebar extends React.Component<ILeftSidebar> {
       serviceMap = auth.user.authority.ServiceMap;
     }
 
-    for (const serviceLink of serviceLinks) {
-      if (serviceLink[0] in serviceMap) {
-        const path = prefixPath + serviceLink[0];
-        services.push(
-          <NavLink
-            key={serviceLink[0]}
-            to={path}
-            style={{textDecoration: 'none', color: 'unset'}}>
-            <ListItem button={true} selected={match.url === path}>
-              <ListItemIcon>{serviceLink[1]}</ListItemIcon>
-              <ListItemText primary={serviceLink[0]} />
-            </ListItem>
-          </NavLink>,
-        );
-      }
+    const tmpServices = Object.keys(serviceMap);
+    tmpServices.sort();
+    for (const serviceName of tmpServices) {
+      const service = serviceMap[serviceName];
+      const path = prefixPath + serviceName;
+      console.log('DEBUG service', serviceName, service); // TODO remove debug print
+      services.push(
+        <NavLink
+          key={serviceName}
+          to={path}
+          style={{textDecoration: 'none', color: 'unset'}}>
+          <ListItem button={true} selected={match.url === path}>
+            <ListItemIcon>
+              {icon_utils.getServiceIcon(serviceName)}
+            </ListItemIcon>
+            <ListItemText primary={serviceName} />
+          </ListItem>
+        </NavLink>,
+      );
     }
 
     const projects: any[] = [];
-    for (const project of Object.keys(auth.user.authority.ProjectServiceMap)) {
-      const path = '/Project/' + project + '/Home.Project';
+    const tmpProjects = Object.keys(auth.user.authority.ProjectServiceMap);
+    tmpProjects.sort();
+    for (const project of tmpProjects) {
+      const path = '/Project/' + project + '/HomeProject';
       projects.push(
         <List key={project} disablePadding={true}>
           <ListItem

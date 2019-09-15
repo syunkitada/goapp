@@ -51,7 +51,7 @@ func NewQueryHandler(baseConf *base_config.Config, appConf *base_config.AppConfi
 	}
 }
 
-func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.UserAuthority, httpReq *http.Request, rw http.ResponseWriter,
+func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *base_spec.UserAuthority, httpReq *http.Request, rw http.ResponseWriter,
 	req *base_model.Request, rep *base_model.Response) error {
 	var err error
 	for _, query := range req.Queries {
@@ -62,12 +62,6 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-
-			var db *gorm.DB
-			if db, err = handler.dbApi.Open(tctx); err != nil {
-				return err
-			}
-			defer handler.dbApi.Close(tctx, db)
 
 			data, code, err := handler.resolver.Login(tctx, db, &input)
 			if err != nil {
@@ -84,7 +78,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				Secure:   true,
 				HttpOnly: true,
 				Expires:  time.Now().Add(1 * time.Hour), // TODO Configurable
-			} // FIXME SameSite, Expires
+			} // FIXME SameSite
+			http.SetCookie(rw, &cookie)
+		case "Logout":
+			rep.Code = base_const.CodeOk
+			cookie := http.Cookie{
+				Name:     "X-Auth-Token",
+				Value:    "",
+				Secure:   true,
+				HttpOnly: true,
+			}
 			http.SetCookie(rw, &cookie)
 		case "LoginWithToken":
 			var input base_spec.LoginWithToken
@@ -92,12 +95,6 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-
-			var db *gorm.DB
-			if db, err = handler.dbApi.Open(tctx); err != nil {
-				return err
-			}
-			defer handler.dbApi.Close(tctx, db)
 
 			data, code, err := handler.resolver.LoginWithToken(tctx, db, &input, user)
 			if err != nil {
@@ -115,12 +112,6 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				return err
 			}
 
-			var db *gorm.DB
-			if db, err = handler.dbApi.Open(tctx); err != nil {
-				return err
-			}
-			defer handler.dbApi.Close(tctx, db)
-
 			data, code, err := handler.resolver.UpdateService(tctx, db, &input)
 			if err != nil {
 				if code == 0 {
@@ -136,12 +127,6 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-
-			var db *gorm.DB
-			if db, err = handler.dbApi.Open(tctx); err != nil {
-				return err
-			}
-			defer handler.dbApi.Close(tctx, db)
 
 			data, code, err := handler.resolver.GetServiceIndex(tctx, db, &input)
 			if err != nil {
@@ -159,12 +144,6 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				return err
 			}
 
-			var db *gorm.DB
-			if db, err = handler.dbApi.Open(tctx); err != nil {
-				return err
-			}
-			defer handler.dbApi.Close(tctx, db)
-
 			data, code, err := handler.resolver.GetServiceDashboardIndex(tctx, db, &input)
 			if err != nil {
 				if code == 0 {
@@ -180,12 +159,6 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-
-			var db *gorm.DB
-			if db, err = handler.dbApi.Open(tctx); err != nil {
-				return err
-			}
-			defer handler.dbApi.Close(tctx, db)
 
 			data, code, err := handler.resolver.GetRegion(tctx, db, &input)
 			if err != nil {
@@ -203,12 +176,6 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				return err
 			}
 
-			var db *gorm.DB
-			if db, err = handler.dbApi.Open(tctx); err != nil {
-				return err
-			}
-			defer handler.dbApi.Close(tctx, db)
-
 			data, code, err := handler.resolver.GetRegions(tctx, db, &input)
 			if err != nil {
 				if code == 0 {
@@ -224,12 +191,6 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-
-			var db *gorm.DB
-			if db, err = handler.dbApi.Open(tctx); err != nil {
-				return err
-			}
-			defer handler.dbApi.Close(tctx, db)
 
 			data, code, err := handler.resolver.CreateRegion(tctx, db, &input)
 			if err != nil {
@@ -247,12 +208,6 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				return err
 			}
 
-			var db *gorm.DB
-			if db, err = handler.dbApi.Open(tctx); err != nil {
-				return err
-			}
-			defer handler.dbApi.Close(tctx, db)
-
 			data, code, err := handler.resolver.UpdateRegion(tctx, db, &input)
 			if err != nil {
 				if code == 0 {
@@ -268,12 +223,6 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-
-			var db *gorm.DB
-			if db, err = handler.dbApi.Open(tctx); err != nil {
-				return err
-			}
-			defer handler.dbApi.Close(tctx, db)
 
 			data, code, err := handler.resolver.DeleteRegion(tctx, db, &input)
 			if err != nil {
@@ -291,12 +240,6 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				return err
 			}
 
-			var db *gorm.DB
-			if db, err = handler.dbApi.Open(tctx); err != nil {
-				return err
-			}
-			defer handler.dbApi.Close(tctx, db)
-
 			data, code, err := handler.resolver.GetDatacenter(tctx, db, &input)
 			if err != nil {
 				if code == 0 {
@@ -312,12 +255,6 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-
-			var db *gorm.DB
-			if db, err = handler.dbApi.Open(tctx); err != nil {
-				return err
-			}
-			defer handler.dbApi.Close(tctx, db)
 
 			data, code, err := handler.resolver.GetDatacenters(tctx, db, &input)
 			if err != nil {
@@ -335,12 +272,6 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				return err
 			}
 
-			var db *gorm.DB
-			if db, err = handler.dbApi.Open(tctx); err != nil {
-				return err
-			}
-			defer handler.dbApi.Close(tctx, db)
-
 			data, code, err := handler.resolver.CreateDatacenter(tctx, db, &input)
 			if err != nil {
 				if code == 0 {
@@ -356,12 +287,6 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-
-			var db *gorm.DB
-			if db, err = handler.dbApi.Open(tctx); err != nil {
-				return err
-			}
-			defer handler.dbApi.Close(tctx, db)
 
 			data, code, err := handler.resolver.UpdateDatacenter(tctx, db, &input)
 			if err != nil {
@@ -379,12 +304,6 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				return err
 			}
 
-			var db *gorm.DB
-			if db, err = handler.dbApi.Open(tctx); err != nil {
-				return err
-			}
-			defer handler.dbApi.Close(tctx, db)
-
 			data, code, err := handler.resolver.DeleteDatacenter(tctx, db, &input)
 			if err != nil {
 				if code == 0 {
@@ -400,12 +319,6 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-
-			var db *gorm.DB
-			if db, err = handler.dbApi.Open(tctx); err != nil {
-				return err
-			}
-			defer handler.dbApi.Close(tctx, db)
 
 			data, code, err := handler.resolver.GetClusters(tctx, db, &input)
 			if err != nil {

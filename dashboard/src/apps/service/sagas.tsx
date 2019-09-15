@@ -41,9 +41,12 @@ function* post(action) {
     case 'SERVICE_GET_QUERIES':
       const syncQueryMap: any[] = [];
       for (let i = 0, len = queries.length; i < len; i++) {
-        dataQueries.push({Kind: queries[i], StrParams: params});
+        dataQueries.push({Name: queries[i], Data: JSON.stringify(params)});
         if (isSync) {
-          syncQueryMap[queries[i]] = {Kind: queries[i], StrParams: params};
+          syncQueryMap[queries[i]] = {
+            Data: JSON.stringify(params),
+            Name: queries[i],
+          };
         }
       }
       payload = {
