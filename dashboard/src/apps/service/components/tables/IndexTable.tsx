@@ -73,6 +73,7 @@ class IndexTable extends React.Component<IIndexTable> {
       actionName,
     } = this.state;
     logger.info('IndexTable', 'render', actionName, routes);
+    console.log('DEBUG Table', index.DataKey, index.Columns, data);
 
     const columns = index.Columns;
     let rawData = data[index.DataKey];
@@ -124,8 +125,12 @@ class IndexTable extends React.Component<IIndexTable> {
       for (const column of columns) {
         const c = d[column.Name];
         if (column.Kind === 'Time') {
-          const time = new Date(c);
-          row.push(time.toISOString());
+          const time: any = new Date(c);
+          if (!isNaN(time.getTime())) {
+            row.push(time.toISOString());
+          } else {
+            row.push(time.toString());
+          }
         } else if (column.Kind === 'Action') {
           row.push('');
         } else {

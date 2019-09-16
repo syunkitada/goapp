@@ -10,6 +10,7 @@ import (
 	"github.com/syunkitada/goapp/pkg/base/base_model/index_model"
 	"github.com/syunkitada/goapp/pkg/base/base_spec"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
+	"github.com/syunkitada/goapp/pkg/resource/spec"
 	"github.com/syunkitada/goapp/pkg/resource/spec/genpkg"
 )
 
@@ -41,7 +42,17 @@ func (resolver *Resolver) GetServiceDashboardIndex(tctx *logger.TraceContext, db
 	// TODO
 	switch input.Name {
 	case "ResourcePhysical":
+		var datacenters []spec.Datacenter
+		datacenters, err = resolver.dbApi.GetDatacenters(tctx, db)
+		if err != nil {
+			fmt.Println("HOGEwwlwllw")
+			return
+		}
+
 		data = &base_spec.GetServiceDashboardIndexData{
+			Data: map[string]interface{}{
+				"Datacenters": datacenters,
+			},
 			Index: index_model.DashboardIndex{
 				View: index_model.Panels{
 					Name: "Root",
@@ -61,7 +72,7 @@ func (resolver *Resolver) GetServiceDashboardIndex(tctx *logger.TraceContext, db
 									LinkParam: "datacenter",
 									LinkSync:  true,
 									LinkGetQueries: []string{
-										"get_physical-resources", "get_racks", "get_floors", "get_physical-models"},
+										"GetPhysicalResources", "GetRacks", "GetFloors", "GetPhysicalModels"},
 								},
 								index_model.TableColumn{Name: "Region", IsSearch: true},
 								index_model.TableColumn{Name: "UpdatedAt", Kind: "Time", Sort: "asc"},

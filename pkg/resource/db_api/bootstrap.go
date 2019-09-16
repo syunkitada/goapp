@@ -25,6 +25,21 @@ func (api *Api) BootstrapResource(tctx *logger.TraceContext, isRecreate bool) (e
 	if err = db.AutoMigrate(&db_model.Region{}).Error; err != nil {
 		return err
 	}
+	if err = db.AutoMigrate(&db_model.Datacenter{}).Error; err != nil {
+		return err
+	}
+	if err = db.AutoMigrate(&db_model.Floor{}).Error; err != nil {
+		return err
+	}
+	if err = db.AutoMigrate(&db_model.Rack{}).Error; err != nil {
+		return err
+	}
+	if err = db.AutoMigrate(&db_model.PhysicalModel{}).Error; err != nil {
+		return err
+	}
+	if err = db.AutoMigrate(&db_model.PhysicalResource{}).Error; err != nil {
+		return err
+	}
 
 	return nil
 }

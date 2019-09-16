@@ -13,7 +13,7 @@ import (
 
 func (api *Api) Bootstrap(tctx *logger.TraceContext, isRecreate bool) (err error) {
 	startTime := logger.StartTrace(tctx)
-	defer func() { logger.EndTrace(tctx, startTime, err, 0) }()
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 	if err = exec_utils.CreateDatabase(tctx, api.baseConf, api.databaseConf.Connection, isRecreate); err != nil {
 		return err
 	}

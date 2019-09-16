@@ -166,8 +166,15 @@ export default reducerWithInitialState(defaultState)
       );
     }
 
+    // Merge data
+    let data = {};
+    for (const query of payload.payload.queries) {
+      data = Object.assign(data, payload.result.Data[query.Name].Data);
+    }
+
     let index: any = null;
     if (isGetIndex) {
+      console.log('DEBUG index', payload.result.Data);
       index = payload.result.Data.GetServiceDashboardIndex.Index;
       if (index.SyncDelay && index.SyncDelay > 1000) {
         newState.syncDelay = index.SyncDelay;
@@ -182,12 +189,11 @@ export default reducerWithInitialState(defaultState)
         newState.projectServiceMap[project][service].Index = index;
       }
       if (newState.projectServiceMap[project][service].Data) {
-        for (const key of Object.keys(payload.result.Data)) {
-          newState.projectServiceMap[project][service].Data[key] =
-            payload.result.Data[key];
+        for (const key of Object.keys(data)) {
+          newState.projectServiceMap[project][service].Data[key] = data[key];
         }
       } else {
-        newState.projectServiceMap[project][service].Data = payload.result.Data;
+        newState.projectServiceMap[project][service].Data = data;
       }
     } else {
       newState.serviceMap[service].isFetching = false;
@@ -195,11 +201,11 @@ export default reducerWithInitialState(defaultState)
         newState.serviceMap[service].Index = index;
       }
       if (newState.serviceMap[service].Data) {
-        for (const key of Object.keys(payload.result.Data)) {
-          newState.serviceMap[service].Data[key] = payload.result.Data[key];
+        for (const key of Object.keys(data)) {
+          newState.serviceMap[service].Data[key] = data[key];
         }
       } else {
-        newState.serviceMap[service].Data = payload.result.Data;
+        newState.serviceMap[service].Data = data;
       }
     }
 
