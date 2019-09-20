@@ -18,17 +18,22 @@ func (api *Api) GetPhysicalResources(tctx *logger.TraceContext, db *gorm.DB) (da
 	return
 }
 
-func (api *Api) CreatePhysicalResources(tctx *logger.TraceContext, db *gorm.DB, regions []spec.PhysicalResource) (err error) {
+func (api *Api) CreatePhysicalResources(tctx *logger.TraceContext, db *gorm.DB, physicalResources []spec.PhysicalResource) (err error) {
 	err = api.Transact(tctx, db, func(tx *gorm.DB) (err error) {
-		for _, region := range regions {
+		for _, physicalResource := range physicalResources {
 			var tmpPhysicalResource db_model.PhysicalResource
-			if err = tx.Where("name = ?", region.Name).First(&tmpPhysicalResource).Error; err != nil {
+			if err = tx.Where("name = ?", physicalResource.Name).First(&tmpPhysicalResource).Error; err != nil {
 				if !gorm.IsRecordNotFoundError(err) {
 					return
 				}
 				tmpPhysicalResource = db_model.PhysicalResource{
-					Name: region.Name,
-					Kind: region.Kind,
+					Name:          physicalResource.Name,
+					Kind:          physicalResource.Kind,
+					Datacenter:    physicalResource.Datacenter,
+					Cluster:       physicalResource.Cluster,
+					Rack:          physicalResource.Rack,
+					PhysicalModel: physicalResource.PhysicalModel,
+					RackPosition:  physicalResource.RackPosition,
 				}
 				if err = tx.Create(&tmpPhysicalResource).Error; err != nil {
 					return
@@ -40,11 +45,16 @@ func (api *Api) CreatePhysicalResources(tctx *logger.TraceContext, db *gorm.DB, 
 	return
 }
 
-func (api *Api) UpdatePhysicalResources(tctx *logger.TraceContext, db *gorm.DB, regions []spec.PhysicalResource) (err error) {
+func (api *Api) UpdatePhysicalResources(tctx *logger.TraceContext, db *gorm.DB, physicalResources []spec.PhysicalResource) (err error) {
 	err = api.Transact(tctx, db, func(tx *gorm.DB) (err error) {
-		for _, region := range regions {
-			if err = tx.Model(&db_model.PhysicalResource{}).Where("name = ?", region.Name).Updates(&db_model.PhysicalResource{
-				Kind: region.Kind,
+		for _, physicalResource := range physicalResources {
+			if err = tx.Model(&db_model.PhysicalResource{}).Where("name = ?", physicalResource.Name).Updates(&db_model.PhysicalResource{
+				Kind:          physicalResource.Kind,
+				Datacenter:    physicalResource.Datacenter,
+				Cluster:       physicalResource.Cluster,
+				Rack:          physicalResource.Rack,
+				PhysicalModel: physicalResource.PhysicalModel,
+				RackPosition:  physicalResource.RackPosition,
 			}).Error; err != nil {
 				return
 			}

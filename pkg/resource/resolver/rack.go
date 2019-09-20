@@ -2,6 +2,7 @@ package resolver
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/jinzhu/gorm"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
@@ -19,6 +20,7 @@ func (resolver *Resolver) GetRacks(tctx *logger.TraceContext, db *gorm.DB, input
 	var regions []spec.Rack
 	regions, err = resolver.dbApi.GetRacks(tctx, db)
 	data = &spec.GetRacksData{Racks: regions}
+	fmt.Println("DEBUG Get Racks")
 	return
 }
 

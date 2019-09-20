@@ -2,6 +2,7 @@ package resolver
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/jinzhu/gorm"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
@@ -42,6 +43,7 @@ func (resolver *Resolver) CreateFloor(tctx *logger.TraceContext, db *gorm.DB, in
 			return
 		}
 		if err = resolver.Validate.Struct(&region); err != nil {
+			err = fmt.Errorf("Invalid struct: struct=%v, err=%v", region, err)
 			return
 		}
 		specs = append(specs, region)

@@ -158,7 +158,6 @@ export default reducerWithInitialState(defaultState)
     }
 
     if (payload.action.payload.isSync) {
-      console.log('DEBUG reducer query', payload.action.payload.syncQueryMap);
       newState.syncQueryMap = Object.assign(
         {},
         state.syncQueryMap,
@@ -168,13 +167,18 @@ export default reducerWithInitialState(defaultState)
 
     // Merge data
     let data = {};
-    for (const query of payload.payload.queries) {
-      data = Object.assign(data, payload.result.Data[query.Name].Data);
+    if (isGetIndex) {
+      for (const query of payload.payload.queries) {
+        data = Object.assign(data, payload.result.Data[query.Name].Data);
+      }
+    } else {
+      for (const query of payload.payload.queries) {
+        data = Object.assign(data, payload.result.Data[query.Name]);
+      }
     }
 
     let index: any = null;
     if (isGetIndex) {
-      console.log('DEBUG index', payload.result.Data);
       index = payload.result.Data.GetServiceDashboardIndex.Index;
       if (index.SyncDelay && index.SyncDelay > 1000) {
         newState.syncDelay = index.SyncDelay;

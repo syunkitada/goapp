@@ -2,6 +2,7 @@ package resolver
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/jinzhu/gorm"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
@@ -19,6 +20,7 @@ func (resolver *Resolver) GetPhysicalResources(tctx *logger.TraceContext, db *go
 	var regions []spec.PhysicalResource
 	regions, err = resolver.dbApi.GetPhysicalResources(tctx, db)
 	data = &spec.GetPhysicalResourcesData{PhysicalResources: regions}
+	fmt.Println("DEBUG Get PhysicalResources")
 	return
 }
 

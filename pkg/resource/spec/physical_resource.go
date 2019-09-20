@@ -1,16 +1,14 @@
 package spec
 
 type PhysicalResource struct {
-	Kind         string `validate:"required"`
-	Name         string `validate:"required"`
-	Datacenter   string `validate:"required"`
-	Cluster      string
-	Rack         string
-	Model        string
-	RackPosition uint8
-	NetLinks     []string
-	PowerLinks   []string
-	Spec         string
+	Kind          string `validate:"required"`
+	Name          string `validate:"required"`
+	Datacenter    string `validate:"required"`
+	Cluster       string
+	Rack          string
+	PhysicalModel string
+	RackPosition  uint8
+	Spec          string
 }
 
 type GetPhysicalResource struct {
