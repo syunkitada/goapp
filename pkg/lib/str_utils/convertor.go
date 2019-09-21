@@ -29,3 +29,23 @@ func ConvertToLowerFormat(camelStr string) string {
 	}
 	return string(runes)
 }
+
+func SplitActionDataName(name string) (string, string) {
+	actionRunes := []rune{}
+	dataRunes := []rune{}
+	isAction := false
+	for i, r := range name {
+		if i == 0 {
+			isAction = true
+		} else if unicode.IsUpper(r) {
+			isAction = false
+		}
+		if isAction {
+			actionRunes = append(actionRunes, r)
+		} else {
+			dataRunes = append(dataRunes, r)
+		}
+	}
+
+	return string(actionRunes), string(dataRunes)
+}

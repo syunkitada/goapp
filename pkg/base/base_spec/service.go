@@ -1,8 +1,8 @@
 package base_spec
 
 import (
-	"github.com/syunkitada/goapp/pkg/base/base_model"
 	"github.com/syunkitada/goapp/pkg/base/base_model/index_model"
+	"github.com/syunkitada/goapp/pkg/base/base_model/spec_model"
 )
 
 type UpdateService struct {
@@ -11,7 +11,7 @@ type UpdateService struct {
 	SyncRootCluster bool
 	ProjectRoles    []string
 	Endpoints       []string
-	QueryMap        map[string]base_model.QueryModel
+	QueryMap        map[string]spec_model.QueryModel
 }
 
 type UpdateServiceData struct {

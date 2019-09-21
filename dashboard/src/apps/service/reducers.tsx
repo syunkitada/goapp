@@ -157,6 +157,7 @@ export default reducerWithInitialState(defaultState)
       return newState;
     }
 
+    // updateSyncQueryMap
     if (payload.action.payload.isSync) {
       newState.syncQueryMap = Object.assign(
         {},

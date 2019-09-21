@@ -1,61 +1,101 @@
 package spec
 
-import "github.com/syunkitada/goapp/pkg/base/base_model"
+import "github.com/syunkitada/goapp/pkg/base/base_model/spec_model"
 
 type Meta struct{}
 
-var Spec = base_model.Spec{
+var Spec = spec_model.Spec{
 	Meta: Meta{},
 	Name: "Resource",
-	Apis: []base_model.Api{
-		base_model.Api{
+	Apis: []spec_model.Api{
+		spec_model.Api{
 			Name:            "ResourcePhysical",
 			RequiredAuth:    true,
 			RequiredProject: true,
-			QueryModels: []base_model.QueryModel{
-				base_model.QueryModel{Req: GetRegion{}, Rep: GetRegionData{}},
-				base_model.QueryModel{Req: GetRegions{}, Rep: GetRegionsData{}},
-				base_model.QueryModel{Req: CreateRegion{}, Rep: CreateRegionData{}},
-				base_model.QueryModel{Req: UpdateRegion{}, Rep: UpdateRegionData{}},
-				base_model.QueryModel{Req: DeleteRegion{}, Rep: DeleteRegionData{}},
+			QueryModels: []spec_model.QueryModel{
+				spec_model.QueryModel{Req: GetRegion{}, Rep: GetRegionData{}},
+				spec_model.QueryModel{Req: GetRegions{}, Rep: GetRegionsData{}},
+				spec_model.QueryModel{Req: CreateRegion{}, Rep: CreateRegionData{}},
+				spec_model.QueryModel{Req: UpdateRegion{}, Rep: UpdateRegionData{}},
+				spec_model.QueryModel{Req: DeleteRegion{}, Rep: DeleteRegionData{}},
 
-				base_model.QueryModel{Req: GetDatacenter{}, Rep: GetDatacenterData{}},
-				base_model.QueryModel{Req: GetDatacenters{}, Rep: GetDatacentersData{}},
-				base_model.QueryModel{Req: CreateDatacenter{}, Rep: CreateDatacenterData{}},
-				base_model.QueryModel{Req: UpdateDatacenter{}, Rep: UpdateDatacenterData{}},
-				base_model.QueryModel{Req: DeleteDatacenter{}, Rep: DeleteDatacenterData{}},
+				spec_model.QueryModel{Req: GetDatacenter{}, Rep: GetDatacenterData{}},
+				spec_model.QueryModel{Req: GetDatacenters{}, Rep: GetDatacentersData{}},
+				spec_model.QueryModel{Req: CreateDatacenter{}, Rep: CreateDatacenterData{}},
+				spec_model.QueryModel{Req: UpdateDatacenter{}, Rep: UpdateDatacenterData{}},
+				spec_model.QueryModel{Req: DeleteDatacenter{}, Rep: DeleteDatacenterData{}},
 
-				base_model.QueryModel{Req: GetFloor{}, Rep: GetFloorData{}},
-				base_model.QueryModel{Req: GetFloors{}, Rep: GetFloorsData{}},
-				base_model.QueryModel{Req: CreateFloor{}, Rep: CreateFloorData{}},
-				base_model.QueryModel{Req: UpdateFloor{}, Rep: UpdateFloorData{}},
-				base_model.QueryModel{Req: DeleteFloor{}, Rep: DeleteFloorData{}},
+				spec_model.QueryModel{Req: GetFloor{}, Rep: GetFloorData{}},
+				spec_model.QueryModel{Req: GetFloors{}, Rep: GetFloorsData{}},
+				spec_model.QueryModel{Req: CreateFloor{}, Rep: CreateFloorData{}},
+				spec_model.QueryModel{Req: UpdateFloor{}, Rep: UpdateFloorData{}},
+				spec_model.QueryModel{Req: DeleteFloor{}, Rep: DeleteFloorData{}},
 
-				base_model.QueryModel{Req: GetRack{}, Rep: GetRackData{}},
-				base_model.QueryModel{Req: GetRacks{}, Rep: GetRacksData{}},
-				base_model.QueryModel{Req: CreateRack{}, Rep: CreateRackData{}},
-				base_model.QueryModel{Req: UpdateRack{}, Rep: UpdateRackData{}},
-				base_model.QueryModel{Req: DeleteRack{}, Rep: DeleteRackData{}},
+				spec_model.QueryModel{Req: GetRack{}, Rep: GetRackData{}},
+				spec_model.QueryModel{Req: GetRacks{}, Rep: GetRacksData{}},
+				spec_model.QueryModel{Req: CreateRack{}, Rep: CreateRackData{}},
+				spec_model.QueryModel{Req: UpdateRack{}, Rep: UpdateRackData{}},
+				spec_model.QueryModel{Req: DeleteRack{}, Rep: DeleteRackData{}},
 
-				base_model.QueryModel{Req: GetPhysicalModel{}, Rep: GetPhysicalModelData{}},
-				base_model.QueryModel{Req: GetPhysicalModels{}, Rep: GetPhysicalModelsData{}},
-				base_model.QueryModel{Req: CreatePhysicalModel{}, Rep: CreatePhysicalModelData{}},
-				base_model.QueryModel{Req: UpdatePhysicalModel{}, Rep: UpdatePhysicalModelData{}},
-				base_model.QueryModel{Req: DeletePhysicalModel{}, Rep: DeletePhysicalModelData{}},
+				spec_model.QueryModel{Req: GetPhysicalModel{}, Rep: GetPhysicalModelData{}},
+				spec_model.QueryModel{Req: GetPhysicalModels{}, Rep: GetPhysicalModelsData{}},
+				spec_model.QueryModel{Req: CreatePhysicalModel{}, Rep: CreatePhysicalModelData{}},
+				spec_model.QueryModel{Req: UpdatePhysicalModel{}, Rep: UpdatePhysicalModelData{}},
+				spec_model.QueryModel{Req: DeletePhysicalModel{}, Rep: DeletePhysicalModelData{}},
 
-				base_model.QueryModel{Req: GetPhysicalResource{}, Rep: GetPhysicalResourceData{}},
-				base_model.QueryModel{Req: GetPhysicalResources{}, Rep: GetPhysicalResourcesData{}},
-				base_model.QueryModel{Req: CreatePhysicalResource{}, Rep: CreatePhysicalResourceData{}},
-				base_model.QueryModel{Req: UpdatePhysicalResource{}, Rep: UpdatePhysicalResourceData{}},
-				base_model.QueryModel{Req: DeletePhysicalResource{}, Rep: DeletePhysicalResourceData{}},
+				spec_model.QueryModel{Req: GetPhysicalResource{}, Rep: GetPhysicalResourceData{}},
+				spec_model.QueryModel{Req: GetPhysicalResources{}, Rep: GetPhysicalResourcesData{}},
+				spec_model.QueryModel{Req: CreatePhysicalResource{}, Rep: CreatePhysicalResourceData{}},
+				spec_model.QueryModel{Req: UpdatePhysicalResource{}, Rep: UpdatePhysicalResourceData{}},
+				spec_model.QueryModel{Req: DeletePhysicalResource{}, Rep: DeletePhysicalResourceData{}},
+			},
+			ViewModels: []interface{}{
+				spec_model.Table{
+					Name:          "Datacenters",
+					Data:          GetDatacenter{},
+					Actions:       []interface{}{CreateDatacenter{}},
+					SelectActions: []interface{}{DeleteDatacenter{}},
+					ColumnLinkMap: map[string]spec_model.Link{
+						"Name": spec_model.Link{Target: "Resources/PhysicalResources"},
+					},
+				},
+				spec_model.Tab{
+					Name: "Resources",
+					Tabs: []interface{}{
+						spec_model.Table{
+							Name:          "PhysicalResources",
+							Data:          GetPhysicalResources{},
+							Actions:       []interface{}{CreateDatacenter{}},
+							SelectActions: []interface{}{DeleteDatacenter{}},
+						},
+						spec_model.Table{
+							Name:          "Racks",
+							Data:          GetRacks{},
+							Actions:       []interface{}{CreateRack{}},
+							SelectActions: []interface{}{DeleteRack{}},
+						},
+						spec_model.Table{
+							Name:          "Floor",
+							Data:          GetFloors{},
+							Actions:       []interface{}{CreateFloor{}},
+							SelectActions: []interface{}{DeleteFloor{}},
+						},
+						spec_model.Table{
+							Name:          "PhysicalModels",
+							Data:          GetPhysicalModels{},
+							Actions:       []interface{}{CreatePhysicalModel{}},
+							SelectActions: []interface{}{DeletePhysicalModel{}},
+						},
+					},
+				},
 			},
 		},
-		base_model.Api{
+		spec_model.Api{
 			Name:            "ResourceVirtual",
 			RequiredAuth:    true,
 			RequiredProject: true,
-			QueryModels: []base_model.QueryModel{
-				base_model.QueryModel{Req: GetClusters{}, Rep: GetClustersData{}},
+			QueryModels: []spec_model.QueryModel{
+				spec_model.QueryModel{Req: GetClusters{}, Rep: GetClustersData{}},
 			},
 		},
 	},

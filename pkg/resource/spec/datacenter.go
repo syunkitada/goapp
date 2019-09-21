@@ -1,11 +1,15 @@
 package spec
 
+import "time"
+
 type Datacenter struct {
 	Kind         string `validate:"required"`
-	Name         string `validate:"required"`
+	Name         string `validate:"required" view:"isSearch=true"`
 	Description  string
-	Region       string `validate:"required"`
-	DomainSuffix string `validate:"required"`
+	Region       string    `validate:"required" view:"isSearch=true"`
+	DomainSuffix string    `validate:"required"`
+	UpdatedAt    time.Time `view:"sort=asc"`
+	CreatedAt    time.Time
 }
 
 type GetDatacenter struct {

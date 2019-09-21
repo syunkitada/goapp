@@ -5,7 +5,7 @@ import (
 
 	"github.com/jinzhu/gorm"
 	"github.com/syunkitada/goapp/pkg/base/base_db_model"
-	"github.com/syunkitada/goapp/pkg/base/base_model"
+	"github.com/syunkitada/goapp/pkg/base/base_model/spec_model"
 	"github.com/syunkitada/goapp/pkg/base/base_spec"
 	"github.com/syunkitada/goapp/pkg/lib/exec_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
@@ -81,11 +81,11 @@ func (api *Api) Bootstrap(tctx *logger.TraceContext, isRecreate bool) (err error
 		SyncRootCluster: false,
 		ProjectRoles:    []string{"admin", "service", "tenant"},
 		Endpoints:       []string{},
-		QueryMap: map[string]base_model.QueryModel{
-			"Login":          base_model.QueryModel{},
-			"LoginWithToken": base_model.QueryModel{},
-			"Logout":         base_model.QueryModel{},
-			"UpdateService":  base_model.QueryModel{},
+		QueryMap: map[string]spec_model.QueryModel{
+			"Login":          spec_model.QueryModel{},
+			"LoginWithToken": spec_model.QueryModel{},
+			"Logout":         spec_model.QueryModel{},
+			"UpdateService":  spec_model.QueryModel{},
 		},
 	}); err != nil {
 		return err
@@ -97,8 +97,8 @@ func (api *Api) Bootstrap(tctx *logger.TraceContext, isRecreate bool) (err error
 			fmt.Printf("Invalid service: querymap not found: %s\n", service.Name)
 			continue
 		}
-		queryMap["GetServiceIndex"] = base_model.QueryModel{}
-		queryMap["GetServiceDashboardIndex"] = base_model.QueryModel{}
+		queryMap["GetServiceIndex"] = spec_model.QueryModel{}
+		queryMap["GetServiceDashboardIndex"] = spec_model.QueryModel{}
 
 		if err = api.CreateOrUpdateService(tctx, db, &base_spec.UpdateService{
 			Name:            service.Name,

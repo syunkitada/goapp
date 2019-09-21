@@ -21,6 +21,7 @@ import (
 	"github.com/syunkitada/goapp/pkg/base/base_config"
 	"github.com/syunkitada/goapp/pkg/base/base_db_api"
 	"github.com/syunkitada/goapp/pkg/base/base_model"
+	"github.com/syunkitada/goapp/pkg/base/base_model/spec_model"
 	"github.com/syunkitada/goapp/pkg/base/base_spec"
 	"github.com/syunkitada/goapp/pkg/lib/error_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
@@ -42,7 +43,7 @@ type BaseApp struct {
 	shutdownTimeout    time.Duration
 	rootClient         *base_client.Client
 	dbApi              base_db_api.IApi
-	serviceMap         map[string]base_model.ServiceRouter
+	serviceMap         map[string]spec_model.ServiceRouter
 	queryHandler       IQueryHandler
 }
 
@@ -86,13 +87,13 @@ func (app *BaseApp) SyncService(tctx *logger.TraceContext, db *gorm.DB) (err err
 		return
 	}
 
-	serviceMap := map[string]base_model.ServiceRouter{}
+	serviceMap := map[string]spec_model.ServiceRouter{}
 	for _, service := range data.Services {
-		var queryMap map[string]base_model.QueryModel
+		var queryMap map[string]spec_model.QueryModel
 		if err = json.Unmarshal([]byte(service.QueryMap), &queryMap); err != nil {
 			return
 		}
-		serviceMap[service.Name] = base_model.ServiceRouter{
+		serviceMap[service.Name] = spec_model.ServiceRouter{
 			Endpoints: strings.Split(service.Endpoints, ","),
 			QueryMap:  queryMap,
 		}

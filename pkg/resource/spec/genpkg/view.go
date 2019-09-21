@@ -6,14 +6,13 @@ var DatacentersTable = index_model.Table{
 	Name:    "Datacenters",
 	Kind:    "Table",
 	Route:   "",
-	Subname: "datacenter",
 	DataKey: "Datacenters",
 	Columns: []index_model.TableColumn{
 		index_model.TableColumn{
 			Name:      "Name",
 			IsSearch:  true,
 			Link:      "Datacenters/:0/Resources/Resources",
-			LinkParam: "datacenter",
+			LinkParam: "Datacenter",
 			LinkSync:  true,
 			LinkGetQueries: []string{
 				"GetPhysicalResources", "GetRacks", "GetFloors", "GetPhysicalModels"},
@@ -84,9 +83,9 @@ var PhysicalResourcesTable = index_model.Table{
 	Columns: []index_model.TableColumn{
 		index_model.TableColumn{
 			Name: "Name", IsSearch: true,
-			Link:           "Datacenters/:datacenter/Resources/Resources/Detail/:0/View",
-			LinkParam:      "resource",
-			LinkSync:       false,
+			Link:           "Datacenters/:Datacenter/Resources/Resources/Detail/:0/View",
+			LinkParam:      "Name",
+			LinkSync:       true,
 			LinkGetQueries: []string{"GetPhysicalResource"},
 		},
 		index_model.TableColumn{Name: "Kind"},
@@ -99,10 +98,10 @@ var PhysicalResourcesTable = index_model.Table{
 var PhysicalResourcesDetail = index_model.Tabs{
 	Name:            "Resources",
 	Kind:            "RouteTabs",
-	RouteParamKey:   "kind",
+	RouteParamKey:   "Kind",
 	RouteParamValue: "Resources",
-	Route:           "/Datacenters/:datacenter/Resources/Resources/Detail/:resource/:subkind",
-	TabParam:        "subkind",
+	Route:           "/Datacenters/:Datacenter/Resources/Resources/Detail/:Name/:Subkind",
+	TabParam:        "Subkind",
 	GetQueries: []string{
 		"GetPhysicalResource",
 		"GetPhysicalResources", "GetRacks", "GetFloors", "GetPhysicalModels"},
@@ -124,7 +123,7 @@ var PhysicalResourcesDetail = index_model.Tabs{
 			Route:        "/Edit",
 			Kind:         "Form",
 			DataKey:      "PhysicalResource",
-			SubmitAction: "update_physical-resource",
+			SubmitAction: "UpdatePhysicalResource",
 			Icon:         "Update",
 			Fields: []index_model.Field{
 				index_model.Field{Name: "Name", Kind: "text", Require: true,
@@ -159,8 +158,8 @@ var RacksTable = index_model.Table{
 	Columns: []index_model.TableColumn{
 		index_model.TableColumn{
 			Name: "Name", IsSearch: true,
-			Link:           "Datacenters/:datacenter/Resources/Racks/Detail/:0/View",
-			LinkParam:      "resource",
+			Link:           "Datacenters/:Datacenter/Resources/Racks/Detail/:0/View",
+			LinkParam:      "Name",
 			LinkSync:       false,
 			LinkGetQueries: []string{"GetRack"},
 		},
@@ -187,8 +186,8 @@ var FloorsTable = index_model.Table{
 	Columns: []index_model.TableColumn{
 		index_model.TableColumn{
 			Name: "Name", IsSearch: true,
-			Link:           "Datacenters/:datacenter/Resources/Floors/Detail/:0/View",
-			LinkParam:      "resource",
+			Link:           "Datacenters/:Datacenter/Resources/Floors/Detail/:0/View",
+			LinkParam:      "Name",
 			LinkSync:       false,
 			LinkGetQueries: []string{"GetFloor"},
 		},
@@ -234,7 +233,7 @@ var PhysicalModelsTable = index_model.Table{
 		index_model.TableColumn{
 			Name:           "Name",
 			IsSearch:       true,
-			Link:           "Datacenters/:datacenter/Resources/Models/Detail/:0/View",
+			Link:           "Datacenters/:Datacenter/Resources/Models/Detail/:0/View",
 			LinkParam:      "resource",
 			LinkSync:       false,
 			LinkGetQueries: []string{"GetPhysicalModel"}},
@@ -248,10 +247,10 @@ var PhysicalModelsTable = index_model.Table{
 var PhysicalModelsDetail = index_model.Tabs{
 	Name:            "Models",
 	Kind:            "RouteTabs",
-	RouteParamKey:   "kind",
+	RouteParamKey:   "Kind",
 	RouteParamValue: "Models",
-	Route:           "/Datacenters/:datacenter/Resources/Models/Detail/:resource/:subkind",
-	TabParam:        "subkind",
+	Route:           "/Datacenters/:Datacenter/Resources/Models/Detail/:Name/:Subkind",
+	TabParam:        "Subkind",
 	GetQueries: []string{
 		"GetPhysicalModel",
 		"GetPhysicalResources", "GetRacks", "GetFloors", "GetPhysicalModels"},
@@ -273,7 +272,7 @@ var PhysicalModelsDetail = index_model.Tabs{
 			Route:        "/Edit",
 			Kind:         "Form",
 			DataKey:      "PhysicalModel",
-			SubmitAction: "update_physical-model",
+			SubmitAction: "UpdatePhysicalModel",
 			Icon:         "Update",
 			Fields: []index_model.Field{
 				index_model.Field{Name: "Name", Kind: "text", Require: true,

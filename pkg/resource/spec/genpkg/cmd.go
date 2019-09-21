@@ -1,8 +1,8 @@
 package genpkg
 
 import (
-	"github.com/syunkitada/goapp/pkg/base/base_model"
 	"github.com/syunkitada/goapp/pkg/base/base_model/index_model"
+	"github.com/syunkitada/goapp/pkg/base/base_model/spec_model"
 )
 
 var ResourcePhysicalCmdMap = map[string]index_model.Cmd{
@@ -76,7 +76,7 @@ var ResourcePhysicalCmdMap = map[string]index_model.Cmd{
 		QueryName:    "GetDatacenters",
 		FlagMap:      map[string]index_model.Flag{},
 		OutputKind:   "table",
-		OutputFormat: "Kind,Name,Description,Region,DomainSuffix",
+		OutputFormat: "Kind,Name,Description,Region,DomainSuffix,UpdatedAt,CreatedAt",
 	},
 	"create.datacenter": index_model.Cmd{
 		QueryName: "CreateDatacenter",
@@ -279,6 +279,11 @@ var ResourcePhysicalCmdMap = map[string]index_model.Cmd{
 	"get.physical.resource": index_model.Cmd{
 		QueryName: "GetPhysicalResource",
 		FlagMap: map[string]index_model.Flag{
+			"datacenter,d": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
 			"name,n": index_model.Flag{
 				Required: true,
 				FlagType: "string",
@@ -292,7 +297,7 @@ var ResourcePhysicalCmdMap = map[string]index_model.Cmd{
 		QueryName:    "GetPhysicalResources",
 		FlagMap:      map[string]index_model.Flag{},
 		OutputKind:   "table",
-		OutputFormat: "Kind,Name,Datacenter,Cluster,Rack,Model,RackPosition,NetLinks,PowerLinks,Spec",
+		OutputFormat: "Kind,Name,Datacenter,Cluster,Rack,PhysicalModel,RackPosition,Spec",
 	},
 	"create.physical.resource": index_model.Cmd{
 		QueryName: "CreatePhysicalResource",
@@ -340,44 +345,44 @@ var ResourceVirtualCmdMap = map[string]index_model.Cmd{
 	},
 }
 
-var ApiQueryMap = map[string]map[string]base_model.QueryModel{
-	"Auth": map[string]base_model.QueryModel{
-		"Login":         base_model.QueryModel{},
-		"UpdateService": base_model.QueryModel{},
+var ApiQueryMap = map[string]map[string]spec_model.QueryModel{
+	"Auth": map[string]spec_model.QueryModel{
+		"Login":         spec_model.QueryModel{},
+		"UpdateService": spec_model.QueryModel{},
 	},
-	"ResourcePhysical": map[string]base_model.QueryModel{
-		"GetRegion":              base_model.QueryModel{},
-		"GetRegions":             base_model.QueryModel{},
-		"CreateRegion":           base_model.QueryModel{},
-		"UpdateRegion":           base_model.QueryModel{},
-		"DeleteRegion":           base_model.QueryModel{},
-		"GetDatacenter":          base_model.QueryModel{},
-		"GetDatacenters":         base_model.QueryModel{},
-		"CreateDatacenter":       base_model.QueryModel{},
-		"UpdateDatacenter":       base_model.QueryModel{},
-		"DeleteDatacenter":       base_model.QueryModel{},
-		"GetFloor":               base_model.QueryModel{},
-		"GetFloors":              base_model.QueryModel{},
-		"CreateFloor":            base_model.QueryModel{},
-		"UpdateFloor":            base_model.QueryModel{},
-		"DeleteFloor":            base_model.QueryModel{},
-		"GetRack":                base_model.QueryModel{},
-		"GetRacks":               base_model.QueryModel{},
-		"CreateRack":             base_model.QueryModel{},
-		"UpdateRack":             base_model.QueryModel{},
-		"DeleteRack":             base_model.QueryModel{},
-		"GetPhysicalModel":       base_model.QueryModel{},
-		"GetPhysicalModels":      base_model.QueryModel{},
-		"CreatePhysicalModel":    base_model.QueryModel{},
-		"UpdatePhysicalModel":    base_model.QueryModel{},
-		"DeletePhysicalModel":    base_model.QueryModel{},
-		"GetPhysicalResource":    base_model.QueryModel{},
-		"GetPhysicalResources":   base_model.QueryModel{},
-		"CreatePhysicalResource": base_model.QueryModel{},
-		"UpdatePhysicalResource": base_model.QueryModel{},
-		"DeletePhysicalResource": base_model.QueryModel{},
+	"ResourcePhysical": map[string]spec_model.QueryModel{
+		"GetRegion":              spec_model.QueryModel{},
+		"GetRegions":             spec_model.QueryModel{},
+		"CreateRegion":           spec_model.QueryModel{},
+		"UpdateRegion":           spec_model.QueryModel{},
+		"DeleteRegion":           spec_model.QueryModel{},
+		"GetDatacenter":          spec_model.QueryModel{},
+		"GetDatacenters":         spec_model.QueryModel{},
+		"CreateDatacenter":       spec_model.QueryModel{},
+		"UpdateDatacenter":       spec_model.QueryModel{},
+		"DeleteDatacenter":       spec_model.QueryModel{},
+		"GetFloor":               spec_model.QueryModel{},
+		"GetFloors":              spec_model.QueryModel{},
+		"CreateFloor":            spec_model.QueryModel{},
+		"UpdateFloor":            spec_model.QueryModel{},
+		"DeleteFloor":            spec_model.QueryModel{},
+		"GetRack":                spec_model.QueryModel{},
+		"GetRacks":               spec_model.QueryModel{},
+		"CreateRack":             spec_model.QueryModel{},
+		"UpdateRack":             spec_model.QueryModel{},
+		"DeleteRack":             spec_model.QueryModel{},
+		"GetPhysicalModel":       spec_model.QueryModel{},
+		"GetPhysicalModels":      spec_model.QueryModel{},
+		"CreatePhysicalModel":    spec_model.QueryModel{},
+		"UpdatePhysicalModel":    spec_model.QueryModel{},
+		"DeletePhysicalModel":    spec_model.QueryModel{},
+		"GetPhysicalResource":    spec_model.QueryModel{},
+		"GetPhysicalResources":   spec_model.QueryModel{},
+		"CreatePhysicalResource": spec_model.QueryModel{},
+		"UpdatePhysicalResource": spec_model.QueryModel{},
+		"DeletePhysicalResource": spec_model.QueryModel{},
 	},
-	"ResourceVirtual": map[string]base_model.QueryModel{
-		"GetClusters": base_model.QueryModel{},
+	"ResourceVirtual": map[string]spec_model.QueryModel{
+		"GetClusters": spec_model.QueryModel{},
 	},
 }

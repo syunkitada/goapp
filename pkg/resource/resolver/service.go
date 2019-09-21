@@ -62,9 +62,9 @@ func (resolver *Resolver) GetServiceDashboardIndex(tctx *logger.TraceContext, db
 						index_model.Tabs{
 							Name:             "Resources",
 							Kind:             "RouteTabs",
-							Subname:          "kind",
-							Route:            "/Datacenters/:datacenter/Resources/:kind",
-							TabParam:         "kind",
+							Subname:          "Kind",
+							Route:            "/Datacenters/:Datacenter/Resources/:Kind",
+							TabParam:         "Kind",
 							GetQueries:       []string{"GetPhysicalResources", "GetRacks", "GetFloors", "GetPhysicalModels"},
 							ExpectedDataKeys: []string{"PhysicalResources", "Racks", "Floors", "PhysicalModels"},
 							IsSync:           true,
@@ -77,10 +77,10 @@ func (resolver *Resolver) GetServiceDashboardIndex(tctx *logger.TraceContext, db
 						},
 						gin.H{
 							"Name":      "Resource",
-							"Subname":   "resource",
-							"Route":     "/Datacenters/:datacenter/Resources/:kind/Detail/:resource/:subkind",
+							"Subname":   "Name",
+							"Route":     "/Datacenters/:Datacenter/Resources/:Kind/Detail/:Name/:Subkind",
 							"Kind":      "RoutePanes",
-							"PaneParam": "kind",
+							"PaneParam": "Kind",
 							"Panes": []interface{}{
 								genpkg.PhysicalModelsDetail,
 								genpkg.PhysicalResourcesDetail,
@@ -116,7 +116,6 @@ func (resolver *Resolver) GetServiceDashboardIndex(tctx *logger.TraceContext, db
 	default:
 		code = base_const.CodeClientNotFound
 	}
-	fmt.Println("DEBUG GetServiceDashboardIndex", input, data)
 
 	return
 }

@@ -13,6 +13,7 @@ func (resolver *Resolver) GetPhysicalResource(tctx *logger.TraceContext, db *gor
 	var region *spec.PhysicalResource
 	region, err = resolver.dbApi.GetPhysicalResource(tctx, db, input.Name)
 	data = &spec.GetPhysicalResourceData{PhysicalResource: *region}
+	fmt.Println("DEBUG GetPhysicalResource", input)
 	return
 }
 

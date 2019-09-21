@@ -12,11 +12,12 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/syunkitada/goapp/pkg/base/base_const"
 	"github.com/syunkitada/goapp/pkg/base/base_model"
+	"github.com/syunkitada/goapp/pkg/base/base_model/spec_model"
 	"github.com/syunkitada/goapp/pkg/base/base_spec"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
 
-func (app *BaseApp) Start(tctx *logger.TraceContext, db *gorm.DB, httpReq *http.Request) (service *base_model.ServiceRouter,
+func (app *BaseApp) Start(tctx *logger.TraceContext, db *gorm.DB, httpReq *http.Request) (service *spec_model.ServiceRouter,
 	userAuthority *base_spec.UserAuthority, rawReq []byte, req *base_model.Request, res *base_model.Response, err error) {
 	res = &base_model.Response{TraceId: tctx.GetTraceId(), Data: map[string]interface{}{}}
 

@@ -1,8 +1,8 @@
 package genpkg
 
 import (
-	"github.com/syunkitada/goapp/pkg/base/base_model"
 	"github.com/syunkitada/goapp/pkg/base/base_model/index_model"
+	"github.com/syunkitada/goapp/pkg/base/base_model/spec_model"
 )
 
 var HomeCmdMap = map[string]index_model.Cmd{
@@ -46,16 +46,16 @@ var HomeProjectCmdMap = map[string]index_model.Cmd{
 	},
 }
 
-var ApiQueryMap = map[string]map[string]base_model.QueryModel{
-	"Auth": map[string]base_model.QueryModel{
-		"Login":         base_model.QueryModel{},
-		"UpdateService": base_model.QueryModel{},
+var ApiQueryMap = map[string]map[string]spec_model.QueryModel{
+	"Auth": map[string]spec_model.QueryModel{
+		"Login":         spec_model.QueryModel{},
+		"UpdateService": spec_model.QueryModel{},
 	},
-	"Home": map[string]base_model.QueryModel{
-		"GetAllUsers": base_model.QueryModel{},
-		"GetUser":     base_model.QueryModel{},
+	"Home": map[string]spec_model.QueryModel{
+		"GetAllUsers": spec_model.QueryModel{},
+		"GetUser":     spec_model.QueryModel{},
 	},
-	"HomeProject": map[string]base_model.QueryModel{
-		"GetUsers": base_model.QueryModel{},
+	"HomeProject": map[string]spec_model.QueryModel{
+		"GetUsers": spec_model.QueryModel{},
 	},
 }

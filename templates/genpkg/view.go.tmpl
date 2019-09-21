@@ -1,0 +1,18 @@
+package genpkg
+
+import "github.com/syunkitada/goapp/pkg/base/base_model/index_model"
+
+{{- range $api := $spec.Apis }}
+{{- range $query := $api.Queries }}
+var {{ $query.DataName }}Table = index_model.Table{
+    Name: "{{ $query.DataName }}",
+    Kind: "Table",
+    Route: "",
+    DataKey: "{{ $query.DataName }}",
+    Columns: []index_model.TableColumn{
+        index_model.TableColumn{
+        },
+    },
+}
+{{- end }}
+{{- end }}

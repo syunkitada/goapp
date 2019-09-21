@@ -10,12 +10,12 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/syunkitada/goapp/pkg/base/base_model"
+	"github.com/syunkitada/goapp/pkg/base/base_model/spec_model"
 	"github.com/syunkitada/goapp/pkg/lib/os_utils"
 	"github.com/syunkitada/goapp/pkg/lib/str_utils"
 )
 
-func Generate(spec *base_model.Spec) {
+func Generate(spec *spec_model.Spec) {
 	specType := reflect.TypeOf(spec.Meta)
 	specPkgPath := specType.PkgPath()
 	splitedPkg := strings.Split(specPkgPath, "/")
@@ -57,7 +57,7 @@ func Generate(spec *base_model.Spec) {
 	generateCodeFromTemplate(cmdTemplatePath, pkgDir, "cmd.go", spec)
 }
 
-func generateCodeFromTemplate(templatePath string, pkgDir string, outputFile string, spec *base_model.Spec) {
+func generateCodeFromTemplate(templatePath string, pkgDir string, outputFile string, spec *spec_model.Spec) {
 	t := template.Must(template.ParseFiles(templatePath))
 	filePath := filepath.Join(pkgDir, outputFile)
 	f, err := os.Create(filePath)
@@ -74,15 +74,17 @@ func generateCodeFromTemplate(templatePath string, pkgDir string, outputFile str
 	fmt.Printf("Generated: %s\n", filePath)
 }
 
-func convertApi(api *base_model.Api) {
-	queries := []base_model.Query{}
+func convertApi(api *spec_model.Api) {
+	queries := []spec_model.Query{}
 	for _, queryModel := range api.QueryModels {
 		reqType := reflect.TypeOf(queryModel.Req)
 		pkgPath := reqType.PkgPath()
 		splitedPath := strings.Split(pkgPath, "/")
 		pkgName := splitedPath[len(splitedPath)-1]
 		name := reqType.Name()
-		flags := []base_model.Flag{}
+		actionName, dataName := str_utils.SplitActionDataName(name)
+
+		flags := []spec_model.Flag{}
 		lenFields := reqType.NumField()
 		for i := 0; i < lenFields; i++ {
 			f := reqType.Field(i)
@@ -113,7 +115,7 @@ func convertApi(api *base_model.Api) {
 				flagKind = ""
 			}
 			flagType := f.Type.String()
-			flags = append(flags, base_model.Flag{
+			flags = append(flags, spec_model.Flag{
 				Name:     f.Name,
 				FlagName: flagName,
 				FlagType: flagType,
@@ -142,11 +144,13 @@ func convertApi(api *base_model.Api) {
 			}
 		}
 
-		queries = append(queries, base_model.Query{
+		queries = append(queries, spec_model.Query{
 			RequiredAuth:    queryModel.RequiredAuth,
 			PkgPath:         pkgPath,
 			PkgName:         pkgName,
 			Name:            name,
+			ActionName:      actionName,
+			DataName:        dataName,
 			CmdName:         str_utils.ConvertToLowerFormat(name),
 			CmdOutputKind:   outputKind,
 			CmdOutputFormat: outputFormat,

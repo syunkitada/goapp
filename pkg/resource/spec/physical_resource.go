@@ -12,7 +12,8 @@ type PhysicalResource struct {
 }
 
 type GetPhysicalResource struct {
-	Name string `validate:"required"`
+	Datacenter string `validate:"required"`
+	Name       string `validate:"required"`
 }
 
 type GetPhysicalResourceData struct {

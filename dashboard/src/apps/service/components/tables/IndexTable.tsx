@@ -422,7 +422,6 @@ class IndexTable extends React.Component<IIndexTable> {
   };
 
   private handleActionClick = (event, actionName) => {
-    console.log('DEBUG handleAction', actionName);
     this.setState({actionName});
   };
 
@@ -435,11 +434,7 @@ class IndexTable extends React.Component<IIndexTable> {
     const route = routes[routes.length - 1];
     const params = route.match.params;
     params[column.LinkParam] = value;
-    this.props.getQueries(
-      column.LinkGetQueries,
-      column.LinkSync,
-      route.match.params,
-    );
+    this.props.getQueries(column.LinkGetQueries, column.LinkSync, params);
     route.history.push(link);
   };
 }
