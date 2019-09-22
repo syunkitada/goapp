@@ -9,7 +9,8 @@ type Rack struct {
 }
 
 type GetRack struct {
-	Name string `validate:"required"`
+	Name       string `validate:"required"`
+	Datacenter string `validate:"required"`
 }
 
 type GetRackData struct {
@@ -35,9 +36,8 @@ type UpdateRack struct {
 type UpdateRackData struct{}
 
 type DeleteRack struct {
-	Name string `validate:"required"`
+	Name       string `validate:"required"`
+	Datacenter string `validate:"required"`
 }
 
-type DeleteRackData struct {
-	Rack Rack
-}
+type DeleteRackData struct{}

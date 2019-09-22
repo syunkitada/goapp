@@ -39,7 +39,8 @@ type UpdatePhysicalResource struct {
 type UpdatePhysicalResourceData struct{}
 
 type DeletePhysicalResource struct {
-	Name string `validate:"required"`
+	Datacenter string `validate:"required"`
+	Name       string `validate:"required"`
 }
 
 type DeletePhysicalResourceData struct {

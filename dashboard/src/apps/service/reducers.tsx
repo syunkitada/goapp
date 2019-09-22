@@ -131,6 +131,7 @@ export default reducerWithInitialState(defaultState)
       StatusCode: payload.result.Code,
       TraceId: payload.result.TraceId,
     };
+    console.log('DEBUG tctx', tctx);
 
     let isGetIndex = false;
     switch (actionType) {

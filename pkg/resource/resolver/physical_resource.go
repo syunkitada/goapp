@@ -2,32 +2,39 @@ package resolver
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"github.com/jinzhu/gorm"
+	"github.com/syunkitada/goapp/pkg/base/base_const"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/resource/spec"
 )
 
 func (resolver *Resolver) GetPhysicalResource(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetPhysicalResource) (data *spec.GetPhysicalResourceData, code uint8, err error) {
 	var region *spec.PhysicalResource
-	region, err = resolver.dbApi.GetPhysicalResource(tctx, db, input.Name)
+	if region, err = resolver.dbApi.GetPhysicalResource(tctx, db, input); err != nil {
+		code = base_const.CodeServerInternalError
+		return
+	}
+	code = base_const.CodeOk
 	data = &spec.GetPhysicalResourceData{PhysicalResource: *region}
-	fmt.Println("DEBUG GetPhysicalResource", input)
 	return
 }
 
 func (resolver *Resolver) GetPhysicalResources(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetPhysicalResources) (data *spec.GetPhysicalResourcesData, code uint8, err error) {
 	var regions []spec.PhysicalResource
-	regions, err = resolver.dbApi.GetPhysicalResources(tctx, db)
+	if regions, err = resolver.dbApi.GetPhysicalResources(tctx, db); err != nil {
+		code = base_const.CodeServerInternalError
+		return
+	}
+	code = base_const.CodeOk
 	data = &spec.GetPhysicalResourcesData{PhysicalResources: regions}
-	fmt.Println("DEBUG Get PhysicalResources")
 	return
 }
 
 func (resolver *Resolver) CreatePhysicalResource(tctx *logger.TraceContext, db *gorm.DB, input *spec.CreatePhysicalResource) (data *spec.CreatePhysicalResourceData, code uint8, err error) {
 	var baseSpecs []BaseSpec
 	if err = json.Unmarshal([]byte(input.Spec), &baseSpecs); err != nil {
+		code = base_const.CodeClientBadRequest
 		return
 	}
 
@@ -38,18 +45,26 @@ func (resolver *Resolver) CreatePhysicalResource(tctx *logger.TraceContext, db *
 		}
 		var specBytes []byte
 		if specBytes, err = json.Marshal(base.Spec); err != nil {
+			code = base_const.CodeClientBadRequest
 			return
 		}
-		var region spec.PhysicalResource
-		if err = json.Unmarshal(specBytes, &region); err != nil {
+		var specData spec.PhysicalResource
+		if err = json.Unmarshal(specBytes, &specData); err != nil {
+			code = base_const.CodeClientBadRequest
 			return
 		}
-		if err = resolver.Validate.Struct(&region); err != nil {
+		if err = resolver.Validate.Struct(&specData); err != nil {
+			code = base_const.CodeClientBadRequest
 			return
 		}
-		specs = append(specs, region)
+		specs = append(specs, specData)
 	}
-	err = resolver.dbApi.CreatePhysicalResources(tctx, db, specs)
+
+	if err = resolver.dbApi.CreatePhysicalResources(tctx, db, specs); err != nil {
+		code = base_const.CodeServerInternalError
+		return
+	}
+	code = base_const.CodeOkCreated
 	data = &spec.CreatePhysicalResourceData{}
 	return
 }
@@ -57,6 +72,7 @@ func (resolver *Resolver) CreatePhysicalResource(tctx *logger.TraceContext, db *
 func (resolver *Resolver) UpdatePhysicalResource(tctx *logger.TraceContext, db *gorm.DB, input *spec.UpdatePhysicalResource) (data *spec.UpdatePhysicalResourceData, code uint8, err error) {
 	var baseSpecs []BaseSpec
 	if err = json.Unmarshal([]byte(input.Spec), &baseSpecs); err != nil {
+		code = base_const.CodeClientBadRequest
 		return
 	}
 
@@ -67,24 +83,35 @@ func (resolver *Resolver) UpdatePhysicalResource(tctx *logger.TraceContext, db *
 		}
 		var specBytes []byte
 		if specBytes, err = json.Marshal(base.Spec); err != nil {
+			code = base_const.CodeClientBadRequest
 			return
 		}
-		var region spec.PhysicalResource
-		if err = json.Unmarshal(specBytes, &region); err != nil {
+		var specData spec.PhysicalResource
+		if err = json.Unmarshal(specBytes, &specData); err != nil {
+			code = base_const.CodeClientBadRequest
 			return
 		}
-		if err = resolver.Validate.Struct(&region); err != nil {
+		if err = resolver.Validate.Struct(&specData); err != nil {
+			code = base_const.CodeClientBadRequest
 			return
 		}
-		specs = append(specs, region)
+		specs = append(specs, specData)
 	}
-	err = resolver.dbApi.UpdatePhysicalResources(tctx, db, specs)
+	if err = resolver.dbApi.UpdatePhysicalResources(tctx, db, specs); err != nil {
+		code = base_const.CodeServerInternalError
+		return
+	}
+	code = base_const.CodeOkUpdated
 	data = &spec.UpdatePhysicalResourceData{}
 	return
 }
 
 func (resolver *Resolver) DeletePhysicalResource(tctx *logger.TraceContext, db *gorm.DB, input *spec.DeletePhysicalResource) (data *spec.DeletePhysicalResourceData, code uint8, err error) {
-	err = resolver.dbApi.DeletePhysicalResource(tctx, db, input.Name)
+	if err = resolver.dbApi.DeletePhysicalResource(tctx, db, input); err != nil {
+		code = base_const.CodeServerInternalError
+		return
+	}
+	code = base_const.CodeOkDeleted
 	data = &spec.DeletePhysicalResourceData{}
 	return
 }

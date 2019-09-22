@@ -1,0 +1,12 @@
+// This code is auto generated.
+// Don't modify this code.
+
+package base_const
+
+{{- $codeMap := . }}
+
+const (
+{{- range $code, $status := $codeMap }}
+    Code{{ $status }} uint8 = {{ $code }}
+{{- end }}
+)

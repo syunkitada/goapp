@@ -57,7 +57,7 @@ func Generate(spec *spec_model.Spec) {
 	generateCodeFromTemplate(cmdTemplatePath, pkgDir, "cmd.go", spec)
 }
 
-func generateCodeFromTemplate(templatePath string, pkgDir string, outputFile string, spec *spec_model.Spec) {
+func generateCodeFromTemplate(templatePath string, pkgDir string, outputFile string, spec interface{}) {
 	t := template.Must(template.ParseFiles(templatePath))
 	filePath := filepath.Join(pkgDir, outputFile)
 	f, err := os.Create(filePath)
@@ -67,9 +67,11 @@ func generateCodeFromTemplate(templatePath string, pkgDir string, outputFile str
 	if err := t.Execute(f, spec); err != nil {
 		log.Fatal(err)
 	}
-	cmd := "goimports -w " + filePath
-	if out, err := exec.Command("sh", "-c", cmd).CombinedOutput(); err != nil {
-		log.Fatalf("Failed cmd: %s, out=%s, err=%v", cmd, out, err)
+	if len(outputFile) == strings.LastIndex(outputFile, ".go")+3 {
+		cmd := "goimports -w " + filePath
+		if out, err := exec.Command("sh", "-c", cmd).CombinedOutput(); err != nil {
+			log.Fatalf("Failed cmd: %s, out=%s, err=%v", cmd, out, err)
+		}
 	}
 	fmt.Printf("Generated: %s\n", filePath)
 }

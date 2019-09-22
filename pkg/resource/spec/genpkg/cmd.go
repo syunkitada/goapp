@@ -326,6 +326,11 @@ var ResourcePhysicalCmdMap = map[string]index_model.Cmd{
 	"delete.physical.resource": index_model.Cmd{
 		QueryName: "DeletePhysicalResource",
 		FlagMap: map[string]index_model.Flag{
+			"datacenter,d": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
 			"name,n": index_model.Flag{
 				Required: true,
 				FlagType: "string",

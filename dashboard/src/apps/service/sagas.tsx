@@ -68,37 +68,36 @@ function* post(action) {
 
     case 'SERVICE_SUBMIT_QUERIES':
       const strParams = Object.assign({}, params);
-      const numParams = {};
-      const specs: any[] = [];
-
-      const spec = Object.assign({}, params);
-      for (const key of Object.keys(fieldMap)) {
-        const field = fieldMap[key];
-        spec[key] = field.value;
-      }
-
-      for (let i = 0, len = items.length; i < len; i++) {
-        specs.push(Object.assign({}, spec, items[i]));
-      }
-
-      const specsStr = JSON.stringify(specs);
-      strParams.Specs = specsStr;
-
       if (targets) {
         for (let i = 0, len = targets.length; i < len; i++) {
           const target = targets[i];
           strParams.Target = target;
           dataQueries.push({
-            Kind: queryKind,
-            NumParams: numParams,
-            StrParams: strParams,
+            Data: JSON.stringify(strParams),
+            Name: queryKind,
           });
         }
       } else {
+        const specs: any[] = [];
+        const spec = Object.assign({}, params);
+        for (const key of Object.keys(fieldMap)) {
+          const field = fieldMap[key];
+          spec[key] = field.value;
+        }
+
+        for (let i = 0, len = items.length; i < len; i++) {
+          specs.push({
+            Kind: 'PhysicalResource',
+            Spec: Object.assign({}, spec, items[i]),
+          });
+        }
+
+        const specsStr = JSON.stringify(specs);
+        strParams.Spec = specsStr;
+
         dataQueries.push({
-          Kind: queryKind,
-          NumParams: numParams,
-          StrParams: strParams,
+          Data: JSON.stringify(strParams),
+          Name: queryKind,
         });
       }
 

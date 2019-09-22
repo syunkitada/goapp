@@ -1,3 +1,6 @@
+// This code is auto generated.
+// Don't modify this code.
+
 package genpkg
 
 import (

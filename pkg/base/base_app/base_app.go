@@ -320,7 +320,7 @@ func (app *BaseApp) NewHandler() http.Handler {
 				fmt.Println("DEBUG proxy failed", err)
 				continue
 			} else {
-				fmt.Println("DEBUG proxy success", endpoint, req, string(rawReq))
+				fmt.Println("DEBUG proxy success", endpoint)
 				break
 			}
 		}

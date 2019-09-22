@@ -10,4 +10,5 @@ import (
 func main() {
 	code_generator.Generate(&authproxy_spec.Spec)
 	code_generator.Generate(&resource_spec.Spec)
+	code_generator.GenerateStatusCodes()
 }

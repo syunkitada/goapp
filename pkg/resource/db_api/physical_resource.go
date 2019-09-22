@@ -7,9 +7,9 @@ import (
 	"github.com/syunkitada/goapp/pkg/resource/spec"
 )
 
-func (api *Api) GetPhysicalResource(tctx *logger.TraceContext, db *gorm.DB, name string) (data *spec.PhysicalResource, err error) {
+func (api *Api) GetPhysicalResource(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetPhysicalResource) (data *spec.PhysicalResource, err error) {
 	data = &spec.PhysicalResource{}
-	err = db.Where("name = ?", name).First(data).Error
+	err = db.Where("name = ? AND datacenter = ?", input.Name, input.Datacenter).First(data).Error
 	return
 }
 
@@ -18,24 +18,25 @@ func (api *Api) GetPhysicalResources(tctx *logger.TraceContext, db *gorm.DB) (da
 	return
 }
 
-func (api *Api) CreatePhysicalResources(tctx *logger.TraceContext, db *gorm.DB, physicalResources []spec.PhysicalResource) (err error) {
+func (api *Api) CreatePhysicalResources(tctx *logger.TraceContext, db *gorm.DB, input []spec.PhysicalResource) (err error) {
 	err = api.Transact(tctx, db, func(tx *gorm.DB) (err error) {
-		for _, physicalResource := range physicalResources {
-			var tmpPhysicalResource db_model.PhysicalResource
-			if err = tx.Where("name = ?", physicalResource.Name).First(&tmpPhysicalResource).Error; err != nil {
+		for _, data := range input {
+			var tmp db_model.PhysicalResource
+			if err = tx.Where("name = ? AND datacenter = ?", data.Name, data.Datacenter).
+				First(&tmp).Error; err != nil {
 				if !gorm.IsRecordNotFoundError(err) {
 					return
 				}
-				tmpPhysicalResource = db_model.PhysicalResource{
-					Name:          physicalResource.Name,
-					Kind:          physicalResource.Kind,
-					Datacenter:    physicalResource.Datacenter,
-					Cluster:       physicalResource.Cluster,
-					Rack:          physicalResource.Rack,
-					PhysicalModel: physicalResource.PhysicalModel,
-					RackPosition:  physicalResource.RackPosition,
+				tmp = db_model.PhysicalResource{
+					Name:          data.Name,
+					Kind:          data.Kind,
+					Datacenter:    data.Datacenter,
+					Cluster:       data.Cluster,
+					Rack:          data.Rack,
+					PhysicalModel: data.PhysicalModel,
+					RackPosition:  data.RackPosition,
 				}
-				if err = tx.Create(&tmpPhysicalResource).Error; err != nil {
+				if err = tx.Create(&tmp).Error; err != nil {
 					return
 				}
 			}
@@ -45,17 +46,19 @@ func (api *Api) CreatePhysicalResources(tctx *logger.TraceContext, db *gorm.DB, 
 	return
 }
 
-func (api *Api) UpdatePhysicalResources(tctx *logger.TraceContext, db *gorm.DB, physicalResources []spec.PhysicalResource) (err error) {
+func (api *Api) UpdatePhysicalResources(tctx *logger.TraceContext, db *gorm.DB, input []spec.PhysicalResource) (err error) {
 	err = api.Transact(tctx, db, func(tx *gorm.DB) (err error) {
-		for _, physicalResource := range physicalResources {
-			if err = tx.Model(&db_model.PhysicalResource{}).Where("name = ?", physicalResource.Name).Updates(&db_model.PhysicalResource{
-				Kind:          physicalResource.Kind,
-				Datacenter:    physicalResource.Datacenter,
-				Cluster:       physicalResource.Cluster,
-				Rack:          physicalResource.Rack,
-				PhysicalModel: physicalResource.PhysicalModel,
-				RackPosition:  physicalResource.RackPosition,
-			}).Error; err != nil {
+		for _, data := range input {
+			if err = tx.Model(&db_model.PhysicalResource{}).
+				Where("name = ? AND datacenter = ?", data.Name, data.Name).
+				Updates(&db_model.PhysicalResource{
+					Kind:          data.Kind,
+					Datacenter:    data.Datacenter,
+					Cluster:       data.Cluster,
+					Rack:          data.Rack,
+					PhysicalModel: data.PhysicalModel,
+					RackPosition:  data.RackPosition,
+				}).Error; err != nil {
 				return
 			}
 		}
@@ -64,9 +67,10 @@ func (api *Api) UpdatePhysicalResources(tctx *logger.TraceContext, db *gorm.DB, 
 	return
 }
 
-func (api *Api) DeletePhysicalResource(tctx *logger.TraceContext, db *gorm.DB, name string) (err error) {
+func (api *Api) DeletePhysicalResource(tctx *logger.TraceContext, db *gorm.DB, input *spec.DeletePhysicalResource) (err error) {
 	err = api.Transact(tctx, db, func(tx *gorm.DB) (err error) {
-		err = tx.Where("name = ?", name).Unscoped().Delete(&db_model.PhysicalResource{}).Error
+		err = tx.Where("name = ? AND datacenter = ?", input.Name, input.Datacenter).
+			Delete(&db_model.PhysicalResource{}).Error
 		return
 	})
 	return
