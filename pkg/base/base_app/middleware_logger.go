@@ -19,7 +19,7 @@ import (
 
 func (app *BaseApp) Start(tctx *logger.TraceContext, db *gorm.DB, httpReq *http.Request) (service *spec_model.ServiceRouter,
 	userAuthority *base_spec.UserAuthority, rawReq []byte, req *base_model.Request, res *base_model.Response, err error) {
-	res = &base_model.Response{TraceId: tctx.GetTraceId(), Data: map[string]interface{}{}}
+	res = &base_model.Response{TraceId: tctx.GetTraceId(), ResultMap: map[string]base_model.Result{}}
 
 	token := httpReq.Header.Get("X-Auth-Token")
 	if token == "" {

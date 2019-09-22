@@ -55,6 +55,7 @@ type QueryResolver interface {
 	CreatePhysicalResource(tctx *logger.TraceContext, db *gorm.DB, input *spec.CreatePhysicalResource) (*spec.CreatePhysicalResourceData, uint8, error)
 	UpdatePhysicalResource(tctx *logger.TraceContext, db *gorm.DB, input *spec.UpdatePhysicalResource) (*spec.UpdatePhysicalResourceData, uint8, error)
 	DeletePhysicalResource(tctx *logger.TraceContext, db *gorm.DB, input *spec.DeletePhysicalResource) (*spec.DeletePhysicalResourceData, uint8, error)
+	DeletePhysicalResources(tctx *logger.TraceContext, db *gorm.DB, input *spec.DeletePhysicalResources) (*spec.DeletePhysicalResourcesData, uint8, error)
 	GetClusters(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetClusters) (*spec.GetClustersData, uint8, error)
 }
 
@@ -91,10 +92,17 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.Error = err.Error()
+				rep.ResultMap[query.Name] = base_model.Result{
+					Code:  code,
+					Error: err.Error(),
+				}
+				return err
 			}
-			rep.Code = code
-			rep.Data["Login"] = data
+			rep.ResultMap[query.Name] = base_model.Result{
+				Code: code,
+				Data: data,
+			}
+
 			cookie := http.Cookie{
 				Name:     "X-Auth-Token",
 				Value:    data.Token,
@@ -103,8 +111,11 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				Expires:  time.Now().Add(1 * time.Hour), // TODO Configurable
 			} // FIXME SameSite
 			http.SetCookie(rw, &cookie)
+
 		case "Logout":
-			rep.Code = base_const.CodeOk
+			rep.ResultMap[query.Name] = base_model.Result{
+				Code: base_const.CodeOk,
+			}
 			cookie := http.Cookie{
 				Name:     "X-Auth-Token",
 				Value:    "",
@@ -112,6 +123,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				HttpOnly: true,
 			}
 			http.SetCookie(rw, &cookie)
+
 		case "LoginWithToken":
 			var input base_spec.LoginWithToken
 			err = json.Unmarshal([]byte(query.Data), &input)
@@ -124,10 +136,17 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.Error = err.Error()
+				rep.ResultMap[query.Name] = base_model.Result{
+					Code:  code,
+					Error: err.Error(),
+				}
+				return err
 			}
-			rep.Code = code
-			rep.Data["Login"] = data
+			rep.ResultMap[query.Name] = base_model.Result{
+				Code: code,
+				Data: data,
+			}
+
 		case "UpdateService":
 			var input base_spec.UpdateService
 			err = json.Unmarshal([]byte(query.Data), &input)
@@ -140,10 +159,17 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.Error = err.Error()
+				rep.ResultMap[query.Name] = base_model.Result{
+					Code:  code,
+					Error: err.Error(),
+				}
+				return err
 			}
-			rep.Code = code
-			rep.Data["UpdateService"] = data
+			rep.ResultMap[query.Name] = base_model.Result{
+				Code: code,
+				Data: data,
+			}
+
 		case "GetServiceIndex":
 			var input base_spec.GetServiceIndex
 			err = json.Unmarshal([]byte(query.Data), &input)
@@ -156,10 +182,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.Error = err.Error()
+				rep.ResultMap[query.Name] = base_model.Result{
+					Code:  code,
+					Error: err.Error(),
+				}
+				return err
 			}
-			rep.Code = code
-			rep.Data["GetServiceIndex"] = data
+			rep.ResultMap[query.Name] = base_model.Result{
+				Code: code,
+				Data: data,
+			}
 		case "GetServiceDashboardIndex":
 			var input base_spec.GetServiceDashboardIndex
 			err = json.Unmarshal([]byte(query.Data), &input)
@@ -172,10 +204,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.Error = err.Error()
+				rep.ResultMap["GetServiceDashboardIndex"] = base_model.Result{
+					Code:  code,
+					Error: err.Error(),
+				}
+				return err
 			}
-			rep.Code = code
-			rep.Data["GetServiceDashboardIndex"] = data
+			rep.ResultMap[query.Name] = base_model.Result{
+				Code: code,
+				Data: data,
+			}
 		case "GetRegion":
 			var input spec.GetRegion
 			err = json.Unmarshal([]byte(query.Data), &input)
@@ -188,10 +226,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.Error = err.Error()
+				rep.ResultMap[query.Name] = base_model.Result{
+					Code:  code,
+					Error: err.Error(),
+				}
+				return err
 			}
-			rep.Code = code
-			rep.Data["GetRegion"] = data
+			rep.ResultMap[query.Name] = base_model.Result{
+				Code: code,
+				Data: data,
+			}
 		case "GetRegions":
 			var input spec.GetRegions
 			err = json.Unmarshal([]byte(query.Data), &input)
@@ -204,10 +248,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.Error = err.Error()
+				rep.ResultMap[query.Name] = base_model.Result{
+					Code:  code,
+					Error: err.Error(),
+				}
+				return err
 			}
-			rep.Code = code
-			rep.Data["GetRegions"] = data
+			rep.ResultMap[query.Name] = base_model.Result{
+				Code: code,
+				Data: data,
+			}
 		case "CreateRegion":
 			var input spec.CreateRegion
 			err = json.Unmarshal([]byte(query.Data), &input)
@@ -220,10 +270,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.Error = err.Error()
+				rep.ResultMap[query.Name] = base_model.Result{
+					Code:  code,
+					Error: err.Error(),
+				}
+				return err
 			}
-			rep.Code = code
-			rep.Data["CreateRegion"] = data
+			rep.ResultMap[query.Name] = base_model.Result{
+				Code: code,
+				Data: data,
+			}
 		case "UpdateRegion":
 			var input spec.UpdateRegion
 			err = json.Unmarshal([]byte(query.Data), &input)
@@ -236,10 +292,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.Error = err.Error()
+				rep.ResultMap[query.Name] = base_model.Result{
+					Code:  code,
+					Error: err.Error(),
+				}
+				return err
 			}
-			rep.Code = code
-			rep.Data["UpdateRegion"] = data
+			rep.ResultMap[query.Name] = base_model.Result{
+				Code: code,
+				Data: data,
+			}
 		case "DeleteRegion":
 			var input spec.DeleteRegion
 			err = json.Unmarshal([]byte(query.Data), &input)
@@ -252,10 +314,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.Error = err.Error()
+				rep.ResultMap[query.Name] = base_model.Result{
+					Code:  code,
+					Error: err.Error(),
+				}
+				return err
 			}
-			rep.Code = code
-			rep.Data["DeleteRegion"] = data
+			rep.ResultMap[query.Name] = base_model.Result{
+				Code: code,
+				Data: data,
+			}
 		case "GetDatacenter":
 			var input spec.GetDatacenter
 			err = json.Unmarshal([]byte(query.Data), &input)
@@ -268,10 +336,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.Error = err.Error()
+				rep.ResultMap[query.Name] = base_model.Result{
+					Code:  code,
+					Error: err.Error(),
+				}
+				return err
 			}
-			rep.Code = code
-			rep.Data["GetDatacenter"] = data
+			rep.ResultMap[query.Name] = base_model.Result{
+				Code: code,
+				Data: data,
+			}
 		case "GetDatacenters":
 			var input spec.GetDatacenters
 			err = json.Unmarshal([]byte(query.Data), &input)
@@ -284,10 +358,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.Error = err.Error()
+				rep.ResultMap[query.Name] = base_model.Result{
+					Code:  code,
+					Error: err.Error(),
+				}
+				return err
 			}
-			rep.Code = code
-			rep.Data["GetDatacenters"] = data
+			rep.ResultMap[query.Name] = base_model.Result{
+				Code: code,
+				Data: data,
+			}
 		case "CreateDatacenter":
 			var input spec.CreateDatacenter
 			err = json.Unmarshal([]byte(query.Data), &input)
@@ -300,10 +380,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.Error = err.Error()
+				rep.ResultMap[query.Name] = base_model.Result{
+					Code:  code,
+					Error: err.Error(),
+				}
+				return err
 			}
-			rep.Code = code
-			rep.Data["CreateDatacenter"] = data
+			rep.ResultMap[query.Name] = base_model.Result{
+				Code: code,
+				Data: data,
+			}
 		case "UpdateDatacenter":
 			var input spec.UpdateDatacenter
 			err = json.Unmarshal([]byte(query.Data), &input)
@@ -316,10 +402,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.Error = err.Error()
+				rep.ResultMap[query.Name] = base_model.Result{
+					Code:  code,
+					Error: err.Error(),
+				}
+				return err
 			}
-			rep.Code = code
-			rep.Data["UpdateDatacenter"] = data
+			rep.ResultMap[query.Name] = base_model.Result{
+				Code: code,
+				Data: data,
+			}
 		case "DeleteDatacenter":
 			var input spec.DeleteDatacenter
 			err = json.Unmarshal([]byte(query.Data), &input)
@@ -332,10 +424,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.Error = err.Error()
+				rep.ResultMap[query.Name] = base_model.Result{
+					Code:  code,
+					Error: err.Error(),
+				}
+				return err
 			}
-			rep.Code = code
-			rep.Data["DeleteDatacenter"] = data
+			rep.ResultMap[query.Name] = base_model.Result{
+				Code: code,
+				Data: data,
+			}
 		case "GetFloor":
 			var input spec.GetFloor
 			err = json.Unmarshal([]byte(query.Data), &input)
@@ -348,10 +446,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.Error = err.Error()
+				rep.ResultMap[query.Name] = base_model.Result{
+					Code:  code,
+					Error: err.Error(),
+				}
+				return err
 			}
-			rep.Code = code
-			rep.Data["GetFloor"] = data
+			rep.ResultMap[query.Name] = base_model.Result{
+				Code: code,
+				Data: data,
+			}
 		case "GetFloors":
 			var input spec.GetFloors
 			err = json.Unmarshal([]byte(query.Data), &input)
@@ -364,10 +468,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.Error = err.Error()
+				rep.ResultMap[query.Name] = base_model.Result{
+					Code:  code,
+					Error: err.Error(),
+				}
+				return err
 			}
-			rep.Code = code
-			rep.Data["GetFloors"] = data
+			rep.ResultMap[query.Name] = base_model.Result{
+				Code: code,
+				Data: data,
+			}
 		case "CreateFloor":
 			var input spec.CreateFloor
 			err = json.Unmarshal([]byte(query.Data), &input)
@@ -380,10 +490,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.Error = err.Error()
+				rep.ResultMap[query.Name] = base_model.Result{
+					Code:  code,
+					Error: err.Error(),
+				}
+				return err
 			}
-			rep.Code = code
-			rep.Data["CreateFloor"] = data
+			rep.ResultMap[query.Name] = base_model.Result{
+				Code: code,
+				Data: data,
+			}
 		case "UpdateFloor":
 			var input spec.UpdateFloor
 			err = json.Unmarshal([]byte(query.Data), &input)
@@ -396,10 +512,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.Error = err.Error()
+				rep.ResultMap[query.Name] = base_model.Result{
+					Code:  code,
+					Error: err.Error(),
+				}
+				return err
 			}
-			rep.Code = code
-			rep.Data["UpdateFloor"] = data
+			rep.ResultMap[query.Name] = base_model.Result{
+				Code: code,
+				Data: data,
+			}
 		case "DeleteFloor":
 			var input spec.DeleteFloor
 			err = json.Unmarshal([]byte(query.Data), &input)
@@ -412,10 +534,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.Error = err.Error()
+				rep.ResultMap[query.Name] = base_model.Result{
+					Code:  code,
+					Error: err.Error(),
+				}
+				return err
 			}
-			rep.Code = code
-			rep.Data["DeleteFloor"] = data
+			rep.ResultMap[query.Name] = base_model.Result{
+				Code: code,
+				Data: data,
+			}
 		case "GetRack":
 			var input spec.GetRack
 			err = json.Unmarshal([]byte(query.Data), &input)
@@ -428,10 +556,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.Error = err.Error()
+				rep.ResultMap[query.Name] = base_model.Result{
+					Code:  code,
+					Error: err.Error(),
+				}
+				return err
 			}
-			rep.Code = code
-			rep.Data["GetRack"] = data
+			rep.ResultMap[query.Name] = base_model.Result{
+				Code: code,
+				Data: data,
+			}
 		case "GetRacks":
 			var input spec.GetRacks
 			err = json.Unmarshal([]byte(query.Data), &input)
@@ -444,10 +578,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.Error = err.Error()
+				rep.ResultMap[query.Name] = base_model.Result{
+					Code:  code,
+					Error: err.Error(),
+				}
+				return err
 			}
-			rep.Code = code
-			rep.Data["GetRacks"] = data
+			rep.ResultMap[query.Name] = base_model.Result{
+				Code: code,
+				Data: data,
+			}
 		case "CreateRack":
 			var input spec.CreateRack
 			err = json.Unmarshal([]byte(query.Data), &input)
@@ -460,10 +600,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.Error = err.Error()
+				rep.ResultMap[query.Name] = base_model.Result{
+					Code:  code,
+					Error: err.Error(),
+				}
+				return err
 			}
-			rep.Code = code
-			rep.Data["CreateRack"] = data
+			rep.ResultMap[query.Name] = base_model.Result{
+				Code: code,
+				Data: data,
+			}
 		case "UpdateRack":
 			var input spec.UpdateRack
 			err = json.Unmarshal([]byte(query.Data), &input)
@@ -476,10 +622,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.Error = err.Error()
+				rep.ResultMap[query.Name] = base_model.Result{
+					Code:  code,
+					Error: err.Error(),
+				}
+				return err
 			}
-			rep.Code = code
-			rep.Data["UpdateRack"] = data
+			rep.ResultMap[query.Name] = base_model.Result{
+				Code: code,
+				Data: data,
+			}
 		case "DeleteRack":
 			var input spec.DeleteRack
 			err = json.Unmarshal([]byte(query.Data), &input)
@@ -492,10 +644,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.Error = err.Error()
+				rep.ResultMap[query.Name] = base_model.Result{
+					Code:  code,
+					Error: err.Error(),
+				}
+				return err
 			}
-			rep.Code = code
-			rep.Data["DeleteRack"] = data
+			rep.ResultMap[query.Name] = base_model.Result{
+				Code: code,
+				Data: data,
+			}
 		case "GetPhysicalModel":
 			var input spec.GetPhysicalModel
 			err = json.Unmarshal([]byte(query.Data), &input)
@@ -508,10 +666,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.Error = err.Error()
+				rep.ResultMap[query.Name] = base_model.Result{
+					Code:  code,
+					Error: err.Error(),
+				}
+				return err
 			}
-			rep.Code = code
-			rep.Data["GetPhysicalModel"] = data
+			rep.ResultMap[query.Name] = base_model.Result{
+				Code: code,
+				Data: data,
+			}
 		case "GetPhysicalModels":
 			var input spec.GetPhysicalModels
 			err = json.Unmarshal([]byte(query.Data), &input)
@@ -524,10 +688,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.Error = err.Error()
+				rep.ResultMap[query.Name] = base_model.Result{
+					Code:  code,
+					Error: err.Error(),
+				}
+				return err
 			}
-			rep.Code = code
-			rep.Data["GetPhysicalModels"] = data
+			rep.ResultMap[query.Name] = base_model.Result{
+				Code: code,
+				Data: data,
+			}
 		case "CreatePhysicalModel":
 			var input spec.CreatePhysicalModel
 			err = json.Unmarshal([]byte(query.Data), &input)
@@ -540,10 +710,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.Error = err.Error()
+				rep.ResultMap[query.Name] = base_model.Result{
+					Code:  code,
+					Error: err.Error(),
+				}
+				return err
 			}
-			rep.Code = code
-			rep.Data["CreatePhysicalModel"] = data
+			rep.ResultMap[query.Name] = base_model.Result{
+				Code: code,
+				Data: data,
+			}
 		case "UpdatePhysicalModel":
 			var input spec.UpdatePhysicalModel
 			err = json.Unmarshal([]byte(query.Data), &input)
@@ -556,10 +732,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.Error = err.Error()
+				rep.ResultMap[query.Name] = base_model.Result{
+					Code:  code,
+					Error: err.Error(),
+				}
+				return err
 			}
-			rep.Code = code
-			rep.Data["UpdatePhysicalModel"] = data
+			rep.ResultMap[query.Name] = base_model.Result{
+				Code: code,
+				Data: data,
+			}
 		case "DeletePhysicalModel":
 			var input spec.DeletePhysicalModel
 			err = json.Unmarshal([]byte(query.Data), &input)
@@ -572,10 +754,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.Error = err.Error()
+				rep.ResultMap[query.Name] = base_model.Result{
+					Code:  code,
+					Error: err.Error(),
+				}
+				return err
 			}
-			rep.Code = code
-			rep.Data["DeletePhysicalModel"] = data
+			rep.ResultMap[query.Name] = base_model.Result{
+				Code: code,
+				Data: data,
+			}
 		case "GetPhysicalResource":
 			var input spec.GetPhysicalResource
 			err = json.Unmarshal([]byte(query.Data), &input)
@@ -588,10 +776,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.Error = err.Error()
+				rep.ResultMap[query.Name] = base_model.Result{
+					Code:  code,
+					Error: err.Error(),
+				}
+				return err
 			}
-			rep.Code = code
-			rep.Data["GetPhysicalResource"] = data
+			rep.ResultMap[query.Name] = base_model.Result{
+				Code: code,
+				Data: data,
+			}
 		case "GetPhysicalResources":
 			var input spec.GetPhysicalResources
 			err = json.Unmarshal([]byte(query.Data), &input)
@@ -604,10 +798,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.Error = err.Error()
+				rep.ResultMap[query.Name] = base_model.Result{
+					Code:  code,
+					Error: err.Error(),
+				}
+				return err
 			}
-			rep.Code = code
-			rep.Data["GetPhysicalResources"] = data
+			rep.ResultMap[query.Name] = base_model.Result{
+				Code: code,
+				Data: data,
+			}
 		case "CreatePhysicalResource":
 			var input spec.CreatePhysicalResource
 			err = json.Unmarshal([]byte(query.Data), &input)
@@ -620,10 +820,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.Error = err.Error()
+				rep.ResultMap[query.Name] = base_model.Result{
+					Code:  code,
+					Error: err.Error(),
+				}
+				return err
 			}
-			rep.Code = code
-			rep.Data["CreatePhysicalResource"] = data
+			rep.ResultMap[query.Name] = base_model.Result{
+				Code: code,
+				Data: data,
+			}
 		case "UpdatePhysicalResource":
 			var input spec.UpdatePhysicalResource
 			err = json.Unmarshal([]byte(query.Data), &input)
@@ -636,10 +842,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.Error = err.Error()
+				rep.ResultMap[query.Name] = base_model.Result{
+					Code:  code,
+					Error: err.Error(),
+				}
+				return err
 			}
-			rep.Code = code
-			rep.Data["UpdatePhysicalResource"] = data
+			rep.ResultMap[query.Name] = base_model.Result{
+				Code: code,
+				Data: data,
+			}
 		case "DeletePhysicalResource":
 			var input spec.DeletePhysicalResource
 			err = json.Unmarshal([]byte(query.Data), &input)
@@ -652,10 +864,38 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.Error = err.Error()
+				rep.ResultMap[query.Name] = base_model.Result{
+					Code:  code,
+					Error: err.Error(),
+				}
+				return err
 			}
-			rep.Code = code
-			rep.Data["DeletePhysicalResource"] = data
+			rep.ResultMap[query.Name] = base_model.Result{
+				Code: code,
+				Data: data,
+			}
+		case "DeletePhysicalResources":
+			var input spec.DeletePhysicalResources
+			err = json.Unmarshal([]byte(query.Data), &input)
+			if err != nil {
+				return err
+			}
+
+			data, code, err := handler.resolver.DeletePhysicalResources(tctx, db, &input)
+			if err != nil {
+				if code == 0 {
+					code = base_const.CodeServerInternalError
+				}
+				rep.ResultMap[query.Name] = base_model.Result{
+					Code:  code,
+					Error: err.Error(),
+				}
+				return err
+			}
+			rep.ResultMap[query.Name] = base_model.Result{
+				Code: code,
+				Data: data,
+			}
 		case "GetClusters":
 			var input spec.GetClusters
 			err = json.Unmarshal([]byte(query.Data), &input)
@@ -668,10 +908,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.Error = err.Error()
+				rep.ResultMap[query.Name] = base_model.Result{
+					Code:  code,
+					Error: err.Error(),
+				}
+				return err
 			}
-			rep.Code = code
-			rep.Data["GetClusters"] = data
+			rep.ResultMap[query.Name] = base_model.Result{
+				Code: code,
+				Data: data,
+			}
 		}
 	}
 	return nil

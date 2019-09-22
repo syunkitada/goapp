@@ -29,6 +29,7 @@ type Action struct {
 	Icon      string
 	DataKind  string
 	SelectKey string
+	Query     string
 	Fields    []Field
 }
 

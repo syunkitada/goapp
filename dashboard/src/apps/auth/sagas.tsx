@@ -11,12 +11,17 @@ function* loginWithToken(action) {
   } else if (payload.Error && payload.Error !== '') {
     yield put(actions.auth.authLoginFailure({error: payload.Error}));
   } else {
-    yield put(
-      actions.auth.authLoginSuccess({
-        authority: payload.Data.Login.Authority,
-        username: payload.Data.Login.Authority.Name,
-      }),
-    );
+    const result = payload.ResultMap.LoginWithToken;
+    if (result.Error && result.Error !== '') {
+      yield put(actions.auth.authLoginFailure({error: result.Error}));
+    } else {
+      yield put(
+        actions.auth.authLoginSuccess({
+          authority: result.Data.Authority,
+          username: result.Data.Authority.Name,
+        }),
+      );
+    }
   }
 }
 
@@ -30,8 +35,8 @@ function* login(action) {
   } else {
     yield put(
       actions.auth.authLoginSuccess({
-        authority: payload.Data.Login.Authority,
-        username: payload.Data.Login.Authority.Name,
+        authority: payload.ResultMap.Login.Data.Authority,
+        username: payload.ResultMap.Login.Data.Authority.Name,
       }),
     );
   }

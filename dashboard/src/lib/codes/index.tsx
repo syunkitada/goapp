@@ -20,43 +20,43 @@ const RemoteTimeout = 161;
 const RemoteError = 162;
 
 export function toStringFromStatusCode(code) {
-  switch (code) {
+  switch(code) {
     case Unknown:
-      return 'Unknown';
+      return "Unknown";
     case Ok:
-      return 'Ok';
+      return "Ok";
     case OkCreated:
-      return 'OkCreated';
+      return "OkCreated";
     case OkUpdated:
-      return 'OkUpdated';
+      return "OkUpdated";
     case OkDeleted:
-      return 'OkDeleted';
+      return "OkDeleted";
     case OkAccepted:
-      return 'OkAccepted';
+      return "OkAccepted";
     case OkCreateAccepted:
-      return 'OkCreateAccepted';
+      return "OkCreateAccepted";
     case OkUpdateAccepted:
-      return 'OkUpdateAccepted';
+      return "OkUpdateAccepted";
     case OkDeleteAccepted:
-      return 'OkDeleteAccepted';
+      return "OkDeleteAccepted";
     case ClientBadRequest:
-      return 'ClientBadRequest';
+      return "ClientBadRequest";
     case ClientInvalidRequest:
-      return 'ClientInvalidRequest';
+      return "ClientInvalidRequest";
     case ClientNotFound:
-      return 'ClientNotFound';
+      return "ClientNotFound";
     case ClientInvalidAuth:
-      return 'ClientInvalidAuth';
+      return "ClientInvalidAuth";
     case ClientConflict:
-      return 'ClientConflict';
+      return "ClientConflict";
     case ClientAlreadyExists:
-      return 'ClientAlreadyExists';
+      return "ClientAlreadyExists";
     case ServerInternalError:
-      return 'ServerInternalError';
+      return "ServerInternalError";
     case RemoteTimeout:
-      return 'RemoteTimeout';
+      return "RemoteTimeout";
     case RemoteError:
-      return 'RemoteError';
+      return "RemoteError";
   }
-  return 'Unknown';
+  return "Unknown";
 }

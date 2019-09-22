@@ -128,7 +128,7 @@ func (client *Client) Request(tctx *logger.TraceContext, service string, queries
 		if err = json.Unmarshal(body, &baseResponse); err != nil {
 			return fmt.Errorf("Invalid StatusCode: got=%d, want=%d", statusCode, 200)
 		}
-		return fmt.Errorf("Invalid StatusCode: got=%d, want=%d, err=%s", statusCode, 200, baseResponse.Error)
+		return fmt.Errorf("Invalid StatusCode: got=%d, want=%d, err=%v", statusCode, 200, baseResponse.ResultMap)
 	}
 
 	return nil
@@ -136,71 +136,94 @@ func (client *Client) Request(tctx *logger.TraceContext, service string, queries
 
 type LoginResponse struct {
 	base_model.Response
-	Data LoginResponseData
+	ResultMap LoginResultMap
 }
 
-type LoginResponseData struct {
-	Login base_spec.LoginData
+type LoginResultMap struct {
+	Login LoginResult
+}
+
+type LoginResult struct {
+	Code  uint8
+	Error string
+	Data  base_spec.LoginData
 }
 
 func (client *Client) Login(tctx *logger.TraceContext, input *base_spec.Login) (data *base_spec.LoginData, err error) {
 	queries := []Query{Query{Name: "Login", Data: input}}
-	var reply LoginResponse
-	err = client.Request(tctx, "Auth", queries, &reply, false)
+	var res LoginResponse
+	err = client.Request(tctx, "Auth", queries, &res, false)
 	if err != nil {
 		return
 	}
-	if reply.Code != base_const.CodeOk || reply.Error != "" {
-		err = error_utils.NewInvalidResponseError(reply.Code, reply.Error)
+	result := res.ResultMap.Login
+	if result.Code != base_const.CodeOk || result.Error != "" {
+		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
 		return
 	}
-	data = &reply.Data.Login
+	data = &result.Data
 	return
 }
 
 type GetServiceIndexResponse struct {
 	base_model.Response
-	Data GetServiceIndexResponseData
+	ResultMap GetServiceIndexResultMap
+}
+type GetServiceIndexResultMap struct {
+	GetServiceIndex GetServiceIndexResult
 }
 
-type GetServiceIndexResponseData struct {
-	GetServiceIndex base_spec.GetServiceIndexData
+type GetServiceIndexResult struct {
+	Code  uint8
+	Error string
+	Data  base_spec.GetServiceIndexData
 }
 
 func (client *Client) GetServiceIndex(tctx *logger.TraceContext, input *base_spec.GetServiceIndex) (data *base_spec.GetServiceIndexData, err error) {
 	queries := []Query{Query{Name: "GetServiceIndex", Data: input}}
-	var reply GetServiceIndexResponse
-	err = client.Request(tctx, input.Name, queries, &reply, false)
+	var res GetServiceIndexResponse
+	err = client.Request(tctx, input.Name, queries, &res, false)
 	if err != nil {
 		return
 	}
-	if reply.Code != base_const.CodeOk || reply.Error != "" {
-		err = error_utils.NewInvalidResponseError(reply.Code, reply.Error)
+
+	result := res.ResultMap.GetServiceIndex
+	if result.Code != base_const.CodeOk || result.Error != "" {
+		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
 		return
 	}
-	data = &reply.Data.GetServiceIndex
+
+	data = &result.Data
 	return
 }
 
 type UpdateServiceResponse struct {
 	base_model.Response
-	Data UpdateServiceResponseData
+	ResultMap UpdateServiceResultMap
 }
 
-type UpdateServiceResponseData struct {
-	UpdateService base_spec.UpdateServiceData
+type UpdateServiceResultMap struct {
+	UpdateService UpdateServiceResult
+}
+
+type UpdateServiceResult struct {
+	Code  uint8
+	Error string
+	Data  base_spec.UpdateServiceData
 }
 
 func (client *Client) UpdateServices(tctx *logger.TraceContext, queries []Query) (data *base_spec.UpdateServiceData, err error) {
-	var reply UpdateServiceResponse
-	err = client.Request(tctx, "Auth", queries, &reply, false)
+	var res UpdateServiceResponse
+	err = client.Request(tctx, "Auth", queries, &res, false)
 	if err != nil {
 		return
 	}
-	if reply.Code != base_const.CodeOk || reply.Error != "" {
-		err = error_utils.NewInvalidResponseError(reply.Code, reply.Error)
+	result := res.ResultMap.UpdateService
+	if result.Code != base_const.CodeOk || result.Error != "" {
+		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
 		return
 	}
-	data = &reply.Data.UpdateService
+
+	data = &result.Data
 	return
 }

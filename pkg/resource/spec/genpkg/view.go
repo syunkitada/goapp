@@ -53,6 +53,7 @@ var PhysicalResourcesTable = index_model.Table{
 	Actions: []index_model.Action{
 		index_model.Action{
 			Name: "Create", Icon: "Create", Kind: "Form",
+			Query:    "CreatePhysicalResource",
 			DataKind: "PhysicalResource",
 			Fields: []index_model.Field{
 				index_model.Field{Name: "Name", Kind: "text",
@@ -72,6 +73,7 @@ var PhysicalResourcesTable = index_model.Table{
 	SelectActions: []index_model.Action{
 		index_model.Action{Name: "Delete", Icon: "Delete",
 			Kind:      "Form",
+			Query:     "DeletePhysicalResources",
 			DataKind:  "PhysicalResource",
 			SelectKey: "Name",
 		},

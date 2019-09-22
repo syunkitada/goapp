@@ -14,7 +14,7 @@ func (api *Api) GetPhysicalResource(tctx *logger.TraceContext, db *gorm.DB, inpu
 }
 
 func (api *Api) GetPhysicalResources(tctx *logger.TraceContext, db *gorm.DB) (data []spec.PhysicalResource, err error) {
-	err = db.Find(&data).Error
+	err = db.Where("deleted_at IS NULL").Find(&data).Error
 	return
 }
 
@@ -49,11 +49,10 @@ func (api *Api) CreatePhysicalResources(tctx *logger.TraceContext, db *gorm.DB, 
 func (api *Api) UpdatePhysicalResources(tctx *logger.TraceContext, db *gorm.DB, input []spec.PhysicalResource) (err error) {
 	err = api.Transact(tctx, db, func(tx *gorm.DB) (err error) {
 		for _, data := range input {
-			if err = tx.Model(&db_model.PhysicalResource{}).
-				Where("name = ? AND datacenter = ?", data.Name, data.Name).
+			if err = tx.Debug().Model(&db_model.PhysicalResource{}).
+				Where("name = ? AND datacenter = ?", data.Name, data.Datacenter).
 				Updates(&db_model.PhysicalResource{
 					Kind:          data.Kind,
-					Datacenter:    data.Datacenter,
 					Cluster:       data.Cluster,
 					Rack:          data.Rack,
 					PhysicalModel: data.PhysicalModel,
@@ -71,6 +70,19 @@ func (api *Api) DeletePhysicalResource(tctx *logger.TraceContext, db *gorm.DB, i
 	err = api.Transact(tctx, db, func(tx *gorm.DB) (err error) {
 		err = tx.Where("name = ? AND datacenter = ?", input.Name, input.Datacenter).
 			Delete(&db_model.PhysicalResource{}).Error
+		return
+	})
+	return
+}
+
+func (api *Api) DeletePhysicalResources(tctx *logger.TraceContext, db *gorm.DB, input []spec.PhysicalResource) (err error) {
+	err = api.Transact(tctx, db, func(tx *gorm.DB) (err error) {
+		for _, data := range input {
+			if err = tx.Where("name = ? AND datacenter = ?", data.Name, data.Datacenter).
+				Delete(&db_model.PhysicalResource{}).Error; err != nil {
+				return
+			}
+		}
 		return
 	})
 	return

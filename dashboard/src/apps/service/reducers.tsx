@@ -127,11 +127,22 @@ export default reducerWithInitialState(defaultState)
     }
 
     const actionType = payload.action.type;
+
+    // Merge tctx
     const tctx: any = {
+      Error: payload.result.Error,
       StatusCode: payload.result.Code,
       TraceId: payload.result.TraceId,
     };
-    console.log('DEBUG tctx', tctx);
+    if (payload.result.ResultMap) {
+      for (const key of Object.keys(payload.result.ResultMap)) {
+        const result: any = payload.result.ResultMap[key];
+        if (tctx.StatusCode < result.Code) {
+          tctx.StatusCode = result.Code;
+          tctx.Error = result.Error;
+        }
+      }
+    }
 
     let isGetIndex = false;
     switch (actionType) {
@@ -171,17 +182,20 @@ export default reducerWithInitialState(defaultState)
     let data = {};
     if (isGetIndex) {
       for (const query of payload.payload.queries) {
-        data = Object.assign(data, payload.result.Data[query.Name].Data);
+        data = Object.assign(
+          data,
+          payload.result.ResultMap[query.Name].Data.Data,
+        );
       }
     } else {
       for (const query of payload.payload.queries) {
-        data = Object.assign(data, payload.result.Data[query.Name]);
+        data = Object.assign(data, payload.result.ResultMap[query.Name].Data);
       }
     }
 
     let index: any = null;
     if (isGetIndex) {
-      index = payload.result.Data.GetServiceDashboardIndex.Index;
+      index = payload.result.ResultMap.GetServiceDashboardIndex.Data.Index;
       if (index.SyncDelay && index.SyncDelay > 1000) {
         newState.syncDelay = index.SyncDelay;
       }

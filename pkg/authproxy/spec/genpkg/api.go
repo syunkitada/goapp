@@ -62,10 +62,17 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.Error = err.Error()
+				rep.ResultMap[query.Name] = base_model.Result{
+					Code:  code,
+					Error: err.Error(),
+				}
+				return err
 			}
-			rep.Code = code
-			rep.Data["Login"] = data
+			rep.ResultMap[query.Name] = base_model.Result{
+				Code: code,
+				Data: data,
+			}
+
 			cookie := http.Cookie{
 				Name:     "X-Auth-Token",
 				Value:    data.Token,
@@ -74,8 +81,11 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				Expires:  time.Now().Add(1 * time.Hour), // TODO Configurable
 			} // FIXME SameSite
 			http.SetCookie(rw, &cookie)
+
 		case "Logout":
-			rep.Code = base_const.CodeOk
+			rep.ResultMap[query.Name] = base_model.Result{
+				Code: base_const.CodeOk,
+			}
 			cookie := http.Cookie{
 				Name:     "X-Auth-Token",
 				Value:    "",
@@ -83,6 +93,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				HttpOnly: true,
 			}
 			http.SetCookie(rw, &cookie)
+
 		case "LoginWithToken":
 			var input base_spec.LoginWithToken
 			err = json.Unmarshal([]byte(query.Data), &input)
@@ -95,10 +106,17 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.Error = err.Error()
+				rep.ResultMap[query.Name] = base_model.Result{
+					Code:  code,
+					Error: err.Error(),
+				}
+				return err
 			}
-			rep.Code = code
-			rep.Data["Login"] = data
+			rep.ResultMap[query.Name] = base_model.Result{
+				Code: code,
+				Data: data,
+			}
+
 		case "UpdateService":
 			var input base_spec.UpdateService
 			err = json.Unmarshal([]byte(query.Data), &input)
@@ -111,10 +129,17 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.Error = err.Error()
+				rep.ResultMap[query.Name] = base_model.Result{
+					Code:  code,
+					Error: err.Error(),
+				}
+				return err
 			}
-			rep.Code = code
-			rep.Data["UpdateService"] = data
+			rep.ResultMap[query.Name] = base_model.Result{
+				Code: code,
+				Data: data,
+			}
+
 		case "GetServiceIndex":
 			var input base_spec.GetServiceIndex
 			err = json.Unmarshal([]byte(query.Data), &input)
@@ -127,10 +152,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.Error = err.Error()
+				rep.ResultMap[query.Name] = base_model.Result{
+					Code:  code,
+					Error: err.Error(),
+				}
+				return err
 			}
-			rep.Code = code
-			rep.Data["GetServiceIndex"] = data
+			rep.ResultMap[query.Name] = base_model.Result{
+				Code: code,
+				Data: data,
+			}
 		case "GetServiceDashboardIndex":
 			var input base_spec.GetServiceDashboardIndex
 			err = json.Unmarshal([]byte(query.Data), &input)
@@ -143,10 +174,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.Error = err.Error()
+				rep.ResultMap["GetServiceDashboardIndex"] = base_model.Result{
+					Code:  code,
+					Error: err.Error(),
+				}
+				return err
 			}
-			rep.Code = code
-			rep.Data["GetServiceDashboardIndex"] = data
+			rep.ResultMap[query.Name] = base_model.Result{
+				Code: code,
+				Data: data,
+			}
 		case "GetAllUsers":
 			var input base_spec.GetAllUsers
 			err = json.Unmarshal([]byte(query.Data), &input)
@@ -159,10 +196,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.Error = err.Error()
+				rep.ResultMap[query.Name] = base_model.Result{
+					Code:  code,
+					Error: err.Error(),
+				}
+				return err
 			}
-			rep.Code = code
-			rep.Data["GetAllUsers"] = data
+			rep.ResultMap[query.Name] = base_model.Result{
+				Code: code,
+				Data: data,
+			}
 		case "GetUser":
 			var input base_spec.GetUser
 			err = json.Unmarshal([]byte(query.Data), &input)
@@ -175,10 +218,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.Error = err.Error()
+				rep.ResultMap[query.Name] = base_model.Result{
+					Code:  code,
+					Error: err.Error(),
+				}
+				return err
 			}
-			rep.Code = code
-			rep.Data["GetUser"] = data
+			rep.ResultMap[query.Name] = base_model.Result{
+				Code: code,
+				Data: data,
+			}
 		case "GetUsers":
 			var input base_spec.GetUsers
 			err = json.Unmarshal([]byte(query.Data), &input)
@@ -191,10 +240,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.Error = err.Error()
+				rep.ResultMap[query.Name] = base_model.Result{
+					Code:  code,
+					Error: err.Error(),
+				}
+				return err
 			}
-			rep.Code = code
-			rep.Data["GetUsers"] = data
+			rep.ResultMap[query.Name] = base_model.Result{
+				Code: code,
+				Data: data,
+			}
 		}
 	}
 	return nil

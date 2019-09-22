@@ -18,13 +18,13 @@ function info(...args: any[]) {
   console.info(now.toISOString() + ' INFO', args);
 }
 
-function warn(...args: any[]) {
+function warning(...args: any[]) {
   if (!IS_DEVELOP) {
     return;
   }
 
   const now = new Date();
-  console.info(now.toISOString() + ' WARN', args);
+  console.info(now.toISOString() + ' WARNING', args);
 }
 
 function error(...args: any[]) {
@@ -40,5 +40,5 @@ export default {
   debug,
   error,
   info,
-  warn,
+  warning,
 };

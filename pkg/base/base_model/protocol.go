@@ -18,8 +18,14 @@ type Request struct {
 }
 
 type Response struct {
-	TraceId string
-	Code    uint8
-	Error   string
-	Data    map[string]interface{}
+	TraceId   string
+	Code      uint8
+	Error     string
+	ResultMap map[string]Result
+}
+
+type Result struct {
+	Code  uint8
+	Error string
+	Data  interface{}
 }

@@ -48,6 +48,7 @@ var Spec = spec_model.Spec{
 				spec_model.QueryModel{Req: CreatePhysicalResource{}, Rep: CreatePhysicalResourceData{}},
 				spec_model.QueryModel{Req: UpdatePhysicalResource{}, Rep: UpdatePhysicalResourceData{}},
 				spec_model.QueryModel{Req: DeletePhysicalResource{}, Rep: DeletePhysicalResourceData{}},
+				spec_model.QueryModel{Req: DeletePhysicalResources{}, Rep: DeletePhysicalResourcesData{}},
 			},
 			ViewModels: []interface{}{
 				spec_model.Table{

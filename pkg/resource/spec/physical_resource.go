@@ -1,5 +1,7 @@
 package spec
 
+import "time"
+
 type PhysicalResource struct {
 	Kind          string `validate:"required"`
 	Name          string `validate:"required"`
@@ -8,6 +10,8 @@ type PhysicalResource struct {
 	Rack          string
 	PhysicalModel string
 	RackPosition  uint8
+	UpdatedAt     time.Time
+	CreatedAt     time.Time
 	Spec          string
 }
 
@@ -43,6 +47,10 @@ type DeletePhysicalResource struct {
 	Name       string `validate:"required"`
 }
 
-type DeletePhysicalResourceData struct {
-	PhysicalResource PhysicalResource
+type DeletePhysicalResourceData struct{}
+
+type DeletePhysicalResources struct {
+	Spec string `validate:"required" flagKind:"file"`
 }
+
+type DeletePhysicalResourcesData struct{}
