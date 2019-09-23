@@ -5,6 +5,7 @@ import (
 
 	"github.com/jinzhu/gorm"
 	"github.com/syunkitada/goapp/pkg/base/base_const"
+	"github.com/syunkitada/goapp/pkg/base/base_spec"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/resource/spec"
 )
@@ -12,6 +13,10 @@ import (
 func (resolver *Resolver) GetRack(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetRack) (data *spec.GetRackData, code uint8, err error) {
 	var rack *spec.Rack
 	if rack, err = resolver.dbApi.GetRack(tctx, db, input); err != nil {
+		if gorm.IsRecordNotFoundError(err) {
+			code = base_const.CodeOkNotFound
+			return
+		}
 		code = base_const.CodeServerInternalError
 		return
 	}
@@ -22,7 +27,7 @@ func (resolver *Resolver) GetRack(tctx *logger.TraceContext, db *gorm.DB, input 
 
 func (resolver *Resolver) GetRacks(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetRacks) (data *spec.GetRacksData, code uint8, err error) {
 	var racks []spec.Rack
-	if racks, err = resolver.dbApi.GetRacks(tctx, db); err != nil {
+	if racks, err = resolver.dbApi.GetRacks(tctx, db, input); err != nil {
 		code = base_const.CodeServerInternalError
 		return
 	}
@@ -32,34 +37,11 @@ func (resolver *Resolver) GetRacks(tctx *logger.TraceContext, db *gorm.DB, input
 }
 
 func (resolver *Resolver) CreateRack(tctx *logger.TraceContext, db *gorm.DB, input *spec.CreateRack) (data *spec.CreateRackData, code uint8, err error) {
-	var baseSpecs []BaseSpec
-	if err = json.Unmarshal([]byte(input.Spec), &baseSpecs); err != nil {
+	var specs []spec.Rack
+	if specs, err = resolver.ConvertToRackSpecs(input.Spec); err != nil {
 		code = base_const.CodeClientBadRequest
 		return
 	}
-
-	specs := []spec.Rack{}
-	for _, base := range baseSpecs {
-		if base.Kind != "Rack" {
-			continue
-		}
-		var specBytes []byte
-		if specBytes, err = json.Marshal(base.Spec); err != nil {
-			code = base_const.CodeClientBadRequest
-			return
-		}
-		var specData spec.Rack
-		if err = json.Unmarshal(specBytes, &specData); err != nil {
-			code = base_const.CodeClientBadRequest
-			return
-		}
-		if err = resolver.Validate.Struct(&specData); err != nil {
-			code = base_const.CodeClientBadRequest
-			return
-		}
-		specs = append(specs, specData)
-	}
-
 	if err = resolver.dbApi.CreateRacks(tctx, db, specs); err != nil {
 		code = base_const.CodeServerInternalError
 		return
@@ -70,32 +52,10 @@ func (resolver *Resolver) CreateRack(tctx *logger.TraceContext, db *gorm.DB, inp
 }
 
 func (resolver *Resolver) UpdateRack(tctx *logger.TraceContext, db *gorm.DB, input *spec.UpdateRack) (data *spec.UpdateRackData, code uint8, err error) {
-	var baseSpecs []BaseSpec
-	if err = json.Unmarshal([]byte(input.Spec), &baseSpecs); err != nil {
+	var specs []spec.Rack
+	if specs, err = resolver.ConvertToRackSpecs(input.Spec); err != nil {
 		code = base_const.CodeClientBadRequest
 		return
-	}
-
-	specs := []spec.Rack{}
-	for _, base := range baseSpecs {
-		if base.Kind != "Rack" {
-			continue
-		}
-		var specBytes []byte
-		if specBytes, err = json.Marshal(base.Spec); err != nil {
-			code = base_const.CodeClientBadRequest
-			return
-		}
-		var specData spec.Rack
-		if err = json.Unmarshal(specBytes, &specData); err != nil {
-			code = base_const.CodeClientBadRequest
-			return
-		}
-		if err = resolver.Validate.Struct(&specData); err != nil {
-			code = base_const.CodeClientBadRequest
-			return
-		}
-		specs = append(specs, specData)
 	}
 	if err = resolver.dbApi.UpdateRacks(tctx, db, specs); err != nil {
 		code = base_const.CodeServerInternalError
@@ -113,5 +73,47 @@ func (resolver *Resolver) DeleteRack(tctx *logger.TraceContext, db *gorm.DB, inp
 	}
 	code = base_const.CodeOkDeleted
 	data = &spec.DeleteRackData{}
+	return
+}
+
+func (resolver *Resolver) DeleteRacks(tctx *logger.TraceContext, db *gorm.DB, input *spec.DeleteRacks) (data *spec.DeleteRacksData, code uint8, err error) {
+	var specs []spec.Rack
+	if specs, err = resolver.ConvertToRackSpecs(input.Spec); err != nil {
+		code = base_const.CodeClientBadRequest
+		return
+	}
+	if err = resolver.dbApi.DeleteRacks(tctx, db, specs); err != nil {
+		code = base_const.CodeServerInternalError
+		return
+	}
+	code = base_const.CodeOkDeleted
+	data = &spec.DeleteRacksData{}
+	return
+}
+
+func (resolver *Resolver) ConvertToRackSpecs(specStr string) (data []spec.Rack, err error) {
+	var baseSpecs []base_spec.Spec
+	if err = json.Unmarshal([]byte(specStr), &baseSpecs); err != nil {
+		return
+	}
+
+	specs := []spec.Rack{}
+	for _, base := range baseSpecs {
+		if base.Kind != "Rack" {
+			continue
+		}
+		var specBytes []byte
+		if specBytes, err = json.Marshal(base.Spec); err != nil {
+			return
+		}
+		var specData spec.Rack
+		if err = json.Unmarshal(specBytes, &specData); err != nil {
+			return
+		}
+		if err = resolver.Validate.Struct(&specData); err != nil {
+			return
+		}
+		specs = append(specs, specData)
+	}
 	return
 }

@@ -30,26 +30,31 @@ type QueryResolver interface {
 	CreateRegion(tctx *logger.TraceContext, db *gorm.DB, input *spec.CreateRegion) (*spec.CreateRegionData, uint8, error)
 	UpdateRegion(tctx *logger.TraceContext, db *gorm.DB, input *spec.UpdateRegion) (*spec.UpdateRegionData, uint8, error)
 	DeleteRegion(tctx *logger.TraceContext, db *gorm.DB, input *spec.DeleteRegion) (*spec.DeleteRegionData, uint8, error)
+	DeleteRegions(tctx *logger.TraceContext, db *gorm.DB, input *spec.DeleteRegions) (*spec.DeleteRegionsData, uint8, error)
 	GetDatacenter(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetDatacenter) (*spec.GetDatacenterData, uint8, error)
 	GetDatacenters(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetDatacenters) (*spec.GetDatacentersData, uint8, error)
 	CreateDatacenter(tctx *logger.TraceContext, db *gorm.DB, input *spec.CreateDatacenter) (*spec.CreateDatacenterData, uint8, error)
 	UpdateDatacenter(tctx *logger.TraceContext, db *gorm.DB, input *spec.UpdateDatacenter) (*spec.UpdateDatacenterData, uint8, error)
 	DeleteDatacenter(tctx *logger.TraceContext, db *gorm.DB, input *spec.DeleteDatacenter) (*spec.DeleteDatacenterData, uint8, error)
+	DeleteDatacenters(tctx *logger.TraceContext, db *gorm.DB, input *spec.DeleteDatacenters) (*spec.DeleteDatacentersData, uint8, error)
 	GetFloor(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetFloor) (*spec.GetFloorData, uint8, error)
 	GetFloors(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetFloors) (*spec.GetFloorsData, uint8, error)
 	CreateFloor(tctx *logger.TraceContext, db *gorm.DB, input *spec.CreateFloor) (*spec.CreateFloorData, uint8, error)
 	UpdateFloor(tctx *logger.TraceContext, db *gorm.DB, input *spec.UpdateFloor) (*spec.UpdateFloorData, uint8, error)
 	DeleteFloor(tctx *logger.TraceContext, db *gorm.DB, input *spec.DeleteFloor) (*spec.DeleteFloorData, uint8, error)
+	DeleteFloors(tctx *logger.TraceContext, db *gorm.DB, input *spec.DeleteFloors) (*spec.DeleteFloorsData, uint8, error)
 	GetRack(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetRack) (*spec.GetRackData, uint8, error)
 	GetRacks(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetRacks) (*spec.GetRacksData, uint8, error)
 	CreateRack(tctx *logger.TraceContext, db *gorm.DB, input *spec.CreateRack) (*spec.CreateRackData, uint8, error)
 	UpdateRack(tctx *logger.TraceContext, db *gorm.DB, input *spec.UpdateRack) (*spec.UpdateRackData, uint8, error)
 	DeleteRack(tctx *logger.TraceContext, db *gorm.DB, input *spec.DeleteRack) (*spec.DeleteRackData, uint8, error)
+	DeleteRacks(tctx *logger.TraceContext, db *gorm.DB, input *spec.DeleteRacks) (*spec.DeleteRacksData, uint8, error)
 	GetPhysicalModel(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetPhysicalModel) (*spec.GetPhysicalModelData, uint8, error)
 	GetPhysicalModels(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetPhysicalModels) (*spec.GetPhysicalModelsData, uint8, error)
 	CreatePhysicalModel(tctx *logger.TraceContext, db *gorm.DB, input *spec.CreatePhysicalModel) (*spec.CreatePhysicalModelData, uint8, error)
 	UpdatePhysicalModel(tctx *logger.TraceContext, db *gorm.DB, input *spec.UpdatePhysicalModel) (*spec.UpdatePhysicalModelData, uint8, error)
 	DeletePhysicalModel(tctx *logger.TraceContext, db *gorm.DB, input *spec.DeletePhysicalModel) (*spec.DeletePhysicalModelData, uint8, error)
+	DeletePhysicalModels(tctx *logger.TraceContext, db *gorm.DB, input *spec.DeletePhysicalModels) (*spec.DeletePhysicalModelsData, uint8, error)
 	GetPhysicalResource(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetPhysicalResource) (*spec.GetPhysicalResourceData, uint8, error)
 	GetPhysicalResources(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetPhysicalResources) (*spec.GetPhysicalResourcesData, uint8, error)
 	CreatePhysicalResource(tctx *logger.TraceContext, db *gorm.DB, input *spec.CreatePhysicalResource) (*spec.CreatePhysicalResourceData, uint8, error)
@@ -87,16 +92,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, err := handler.resolver.Login(tctx, db, &input)
-			if err != nil {
+			data, code, tmpErr := handler.resolver.Login(tctx, db, &input)
+			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
 				rep.ResultMap[query.Name] = base_model.Result{
 					Code:  code,
-					Error: err.Error(),
+					Error: tmpErr.Error(),
 				}
-				return err
+				break
 			}
 			rep.ResultMap[query.Name] = base_model.Result{
 				Code: code,
@@ -131,16 +136,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, err := handler.resolver.LoginWithToken(tctx, db, &input, user)
-			if err != nil {
+			data, code, tmpErr := handler.resolver.LoginWithToken(tctx, db, &input, user)
+			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
 				rep.ResultMap[query.Name] = base_model.Result{
 					Code:  code,
-					Error: err.Error(),
+					Error: tmpErr.Error(),
 				}
-				return err
+				break
 			}
 			rep.ResultMap[query.Name] = base_model.Result{
 				Code: code,
@@ -154,16 +159,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, err := handler.resolver.UpdateService(tctx, db, &input)
-			if err != nil {
+			data, code, tmpErr := handler.resolver.UpdateService(tctx, db, &input)
+			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
 				rep.ResultMap[query.Name] = base_model.Result{
 					Code:  code,
-					Error: err.Error(),
+					Error: tmpErr.Error(),
 				}
-				return err
+				break
 			}
 			rep.ResultMap[query.Name] = base_model.Result{
 				Code: code,
@@ -177,16 +182,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, err := handler.resolver.GetServiceIndex(tctx, db, &input)
-			if err != nil {
+			data, code, tmpErr := handler.resolver.GetServiceIndex(tctx, db, &input)
+			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
 				rep.ResultMap[query.Name] = base_model.Result{
 					Code:  code,
-					Error: err.Error(),
+					Error: tmpErr.Error(),
 				}
-				return err
+				break
 			}
 			rep.ResultMap[query.Name] = base_model.Result{
 				Code: code,
@@ -199,16 +204,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, err := handler.resolver.GetServiceDashboardIndex(tctx, db, &input)
-			if err != nil {
+			data, code, tmpErr := handler.resolver.GetServiceDashboardIndex(tctx, db, &input)
+			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
 				rep.ResultMap["GetServiceDashboardIndex"] = base_model.Result{
 					Code:  code,
-					Error: err.Error(),
+					Error: tmpErr.Error(),
 				}
-				return err
+				break
 			}
 			rep.ResultMap[query.Name] = base_model.Result{
 				Code: code,
@@ -221,16 +226,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, err := handler.resolver.GetRegion(tctx, db, &input)
-			if err != nil {
+			data, code, tmpErr := handler.resolver.GetRegion(tctx, db, &input)
+			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
 				rep.ResultMap[query.Name] = base_model.Result{
 					Code:  code,
-					Error: err.Error(),
+					Error: tmpErr.Error(),
 				}
-				return err
+				break
 			}
 			rep.ResultMap[query.Name] = base_model.Result{
 				Code: code,
@@ -243,16 +248,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, err := handler.resolver.GetRegions(tctx, db, &input)
-			if err != nil {
+			data, code, tmpErr := handler.resolver.GetRegions(tctx, db, &input)
+			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
 				rep.ResultMap[query.Name] = base_model.Result{
 					Code:  code,
-					Error: err.Error(),
+					Error: tmpErr.Error(),
 				}
-				return err
+				break
 			}
 			rep.ResultMap[query.Name] = base_model.Result{
 				Code: code,
@@ -265,16 +270,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, err := handler.resolver.CreateRegion(tctx, db, &input)
-			if err != nil {
+			data, code, tmpErr := handler.resolver.CreateRegion(tctx, db, &input)
+			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
 				rep.ResultMap[query.Name] = base_model.Result{
 					Code:  code,
-					Error: err.Error(),
+					Error: tmpErr.Error(),
 				}
-				return err
+				break
 			}
 			rep.ResultMap[query.Name] = base_model.Result{
 				Code: code,
@@ -287,16 +292,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, err := handler.resolver.UpdateRegion(tctx, db, &input)
-			if err != nil {
+			data, code, tmpErr := handler.resolver.UpdateRegion(tctx, db, &input)
+			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
 				rep.ResultMap[query.Name] = base_model.Result{
 					Code:  code,
-					Error: err.Error(),
+					Error: tmpErr.Error(),
 				}
-				return err
+				break
 			}
 			rep.ResultMap[query.Name] = base_model.Result{
 				Code: code,
@@ -309,16 +314,38 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, err := handler.resolver.DeleteRegion(tctx, db, &input)
-			if err != nil {
+			data, code, tmpErr := handler.resolver.DeleteRegion(tctx, db, &input)
+			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
 				rep.ResultMap[query.Name] = base_model.Result{
 					Code:  code,
-					Error: err.Error(),
+					Error: tmpErr.Error(),
 				}
+				break
+			}
+			rep.ResultMap[query.Name] = base_model.Result{
+				Code: code,
+				Data: data,
+			}
+		case "DeleteRegions":
+			var input spec.DeleteRegions
+			err = json.Unmarshal([]byte(query.Data), &input)
+			if err != nil {
 				return err
+			}
+
+			data, code, tmpErr := handler.resolver.DeleteRegions(tctx, db, &input)
+			if tmpErr != nil {
+				if code == 0 {
+					code = base_const.CodeServerInternalError
+				}
+				rep.ResultMap[query.Name] = base_model.Result{
+					Code:  code,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			rep.ResultMap[query.Name] = base_model.Result{
 				Code: code,
@@ -331,16 +358,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, err := handler.resolver.GetDatacenter(tctx, db, &input)
-			if err != nil {
+			data, code, tmpErr := handler.resolver.GetDatacenter(tctx, db, &input)
+			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
 				rep.ResultMap[query.Name] = base_model.Result{
 					Code:  code,
-					Error: err.Error(),
+					Error: tmpErr.Error(),
 				}
-				return err
+				break
 			}
 			rep.ResultMap[query.Name] = base_model.Result{
 				Code: code,
@@ -353,16 +380,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, err := handler.resolver.GetDatacenters(tctx, db, &input)
-			if err != nil {
+			data, code, tmpErr := handler.resolver.GetDatacenters(tctx, db, &input)
+			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
 				rep.ResultMap[query.Name] = base_model.Result{
 					Code:  code,
-					Error: err.Error(),
+					Error: tmpErr.Error(),
 				}
-				return err
+				break
 			}
 			rep.ResultMap[query.Name] = base_model.Result{
 				Code: code,
@@ -375,16 +402,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, err := handler.resolver.CreateDatacenter(tctx, db, &input)
-			if err != nil {
+			data, code, tmpErr := handler.resolver.CreateDatacenter(tctx, db, &input)
+			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
 				rep.ResultMap[query.Name] = base_model.Result{
 					Code:  code,
-					Error: err.Error(),
+					Error: tmpErr.Error(),
 				}
-				return err
+				break
 			}
 			rep.ResultMap[query.Name] = base_model.Result{
 				Code: code,
@@ -397,16 +424,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, err := handler.resolver.UpdateDatacenter(tctx, db, &input)
-			if err != nil {
+			data, code, tmpErr := handler.resolver.UpdateDatacenter(tctx, db, &input)
+			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
 				rep.ResultMap[query.Name] = base_model.Result{
 					Code:  code,
-					Error: err.Error(),
+					Error: tmpErr.Error(),
 				}
-				return err
+				break
 			}
 			rep.ResultMap[query.Name] = base_model.Result{
 				Code: code,
@@ -419,16 +446,38 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, err := handler.resolver.DeleteDatacenter(tctx, db, &input)
-			if err != nil {
+			data, code, tmpErr := handler.resolver.DeleteDatacenter(tctx, db, &input)
+			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
 				rep.ResultMap[query.Name] = base_model.Result{
 					Code:  code,
-					Error: err.Error(),
+					Error: tmpErr.Error(),
 				}
+				break
+			}
+			rep.ResultMap[query.Name] = base_model.Result{
+				Code: code,
+				Data: data,
+			}
+		case "DeleteDatacenters":
+			var input spec.DeleteDatacenters
+			err = json.Unmarshal([]byte(query.Data), &input)
+			if err != nil {
 				return err
+			}
+
+			data, code, tmpErr := handler.resolver.DeleteDatacenters(tctx, db, &input)
+			if tmpErr != nil {
+				if code == 0 {
+					code = base_const.CodeServerInternalError
+				}
+				rep.ResultMap[query.Name] = base_model.Result{
+					Code:  code,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			rep.ResultMap[query.Name] = base_model.Result{
 				Code: code,
@@ -441,16 +490,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, err := handler.resolver.GetFloor(tctx, db, &input)
-			if err != nil {
+			data, code, tmpErr := handler.resolver.GetFloor(tctx, db, &input)
+			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
 				rep.ResultMap[query.Name] = base_model.Result{
 					Code:  code,
-					Error: err.Error(),
+					Error: tmpErr.Error(),
 				}
-				return err
+				break
 			}
 			rep.ResultMap[query.Name] = base_model.Result{
 				Code: code,
@@ -463,16 +512,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, err := handler.resolver.GetFloors(tctx, db, &input)
-			if err != nil {
+			data, code, tmpErr := handler.resolver.GetFloors(tctx, db, &input)
+			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
 				rep.ResultMap[query.Name] = base_model.Result{
 					Code:  code,
-					Error: err.Error(),
+					Error: tmpErr.Error(),
 				}
-				return err
+				break
 			}
 			rep.ResultMap[query.Name] = base_model.Result{
 				Code: code,
@@ -485,16 +534,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, err := handler.resolver.CreateFloor(tctx, db, &input)
-			if err != nil {
+			data, code, tmpErr := handler.resolver.CreateFloor(tctx, db, &input)
+			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
 				rep.ResultMap[query.Name] = base_model.Result{
 					Code:  code,
-					Error: err.Error(),
+					Error: tmpErr.Error(),
 				}
-				return err
+				break
 			}
 			rep.ResultMap[query.Name] = base_model.Result{
 				Code: code,
@@ -507,16 +556,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, err := handler.resolver.UpdateFloor(tctx, db, &input)
-			if err != nil {
+			data, code, tmpErr := handler.resolver.UpdateFloor(tctx, db, &input)
+			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
 				rep.ResultMap[query.Name] = base_model.Result{
 					Code:  code,
-					Error: err.Error(),
+					Error: tmpErr.Error(),
 				}
-				return err
+				break
 			}
 			rep.ResultMap[query.Name] = base_model.Result{
 				Code: code,
@@ -529,16 +578,38 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, err := handler.resolver.DeleteFloor(tctx, db, &input)
-			if err != nil {
+			data, code, tmpErr := handler.resolver.DeleteFloor(tctx, db, &input)
+			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
 				rep.ResultMap[query.Name] = base_model.Result{
 					Code:  code,
-					Error: err.Error(),
+					Error: tmpErr.Error(),
 				}
+				break
+			}
+			rep.ResultMap[query.Name] = base_model.Result{
+				Code: code,
+				Data: data,
+			}
+		case "DeleteFloors":
+			var input spec.DeleteFloors
+			err = json.Unmarshal([]byte(query.Data), &input)
+			if err != nil {
 				return err
+			}
+
+			data, code, tmpErr := handler.resolver.DeleteFloors(tctx, db, &input)
+			if tmpErr != nil {
+				if code == 0 {
+					code = base_const.CodeServerInternalError
+				}
+				rep.ResultMap[query.Name] = base_model.Result{
+					Code:  code,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			rep.ResultMap[query.Name] = base_model.Result{
 				Code: code,
@@ -551,16 +622,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, err := handler.resolver.GetRack(tctx, db, &input)
-			if err != nil {
+			data, code, tmpErr := handler.resolver.GetRack(tctx, db, &input)
+			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
 				rep.ResultMap[query.Name] = base_model.Result{
 					Code:  code,
-					Error: err.Error(),
+					Error: tmpErr.Error(),
 				}
-				return err
+				break
 			}
 			rep.ResultMap[query.Name] = base_model.Result{
 				Code: code,
@@ -573,16 +644,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, err := handler.resolver.GetRacks(tctx, db, &input)
-			if err != nil {
+			data, code, tmpErr := handler.resolver.GetRacks(tctx, db, &input)
+			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
 				rep.ResultMap[query.Name] = base_model.Result{
 					Code:  code,
-					Error: err.Error(),
+					Error: tmpErr.Error(),
 				}
-				return err
+				break
 			}
 			rep.ResultMap[query.Name] = base_model.Result{
 				Code: code,
@@ -595,16 +666,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, err := handler.resolver.CreateRack(tctx, db, &input)
-			if err != nil {
+			data, code, tmpErr := handler.resolver.CreateRack(tctx, db, &input)
+			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
 				rep.ResultMap[query.Name] = base_model.Result{
 					Code:  code,
-					Error: err.Error(),
+					Error: tmpErr.Error(),
 				}
-				return err
+				break
 			}
 			rep.ResultMap[query.Name] = base_model.Result{
 				Code: code,
@@ -617,16 +688,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, err := handler.resolver.UpdateRack(tctx, db, &input)
-			if err != nil {
+			data, code, tmpErr := handler.resolver.UpdateRack(tctx, db, &input)
+			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
 				rep.ResultMap[query.Name] = base_model.Result{
 					Code:  code,
-					Error: err.Error(),
+					Error: tmpErr.Error(),
 				}
-				return err
+				break
 			}
 			rep.ResultMap[query.Name] = base_model.Result{
 				Code: code,
@@ -639,16 +710,38 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, err := handler.resolver.DeleteRack(tctx, db, &input)
-			if err != nil {
+			data, code, tmpErr := handler.resolver.DeleteRack(tctx, db, &input)
+			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
 				rep.ResultMap[query.Name] = base_model.Result{
 					Code:  code,
-					Error: err.Error(),
+					Error: tmpErr.Error(),
 				}
+				break
+			}
+			rep.ResultMap[query.Name] = base_model.Result{
+				Code: code,
+				Data: data,
+			}
+		case "DeleteRacks":
+			var input spec.DeleteRacks
+			err = json.Unmarshal([]byte(query.Data), &input)
+			if err != nil {
 				return err
+			}
+
+			data, code, tmpErr := handler.resolver.DeleteRacks(tctx, db, &input)
+			if tmpErr != nil {
+				if code == 0 {
+					code = base_const.CodeServerInternalError
+				}
+				rep.ResultMap[query.Name] = base_model.Result{
+					Code:  code,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			rep.ResultMap[query.Name] = base_model.Result{
 				Code: code,
@@ -661,16 +754,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, err := handler.resolver.GetPhysicalModel(tctx, db, &input)
-			if err != nil {
+			data, code, tmpErr := handler.resolver.GetPhysicalModel(tctx, db, &input)
+			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
 				rep.ResultMap[query.Name] = base_model.Result{
 					Code:  code,
-					Error: err.Error(),
+					Error: tmpErr.Error(),
 				}
-				return err
+				break
 			}
 			rep.ResultMap[query.Name] = base_model.Result{
 				Code: code,
@@ -683,16 +776,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, err := handler.resolver.GetPhysicalModels(tctx, db, &input)
-			if err != nil {
+			data, code, tmpErr := handler.resolver.GetPhysicalModels(tctx, db, &input)
+			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
 				rep.ResultMap[query.Name] = base_model.Result{
 					Code:  code,
-					Error: err.Error(),
+					Error: tmpErr.Error(),
 				}
-				return err
+				break
 			}
 			rep.ResultMap[query.Name] = base_model.Result{
 				Code: code,
@@ -705,16 +798,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, err := handler.resolver.CreatePhysicalModel(tctx, db, &input)
-			if err != nil {
+			data, code, tmpErr := handler.resolver.CreatePhysicalModel(tctx, db, &input)
+			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
 				rep.ResultMap[query.Name] = base_model.Result{
 					Code:  code,
-					Error: err.Error(),
+					Error: tmpErr.Error(),
 				}
-				return err
+				break
 			}
 			rep.ResultMap[query.Name] = base_model.Result{
 				Code: code,
@@ -727,16 +820,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, err := handler.resolver.UpdatePhysicalModel(tctx, db, &input)
-			if err != nil {
+			data, code, tmpErr := handler.resolver.UpdatePhysicalModel(tctx, db, &input)
+			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
 				rep.ResultMap[query.Name] = base_model.Result{
 					Code:  code,
-					Error: err.Error(),
+					Error: tmpErr.Error(),
 				}
-				return err
+				break
 			}
 			rep.ResultMap[query.Name] = base_model.Result{
 				Code: code,
@@ -749,16 +842,38 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, err := handler.resolver.DeletePhysicalModel(tctx, db, &input)
-			if err != nil {
+			data, code, tmpErr := handler.resolver.DeletePhysicalModel(tctx, db, &input)
+			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
 				rep.ResultMap[query.Name] = base_model.Result{
 					Code:  code,
-					Error: err.Error(),
+					Error: tmpErr.Error(),
 				}
+				break
+			}
+			rep.ResultMap[query.Name] = base_model.Result{
+				Code: code,
+				Data: data,
+			}
+		case "DeletePhysicalModels":
+			var input spec.DeletePhysicalModels
+			err = json.Unmarshal([]byte(query.Data), &input)
+			if err != nil {
 				return err
+			}
+
+			data, code, tmpErr := handler.resolver.DeletePhysicalModels(tctx, db, &input)
+			if tmpErr != nil {
+				if code == 0 {
+					code = base_const.CodeServerInternalError
+				}
+				rep.ResultMap[query.Name] = base_model.Result{
+					Code:  code,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			rep.ResultMap[query.Name] = base_model.Result{
 				Code: code,
@@ -771,16 +886,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, err := handler.resolver.GetPhysicalResource(tctx, db, &input)
-			if err != nil {
+			data, code, tmpErr := handler.resolver.GetPhysicalResource(tctx, db, &input)
+			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
 				rep.ResultMap[query.Name] = base_model.Result{
 					Code:  code,
-					Error: err.Error(),
+					Error: tmpErr.Error(),
 				}
-				return err
+				break
 			}
 			rep.ResultMap[query.Name] = base_model.Result{
 				Code: code,
@@ -793,16 +908,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, err := handler.resolver.GetPhysicalResources(tctx, db, &input)
-			if err != nil {
+			data, code, tmpErr := handler.resolver.GetPhysicalResources(tctx, db, &input)
+			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
 				rep.ResultMap[query.Name] = base_model.Result{
 					Code:  code,
-					Error: err.Error(),
+					Error: tmpErr.Error(),
 				}
-				return err
+				break
 			}
 			rep.ResultMap[query.Name] = base_model.Result{
 				Code: code,
@@ -815,16 +930,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, err := handler.resolver.CreatePhysicalResource(tctx, db, &input)
-			if err != nil {
+			data, code, tmpErr := handler.resolver.CreatePhysicalResource(tctx, db, &input)
+			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
 				rep.ResultMap[query.Name] = base_model.Result{
 					Code:  code,
-					Error: err.Error(),
+					Error: tmpErr.Error(),
 				}
-				return err
+				break
 			}
 			rep.ResultMap[query.Name] = base_model.Result{
 				Code: code,
@@ -837,16 +952,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, err := handler.resolver.UpdatePhysicalResource(tctx, db, &input)
-			if err != nil {
+			data, code, tmpErr := handler.resolver.UpdatePhysicalResource(tctx, db, &input)
+			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
 				rep.ResultMap[query.Name] = base_model.Result{
 					Code:  code,
-					Error: err.Error(),
+					Error: tmpErr.Error(),
 				}
-				return err
+				break
 			}
 			rep.ResultMap[query.Name] = base_model.Result{
 				Code: code,
@@ -859,16 +974,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, err := handler.resolver.DeletePhysicalResource(tctx, db, &input)
-			if err != nil {
+			data, code, tmpErr := handler.resolver.DeletePhysicalResource(tctx, db, &input)
+			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
 				rep.ResultMap[query.Name] = base_model.Result{
 					Code:  code,
-					Error: err.Error(),
+					Error: tmpErr.Error(),
 				}
-				return err
+				break
 			}
 			rep.ResultMap[query.Name] = base_model.Result{
 				Code: code,
@@ -881,16 +996,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, err := handler.resolver.DeletePhysicalResources(tctx, db, &input)
-			if err != nil {
+			data, code, tmpErr := handler.resolver.DeletePhysicalResources(tctx, db, &input)
+			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
 				rep.ResultMap[query.Name] = base_model.Result{
 					Code:  code,
-					Error: err.Error(),
+					Error: tmpErr.Error(),
 				}
-				return err
+				break
 			}
 			rep.ResultMap[query.Name] = base_model.Result{
 				Code: code,
@@ -903,16 +1018,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, err := handler.resolver.GetClusters(tctx, db, &input)
-			if err != nil {
+			data, code, tmpErr := handler.resolver.GetClusters(tctx, db, &input)
+			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
 				rep.ResultMap[query.Name] = base_model.Result{
 					Code:  code,
-					Error: err.Error(),
+					Error: tmpErr.Error(),
 				}
-				return err
+				break
 			}
 			rep.ResultMap[query.Name] = base_model.Result{
 				Code: code,

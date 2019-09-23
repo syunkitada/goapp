@@ -2,9 +2,10 @@
 // Don't modify this code.
 const Unknown = 0;
 const Ok = 20;
-const OkCreated = 21;
-const OkUpdated = 22;
-const OkDeleted = 23;
+const OkNotFound = 21;
+const OkCreated = 22;
+const OkUpdated = 23;
+const OkDeleted = 24;
 const OkAccepted = 30;
 const OkCreateAccepted = 31;
 const OkUpdateAccepted = 32;
@@ -25,6 +26,8 @@ export function toStringFromStatusCode(code) {
       return "Unknown";
     case Ok:
       return "Ok";
+    case OkNotFound:
+      return "OkNotFound";
     case OkCreated:
       return "OkCreated";
     case OkUpdated:

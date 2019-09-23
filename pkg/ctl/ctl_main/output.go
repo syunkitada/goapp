@@ -41,7 +41,7 @@ func (ctl *Ctl) output(cmdInfo *index_model.Cmd, resp *Response,
 	switch outputFormat {
 	case "json":
 		outs := []string{}
-		for _, queryData := range resp.Data {
+		for _, queryData := range resp.ResultMap {
 			dataBytes, err := json_utils.Marshal(queryData)
 			if err != nil {
 				logger.StdoutFatalf("Failed json marshal: %v", err)
@@ -52,7 +52,7 @@ func (ctl *Ctl) output(cmdInfo *index_model.Cmd, resp *Response,
 
 	case "yaml":
 		outs := []string{}
-		for _, queryData := range resp.Data {
+		for _, queryData := range resp.ResultMap {
 			dataBytes, err := json_utils.YamlMarshal(queryData)
 			if err != nil {
 				logger.StdoutFatalf("Failed json marshal: %v", err)
@@ -68,8 +68,8 @@ func (ctl *Ctl) output(cmdInfo *index_model.Cmd, resp *Response,
 			return
 		}
 
-		for _, queryData := range resp.Data {
-			for key, data := range queryData {
+		for _, result := range resp.ResultMap {
+			for key, data := range result.Data {
 				fmt.Printf("# %s\n", key)
 
 				switch cmdInfo.OutputKind {

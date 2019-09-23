@@ -7,9 +7,10 @@ var CodeMap = codeMap{
 
 	// 2x Success
 	20: "Ok",
-	21: "OkCreated",
-	22: "OkUpdated",
-	23: "OkDeleted",
+	21: "OkNotFound",
+	22: "OkCreated",
+	23: "OkUpdated",
+	24: "OkDeleted",
 	30: "OkAccepted",
 	31: "OkCreateAccepted",
 	32: "OkUpdateAccepted",

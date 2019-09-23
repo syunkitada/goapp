@@ -60,6 +60,18 @@ var ResourcePhysicalCmdMap = map[string]index_model.Cmd{
 		OutputKind:   "",
 		OutputFormat: "",
 	},
+	"delete.regions": index_model.Cmd{
+		QueryName: "DeleteRegions",
+		FlagMap: map[string]index_model.Flag{
+			"spec,s": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "file",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
 	"get.datacenter": index_model.Cmd{
 		QueryName: "GetDatacenter",
 		FlagMap: map[string]index_model.Flag{
@@ -114,10 +126,27 @@ var ResourcePhysicalCmdMap = map[string]index_model.Cmd{
 		OutputKind:   "",
 		OutputFormat: "",
 	},
+	"delete.datacenters": index_model.Cmd{
+		QueryName: "DeleteDatacenters",
+		FlagMap: map[string]index_model.Flag{
+			"spec,s": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "file",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
 	"get.floor": index_model.Cmd{
 		QueryName: "GetFloor",
 		FlagMap: map[string]index_model.Flag{
 			"name,n": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+			"datacenter,d": index_model.Flag{
 				Required: true,
 				FlagType: "string",
 				FlagKind: "",
@@ -127,8 +156,14 @@ var ResourcePhysicalCmdMap = map[string]index_model.Cmd{
 		OutputFormat: "",
 	},
 	"get.floors": index_model.Cmd{
-		QueryName:    "GetFloors",
-		FlagMap:      map[string]index_model.Flag{},
+		QueryName: "GetFloors",
+		FlagMap: map[string]index_model.Flag{
+			"datacenter,d": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+		},
 		OutputKind:   "table",
 		OutputFormat: "Kind,Name,Datacenter,Zone,Floor",
 	},
@@ -164,6 +199,23 @@ var ResourcePhysicalCmdMap = map[string]index_model.Cmd{
 				FlagType: "string",
 				FlagKind: "",
 			},
+			"datacenter,d": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
+	"delete.floors": index_model.Cmd{
+		QueryName: "DeleteFloors",
+		FlagMap: map[string]index_model.Flag{
+			"spec,s": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "file",
+			},
 		},
 		OutputKind:   "",
 		OutputFormat: "",
@@ -186,8 +238,14 @@ var ResourcePhysicalCmdMap = map[string]index_model.Cmd{
 		OutputFormat: "",
 	},
 	"get.racks": index_model.Cmd{
-		QueryName:    "GetRacks",
-		FlagMap:      map[string]index_model.Flag{},
+		QueryName: "GetRacks",
+		FlagMap: map[string]index_model.Flag{
+			"datacenter,d": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+		},
 		OutputKind:   "table",
 		OutputFormat: "Kind,Name,Datacenter,Floor,Unit",
 	},
@@ -227,6 +285,18 @@ var ResourcePhysicalCmdMap = map[string]index_model.Cmd{
 				Required: true,
 				FlagType: "string",
 				FlagKind: "",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
+	"delete.racks": index_model.Cmd{
+		QueryName: "DeleteRacks",
+		FlagMap: map[string]index_model.Flag{
+			"spec,s": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "file",
 			},
 		},
 		OutputKind:   "",
@@ -286,6 +356,18 @@ var ResourcePhysicalCmdMap = map[string]index_model.Cmd{
 		OutputKind:   "",
 		OutputFormat: "",
 	},
+	"delete.physical.models": index_model.Cmd{
+		QueryName: "DeletePhysicalModels",
+		FlagMap: map[string]index_model.Flag{
+			"spec,s": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "file",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
 	"get.physical.resource": index_model.Cmd{
 		QueryName: "GetPhysicalResource",
 		FlagMap: map[string]index_model.Flag{
@@ -304,8 +386,14 @@ var ResourcePhysicalCmdMap = map[string]index_model.Cmd{
 		OutputFormat: "",
 	},
 	"get.physical.resources": index_model.Cmd{
-		QueryName:    "GetPhysicalResources",
-		FlagMap:      map[string]index_model.Flag{},
+		QueryName: "GetPhysicalResources",
+		FlagMap: map[string]index_model.Flag{
+			"datacenter,d": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+		},
 		OutputKind:   "table",
 		OutputFormat: "Kind,Name,Datacenter,Cluster,Rack,PhysicalModel,RackPosition,UpdatedAt,CreatedAt,Spec",
 	},
@@ -383,26 +471,31 @@ var ApiQueryMap = map[string]map[string]spec_model.QueryModel{
 		"CreateRegion":            spec_model.QueryModel{},
 		"UpdateRegion":            spec_model.QueryModel{},
 		"DeleteRegion":            spec_model.QueryModel{},
+		"DeleteRegions":           spec_model.QueryModel{},
 		"GetDatacenter":           spec_model.QueryModel{},
 		"GetDatacenters":          spec_model.QueryModel{},
 		"CreateDatacenter":        spec_model.QueryModel{},
 		"UpdateDatacenter":        spec_model.QueryModel{},
 		"DeleteDatacenter":        spec_model.QueryModel{},
+		"DeleteDatacenters":       spec_model.QueryModel{},
 		"GetFloor":                spec_model.QueryModel{},
 		"GetFloors":               spec_model.QueryModel{},
 		"CreateFloor":             spec_model.QueryModel{},
 		"UpdateFloor":             spec_model.QueryModel{},
 		"DeleteFloor":             spec_model.QueryModel{},
+		"DeleteFloors":            spec_model.QueryModel{},
 		"GetRack":                 spec_model.QueryModel{},
 		"GetRacks":                spec_model.QueryModel{},
 		"CreateRack":              spec_model.QueryModel{},
 		"UpdateRack":              spec_model.QueryModel{},
 		"DeleteRack":              spec_model.QueryModel{},
+		"DeleteRacks":             spec_model.QueryModel{},
 		"GetPhysicalModel":        spec_model.QueryModel{},
 		"GetPhysicalModels":       spec_model.QueryModel{},
 		"CreatePhysicalModel":     spec_model.QueryModel{},
 		"UpdatePhysicalModel":     spec_model.QueryModel{},
 		"DeletePhysicalModel":     spec_model.QueryModel{},
+		"DeletePhysicalModels":    spec_model.QueryModel{},
 		"GetPhysicalResource":     spec_model.QueryModel{},
 		"GetPhysicalResources":    spec_model.QueryModel{},
 		"CreatePhysicalResource":  spec_model.QueryModel{},

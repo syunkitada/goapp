@@ -1,8 +1,6 @@
 package resolver
 
 import (
-	"fmt"
-
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
 
@@ -43,9 +41,8 @@ func (resolver *Resolver) GetServiceDashboardIndex(tctx *logger.TraceContext, db
 	switch input.Name {
 	case "ResourcePhysical":
 		var datacenters []spec.Datacenter
-		datacenters, err = resolver.dbApi.GetDatacenters(tctx, db)
+		datacenters, err = resolver.dbApi.GetDatacenters(tctx, db, &spec.GetDatacenters{})
 		if err != nil {
-			fmt.Println("HOGEwwlwllw")
 			return
 		}
 
@@ -58,7 +55,7 @@ func (resolver *Resolver) GetServiceDashboardIndex(tctx *logger.TraceContext, db
 					Name: "Root",
 					Kind: "RoutePanels",
 					Panels: []interface{}{
-						genpkg.DatacentersTable,
+						spec.DatacentersTable,
 						index_model.Tabs{
 							Name:             "Resources",
 							Kind:             "RouteTabs",
@@ -69,10 +66,10 @@ func (resolver *Resolver) GetServiceDashboardIndex(tctx *logger.TraceContext, db
 							ExpectedDataKeys: []string{"PhysicalResources", "Racks", "Floors", "PhysicalModels"},
 							IsSync:           true,
 							Tabs: []interface{}{
-								genpkg.PhysicalResourcesTable,
-								genpkg.RacksTable,
-								genpkg.FloorsTable,
-								genpkg.PhysicalModelsTable,
+								spec.PhysicalResourcesTable,
+								spec.RacksTable,
+								spec.FloorsTable,
+								spec.PhysicalModelsTable,
 							}, // Tabs
 						},
 						gin.H{
@@ -82,8 +79,8 @@ func (resolver *Resolver) GetServiceDashboardIndex(tctx *logger.TraceContext, db
 							"Kind":      "RoutePanes",
 							"PaneParam": "Kind",
 							"Panes": []interface{}{
-								genpkg.PhysicalModelsDetail,
-								genpkg.PhysicalResourcesDetail,
+								spec.PhysicalModelsDetail,
+								spec.PhysicalResourcesDetail,
 							},
 						},
 					},

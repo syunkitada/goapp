@@ -9,32 +9,32 @@ import (
 
 func (api *Api) GetRack(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetRack) (data *spec.Rack, err error) {
 	data = &spec.Rack{}
-	err = db.Where("name = ? AND datacenter = ?", input.Name, input.Datacenter).First(data).Error
+	err = db.Where("name = ? AND deleted_at IS NULL", input.Name).First(data).Error
 	return
 }
 
-func (api *Api) GetRacks(tctx *logger.TraceContext, db *gorm.DB) (data []spec.Rack, err error) {
-	err = db.Find(&data).Error
+func (api *Api) GetRacks(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetRacks) (data []spec.Rack, err error) {
+	err = db.Where("datacenter = ? AND deleted_at IS NULL", input.Datacenter).Find(&data).Error
 	return
 }
 
 func (api *Api) CreateRacks(tctx *logger.TraceContext, db *gorm.DB, input []spec.Rack) (err error) {
 	err = api.Transact(tctx, db, func(tx *gorm.DB) (err error) {
-		for _, data := range input {
-			var tmpRack db_model.Rack
-			if err = tx.Where("name = ? AND datacenter = ?", data.Name, data.Datacenter).
-				First(&tmpRack).Error; err != nil {
+		for _, val := range input {
+			var tmp db_model.Rack
+			if err = tx.Where("name = ? AND datacenter = ?", val.Name, val.Datacenter).
+				First(&tmp).Error; err != nil {
 				if !gorm.IsRecordNotFoundError(err) {
 					return
 				}
-				tmpRack = db_model.Rack{
-					Name:       data.Name,
-					Datacenter: data.Datacenter,
-					Kind:       data.Kind,
-					Floor:      data.Floor,
-					Unit:       data.Unit,
+				tmp = db_model.Rack{
+					Name:       val.Name,
+					Datacenter: val.Datacenter,
+					Kind:       val.Kind,
+					Floor:      val.Floor,
+					Unit:       val.Unit,
 				}
-				if err = tx.Create(&tmpRack).Error; err != nil {
+				if err = tx.Create(&tmp).Error; err != nil {
 					return
 				}
 			}
@@ -46,13 +46,13 @@ func (api *Api) CreateRacks(tctx *logger.TraceContext, db *gorm.DB, input []spec
 
 func (api *Api) UpdateRacks(tctx *logger.TraceContext, db *gorm.DB, input []spec.Rack) (err error) {
 	err = api.Transact(tctx, db, func(tx *gorm.DB) (err error) {
-		for _, data := range input {
+		for _, val := range input {
 			if err = tx.Model(&db_model.Rack{}).
-				Where("name = ? AND datacenter = ?", data.Name, data.Datacenter).
+				Where("name = ? AND datacenter = ?", val.Name, val.Datacenter).
 				Updates(&db_model.Rack{
-					Kind:  data.Kind,
-					Floor: data.Floor,
-					Unit:  data.Unit,
+					Kind:  val.Kind,
+					Floor: val.Floor,
+					Unit:  val.Unit,
 				}).Error; err != nil {
 				return
 			}
@@ -64,8 +64,20 @@ func (api *Api) UpdateRacks(tctx *logger.TraceContext, db *gorm.DB, input []spec
 
 func (api *Api) DeleteRack(tctx *logger.TraceContext, db *gorm.DB, input *spec.DeleteRack) (err error) {
 	err = api.Transact(tctx, db, func(tx *gorm.DB) (err error) {
-		err = tx.Where("name = ? AND datacenter = ?", input.Name, input.Datacenter).
-			Delete(&db_model.Rack{}).Error
+		err = tx.Where("name = ? AND datacenter = ?", input.Name, input.Datacenter).Delete(&db_model.Rack{}).Error
+		return
+	})
+	return
+}
+
+func (api *Api) DeleteRacks(tctx *logger.TraceContext, db *gorm.DB, input []spec.Rack) (err error) {
+	err = api.Transact(tctx, db, func(tx *gorm.DB) (err error) {
+		for _, val := range input {
+			if err = tx.Where("name = ? AND datacenter = ?", val.Name, val.Datacenter).
+				Delete(&db_model.Rack{}).Error; err != nil {
+				return
+			}
+		}
 		return
 	})
 	return

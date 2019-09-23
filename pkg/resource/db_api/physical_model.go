@@ -7,30 +7,32 @@ import (
 	"github.com/syunkitada/goapp/pkg/resource/spec"
 )
 
-func (api *Api) GetPhysicalModel(tctx *logger.TraceContext, db *gorm.DB, name string) (data *spec.PhysicalModel, err error) {
+func (api *Api) GetPhysicalModel(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetPhysicalModel) (data *spec.PhysicalModel, err error) {
 	data = &spec.PhysicalModel{}
-	err = db.Where("name = ?", name).First(data).Error
+	err = db.Where("name = ? AND deleted_at IS NULL", input.Name).First(data).Error
 	return
 }
 
-func (api *Api) GetPhysicalModels(tctx *logger.TraceContext, db *gorm.DB) (data []spec.PhysicalModel, err error) {
-	err = db.Find(&data).Error
+func (api *Api) GetPhysicalModels(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetPhysicalModels) (data []spec.PhysicalModel, err error) {
+	err = db.Where("deleted_at IS NULL").Find(&data).Error
 	return
 }
 
-func (api *Api) CreatePhysicalModels(tctx *logger.TraceContext, db *gorm.DB, regions []spec.PhysicalModel) (err error) {
+func (api *Api) CreatePhysicalModels(tctx *logger.TraceContext, db *gorm.DB, input []spec.PhysicalModel) (err error) {
 	err = api.Transact(tctx, db, func(tx *gorm.DB) (err error) {
-		for _, region := range regions {
-			var tmpPhysicalModel db_model.PhysicalModel
-			if err = tx.Where("name = ?", region.Name).First(&tmpPhysicalModel).Error; err != nil {
+		for _, val := range input {
+			var tmp db_model.PhysicalModel
+			if err = tx.Where("name = ?", val.Name).First(&tmp).Error; err != nil {
 				if !gorm.IsRecordNotFoundError(err) {
 					return
 				}
-				tmpPhysicalModel = db_model.PhysicalModel{
-					Name: region.Name,
-					Kind: region.Kind,
+				tmp = db_model.PhysicalModel{
+					Name:        val.Name,
+					Kind:        val.Kind,
+					Unit:        val.Unit,
+					Description: val.Description,
 				}
-				if err = tx.Create(&tmpPhysicalModel).Error; err != nil {
+				if err = tx.Create(&tmp).Error; err != nil {
 					return
 				}
 			}
@@ -40,12 +42,16 @@ func (api *Api) CreatePhysicalModels(tctx *logger.TraceContext, db *gorm.DB, reg
 	return
 }
 
-func (api *Api) UpdatePhysicalModels(tctx *logger.TraceContext, db *gorm.DB, regions []spec.PhysicalModel) (err error) {
+func (api *Api) UpdatePhysicalModels(tctx *logger.TraceContext, db *gorm.DB, input []spec.PhysicalModel) (err error) {
 	err = api.Transact(tctx, db, func(tx *gorm.DB) (err error) {
-		for _, region := range regions {
-			if err = tx.Model(&db_model.PhysicalModel{}).Where("name = ?", region.Name).Updates(&db_model.PhysicalModel{
-				Kind: region.Kind,
-			}).Error; err != nil {
+		for _, val := range input {
+			if err = tx.Model(&db_model.PhysicalModel{}).
+				Where("name = ?", val.Name).
+				Updates(&db_model.PhysicalModel{
+					Kind:        val.Kind,
+					Unit:        val.Unit,
+					Description: val.Description,
+				}).Error; err != nil {
 				return
 			}
 		}
@@ -54,9 +60,22 @@ func (api *Api) UpdatePhysicalModels(tctx *logger.TraceContext, db *gorm.DB, reg
 	return
 }
 
-func (api *Api) DeletePhysicalModel(tctx *logger.TraceContext, db *gorm.DB, name string) (err error) {
+func (api *Api) DeletePhysicalModel(tctx *logger.TraceContext, db *gorm.DB, input *spec.DeletePhysicalModel) (err error) {
 	err = api.Transact(tctx, db, func(tx *gorm.DB) (err error) {
-		err = tx.Where("name = ?", name).Unscoped().Delete(&db_model.PhysicalModel{}).Error
+		err = tx.Where("name = ?", input.Name).Delete(&db_model.PhysicalModel{}).Error
+		return
+	})
+	return
+}
+
+func (api *Api) DeletePhysicalModels(tctx *logger.TraceContext, db *gorm.DB, input []spec.PhysicalModel) (err error) {
+	err = api.Transact(tctx, db, func(tx *gorm.DB) (err error) {
+		for _, val := range input {
+			if err = tx.Where("name = ?", val.Name).
+				Delete(&db_model.PhysicalModel{}).Error; err != nil {
+				return
+			}
+		}
 		return
 	})
 	return

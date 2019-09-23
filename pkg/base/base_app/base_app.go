@@ -310,7 +310,8 @@ func (app *BaseApp) NewHandler() http.Handler {
 		for _, endpoint := range service.Endpoints {
 			if endpoint == "" {
 				if err = app.queryHandler.Exec(tctx, db, userAuthority, r, w, req, rep); err != nil {
-					continue
+					fmt.Println("DEBUG, req", req)
+					break
 				}
 				repBytes, err = json.Marshal(&rep)
 				break

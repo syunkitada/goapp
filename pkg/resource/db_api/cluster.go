@@ -8,30 +8,36 @@ import (
 	"github.com/syunkitada/goapp/pkg/resource/spec"
 )
 
-func (api *Api) GetCluster(tctx *logger.TraceContext, db *gorm.DB, name string) (data *spec.Cluster, err error) {
+func (api *Api) GetCluster(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetCluster) (data *spec.Cluster, err error) {
 	data = &spec.Cluster{}
-	err = db.Where("name = ?", name).First(data).Error
+	err = db.Where("name = ? AND deleted_at IS NULL", input.Name).First(data).Error
 	return
 }
 
-func (api *Api) GetClusters(tctx *logger.TraceContext, db *gorm.DB) (data []spec.Cluster, err error) {
-	err = db.Find(&data).Error
+func (api *Api) GetClusters(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetClusters) (data []spec.Cluster, err error) {
+	err = db.Where("deleted_at IS NULL").Find(&data).Error
 	return
 }
 
-func (api *Api) CreateClusters(tctx *logger.TraceContext, db *gorm.DB, regions []spec.Cluster) (err error) {
+func (api *Api) CreateClusters(tctx *logger.TraceContext, db *gorm.DB, input []spec.Cluster) (err error) {
 	err = api.Transact(tctx, db, func(tx *gorm.DB) (err error) {
-		for _, region := range regions {
-			var tmpCluster db_model.Cluster
-			if err = tx.Where("name = ?", region.Name).First(&tmpCluster).Error; err != nil {
+		for _, val := range input {
+			var tmp db_model.Cluster
+			if err = tx.Where("name = ? AND deleted_at IS NULL", val.Name).
+				First(&tmp).Error; err != nil {
 				if !gorm.IsRecordNotFoundError(err) {
 					return
 				}
-				tmpCluster = db_model.Cluster{
-					Name: region.Name,
-					Kind: region.Kind,
+				tmp = db_model.Cluster{
+					Name:         val.Name,
+					Kind:         val.Kind,
+					Region:       val.Region,
+					Datacenter:   val.Datacenter,
+					DomainSuffix: val.DomainSuffix,
+					Description:  val.Description,
+					Weight:       val.Weight,
 				}
-				if err = tx.Create(&tmpCluster).Error; err != nil {
+				if err = tx.Create(&tmp).Error; err != nil {
 					return
 				}
 			}
@@ -41,12 +47,16 @@ func (api *Api) CreateClusters(tctx *logger.TraceContext, db *gorm.DB, regions [
 	return
 }
 
-func (api *Api) UpdateClusters(tctx *logger.TraceContext, db *gorm.DB, regions []spec.Cluster) (err error) {
+func (api *Api) UpdateClusters(tctx *logger.TraceContext, db *gorm.DB, input []spec.Cluster) (err error) {
 	err = api.Transact(tctx, db, func(tx *gorm.DB) (err error) {
-		for _, region := range regions {
-			if err = tx.Model(&db_model.Cluster{}).Where("name = ?", region.Name).Updates(&db_model.Cluster{
-				Kind: region.Kind,
-			}).Error; err != nil {
+		for _, val := range input {
+			if err = tx.Model(&db_model.Cluster{}).
+				Where("name = ?", val.Name).
+				Updates(&db_model.Cluster{
+					Kind:        val.Kind,
+					Description: val.Description,
+					Weight:      val.Weight,
+				}).Error; err != nil {
 				return
 			}
 		}
@@ -55,9 +65,22 @@ func (api *Api) UpdateClusters(tctx *logger.TraceContext, db *gorm.DB, regions [
 	return
 }
 
-func (api *Api) DeleteCluster(tctx *logger.TraceContext, db *gorm.DB, name string) (err error) {
+func (api *Api) DeleteCluster(tctx *logger.TraceContext, db *gorm.DB, input *spec.DeleteCluster) (err error) {
 	err = api.Transact(tctx, db, func(tx *gorm.DB) (err error) {
-		err = tx.Where("name = ?", name).Unscoped().Delete(&db_model.Cluster{}).Error
+		err = tx.Where("name = ?", input.Name).Delete(&db_model.Cluster{}).Error
+		return
+	})
+	return
+}
+
+func (api *Api) DeleteClusters(tctx *logger.TraceContext, db *gorm.DB, input []spec.Cluster) (err error) {
+	err = api.Transact(tctx, db, func(tx *gorm.DB) (err error) {
+		for _, data := range input {
+			if err = tx.Where("name = ?", data.Name).
+				Delete(&db_model.Cluster{}).Error; err != nil {
+				return
+			}
+		}
 		return
 	})
 	return

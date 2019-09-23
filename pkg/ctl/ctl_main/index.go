@@ -281,8 +281,12 @@ func (ctl *Ctl) index(args []string) error {
 }
 
 type Response struct {
-	TraceId string
-	Code    int
-	Error   string
-	Data    map[string]map[string]interface{}
+	TraceId   string
+	Code      uint8
+	Error     string
+	ResultMap map[string]Result
+}
+
+type Result struct {
+	Data map[string]interface{}
 }

@@ -35,6 +35,10 @@ type DeleteRegion struct {
 	Name string `validate:"required"`
 }
 
-type DeleteRegionData struct {
-	Region Region
+type DeleteRegionData struct{}
+
+type DeleteRegions struct {
+	Spec string `validate:"required" flagKind:"file"`
 }
+
+type DeleteRegionsData struct{}

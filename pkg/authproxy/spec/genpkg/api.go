@@ -57,16 +57,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, err := handler.resolver.Login(tctx, db, &input)
-			if err != nil {
+			data, code, tmpErr := handler.resolver.Login(tctx, db, &input)
+			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
 				rep.ResultMap[query.Name] = base_model.Result{
 					Code:  code,
-					Error: err.Error(),
+					Error: tmpErr.Error(),
 				}
-				return err
+				break
 			}
 			rep.ResultMap[query.Name] = base_model.Result{
 				Code: code,
@@ -101,16 +101,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, err := handler.resolver.LoginWithToken(tctx, db, &input, user)
-			if err != nil {
+			data, code, tmpErr := handler.resolver.LoginWithToken(tctx, db, &input, user)
+			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
 				rep.ResultMap[query.Name] = base_model.Result{
 					Code:  code,
-					Error: err.Error(),
+					Error: tmpErr.Error(),
 				}
-				return err
+				break
 			}
 			rep.ResultMap[query.Name] = base_model.Result{
 				Code: code,
@@ -124,16 +124,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, err := handler.resolver.UpdateService(tctx, db, &input)
-			if err != nil {
+			data, code, tmpErr := handler.resolver.UpdateService(tctx, db, &input)
+			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
 				rep.ResultMap[query.Name] = base_model.Result{
 					Code:  code,
-					Error: err.Error(),
+					Error: tmpErr.Error(),
 				}
-				return err
+				break
 			}
 			rep.ResultMap[query.Name] = base_model.Result{
 				Code: code,
@@ -147,16 +147,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, err := handler.resolver.GetServiceIndex(tctx, db, &input)
-			if err != nil {
+			data, code, tmpErr := handler.resolver.GetServiceIndex(tctx, db, &input)
+			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
 				rep.ResultMap[query.Name] = base_model.Result{
 					Code:  code,
-					Error: err.Error(),
+					Error: tmpErr.Error(),
 				}
-				return err
+				break
 			}
 			rep.ResultMap[query.Name] = base_model.Result{
 				Code: code,
@@ -169,16 +169,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, err := handler.resolver.GetServiceDashboardIndex(tctx, db, &input)
-			if err != nil {
+			data, code, tmpErr := handler.resolver.GetServiceDashboardIndex(tctx, db, &input)
+			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
 				rep.ResultMap["GetServiceDashboardIndex"] = base_model.Result{
 					Code:  code,
-					Error: err.Error(),
+					Error: tmpErr.Error(),
 				}
-				return err
+				break
 			}
 			rep.ResultMap[query.Name] = base_model.Result{
 				Code: code,
@@ -191,16 +191,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, err := handler.resolver.GetAllUsers(tctx, db, &input)
-			if err != nil {
+			data, code, tmpErr := handler.resolver.GetAllUsers(tctx, db, &input)
+			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
 				rep.ResultMap[query.Name] = base_model.Result{
 					Code:  code,
-					Error: err.Error(),
+					Error: tmpErr.Error(),
 				}
-				return err
+				break
 			}
 			rep.ResultMap[query.Name] = base_model.Result{
 				Code: code,
@@ -213,16 +213,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, err := handler.resolver.GetUser(tctx, db, &input)
-			if err != nil {
+			data, code, tmpErr := handler.resolver.GetUser(tctx, db, &input)
+			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
 				rep.ResultMap[query.Name] = base_model.Result{
 					Code:  code,
-					Error: err.Error(),
+					Error: tmpErr.Error(),
 				}
-				return err
+				break
 			}
 			rep.ResultMap[query.Name] = base_model.Result{
 				Code: code,
@@ -235,16 +235,16 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, err := handler.resolver.GetUsers(tctx, db, &input)
-			if err != nil {
+			data, code, tmpErr := handler.resolver.GetUsers(tctx, db, &input)
+			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
 				rep.ResultMap[query.Name] = base_model.Result{
 					Code:  code,
-					Error: err.Error(),
+					Error: tmpErr.Error(),
 				}
-				return err
+				break
 			}
 			rep.ResultMap[query.Name] = base_model.Result{
 				Code: code,
