@@ -1,9 +1,10 @@
 package spec_model
 
 type Spec struct {
-	Meta interface{}
-	Name string
-	Apis []Api
+	Meta     interface{}
+	Name     string
+	Apis     []Api
+	QuerySet map[string]Query
 }
 
 type Api struct {

@@ -1,6 +1,8 @@
 package resolver
 
 import (
+	"fmt"
+
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
 
@@ -13,6 +15,7 @@ import (
 )
 
 func (resolver *Resolver) GetServiceIndex(tctx *logger.TraceContext, db *gorm.DB, input *base_spec.GetServiceIndex) (data *base_spec.GetServiceIndexData, code uint8, err error) {
+	fmt.Println("DEBUG adminalalalal", input.Name)
 	switch input.Name {
 	case "ResourcePhysical":
 		data = &base_spec.GetServiceIndexData{
@@ -21,10 +24,25 @@ func (resolver *Resolver) GetServiceIndex(tctx *logger.TraceContext, db *gorm.DB
 			},
 		}
 		code = base_const.CodeOk
+	case "ResourcePhysicalAdmin":
+		fmt.Println("DEBUG adminalalalal")
+		data = &base_spec.GetServiceIndexData{
+			Index: index_model.Index{
+				CmdMap: genpkg.ResourcePhysicalAdminCmdMap,
+			},
+		}
+		code = base_const.CodeOk
 	case "ResourceVirtual":
 		data = &base_spec.GetServiceIndexData{
 			Index: index_model.Index{
 				CmdMap: genpkg.ResourceVirtualCmdMap,
+			},
+		}
+		code = base_const.CodeOk
+	case "ResourceVirtualAdmin":
+		data = &base_spec.GetServiceIndexData{
+			Index: index_model.Index{
+				CmdMap: genpkg.ResourceVirtualAdminCmdMap,
 			},
 		}
 		code = base_const.CodeOk

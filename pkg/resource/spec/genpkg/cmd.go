@@ -24,6 +24,120 @@ var ResourcePhysicalCmdMap = map[string]index_model.Cmd{
 		OutputKind:   "table",
 		OutputFormat: "Name,Kind",
 	},
+	"get.datacenter": index_model.Cmd{
+		QueryName: "GetDatacenter",
+		FlagMap: map[string]index_model.Flag{
+			"name,n": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
+	"get.datacenters": index_model.Cmd{
+		QueryName:    "GetDatacenters",
+		FlagMap:      map[string]index_model.Flag{},
+		OutputKind:   "table",
+		OutputFormat: "Kind,Name,Description,Region,DomainSuffix,UpdatedAt,CreatedAt",
+	},
+	"get.floor": index_model.Cmd{
+		QueryName: "GetFloor",
+		FlagMap: map[string]index_model.Flag{
+			"name,n": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+			"datacenter,d": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
+	"get.floors": index_model.Cmd{
+		QueryName: "GetFloors",
+		FlagMap: map[string]index_model.Flag{
+			"datacenter,d": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+		},
+		OutputKind:   "table",
+		OutputFormat: "Kind,Name,Datacenter,Zone,Floor",
+	},
+	"get.physical.model": index_model.Cmd{
+		QueryName: "GetPhysicalModel",
+		FlagMap: map[string]index_model.Flag{
+			"name,n": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
+	"get.physical.models": index_model.Cmd{
+		QueryName:    "GetPhysicalModels",
+		FlagMap:      map[string]index_model.Flag{},
+		OutputKind:   "table",
+		OutputFormat: "Kind,Name,Unit,Description,Spec",
+	},
+	"get.physical.resource": index_model.Cmd{
+		QueryName: "GetPhysicalResource",
+		FlagMap: map[string]index_model.Flag{
+			"datacenter,d": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+			"name,n": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
+	"get.physical.resources": index_model.Cmd{
+		QueryName: "GetPhysicalResources",
+		FlagMap: map[string]index_model.Flag{
+			"datacenter,d": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+		},
+		OutputKind:   "table",
+		OutputFormat: "Kind,Name,Datacenter,Cluster,Rack,PhysicalModel,RackPosition,UpdatedAt,CreatedAt,Spec",
+	},
+}
+var ResourcePhysicalAdminCmdMap = map[string]index_model.Cmd{
+	"get.region": index_model.Cmd{
+		QueryName: "GetRegion",
+		FlagMap: map[string]index_model.Flag{
+			"name,n": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
+	"get.regions": index_model.Cmd{
+		QueryName:    "GetRegions",
+		FlagMap:      map[string]index_model.Flag{},
+		OutputKind:   "table",
+		OutputFormat: "Name,Kind",
+	},
 	"create.region": index_model.Cmd{
 		QueryName: "CreateRegion",
 		FlagMap: map[string]index_model.Flag{
@@ -451,12 +565,534 @@ var ResourcePhysicalCmdMap = map[string]index_model.Cmd{
 		OutputFormat: "",
 	},
 }
-var ResourceVirtualCmdMap = map[string]index_model.Cmd{
+var ResourceVirtualAdminCmdMap = map[string]index_model.Cmd{
+	"get.cluster": index_model.Cmd{
+		QueryName: "GetCluster",
+		FlagMap: map[string]index_model.Flag{
+			"name,n": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
 	"get.clusters": index_model.Cmd{
 		QueryName:    "GetClusters",
 		FlagMap:      map[string]index_model.Flag{},
 		OutputKind:   "table",
 		OutputFormat: "Region,Datacenter,Name,Kind,Description,DomainSuffix,Labels,Weight",
+	},
+	"create.cluster": index_model.Cmd{
+		QueryName: "CreateCluster",
+		FlagMap: map[string]index_model.Flag{
+			"spec,s": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "file",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
+	"update.cluster": index_model.Cmd{
+		QueryName: "UpdateCluster",
+		FlagMap: map[string]index_model.Flag{
+			"spec,s": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "file",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
+	"delete.cluster": index_model.Cmd{
+		QueryName: "DeleteCluster",
+		FlagMap: map[string]index_model.Flag{
+			"name,n": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
+	"delete.clusters": index_model.Cmd{
+		QueryName: "DeleteClusters",
+		FlagMap: map[string]index_model.Flag{
+			"spec,s": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "file",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
+	"get.network.v4": index_model.Cmd{
+		QueryName: "GetNetworkV4",
+		FlagMap: map[string]index_model.Flag{
+			"name,n": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+			"cluster,c": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
+	"get.network.v4s": index_model.Cmd{
+		QueryName: "GetNetworkV4s",
+		FlagMap: map[string]index_model.Flag{
+			"cluster,c": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+		},
+		OutputKind:   "table",
+		OutputFormat: "Kind,Name,Description,Cluster,Subnet,StartIp,EndIp,Gateway",
+	},
+	"create.network.v4": index_model.Cmd{
+		QueryName: "CreateNetworkV4",
+		FlagMap: map[string]index_model.Flag{
+			"spec,s": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "file",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
+	"update.network.v4": index_model.Cmd{
+		QueryName: "UpdateNetworkV4",
+		FlagMap: map[string]index_model.Flag{
+			"spec,s": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "file",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
+	"delete.network.v4": index_model.Cmd{
+		QueryName: "DeleteNetworkV4",
+		FlagMap: map[string]index_model.Flag{
+			"name,n": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+			"region,r": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
+	"delete.network.v4s": index_model.Cmd{
+		QueryName: "DeleteNetworkV4s",
+		FlagMap: map[string]index_model.Flag{
+			"spec,s": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "file",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
+	"get.image": index_model.Cmd{
+		QueryName: "GetImage",
+		FlagMap: map[string]index_model.Flag{
+			"name,n": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+			"region,r": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
+	"get.images": index_model.Cmd{
+		QueryName: "GetImages",
+		FlagMap: map[string]index_model.Flag{
+			"region,r": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+		},
+		OutputKind:   "table",
+		OutputFormat: "Region,Name,Kind,Labels,Description,Status,StatusReason,Spec",
+	},
+	"create.image": index_model.Cmd{
+		QueryName: "CreateImage",
+		FlagMap: map[string]index_model.Flag{
+			"spec,s": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "file",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
+	"update.image": index_model.Cmd{
+		QueryName: "UpdateImage",
+		FlagMap: map[string]index_model.Flag{
+			"spec,s": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "file",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
+	"delete.image": index_model.Cmd{
+		QueryName: "DeleteImage",
+		FlagMap: map[string]index_model.Flag{
+			"name,n": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+			"region,r": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
+	"delete.images": index_model.Cmd{
+		QueryName: "DeleteImages",
+		FlagMap: map[string]index_model.Flag{
+			"spec,s": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "file",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
+}
+var ResourceVirtualCmdMap = map[string]index_model.Cmd{
+	"get.region": index_model.Cmd{
+		QueryName: "GetRegion",
+		FlagMap: map[string]index_model.Flag{
+			"name,n": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
+	"get.regions": index_model.Cmd{
+		QueryName:    "GetRegions",
+		FlagMap:      map[string]index_model.Flag{},
+		OutputKind:   "table",
+		OutputFormat: "Name,Kind",
+	},
+	"create.region": index_model.Cmd{
+		QueryName: "CreateRegion",
+		FlagMap: map[string]index_model.Flag{
+			"spec,s": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "file",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
+	"update.region": index_model.Cmd{
+		QueryName: "UpdateRegion",
+		FlagMap: map[string]index_model.Flag{
+			"spec,s": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "file",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
+	"delete.region": index_model.Cmd{
+		QueryName: "DeleteRegion",
+		FlagMap: map[string]index_model.Flag{
+			"name,n": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
+	"delete.regions": index_model.Cmd{
+		QueryName: "DeleteRegions",
+		FlagMap: map[string]index_model.Flag{
+			"spec,s": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "file",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
+	"get.cluster": index_model.Cmd{
+		QueryName: "GetCluster",
+		FlagMap: map[string]index_model.Flag{
+			"name,n": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
+	"get.clusters": index_model.Cmd{
+		QueryName:    "GetClusters",
+		FlagMap:      map[string]index_model.Flag{},
+		OutputKind:   "table",
+		OutputFormat: "Region,Datacenter,Name,Kind,Description,DomainSuffix,Labels,Weight",
+	},
+	"create.cluster": index_model.Cmd{
+		QueryName: "CreateCluster",
+		FlagMap: map[string]index_model.Flag{
+			"spec,s": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "file",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
+	"update.cluster": index_model.Cmd{
+		QueryName: "UpdateCluster",
+		FlagMap: map[string]index_model.Flag{
+			"spec,s": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "file",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
+	"delete.cluster": index_model.Cmd{
+		QueryName: "DeleteCluster",
+		FlagMap: map[string]index_model.Flag{
+			"name,n": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
+	"delete.clusters": index_model.Cmd{
+		QueryName: "DeleteClusters",
+		FlagMap: map[string]index_model.Flag{
+			"spec,s": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "file",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
+	"get.image": index_model.Cmd{
+		QueryName: "GetImage",
+		FlagMap: map[string]index_model.Flag{
+			"name,n": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+			"region,r": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
+	"get.images": index_model.Cmd{
+		QueryName: "GetImages",
+		FlagMap: map[string]index_model.Flag{
+			"region,r": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+		},
+		OutputKind:   "table",
+		OutputFormat: "Region,Name,Kind,Labels,Description,Status,StatusReason,Spec",
+	},
+	"create.image": index_model.Cmd{
+		QueryName: "CreateImage",
+		FlagMap: map[string]index_model.Flag{
+			"spec,s": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "file",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
+	"update.image": index_model.Cmd{
+		QueryName: "UpdateImage",
+		FlagMap: map[string]index_model.Flag{
+			"spec,s": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "file",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
+	"delete.image": index_model.Cmd{
+		QueryName: "DeleteImage",
+		FlagMap: map[string]index_model.Flag{
+			"name,n": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+			"region,r": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
+	"delete.images": index_model.Cmd{
+		QueryName: "DeleteImages",
+		FlagMap: map[string]index_model.Flag{
+			"spec,s": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "file",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
+	"get.region.service": index_model.Cmd{
+		QueryName: "GetRegionService",
+		FlagMap: map[string]index_model.Flag{
+			"name,n": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+			"region,r": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
+	"get.region.services": index_model.Cmd{
+		QueryName: "GetRegionServices",
+		FlagMap: map[string]index_model.Flag{
+			"region,r": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+		},
+		OutputKind:   "table",
+		OutputFormat: "Region,Name,Project,Kind,Status,StatusReason,Spec",
+	},
+	"create.region.service": index_model.Cmd{
+		QueryName: "CreateRegionService",
+		FlagMap: map[string]index_model.Flag{
+			"spec,s": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "file",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
+	"update.region.service": index_model.Cmd{
+		QueryName: "UpdateRegionService",
+		FlagMap: map[string]index_model.Flag{
+			"spec,s": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "file",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
+	"delete.region.service": index_model.Cmd{
+		QueryName: "DeleteRegionService",
+		FlagMap: map[string]index_model.Flag{
+			"name,n": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+			"region,r": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
+	"delete.region.services": index_model.Cmd{
+		QueryName: "DeleteRegionServices",
+		FlagMap: map[string]index_model.Flag{
+			"spec,s": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "file",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
 	},
 }
 
@@ -466,6 +1102,18 @@ var ApiQueryMap = map[string]map[string]spec_model.QueryModel{
 		"UpdateService": spec_model.QueryModel{},
 	},
 	"ResourcePhysical": map[string]spec_model.QueryModel{
+		"GetRegion":            spec_model.QueryModel{},
+		"GetRegions":           spec_model.QueryModel{},
+		"GetDatacenter":        spec_model.QueryModel{},
+		"GetDatacenters":       spec_model.QueryModel{},
+		"GetFloor":             spec_model.QueryModel{},
+		"GetFloors":            spec_model.QueryModel{},
+		"GetPhysicalModel":     spec_model.QueryModel{},
+		"GetPhysicalModels":    spec_model.QueryModel{},
+		"GetPhysicalResource":  spec_model.QueryModel{},
+		"GetPhysicalResources": spec_model.QueryModel{},
+	},
+	"ResourcePhysicalAdmin": map[string]spec_model.QueryModel{
 		"GetRegion":               spec_model.QueryModel{},
 		"GetRegions":              spec_model.QueryModel{},
 		"CreateRegion":            spec_model.QueryModel{},
@@ -503,7 +1151,50 @@ var ApiQueryMap = map[string]map[string]spec_model.QueryModel{
 		"DeletePhysicalResource":  spec_model.QueryModel{},
 		"DeletePhysicalResources": spec_model.QueryModel{},
 	},
+	"ResourceVirtualAdmin": map[string]spec_model.QueryModel{
+		"GetCluster":       spec_model.QueryModel{},
+		"GetClusters":      spec_model.QueryModel{},
+		"CreateCluster":    spec_model.QueryModel{},
+		"UpdateCluster":    spec_model.QueryModel{},
+		"DeleteCluster":    spec_model.QueryModel{},
+		"DeleteClusters":   spec_model.QueryModel{},
+		"GetNetworkV4":     spec_model.QueryModel{},
+		"GetNetworkV4s":    spec_model.QueryModel{},
+		"CreateNetworkV4":  spec_model.QueryModel{},
+		"UpdateNetworkV4":  spec_model.QueryModel{},
+		"DeleteNetworkV4":  spec_model.QueryModel{},
+		"DeleteNetworkV4s": spec_model.QueryModel{},
+		"GetImage":         spec_model.QueryModel{},
+		"GetImages":        spec_model.QueryModel{},
+		"CreateImage":      spec_model.QueryModel{},
+		"UpdateImage":      spec_model.QueryModel{},
+		"DeleteImage":      spec_model.QueryModel{},
+		"DeleteImages":     spec_model.QueryModel{},
+	},
 	"ResourceVirtual": map[string]spec_model.QueryModel{
-		"GetClusters": spec_model.QueryModel{},
+		"GetRegion":            spec_model.QueryModel{},
+		"GetRegions":           spec_model.QueryModel{},
+		"CreateRegion":         spec_model.QueryModel{},
+		"UpdateRegion":         spec_model.QueryModel{},
+		"DeleteRegion":         spec_model.QueryModel{},
+		"DeleteRegions":        spec_model.QueryModel{},
+		"GetCluster":           spec_model.QueryModel{},
+		"GetClusters":          spec_model.QueryModel{},
+		"CreateCluster":        spec_model.QueryModel{},
+		"UpdateCluster":        spec_model.QueryModel{},
+		"DeleteCluster":        spec_model.QueryModel{},
+		"DeleteClusters":       spec_model.QueryModel{},
+		"GetImage":             spec_model.QueryModel{},
+		"GetImages":            spec_model.QueryModel{},
+		"CreateImage":          spec_model.QueryModel{},
+		"UpdateImage":          spec_model.QueryModel{},
+		"DeleteImage":          spec_model.QueryModel{},
+		"DeleteImages":         spec_model.QueryModel{},
+		"GetRegionService":     spec_model.QueryModel{},
+		"GetRegionServices":    spec_model.QueryModel{},
+		"CreateRegionService":  spec_model.QueryModel{},
+		"UpdateRegionService":  spec_model.QueryModel{},
+		"DeleteRegionService":  spec_model.QueryModel{},
+		"DeleteRegionServices": spec_model.QueryModel{},
 	},
 }

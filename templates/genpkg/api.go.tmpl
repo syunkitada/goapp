@@ -17,10 +17,8 @@ import (
 	"github.com/syunkitada/goapp/pkg/base/base_model"
 	"github.com/syunkitada/goapp/pkg/base/base_spec"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
-	{{- range $api := $spec.Apis }}
-	{{- range $query := $api.Queries }}
+    {{- range $query := $spec.QuerySet }}
 	"{{ $query.PkgPath }}"
-	{{- end }}
 	{{- end }}
 )
 
@@ -30,10 +28,8 @@ type QueryResolver interface {
 	UpdateService(tctx *logger.TraceContext, db *gorm.DB, input *base_spec.UpdateService) (*base_spec.UpdateServiceData, uint8, error)
 	GetServiceIndex(tctx *logger.TraceContext, db *gorm.DB, input *base_spec.GetServiceIndex) (*base_spec.GetServiceIndexData, uint8, error)
 	GetServiceDashboardIndex(tctx *logger.TraceContext, db *gorm.DB, input *base_spec.GetServiceDashboardIndex) (*base_spec.GetServiceDashboardIndexData, uint8, error)
-	{{- range $api := $spec.Apis }}
-	{{- range $query := $api.Queries }}
+    {{- range $query := $spec.QuerySet }}
 	{{ $query.Name }}(tctx *logger.TraceContext, db *gorm.DB, input *{{ $query.PkgName }}.{{ $query.Name }}) (*{{ $query.PkgName }}.{{ $query.Name }}Data, uint8, error)
-	{{- end }}
 	{{- end }}
 }
 
@@ -193,8 +189,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				Data: data,
 			}
 
-		{{- range $api := $spec.Apis }}
-		{{- range $query := $api.Queries }}
+		{{- range $query := $spec.QuerySet }}
 		case "{{ $query.Name }}":
 			var input {{ $query.PkgName }}.{{ $query.Name }}
 			err = json.Unmarshal([]byte(query.Data), &input)
@@ -217,7 +212,6 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				Code: code,
 				Data: data,
 			}
-		{{- end }}
 		{{- end }}
 		}
 	}

@@ -426,7 +426,7 @@ class IndexTable extends React.Component<IIndexTable> {
   };
 
   private handleActionDialogClose = () => {
-    this.setState({actionName: null});
+    this.setState({actionName: null, selected: []});
   };
 
   private handleLinkClick = (event, link, value, column) => {

@@ -64,6 +64,14 @@ resource:
         - {name: 'service'}
         - {name: 'tenant'}
       defaultServices:
+        - name: 'ResourcePhysicalAdmin'
+          scope: 'project'
+          projectRoles: ['admin']
+          syncRootCluster: true
+        - name: 'ResourceVirtualAdmin'
+          scope: 'project'
+          projectRoles: ['admin']
+          syncRootCluster: true
         - name: 'ResourcePhysical'
           scope: 'project'
           projectRoles: ['tenant']

@@ -44,9 +44,13 @@ func Generate(spec *spec_model.Spec) {
 	fmt.Println("DEBUG")
 	fmt.Println(specPath)
 	fmt.Println(pkgDir)
+	spec.QuerySet = map[string]spec_model.Query{}
 	for i, api := range spec.Apis {
 		convertApi(&api)
 		spec.Apis[i] = api
+		for _, query := range api.Queries {
+			spec.QuerySet[query.Name] = query
+		}
 	}
 
 	fmt.Println(spec.Apis)

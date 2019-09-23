@@ -30,10 +30,14 @@ func (ctl *Ctl) index(args []string) error {
 		serviceName = ""
 	}
 
+	appUser := os.Getenv("APP_USER")
+	appPassword := os.Getenv("APP_PASSWORD")
+	appProject := os.Getenv("APP_PROJECT")
+
 	var loginData *base_spec.LoginData
 	loginData, err = ctl.client.Login(tctx, &base_spec.Login{
-		User:     "guest",
-		Password: "guest",
+		User:     appUser,
+		Password: appPassword,
 	})
 	if err != nil {
 		fmt.Printf("Failed Login: %v\n", err)
@@ -43,7 +47,7 @@ func (ctl *Ctl) index(args []string) error {
 	if len(args) > 0 {
 		if _, ok = loginData.Authority.ServiceMap[serviceName]; !ok {
 			var project base_spec.ProjectService
-			project, ok = loginData.Authority.ProjectServiceMap[ctl.mainConf.Ctl.Project]
+			project, ok = loginData.Authority.ProjectServiceMap[appProject]
 			if ok {
 				_, ok = project.ServiceMap[serviceName]
 			}
@@ -63,7 +67,7 @@ func (ctl *Ctl) index(args []string) error {
 			fmt.Println(s)
 		}
 
-		if project, ok := loginData.Authority.ProjectServiceMap[ctl.mainConf.Ctl.Project]; ok {
+		if project, ok := loginData.Authority.ProjectServiceMap[appProject]; ok {
 			fmt.Println("\n--- Available Project Services ---")
 			snames := make([]string, 0, len(loginData.Authority.ServiceMap))
 			for s, _ := range project.ServiceMap {
