@@ -118,8 +118,7 @@ func (app *BaseApp) Start(tctx *logger.TraceContext, httpReq *http.Request, isPr
 	if !isProxy {
 		token = httpReq.Header.Get("X-Auth-Token")
 		if token == "" {
-			var tokenCookie *http.Cookie
-			if tokenCookie, err = httpReq.Cookie("X-Auth-Token"); err == nil {
+			if tokenCookie, tmpErr := httpReq.Cookie("X-Auth-Token"); tmpErr == nil {
 				token = tokenCookie.Value
 			}
 		}

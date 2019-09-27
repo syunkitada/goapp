@@ -41,7 +41,7 @@ func (ctl *Ctl) index(args []string) error {
 		Password: appPassword,
 	})
 	if err != nil {
-		fmt.Printf("Failed Login: %v\n", err)
+		fmt.Printf("Failed Login: %v, %v\n", loginData, err)
 		os.Exit(1)
 	}
 
