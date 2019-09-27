@@ -1,22 +1,25 @@
 package spec_model
 
 type ServiceRouter struct {
+	Token     string
 	QueryMap  map[string]QueryModel
 	Endpoints []string
 }
 
 type QueryModel struct {
-	Cmd          string
-	Help         string
-	RequiredAuth bool
-	ProjectRoles []string
-	Roles        []string
-	Req          interface{}
-	Rep          interface{}
+	RequiredAuth    bool
+	RequiredProject bool
+	Cmd             string
+	Help            string
+	ProjectRoles    []string
+	Roles           []string
+	Req             interface{}
+	Rep             interface{}
 }
 
 type Query struct {
 	RequiredAuth    bool
+	RequiredProject bool
 	PkgPath         string
 	PkgName         string
 	Name            string

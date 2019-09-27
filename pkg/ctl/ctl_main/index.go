@@ -33,6 +33,7 @@ func (ctl *Ctl) index(args []string) error {
 	appUser := os.Getenv("APP_USER")
 	appPassword := os.Getenv("APP_PASSWORD")
 	appProject := os.Getenv("APP_PROJECT")
+	ctl.client.SetProject(appProject)
 
 	var loginData *base_spec.LoginData
 	loginData, err = ctl.client.Login(tctx, &base_spec.Login{

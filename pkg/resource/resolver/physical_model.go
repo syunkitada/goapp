@@ -10,9 +10,9 @@ import (
 	"github.com/syunkitada/goapp/pkg/resource/spec"
 )
 
-func (resolver *Resolver) GetPhysicalModel(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetPhysicalModel) (data *spec.GetPhysicalModelData, code uint8, err error) {
+func (resolver *Resolver) GetPhysicalModel(tctx *logger.TraceContext, input *spec.GetPhysicalModel) (data *spec.GetPhysicalModelData, code uint8, err error) {
 	var physicalModel *spec.PhysicalModel
-	if physicalModel, err = resolver.dbApi.GetPhysicalModel(tctx, db, input); err != nil {
+	if physicalModel, err = resolver.dbApi.GetPhysicalModel(tctx, input); err != nil {
 		if gorm.IsRecordNotFoundError(err) {
 			code = base_const.CodeOkNotFound
 			return
@@ -25,9 +25,9 @@ func (resolver *Resolver) GetPhysicalModel(tctx *logger.TraceContext, db *gorm.D
 	return
 }
 
-func (resolver *Resolver) GetPhysicalModels(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetPhysicalModels) (data *spec.GetPhysicalModelsData, code uint8, err error) {
+func (resolver *Resolver) GetPhysicalModels(tctx *logger.TraceContext, input *spec.GetPhysicalModels) (data *spec.GetPhysicalModelsData, code uint8, err error) {
 	var physicalModels []spec.PhysicalModel
-	if physicalModels, err = resolver.dbApi.GetPhysicalModels(tctx, db, input); err != nil {
+	if physicalModels, err = resolver.dbApi.GetPhysicalModels(tctx, input); err != nil {
 		code = base_const.CodeServerInternalError
 		return
 	}
@@ -36,13 +36,13 @@ func (resolver *Resolver) GetPhysicalModels(tctx *logger.TraceContext, db *gorm.
 	return
 }
 
-func (resolver *Resolver) CreatePhysicalModel(tctx *logger.TraceContext, db *gorm.DB, input *spec.CreatePhysicalModel) (data *spec.CreatePhysicalModelData, code uint8, err error) {
+func (resolver *Resolver) CreatePhysicalModel(tctx *logger.TraceContext, input *spec.CreatePhysicalModel) (data *spec.CreatePhysicalModelData, code uint8, err error) {
 	var specs []spec.PhysicalModel
 	if specs, err = resolver.ConvertToPhysicalModelSpecs(input.Spec); err != nil {
 		code = base_const.CodeClientBadRequest
 		return
 	}
-	if err = resolver.dbApi.CreatePhysicalModels(tctx, db, specs); err != nil {
+	if err = resolver.dbApi.CreatePhysicalModels(tctx, specs); err != nil {
 		code = base_const.CodeServerInternalError
 		return
 	}
@@ -51,13 +51,13 @@ func (resolver *Resolver) CreatePhysicalModel(tctx *logger.TraceContext, db *gor
 	return
 }
 
-func (resolver *Resolver) UpdatePhysicalModel(tctx *logger.TraceContext, db *gorm.DB, input *spec.UpdatePhysicalModel) (data *spec.UpdatePhysicalModelData, code uint8, err error) {
+func (resolver *Resolver) UpdatePhysicalModel(tctx *logger.TraceContext, input *spec.UpdatePhysicalModel) (data *spec.UpdatePhysicalModelData, code uint8, err error) {
 	var specs []spec.PhysicalModel
 	if specs, err = resolver.ConvertToPhysicalModelSpecs(input.Spec); err != nil {
 		code = base_const.CodeClientBadRequest
 		return
 	}
-	if err = resolver.dbApi.UpdatePhysicalModels(tctx, db, specs); err != nil {
+	if err = resolver.dbApi.UpdatePhysicalModels(tctx, specs); err != nil {
 		code = base_const.CodeServerInternalError
 		return
 	}
@@ -66,8 +66,8 @@ func (resolver *Resolver) UpdatePhysicalModel(tctx *logger.TraceContext, db *gor
 	return
 }
 
-func (resolver *Resolver) DeletePhysicalModel(tctx *logger.TraceContext, db *gorm.DB, input *spec.DeletePhysicalModel) (data *spec.DeletePhysicalModelData, code uint8, err error) {
-	if err = resolver.dbApi.DeletePhysicalModel(tctx, db, input); err != nil {
+func (resolver *Resolver) DeletePhysicalModel(tctx *logger.TraceContext, input *spec.DeletePhysicalModel) (data *spec.DeletePhysicalModelData, code uint8, err error) {
+	if err = resolver.dbApi.DeletePhysicalModel(tctx, input); err != nil {
 		code = base_const.CodeServerInternalError
 		return
 	}
@@ -76,13 +76,13 @@ func (resolver *Resolver) DeletePhysicalModel(tctx *logger.TraceContext, db *gor
 	return
 }
 
-func (resolver *Resolver) DeletePhysicalModels(tctx *logger.TraceContext, db *gorm.DB, input *spec.DeletePhysicalModels) (data *spec.DeletePhysicalModelsData, code uint8, err error) {
+func (resolver *Resolver) DeletePhysicalModels(tctx *logger.TraceContext, input *spec.DeletePhysicalModels) (data *spec.DeletePhysicalModelsData, code uint8, err error) {
 	var specs []spec.PhysicalModel
 	if specs, err = resolver.ConvertToPhysicalModelSpecs(input.Spec); err != nil {
 		code = base_const.CodeClientBadRequest
 		return
 	}
-	if err = resolver.dbApi.DeletePhysicalModels(tctx, db, specs); err != nil {
+	if err = resolver.dbApi.DeletePhysicalModels(tctx, specs); err != nil {
 		code = base_const.CodeServerInternalError
 		return
 	}

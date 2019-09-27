@@ -2,6 +2,7 @@ package resolver
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/jinzhu/gorm"
 	"github.com/syunkitada/goapp/pkg/base/base_const"
@@ -10,9 +11,9 @@ import (
 	"github.com/syunkitada/goapp/pkg/resource/spec"
 )
 
-func (resolver *Resolver) GetRegion(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetRegion) (data *spec.GetRegionData, code uint8, err error) {
+func (resolver *Resolver) GetRegion(tctx *logger.TraceContext, input *spec.GetRegion) (data *spec.GetRegionData, code uint8, err error) {
 	var region *spec.Region
-	if region, err = resolver.dbApi.GetRegion(tctx, db, input); err != nil {
+	if region, err = resolver.dbApi.GetRegion(tctx, input); err != nil {
 		if gorm.IsRecordNotFoundError(err) {
 			code = base_const.CodeOkNotFound
 			return
@@ -25,9 +26,10 @@ func (resolver *Resolver) GetRegion(tctx *logger.TraceContext, db *gorm.DB, inpu
 	return
 }
 
-func (resolver *Resolver) GetRegions(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetRegions) (data *spec.GetRegionsData, code uint8, err error) {
+func (resolver *Resolver) GetRegions(tctx *logger.TraceContext, input *spec.GetRegions) (data *spec.GetRegionsData, code uint8, err error) {
 	var regions []spec.Region
-	if regions, err = resolver.dbApi.GetRegions(tctx, db, input); err != nil {
+	fmt.Println("DEBUG GEtREgions")
+	if regions, err = resolver.dbApi.GetRegions(tctx, input); err != nil {
 		code = base_const.CodeServerInternalError
 		return
 	}
@@ -36,13 +38,13 @@ func (resolver *Resolver) GetRegions(tctx *logger.TraceContext, db *gorm.DB, inp
 	return
 }
 
-func (resolver *Resolver) CreateRegion(tctx *logger.TraceContext, db *gorm.DB, input *spec.CreateRegion) (data *spec.CreateRegionData, code uint8, err error) {
+func (resolver *Resolver) CreateRegion(tctx *logger.TraceContext, input *spec.CreateRegion) (data *spec.CreateRegionData, code uint8, err error) {
 	var specs []spec.Region
 	if specs, err = resolver.ConvertToRegionSpecs(input.Spec); err != nil {
 		code = base_const.CodeClientBadRequest
 		return
 	}
-	if err = resolver.dbApi.CreateRegions(tctx, db, specs); err != nil {
+	if err = resolver.dbApi.CreateRegions(tctx, specs); err != nil {
 		code = base_const.CodeServerInternalError
 		return
 	}
@@ -51,13 +53,13 @@ func (resolver *Resolver) CreateRegion(tctx *logger.TraceContext, db *gorm.DB, i
 	return
 }
 
-func (resolver *Resolver) UpdateRegion(tctx *logger.TraceContext, db *gorm.DB, input *spec.UpdateRegion) (data *spec.UpdateRegionData, code uint8, err error) {
+func (resolver *Resolver) UpdateRegion(tctx *logger.TraceContext, input *spec.UpdateRegion) (data *spec.UpdateRegionData, code uint8, err error) {
 	var specs []spec.Region
 	if specs, err = resolver.ConvertToRegionSpecs(input.Spec); err != nil {
 		code = base_const.CodeClientBadRequest
 		return
 	}
-	if err = resolver.dbApi.UpdateRegions(tctx, db, specs); err != nil {
+	if err = resolver.dbApi.UpdateRegions(tctx, specs); err != nil {
 		code = base_const.CodeServerInternalError
 		return
 	}
@@ -66,8 +68,8 @@ func (resolver *Resolver) UpdateRegion(tctx *logger.TraceContext, db *gorm.DB, i
 	return
 }
 
-func (resolver *Resolver) DeleteRegion(tctx *logger.TraceContext, db *gorm.DB, input *spec.DeleteRegion) (data *spec.DeleteRegionData, code uint8, err error) {
-	if err = resolver.dbApi.DeleteRegion(tctx, db, input); err != nil {
+func (resolver *Resolver) DeleteRegion(tctx *logger.TraceContext, input *spec.DeleteRegion) (data *spec.DeleteRegionData, code uint8, err error) {
+	if err = resolver.dbApi.DeleteRegion(tctx, input); err != nil {
 		code = base_const.CodeServerInternalError
 		return
 	}
@@ -76,13 +78,13 @@ func (resolver *Resolver) DeleteRegion(tctx *logger.TraceContext, db *gorm.DB, i
 	return
 }
 
-func (resolver *Resolver) DeleteRegions(tctx *logger.TraceContext, db *gorm.DB, input *spec.DeleteRegions) (data *spec.DeleteRegionsData, code uint8, err error) {
+func (resolver *Resolver) DeleteRegions(tctx *logger.TraceContext, input *spec.DeleteRegions) (data *spec.DeleteRegionsData, code uint8, err error) {
 	var specs []spec.Region
 	if specs, err = resolver.ConvertToRegionSpecs(input.Spec); err != nil {
 		code = base_const.CodeClientBadRequest
 		return
 	}
-	if err = resolver.dbApi.DeleteRegions(tctx, db, specs); err != nil {
+	if err = resolver.dbApi.DeleteRegions(tctx, specs); err != nil {
 		code = base_const.CodeServerInternalError
 		return
 	}

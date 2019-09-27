@@ -41,6 +41,10 @@ function getServiceIcon(icon) {
       return <ReceiptIcon key={icon} />;
     case 'Ticket':
       return <ReceiptIcon key={icon} />;
+    case 'ResourcePhysicalAdmin':
+      return <CloudIcon key={icon} />;
+    case 'ResourceVirtualAdmin':
+      return <CloudQueueIcon key={icon} />;
     case 'ResourcePhysical':
       return <CloudIcon key={icon} />;
     case 'ResourceVirtual':

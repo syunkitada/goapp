@@ -8,19 +8,19 @@ import (
 	"github.com/syunkitada/goapp/pkg/resource/spec"
 )
 
-func (api *Api) GetCompute(tctx *logger.TraceContext, db *gorm.DB, name string) (data *spec.Compute, err error) {
+func (api *Api) GetCompute(tctx *logger.TraceContext, name string) (data *spec.Compute, err error) {
 	data = &spec.Compute{}
-	err = db.Where("name = ?", name).First(data).Error
+	err = api.DB.Where("name = ?", name).First(data).Error
 	return
 }
 
 func (api *Api) GetComputes(tctx *logger.TraceContext, db *gorm.DB) (data []spec.Compute, err error) {
-	err = db.Find(&data).Error
+	err = api.DB.Find(&data).Error
 	return
 }
 
-func (api *Api) CreateComputes(tctx *logger.TraceContext, db *gorm.DB, regions []spec.Compute) (err error) {
-	err = api.Transact(tctx, db, func(tx *gorm.DB) (err error) {
+func (api *Api) CreateComputes(tctx *logger.TraceContext, regions []spec.Compute) (err error) {
+	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
 		for _, region := range regions {
 			var tmpCompute db_model.Compute
 			if err = tx.Where("name = ?", region.Name).First(&tmpCompute).Error; err != nil {
@@ -41,8 +41,8 @@ func (api *Api) CreateComputes(tctx *logger.TraceContext, db *gorm.DB, regions [
 	return
 }
 
-func (api *Api) UpdateComputes(tctx *logger.TraceContext, db *gorm.DB, regions []spec.Compute) (err error) {
-	err = api.Transact(tctx, db, func(tx *gorm.DB) (err error) {
+func (api *Api) UpdateComputes(tctx *logger.TraceContext, regions []spec.Compute) (err error) {
+	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
 		for _, region := range regions {
 			if err = tx.Model(&db_model.Compute{}).Where("name = ?", region.Name).Updates(&db_model.Compute{
 				Kind: region.Kind,
@@ -55,8 +55,8 @@ func (api *Api) UpdateComputes(tctx *logger.TraceContext, db *gorm.DB, regions [
 	return
 }
 
-func (api *Api) DeleteCompute(tctx *logger.TraceContext, db *gorm.DB, name string) (err error) {
-	err = api.Transact(tctx, db, func(tx *gorm.DB) (err error) {
+func (api *Api) DeleteCompute(tctx *logger.TraceContext, name string) (err error) {
+	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
 		err = tx.Where("name = ?", name).Unscoped().Delete(&db_model.Compute{}).Error
 		return
 	})

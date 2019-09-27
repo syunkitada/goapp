@@ -26,7 +26,7 @@ import icon_utils from '../modules/icon_utils';
 const styles = (theme: Theme): StyleRules =>
   createStyles({
     nested: {
-      paddingLeft: theme.spacing(4),
+      paddingLeft: theme.spacing(1),
     },
   });
 
@@ -75,8 +75,8 @@ class LeftSidebar extends React.Component<ILeftSidebar> {
           key={serviceName}
           to={path}
           style={{textDecoration: 'none', color: 'unset'}}>
-          <ListItem button={true} selected={match.url === path}>
-            <ListItemIcon>
+          <ListItem button={true} dense={true} selected={match.url === path}>
+            <ListItemIcon style={{minWidth: 30}}>
               {icon_utils.getServiceIcon(serviceName)}
             </ListItemIcon>
             <ListItemText primary={serviceName} />
@@ -91,12 +91,13 @@ class LeftSidebar extends React.Component<ILeftSidebar> {
     for (const project of tmpProjects) {
       const path = '/Project/' + project + '/HomeProject';
       projects.push(
-        <List key={project} disablePadding={true}>
+        <List key={project} disablePadding={true} dense={true}>
           <ListItem
             button={true}
+            dense={true}
             className={classes.nested}
             onClick={event => this.handleProjectClick(event, path)}>
-            <ListItemIcon>
+            <ListItemIcon style={{minWidth: 30}}>
               <DashboardIcon />
             </ListItemIcon>
             <ListItemText inset={true} primary={project} />
@@ -108,20 +109,26 @@ class LeftSidebar extends React.Component<ILeftSidebar> {
     return (
       <div>
         <Divider />
-        <List>
+        <List dense={true}>
           <NavLink
             to="/Service/Home"
             style={{textDecoration: 'none', color: 'unset'}}>
-            <ListItem button={true} selected={match.url === '/Service/Home'}>
-              <ListItemIcon>
+            <ListItem
+              button={true}
+              dense={true}
+              selected={match.url === '/Service/Home'}>
+              <ListItemIcon style={{minWidth: 30}}>
                 <HomeIcon />
               </ListItemIcon>
               <ListItemText primary="Home" />
             </ListItem>
           </NavLink>
 
-          <ListItem button={true} onClick={this.handleOpenProjectsClick}>
-            <ListItemIcon>
+          <ListItem
+            button={true}
+            dense={true}
+            onClick={this.handleOpenProjectsClick}>
+            <ListItemIcon style={{minWidth: 30}}>
               <DashboardIcon />
             </ListItemIcon>
             <ListItemText inset={true} primary={projectText} />
@@ -135,7 +142,7 @@ class LeftSidebar extends React.Component<ILeftSidebar> {
           </Collapse>
         </List>
         <Divider />
-        <List>{services}</List>
+        <List dense={true}>{services}</List>
         <Divider />
       </div>
     );

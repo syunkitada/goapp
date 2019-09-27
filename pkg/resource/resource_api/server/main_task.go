@@ -3,11 +3,10 @@ package server
 import (
 	"fmt"
 
-	"github.com/jinzhu/gorm"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
 
-func (srv *Server) MainTask(tctx *logger.TraceContext, db *gorm.DB) error {
+func (srv *Server) MainTask(tctx *logger.TraceContext) error {
 	if err := srv.UpdateNodeTask(tctx); err != nil {
 		return err
 	}

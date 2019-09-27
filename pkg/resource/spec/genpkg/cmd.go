@@ -1102,99 +1102,363 @@ var ApiQueryMap = map[string]map[string]spec_model.QueryModel{
 		"UpdateService": spec_model.QueryModel{},
 	},
 	"ResourcePhysical": map[string]spec_model.QueryModel{
-		"GetRegion":            spec_model.QueryModel{},
-		"GetRegions":           spec_model.QueryModel{},
-		"GetDatacenter":        spec_model.QueryModel{},
-		"GetDatacenters":       spec_model.QueryModel{},
-		"GetFloor":             spec_model.QueryModel{},
-		"GetFloors":            spec_model.QueryModel{},
-		"GetPhysicalModel":     spec_model.QueryModel{},
-		"GetPhysicalModels":    spec_model.QueryModel{},
-		"GetPhysicalResource":  spec_model.QueryModel{},
-		"GetPhysicalResources": spec_model.QueryModel{},
+		"GetRegion": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"GetRegions": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"GetDatacenter": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"GetDatacenters": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"GetFloor": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"GetFloors": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"GetPhysicalModel": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"GetPhysicalModels": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"GetPhysicalResource": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"GetPhysicalResources": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
 	},
 	"ResourcePhysicalAdmin": map[string]spec_model.QueryModel{
-		"GetRegion":               spec_model.QueryModel{},
-		"GetRegions":              spec_model.QueryModel{},
-		"CreateRegion":            spec_model.QueryModel{},
-		"UpdateRegion":            spec_model.QueryModel{},
-		"DeleteRegion":            spec_model.QueryModel{},
-		"DeleteRegions":           spec_model.QueryModel{},
-		"GetDatacenter":           spec_model.QueryModel{},
-		"GetDatacenters":          spec_model.QueryModel{},
-		"CreateDatacenter":        spec_model.QueryModel{},
-		"UpdateDatacenter":        spec_model.QueryModel{},
-		"DeleteDatacenter":        spec_model.QueryModel{},
-		"DeleteDatacenters":       spec_model.QueryModel{},
-		"GetFloor":                spec_model.QueryModel{},
-		"GetFloors":               spec_model.QueryModel{},
-		"CreateFloor":             spec_model.QueryModel{},
-		"UpdateFloor":             spec_model.QueryModel{},
-		"DeleteFloor":             spec_model.QueryModel{},
-		"DeleteFloors":            spec_model.QueryModel{},
-		"GetRack":                 spec_model.QueryModel{},
-		"GetRacks":                spec_model.QueryModel{},
-		"CreateRack":              spec_model.QueryModel{},
-		"UpdateRack":              spec_model.QueryModel{},
-		"DeleteRack":              spec_model.QueryModel{},
-		"DeleteRacks":             spec_model.QueryModel{},
-		"GetPhysicalModel":        spec_model.QueryModel{},
-		"GetPhysicalModels":       spec_model.QueryModel{},
-		"CreatePhysicalModel":     spec_model.QueryModel{},
-		"UpdatePhysicalModel":     spec_model.QueryModel{},
-		"DeletePhysicalModel":     spec_model.QueryModel{},
-		"DeletePhysicalModels":    spec_model.QueryModel{},
-		"GetPhysicalResource":     spec_model.QueryModel{},
-		"GetPhysicalResources":    spec_model.QueryModel{},
-		"CreatePhysicalResource":  spec_model.QueryModel{},
-		"UpdatePhysicalResource":  spec_model.QueryModel{},
-		"DeletePhysicalResource":  spec_model.QueryModel{},
-		"DeletePhysicalResources": spec_model.QueryModel{},
+		"GetRegion": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"GetRegions": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"CreateRegion": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"UpdateRegion": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"DeleteRegion": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"DeleteRegions": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"GetDatacenter": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"GetDatacenters": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"CreateDatacenter": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"UpdateDatacenter": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"DeleteDatacenter": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"DeleteDatacenters": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"GetFloor": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"GetFloors": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"CreateFloor": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"UpdateFloor": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"DeleteFloor": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"DeleteFloors": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"GetRack": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"GetRacks": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"CreateRack": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"UpdateRack": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"DeleteRack": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"DeleteRacks": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"GetPhysicalModel": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"GetPhysicalModels": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"CreatePhysicalModel": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"UpdatePhysicalModel": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"DeletePhysicalModel": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"DeletePhysicalModels": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"GetPhysicalResource": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"GetPhysicalResources": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"CreatePhysicalResource": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"UpdatePhysicalResource": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"DeletePhysicalResource": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"DeletePhysicalResources": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
 	},
 	"ResourceVirtualAdmin": map[string]spec_model.QueryModel{
-		"GetCluster":       spec_model.QueryModel{},
-		"GetClusters":      spec_model.QueryModel{},
-		"CreateCluster":    spec_model.QueryModel{},
-		"UpdateCluster":    spec_model.QueryModel{},
-		"DeleteCluster":    spec_model.QueryModel{},
-		"DeleteClusters":   spec_model.QueryModel{},
-		"GetNetworkV4":     spec_model.QueryModel{},
-		"GetNetworkV4s":    spec_model.QueryModel{},
-		"CreateNetworkV4":  spec_model.QueryModel{},
-		"UpdateNetworkV4":  spec_model.QueryModel{},
-		"DeleteNetworkV4":  spec_model.QueryModel{},
-		"DeleteNetworkV4s": spec_model.QueryModel{},
-		"GetImage":         spec_model.QueryModel{},
-		"GetImages":        spec_model.QueryModel{},
-		"CreateImage":      spec_model.QueryModel{},
-		"UpdateImage":      spec_model.QueryModel{},
-		"DeleteImage":      spec_model.QueryModel{},
-		"DeleteImages":     spec_model.QueryModel{},
+		"GetCluster": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"GetClusters": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"CreateCluster": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"UpdateCluster": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"DeleteCluster": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"DeleteClusters": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"GetNetworkV4": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"GetNetworkV4s": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"CreateNetworkV4": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"UpdateNetworkV4": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"DeleteNetworkV4": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"DeleteNetworkV4s": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"GetImage": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"GetImages": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"CreateImage": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"UpdateImage": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"DeleteImage": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"DeleteImages": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
 	},
 	"ResourceVirtual": map[string]spec_model.QueryModel{
-		"GetRegion":            spec_model.QueryModel{},
-		"GetRegions":           spec_model.QueryModel{},
-		"CreateRegion":         spec_model.QueryModel{},
-		"UpdateRegion":         spec_model.QueryModel{},
-		"DeleteRegion":         spec_model.QueryModel{},
-		"DeleteRegions":        spec_model.QueryModel{},
-		"GetCluster":           spec_model.QueryModel{},
-		"GetClusters":          spec_model.QueryModel{},
-		"CreateCluster":        spec_model.QueryModel{},
-		"UpdateCluster":        spec_model.QueryModel{},
-		"DeleteCluster":        spec_model.QueryModel{},
-		"DeleteClusters":       spec_model.QueryModel{},
-		"GetImage":             spec_model.QueryModel{},
-		"GetImages":            spec_model.QueryModel{},
-		"CreateImage":          spec_model.QueryModel{},
-		"UpdateImage":          spec_model.QueryModel{},
-		"DeleteImage":          spec_model.QueryModel{},
-		"DeleteImages":         spec_model.QueryModel{},
-		"GetRegionService":     spec_model.QueryModel{},
-		"GetRegionServices":    spec_model.QueryModel{},
-		"CreateRegionService":  spec_model.QueryModel{},
-		"UpdateRegionService":  spec_model.QueryModel{},
-		"DeleteRegionService":  spec_model.QueryModel{},
-		"DeleteRegionServices": spec_model.QueryModel{},
+		"GetRegion": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"GetRegions": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"CreateRegion": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"UpdateRegion": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"DeleteRegion": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"DeleteRegions": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"GetCluster": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"GetClusters": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"CreateCluster": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"UpdateCluster": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"DeleteCluster": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"DeleteClusters": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"GetImage": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"GetImages": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"CreateImage": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"UpdateImage": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"DeleteImage": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"DeleteImages": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"GetRegionService": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"GetRegionServices": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"CreateRegionService": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"UpdateRegionService": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"DeleteRegionService": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"DeleteRegionServices": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
 	},
 }

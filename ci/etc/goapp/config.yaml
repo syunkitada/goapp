@@ -29,10 +29,10 @@ authproxy:
       defaultServices:
         - name: 'Home'
           scope: 'user'
-          projectRoles: ['tenant']
+          projectRoles: ['admin', 'tenant']
         - name: 'HomeProject'
           scope: 'project'
-          projectRoles: ['tenant']
+          projectRoles: ['admin', 'tenant']
 
 resource:
   app:

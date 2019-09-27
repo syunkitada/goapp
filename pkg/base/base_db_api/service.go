@@ -12,14 +12,14 @@ import (
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
 
-func (api *Api) CreateOrUpdateService(tctx *logger.TraceContext, db *gorm.DB, input *base_spec.UpdateService) (err error) {
+func (api *Api) CreateOrUpdateService(tctx *logger.TraceContext, input *base_spec.UpdateService) (err error) {
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
 	var queryMapBytes []byte
 	queryMapBytes, err = json.Marshal(&input.QueryMap)
 
-	err = api.Transact(tctx, db, func(tx *gorm.DB) (err error) {
+	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
 		var service base_db_model.Service
 		if err = tx.Where("name = ?", input.Name).First(&service).Error; err != nil {
 			if !gorm.IsRecordNotFoundError(err) {
@@ -28,6 +28,7 @@ func (api *Api) CreateOrUpdateService(tctx *logger.TraceContext, db *gorm.DB, in
 
 			service = base_db_model.Service{
 				Name:            input.Name,
+				Token:           input.Token,
 				Scope:           input.Scope,
 				SyncRootCluster: input.SyncRootCluster,
 				Endpoints:       strings.Join(input.Endpoints, ","),
@@ -39,6 +40,7 @@ func (api *Api) CreateOrUpdateService(tctx *logger.TraceContext, db *gorm.DB, in
 				return
 			}
 		} else {
+			service.Token = input.Token
 			service.Scope = input.Scope
 			service.SyncRootCluster = input.SyncRootCluster
 			service.Endpoints = strings.Join(input.Endpoints, ",")
@@ -51,7 +53,7 @@ func (api *Api) CreateOrUpdateService(tctx *logger.TraceContext, db *gorm.DB, in
 
 		for _, projectRoleName := range input.ProjectRoles {
 			var projectRole base_db_model.ProjectRole
-			if err = db.Where("name = ?", projectRoleName).First(&projectRole).Error; err != nil {
+			if err = tx.Where("name = ?", projectRoleName).First(&projectRole).Error; err != nil {
 				err = fmt.Errorf("Failed find projectRole: name=%s, err=%v", projectRoleName, err)
 				return
 			}
@@ -65,12 +67,12 @@ func (api *Api) CreateOrUpdateService(tctx *logger.TraceContext, db *gorm.DB, in
 	return
 }
 
-func (api *Api) GetServices(tctx *logger.TraceContext, db *gorm.DB, input *base_spec.GetServices) (data *base_spec.GetServicesData, err error) {
+func (api *Api) GetServices(tctx *logger.TraceContext, input *base_spec.GetServices) (data *base_spec.GetServicesData, err error) {
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
 	var services []base_spec.Service
-	if err = db.Find(&services).Error; err != nil {
+	if err = api.DB.Find(&services).Error; err != nil {
 		return
 	}
 	data = &base_spec.GetServicesData{

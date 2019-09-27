@@ -35,7 +35,10 @@ var ApiQueryMap = map[string]map[string]spec_model.QueryModel{
 {{- range $api := $spec.Apis }}
     "{{ $api.Name }}": map[string]spec_model.QueryModel{
     {{- range $query := $api.Queries }}
-        "{{ $query.Name }}": spec_model.QueryModel{},
+        "{{ $query.Name }}": spec_model.QueryModel{
+            RequiredAuth: {{ $query.RequiredAuth }},
+            RequiredProject: {{ $query.RequiredProject }},
+        },
     {{- end }}
     },
 {{- end }}

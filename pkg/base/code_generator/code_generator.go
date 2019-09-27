@@ -150,8 +150,16 @@ func convertApi(api *spec_model.Api) {
 			}
 		}
 
+		if !queryModel.RequiredAuth {
+			queryModel.RequiredAuth = api.RequiredAuth
+		}
+		if !queryModel.RequiredProject {
+			queryModel.RequiredProject = api.RequiredProject
+		}
+
 		queries = append(queries, spec_model.Query{
 			RequiredAuth:    queryModel.RequiredAuth,
+			RequiredProject: queryModel.RequiredProject,
 			PkgPath:         pkgPath,
 			PkgName:         pkgName,
 			Name:            name,

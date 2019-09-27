@@ -8,11 +8,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/jinzhu/gorm"
-
 	"github.com/syunkitada/goapp/pkg/base/base_config"
 	"github.com/syunkitada/goapp/pkg/base/base_const"
-	"github.com/syunkitada/goapp/pkg/base/base_db_api"
 	"github.com/syunkitada/goapp/pkg/base/base_model"
 	"github.com/syunkitada/goapp/pkg/base/base_spec"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
@@ -20,90 +17,88 @@ import (
 )
 
 type QueryResolver interface {
-	Login(tctx *logger.TraceContext, db *gorm.DB, input *base_spec.Login) (*base_spec.LoginData, uint8, error)
-	LoginWithToken(tctx *logger.TraceContext, db *gorm.DB, input *base_spec.LoginWithToken, user *base_spec.UserAuthority) (*base_spec.LoginWithTokenData, uint8, error)
-	UpdateService(tctx *logger.TraceContext, db *gorm.DB, input *base_spec.UpdateService) (*base_spec.UpdateServiceData, uint8, error)
-	GetServiceIndex(tctx *logger.TraceContext, db *gorm.DB, input *base_spec.GetServiceIndex) (*base_spec.GetServiceIndexData, uint8, error)
-	GetServiceDashboardIndex(tctx *logger.TraceContext, db *gorm.DB, input *base_spec.GetServiceDashboardIndex) (*base_spec.GetServiceDashboardIndexData, uint8, error)
-	CreateCluster(tctx *logger.TraceContext, db *gorm.DB, input *spec.CreateCluster) (*spec.CreateClusterData, uint8, error)
-	CreateDatacenter(tctx *logger.TraceContext, db *gorm.DB, input *spec.CreateDatacenter) (*spec.CreateDatacenterData, uint8, error)
-	CreateFloor(tctx *logger.TraceContext, db *gorm.DB, input *spec.CreateFloor) (*spec.CreateFloorData, uint8, error)
-	CreateImage(tctx *logger.TraceContext, db *gorm.DB, input *spec.CreateImage) (*spec.CreateImageData, uint8, error)
-	CreateNetworkV4(tctx *logger.TraceContext, db *gorm.DB, input *spec.CreateNetworkV4) (*spec.CreateNetworkV4Data, uint8, error)
-	CreatePhysicalModel(tctx *logger.TraceContext, db *gorm.DB, input *spec.CreatePhysicalModel) (*spec.CreatePhysicalModelData, uint8, error)
-	CreatePhysicalResource(tctx *logger.TraceContext, db *gorm.DB, input *spec.CreatePhysicalResource) (*spec.CreatePhysicalResourceData, uint8, error)
-	CreateRack(tctx *logger.TraceContext, db *gorm.DB, input *spec.CreateRack) (*spec.CreateRackData, uint8, error)
-	CreateRegion(tctx *logger.TraceContext, db *gorm.DB, input *spec.CreateRegion) (*spec.CreateRegionData, uint8, error)
-	CreateRegionService(tctx *logger.TraceContext, db *gorm.DB, input *spec.CreateRegionService) (*spec.CreateRegionServiceData, uint8, error)
-	DeleteCluster(tctx *logger.TraceContext, db *gorm.DB, input *spec.DeleteCluster) (*spec.DeleteClusterData, uint8, error)
-	DeleteClusters(tctx *logger.TraceContext, db *gorm.DB, input *spec.DeleteClusters) (*spec.DeleteClustersData, uint8, error)
-	DeleteDatacenter(tctx *logger.TraceContext, db *gorm.DB, input *spec.DeleteDatacenter) (*spec.DeleteDatacenterData, uint8, error)
-	DeleteDatacenters(tctx *logger.TraceContext, db *gorm.DB, input *spec.DeleteDatacenters) (*spec.DeleteDatacentersData, uint8, error)
-	DeleteFloor(tctx *logger.TraceContext, db *gorm.DB, input *spec.DeleteFloor) (*spec.DeleteFloorData, uint8, error)
-	DeleteFloors(tctx *logger.TraceContext, db *gorm.DB, input *spec.DeleteFloors) (*spec.DeleteFloorsData, uint8, error)
-	DeleteImage(tctx *logger.TraceContext, db *gorm.DB, input *spec.DeleteImage) (*spec.DeleteImageData, uint8, error)
-	DeleteImages(tctx *logger.TraceContext, db *gorm.DB, input *spec.DeleteImages) (*spec.DeleteImagesData, uint8, error)
-	DeleteNetworkV4(tctx *logger.TraceContext, db *gorm.DB, input *spec.DeleteNetworkV4) (*spec.DeleteNetworkV4Data, uint8, error)
-	DeleteNetworkV4s(tctx *logger.TraceContext, db *gorm.DB, input *spec.DeleteNetworkV4s) (*spec.DeleteNetworkV4sData, uint8, error)
-	DeletePhysicalModel(tctx *logger.TraceContext, db *gorm.DB, input *spec.DeletePhysicalModel) (*spec.DeletePhysicalModelData, uint8, error)
-	DeletePhysicalModels(tctx *logger.TraceContext, db *gorm.DB, input *spec.DeletePhysicalModels) (*spec.DeletePhysicalModelsData, uint8, error)
-	DeletePhysicalResource(tctx *logger.TraceContext, db *gorm.DB, input *spec.DeletePhysicalResource) (*spec.DeletePhysicalResourceData, uint8, error)
-	DeletePhysicalResources(tctx *logger.TraceContext, db *gorm.DB, input *spec.DeletePhysicalResources) (*spec.DeletePhysicalResourcesData, uint8, error)
-	DeleteRack(tctx *logger.TraceContext, db *gorm.DB, input *spec.DeleteRack) (*spec.DeleteRackData, uint8, error)
-	DeleteRacks(tctx *logger.TraceContext, db *gorm.DB, input *spec.DeleteRacks) (*spec.DeleteRacksData, uint8, error)
-	DeleteRegion(tctx *logger.TraceContext, db *gorm.DB, input *spec.DeleteRegion) (*spec.DeleteRegionData, uint8, error)
-	DeleteRegionService(tctx *logger.TraceContext, db *gorm.DB, input *spec.DeleteRegionService) (*spec.DeleteRegionServiceData, uint8, error)
-	DeleteRegionServices(tctx *logger.TraceContext, db *gorm.DB, input *spec.DeleteRegionServices) (*spec.DeleteRegionServicesData, uint8, error)
-	DeleteRegions(tctx *logger.TraceContext, db *gorm.DB, input *spec.DeleteRegions) (*spec.DeleteRegionsData, uint8, error)
-	GetCluster(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetCluster) (*spec.GetClusterData, uint8, error)
-	GetClusters(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetClusters) (*spec.GetClustersData, uint8, error)
-	GetDatacenter(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetDatacenter) (*spec.GetDatacenterData, uint8, error)
-	GetDatacenters(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetDatacenters) (*spec.GetDatacentersData, uint8, error)
-	GetFloor(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetFloor) (*spec.GetFloorData, uint8, error)
-	GetFloors(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetFloors) (*spec.GetFloorsData, uint8, error)
-	GetImage(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetImage) (*spec.GetImageData, uint8, error)
-	GetImages(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetImages) (*spec.GetImagesData, uint8, error)
-	GetNetworkV4(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetNetworkV4) (*spec.GetNetworkV4Data, uint8, error)
-	GetNetworkV4s(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetNetworkV4s) (*spec.GetNetworkV4sData, uint8, error)
-	GetPhysicalModel(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetPhysicalModel) (*spec.GetPhysicalModelData, uint8, error)
-	GetPhysicalModels(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetPhysicalModels) (*spec.GetPhysicalModelsData, uint8, error)
-	GetPhysicalResource(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetPhysicalResource) (*spec.GetPhysicalResourceData, uint8, error)
-	GetPhysicalResources(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetPhysicalResources) (*spec.GetPhysicalResourcesData, uint8, error)
-	GetRack(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetRack) (*spec.GetRackData, uint8, error)
-	GetRacks(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetRacks) (*spec.GetRacksData, uint8, error)
-	GetRegion(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetRegion) (*spec.GetRegionData, uint8, error)
-	GetRegionService(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetRegionService) (*spec.GetRegionServiceData, uint8, error)
-	GetRegionServices(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetRegionServices) (*spec.GetRegionServicesData, uint8, error)
-	GetRegions(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetRegions) (*spec.GetRegionsData, uint8, error)
-	UpdateCluster(tctx *logger.TraceContext, db *gorm.DB, input *spec.UpdateCluster) (*spec.UpdateClusterData, uint8, error)
-	UpdateDatacenter(tctx *logger.TraceContext, db *gorm.DB, input *spec.UpdateDatacenter) (*spec.UpdateDatacenterData, uint8, error)
-	UpdateFloor(tctx *logger.TraceContext, db *gorm.DB, input *spec.UpdateFloor) (*spec.UpdateFloorData, uint8, error)
-	UpdateImage(tctx *logger.TraceContext, db *gorm.DB, input *spec.UpdateImage) (*spec.UpdateImageData, uint8, error)
-	UpdateNetworkV4(tctx *logger.TraceContext, db *gorm.DB, input *spec.UpdateNetworkV4) (*spec.UpdateNetworkV4Data, uint8, error)
-	UpdatePhysicalModel(tctx *logger.TraceContext, db *gorm.DB, input *spec.UpdatePhysicalModel) (*spec.UpdatePhysicalModelData, uint8, error)
-	UpdatePhysicalResource(tctx *logger.TraceContext, db *gorm.DB, input *spec.UpdatePhysicalResource) (*spec.UpdatePhysicalResourceData, uint8, error)
-	UpdateRack(tctx *logger.TraceContext, db *gorm.DB, input *spec.UpdateRack) (*spec.UpdateRackData, uint8, error)
-	UpdateRegion(tctx *logger.TraceContext, db *gorm.DB, input *spec.UpdateRegion) (*spec.UpdateRegionData, uint8, error)
-	UpdateRegionService(tctx *logger.TraceContext, db *gorm.DB, input *spec.UpdateRegionService) (*spec.UpdateRegionServiceData, uint8, error)
+	Login(tctx *logger.TraceContext, input *base_spec.Login) (*base_spec.LoginData, uint8, error)
+	LoginWithToken(tctx *logger.TraceContext, input *base_spec.LoginWithToken, user *base_spec.UserAuthority) (*base_spec.LoginWithTokenData, uint8, error)
+	UpdateService(tctx *logger.TraceContext, input *base_spec.UpdateService) (*base_spec.UpdateServiceData, uint8, error)
+	GetServiceIndex(tctx *logger.TraceContext, input *base_spec.GetServiceIndex) (*base_spec.GetServiceIndexData, uint8, error)
+	GetServiceDashboardIndex(tctx *logger.TraceContext, input *base_spec.GetServiceDashboardIndex) (*base_spec.GetServiceDashboardIndexData, uint8, error)
+	CreateCluster(tctx *logger.TraceContext, input *spec.CreateCluster) (*spec.CreateClusterData, uint8, error)
+	CreateDatacenter(tctx *logger.TraceContext, input *spec.CreateDatacenter) (*spec.CreateDatacenterData, uint8, error)
+	CreateFloor(tctx *logger.TraceContext, input *spec.CreateFloor) (*spec.CreateFloorData, uint8, error)
+	CreateImage(tctx *logger.TraceContext, input *spec.CreateImage) (*spec.CreateImageData, uint8, error)
+	CreateNetworkV4(tctx *logger.TraceContext, input *spec.CreateNetworkV4) (*spec.CreateNetworkV4Data, uint8, error)
+	CreatePhysicalModel(tctx *logger.TraceContext, input *spec.CreatePhysicalModel) (*spec.CreatePhysicalModelData, uint8, error)
+	CreatePhysicalResource(tctx *logger.TraceContext, input *spec.CreatePhysicalResource) (*spec.CreatePhysicalResourceData, uint8, error)
+	CreateRack(tctx *logger.TraceContext, input *spec.CreateRack) (*spec.CreateRackData, uint8, error)
+	CreateRegion(tctx *logger.TraceContext, input *spec.CreateRegion) (*spec.CreateRegionData, uint8, error)
+	CreateRegionService(tctx *logger.TraceContext, input *spec.CreateRegionService) (*spec.CreateRegionServiceData, uint8, error)
+	DeleteCluster(tctx *logger.TraceContext, input *spec.DeleteCluster) (*spec.DeleteClusterData, uint8, error)
+	DeleteClusters(tctx *logger.TraceContext, input *spec.DeleteClusters) (*spec.DeleteClustersData, uint8, error)
+	DeleteDatacenter(tctx *logger.TraceContext, input *spec.DeleteDatacenter) (*spec.DeleteDatacenterData, uint8, error)
+	DeleteDatacenters(tctx *logger.TraceContext, input *spec.DeleteDatacenters) (*spec.DeleteDatacentersData, uint8, error)
+	DeleteFloor(tctx *logger.TraceContext, input *spec.DeleteFloor) (*spec.DeleteFloorData, uint8, error)
+	DeleteFloors(tctx *logger.TraceContext, input *spec.DeleteFloors) (*spec.DeleteFloorsData, uint8, error)
+	DeleteImage(tctx *logger.TraceContext, input *spec.DeleteImage) (*spec.DeleteImageData, uint8, error)
+	DeleteImages(tctx *logger.TraceContext, input *spec.DeleteImages) (*spec.DeleteImagesData, uint8, error)
+	DeleteNetworkV4(tctx *logger.TraceContext, input *spec.DeleteNetworkV4) (*spec.DeleteNetworkV4Data, uint8, error)
+	DeleteNetworkV4s(tctx *logger.TraceContext, input *spec.DeleteNetworkV4s) (*spec.DeleteNetworkV4sData, uint8, error)
+	DeletePhysicalModel(tctx *logger.TraceContext, input *spec.DeletePhysicalModel) (*spec.DeletePhysicalModelData, uint8, error)
+	DeletePhysicalModels(tctx *logger.TraceContext, input *spec.DeletePhysicalModels) (*spec.DeletePhysicalModelsData, uint8, error)
+	DeletePhysicalResource(tctx *logger.TraceContext, input *spec.DeletePhysicalResource) (*spec.DeletePhysicalResourceData, uint8, error)
+	DeletePhysicalResources(tctx *logger.TraceContext, input *spec.DeletePhysicalResources) (*spec.DeletePhysicalResourcesData, uint8, error)
+	DeleteRack(tctx *logger.TraceContext, input *spec.DeleteRack) (*spec.DeleteRackData, uint8, error)
+	DeleteRacks(tctx *logger.TraceContext, input *spec.DeleteRacks) (*spec.DeleteRacksData, uint8, error)
+	DeleteRegion(tctx *logger.TraceContext, input *spec.DeleteRegion) (*spec.DeleteRegionData, uint8, error)
+	DeleteRegionService(tctx *logger.TraceContext, input *spec.DeleteRegionService) (*spec.DeleteRegionServiceData, uint8, error)
+	DeleteRegionServices(tctx *logger.TraceContext, input *spec.DeleteRegionServices) (*spec.DeleteRegionServicesData, uint8, error)
+	DeleteRegions(tctx *logger.TraceContext, input *spec.DeleteRegions) (*spec.DeleteRegionsData, uint8, error)
+	GetCluster(tctx *logger.TraceContext, input *spec.GetCluster) (*spec.GetClusterData, uint8, error)
+	GetClusters(tctx *logger.TraceContext, input *spec.GetClusters) (*spec.GetClustersData, uint8, error)
+	GetDatacenter(tctx *logger.TraceContext, input *spec.GetDatacenter) (*spec.GetDatacenterData, uint8, error)
+	GetDatacenters(tctx *logger.TraceContext, input *spec.GetDatacenters) (*spec.GetDatacentersData, uint8, error)
+	GetFloor(tctx *logger.TraceContext, input *spec.GetFloor) (*spec.GetFloorData, uint8, error)
+	GetFloors(tctx *logger.TraceContext, input *spec.GetFloors) (*spec.GetFloorsData, uint8, error)
+	GetImage(tctx *logger.TraceContext, input *spec.GetImage) (*spec.GetImageData, uint8, error)
+	GetImages(tctx *logger.TraceContext, input *spec.GetImages) (*spec.GetImagesData, uint8, error)
+	GetNetworkV4(tctx *logger.TraceContext, input *spec.GetNetworkV4) (*spec.GetNetworkV4Data, uint8, error)
+	GetNetworkV4s(tctx *logger.TraceContext, input *spec.GetNetworkV4s) (*spec.GetNetworkV4sData, uint8, error)
+	GetPhysicalModel(tctx *logger.TraceContext, input *spec.GetPhysicalModel) (*spec.GetPhysicalModelData, uint8, error)
+	GetPhysicalModels(tctx *logger.TraceContext, input *spec.GetPhysicalModels) (*spec.GetPhysicalModelsData, uint8, error)
+	GetPhysicalResource(tctx *logger.TraceContext, input *spec.GetPhysicalResource) (*spec.GetPhysicalResourceData, uint8, error)
+	GetPhysicalResources(tctx *logger.TraceContext, input *spec.GetPhysicalResources) (*spec.GetPhysicalResourcesData, uint8, error)
+	GetRack(tctx *logger.TraceContext, input *spec.GetRack) (*spec.GetRackData, uint8, error)
+	GetRacks(tctx *logger.TraceContext, input *spec.GetRacks) (*spec.GetRacksData, uint8, error)
+	GetRegion(tctx *logger.TraceContext, input *spec.GetRegion) (*spec.GetRegionData, uint8, error)
+	GetRegionService(tctx *logger.TraceContext, input *spec.GetRegionService) (*spec.GetRegionServiceData, uint8, error)
+	GetRegionServices(tctx *logger.TraceContext, input *spec.GetRegionServices) (*spec.GetRegionServicesData, uint8, error)
+	GetRegions(tctx *logger.TraceContext, input *spec.GetRegions) (*spec.GetRegionsData, uint8, error)
+	UpdateCluster(tctx *logger.TraceContext, input *spec.UpdateCluster) (*spec.UpdateClusterData, uint8, error)
+	UpdateDatacenter(tctx *logger.TraceContext, input *spec.UpdateDatacenter) (*spec.UpdateDatacenterData, uint8, error)
+	UpdateFloor(tctx *logger.TraceContext, input *spec.UpdateFloor) (*spec.UpdateFloorData, uint8, error)
+	UpdateImage(tctx *logger.TraceContext, input *spec.UpdateImage) (*spec.UpdateImageData, uint8, error)
+	UpdateNetworkV4(tctx *logger.TraceContext, input *spec.UpdateNetworkV4) (*spec.UpdateNetworkV4Data, uint8, error)
+	UpdatePhysicalModel(tctx *logger.TraceContext, input *spec.UpdatePhysicalModel) (*spec.UpdatePhysicalModelData, uint8, error)
+	UpdatePhysicalResource(tctx *logger.TraceContext, input *spec.UpdatePhysicalResource) (*spec.UpdatePhysicalResourceData, uint8, error)
+	UpdateRack(tctx *logger.TraceContext, input *spec.UpdateRack) (*spec.UpdateRackData, uint8, error)
+	UpdateRegion(tctx *logger.TraceContext, input *spec.UpdateRegion) (*spec.UpdateRegionData, uint8, error)
+	UpdateRegionService(tctx *logger.TraceContext, input *spec.UpdateRegionService) (*spec.UpdateRegionServiceData, uint8, error)
 }
 
 type QueryHandler struct {
 	baseConf *base_config.Config
 	appConf  *base_config.AppConfig
-	dbApi    base_db_api.IApi
 	resolver QueryResolver
 }
 
-func NewQueryHandler(baseConf *base_config.Config, appConf *base_config.AppConfig, dbApi base_db_api.IApi, resolver QueryResolver) *QueryHandler {
+func NewQueryHandler(baseConf *base_config.Config, appConf *base_config.AppConfig, resolver QueryResolver) *QueryHandler {
 	return &QueryHandler{
 		baseConf: baseConf,
 		appConf:  appConf,
-		dbApi:    dbApi,
 		resolver: resolver,
 	}
 }
 
-func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *base_spec.UserAuthority, httpReq *http.Request, rw http.ResponseWriter,
+func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.UserAuthority, httpReq *http.Request, rw http.ResponseWriter,
 	req *base_model.Request, rep *base_model.Response) error {
 	var err error
 	for _, query := range req.Queries {
@@ -115,7 +110,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, tmpErr := handler.resolver.Login(tctx, db, &input)
+			data, code, tmpErr := handler.resolver.Login(tctx, &input)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -159,7 +154,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, tmpErr := handler.resolver.LoginWithToken(tctx, db, &input, user)
+			data, code, tmpErr := handler.resolver.LoginWithToken(tctx, &input, user)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -182,7 +177,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, tmpErr := handler.resolver.UpdateService(tctx, db, &input)
+			data, code, tmpErr := handler.resolver.UpdateService(tctx, &input)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -205,7 +200,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, tmpErr := handler.resolver.GetServiceIndex(tctx, db, &input)
+			data, code, tmpErr := handler.resolver.GetServiceIndex(tctx, &input)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -227,7 +222,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, tmpErr := handler.resolver.GetServiceDashboardIndex(tctx, db, &input)
+			data, code, tmpErr := handler.resolver.GetServiceDashboardIndex(tctx, &input)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -249,7 +244,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, tmpErr := handler.resolver.CreateCluster(tctx, db, &input)
+			data, code, tmpErr := handler.resolver.CreateCluster(tctx, &input)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -271,7 +266,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, tmpErr := handler.resolver.CreateDatacenter(tctx, db, &input)
+			data, code, tmpErr := handler.resolver.CreateDatacenter(tctx, &input)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -293,7 +288,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, tmpErr := handler.resolver.CreateFloor(tctx, db, &input)
+			data, code, tmpErr := handler.resolver.CreateFloor(tctx, &input)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -315,7 +310,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, tmpErr := handler.resolver.CreateImage(tctx, db, &input)
+			data, code, tmpErr := handler.resolver.CreateImage(tctx, &input)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -337,7 +332,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, tmpErr := handler.resolver.CreateNetworkV4(tctx, db, &input)
+			data, code, tmpErr := handler.resolver.CreateNetworkV4(tctx, &input)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -359,7 +354,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, tmpErr := handler.resolver.CreatePhysicalModel(tctx, db, &input)
+			data, code, tmpErr := handler.resolver.CreatePhysicalModel(tctx, &input)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -381,7 +376,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, tmpErr := handler.resolver.CreatePhysicalResource(tctx, db, &input)
+			data, code, tmpErr := handler.resolver.CreatePhysicalResource(tctx, &input)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -403,7 +398,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, tmpErr := handler.resolver.CreateRack(tctx, db, &input)
+			data, code, tmpErr := handler.resolver.CreateRack(tctx, &input)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -425,7 +420,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, tmpErr := handler.resolver.CreateRegion(tctx, db, &input)
+			data, code, tmpErr := handler.resolver.CreateRegion(tctx, &input)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -447,7 +442,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, tmpErr := handler.resolver.CreateRegionService(tctx, db, &input)
+			data, code, tmpErr := handler.resolver.CreateRegionService(tctx, &input)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -469,7 +464,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, tmpErr := handler.resolver.DeleteCluster(tctx, db, &input)
+			data, code, tmpErr := handler.resolver.DeleteCluster(tctx, &input)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -491,7 +486,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, tmpErr := handler.resolver.DeleteClusters(tctx, db, &input)
+			data, code, tmpErr := handler.resolver.DeleteClusters(tctx, &input)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -513,7 +508,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, tmpErr := handler.resolver.DeleteDatacenter(tctx, db, &input)
+			data, code, tmpErr := handler.resolver.DeleteDatacenter(tctx, &input)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -535,7 +530,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, tmpErr := handler.resolver.DeleteDatacenters(tctx, db, &input)
+			data, code, tmpErr := handler.resolver.DeleteDatacenters(tctx, &input)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -557,7 +552,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, tmpErr := handler.resolver.DeleteFloor(tctx, db, &input)
+			data, code, tmpErr := handler.resolver.DeleteFloor(tctx, &input)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -579,7 +574,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, tmpErr := handler.resolver.DeleteFloors(tctx, db, &input)
+			data, code, tmpErr := handler.resolver.DeleteFloors(tctx, &input)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -601,7 +596,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, tmpErr := handler.resolver.DeleteImage(tctx, db, &input)
+			data, code, tmpErr := handler.resolver.DeleteImage(tctx, &input)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -623,7 +618,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, tmpErr := handler.resolver.DeleteImages(tctx, db, &input)
+			data, code, tmpErr := handler.resolver.DeleteImages(tctx, &input)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -645,7 +640,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, tmpErr := handler.resolver.DeleteNetworkV4(tctx, db, &input)
+			data, code, tmpErr := handler.resolver.DeleteNetworkV4(tctx, &input)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -667,7 +662,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, tmpErr := handler.resolver.DeleteNetworkV4s(tctx, db, &input)
+			data, code, tmpErr := handler.resolver.DeleteNetworkV4s(tctx, &input)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -689,7 +684,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, tmpErr := handler.resolver.DeletePhysicalModel(tctx, db, &input)
+			data, code, tmpErr := handler.resolver.DeletePhysicalModel(tctx, &input)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -711,7 +706,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, tmpErr := handler.resolver.DeletePhysicalModels(tctx, db, &input)
+			data, code, tmpErr := handler.resolver.DeletePhysicalModels(tctx, &input)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -733,7 +728,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, tmpErr := handler.resolver.DeletePhysicalResource(tctx, db, &input)
+			data, code, tmpErr := handler.resolver.DeletePhysicalResource(tctx, &input)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -755,7 +750,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, tmpErr := handler.resolver.DeletePhysicalResources(tctx, db, &input)
+			data, code, tmpErr := handler.resolver.DeletePhysicalResources(tctx, &input)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -777,7 +772,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, tmpErr := handler.resolver.DeleteRack(tctx, db, &input)
+			data, code, tmpErr := handler.resolver.DeleteRack(tctx, &input)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -799,7 +794,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, tmpErr := handler.resolver.DeleteRacks(tctx, db, &input)
+			data, code, tmpErr := handler.resolver.DeleteRacks(tctx, &input)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -821,7 +816,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, tmpErr := handler.resolver.DeleteRegion(tctx, db, &input)
+			data, code, tmpErr := handler.resolver.DeleteRegion(tctx, &input)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -843,7 +838,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, tmpErr := handler.resolver.DeleteRegionService(tctx, db, &input)
+			data, code, tmpErr := handler.resolver.DeleteRegionService(tctx, &input)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -865,7 +860,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, tmpErr := handler.resolver.DeleteRegionServices(tctx, db, &input)
+			data, code, tmpErr := handler.resolver.DeleteRegionServices(tctx, &input)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -887,7 +882,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, tmpErr := handler.resolver.DeleteRegions(tctx, db, &input)
+			data, code, tmpErr := handler.resolver.DeleteRegions(tctx, &input)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -909,7 +904,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, tmpErr := handler.resolver.GetCluster(tctx, db, &input)
+			data, code, tmpErr := handler.resolver.GetCluster(tctx, &input)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -931,7 +926,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, tmpErr := handler.resolver.GetClusters(tctx, db, &input)
+			data, code, tmpErr := handler.resolver.GetClusters(tctx, &input)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -953,7 +948,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, tmpErr := handler.resolver.GetDatacenter(tctx, db, &input)
+			data, code, tmpErr := handler.resolver.GetDatacenter(tctx, &input)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -975,7 +970,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, tmpErr := handler.resolver.GetDatacenters(tctx, db, &input)
+			data, code, tmpErr := handler.resolver.GetDatacenters(tctx, &input)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -997,7 +992,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, tmpErr := handler.resolver.GetFloor(tctx, db, &input)
+			data, code, tmpErr := handler.resolver.GetFloor(tctx, &input)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -1019,7 +1014,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, tmpErr := handler.resolver.GetFloors(tctx, db, &input)
+			data, code, tmpErr := handler.resolver.GetFloors(tctx, &input)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -1041,7 +1036,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, tmpErr := handler.resolver.GetImage(tctx, db, &input)
+			data, code, tmpErr := handler.resolver.GetImage(tctx, &input)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -1063,7 +1058,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, tmpErr := handler.resolver.GetImages(tctx, db, &input)
+			data, code, tmpErr := handler.resolver.GetImages(tctx, &input)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -1085,7 +1080,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, tmpErr := handler.resolver.GetNetworkV4(tctx, db, &input)
+			data, code, tmpErr := handler.resolver.GetNetworkV4(tctx, &input)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -1107,7 +1102,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, tmpErr := handler.resolver.GetNetworkV4s(tctx, db, &input)
+			data, code, tmpErr := handler.resolver.GetNetworkV4s(tctx, &input)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -1129,7 +1124,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, tmpErr := handler.resolver.GetPhysicalModel(tctx, db, &input)
+			data, code, tmpErr := handler.resolver.GetPhysicalModel(tctx, &input)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -1151,7 +1146,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, tmpErr := handler.resolver.GetPhysicalModels(tctx, db, &input)
+			data, code, tmpErr := handler.resolver.GetPhysicalModels(tctx, &input)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -1173,7 +1168,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, tmpErr := handler.resolver.GetPhysicalResource(tctx, db, &input)
+			data, code, tmpErr := handler.resolver.GetPhysicalResource(tctx, &input)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -1195,7 +1190,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, tmpErr := handler.resolver.GetPhysicalResources(tctx, db, &input)
+			data, code, tmpErr := handler.resolver.GetPhysicalResources(tctx, &input)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -1217,7 +1212,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, tmpErr := handler.resolver.GetRack(tctx, db, &input)
+			data, code, tmpErr := handler.resolver.GetRack(tctx, &input)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -1239,7 +1234,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, tmpErr := handler.resolver.GetRacks(tctx, db, &input)
+			data, code, tmpErr := handler.resolver.GetRacks(tctx, &input)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -1261,7 +1256,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, tmpErr := handler.resolver.GetRegion(tctx, db, &input)
+			data, code, tmpErr := handler.resolver.GetRegion(tctx, &input)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -1283,7 +1278,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, tmpErr := handler.resolver.GetRegionService(tctx, db, &input)
+			data, code, tmpErr := handler.resolver.GetRegionService(tctx, &input)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -1305,7 +1300,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, tmpErr := handler.resolver.GetRegionServices(tctx, db, &input)
+			data, code, tmpErr := handler.resolver.GetRegionServices(tctx, &input)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -1327,7 +1322,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, tmpErr := handler.resolver.GetRegions(tctx, db, &input)
+			data, code, tmpErr := handler.resolver.GetRegions(tctx, &input)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -1349,7 +1344,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, tmpErr := handler.resolver.UpdateCluster(tctx, db, &input)
+			data, code, tmpErr := handler.resolver.UpdateCluster(tctx, &input)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -1371,7 +1366,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, tmpErr := handler.resolver.UpdateDatacenter(tctx, db, &input)
+			data, code, tmpErr := handler.resolver.UpdateDatacenter(tctx, &input)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -1393,7 +1388,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, tmpErr := handler.resolver.UpdateFloor(tctx, db, &input)
+			data, code, tmpErr := handler.resolver.UpdateFloor(tctx, &input)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -1415,7 +1410,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, tmpErr := handler.resolver.UpdateImage(tctx, db, &input)
+			data, code, tmpErr := handler.resolver.UpdateImage(tctx, &input)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -1437,7 +1432,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, tmpErr := handler.resolver.UpdateNetworkV4(tctx, db, &input)
+			data, code, tmpErr := handler.resolver.UpdateNetworkV4(tctx, &input)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -1459,7 +1454,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, tmpErr := handler.resolver.UpdatePhysicalModel(tctx, db, &input)
+			data, code, tmpErr := handler.resolver.UpdatePhysicalModel(tctx, &input)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -1481,7 +1476,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, tmpErr := handler.resolver.UpdatePhysicalResource(tctx, db, &input)
+			data, code, tmpErr := handler.resolver.UpdatePhysicalResource(tctx, &input)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -1503,7 +1498,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, tmpErr := handler.resolver.UpdateRack(tctx, db, &input)
+			data, code, tmpErr := handler.resolver.UpdateRack(tctx, &input)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -1525,7 +1520,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, tmpErr := handler.resolver.UpdateRegion(tctx, db, &input)
+			data, code, tmpErr := handler.resolver.UpdateRegion(tctx, &input)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -1547,7 +1542,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, db *gorm.DB, user *
 				return err
 			}
 
-			data, code, tmpErr := handler.resolver.UpdateRegionService(tctx, db, &input)
+			data, code, tmpErr := handler.resolver.UpdateRegionService(tctx, &input)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError

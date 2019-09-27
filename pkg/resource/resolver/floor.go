@@ -10,9 +10,9 @@ import (
 	"github.com/syunkitada/goapp/pkg/resource/spec"
 )
 
-func (resolver *Resolver) GetFloor(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetFloor) (data *spec.GetFloorData, code uint8, err error) {
+func (resolver *Resolver) GetFloor(tctx *logger.TraceContext, input *spec.GetFloor) (data *spec.GetFloorData, code uint8, err error) {
 	var floor *spec.Floor
-	if floor, err = resolver.dbApi.GetFloor(tctx, db, input); err != nil {
+	if floor, err = resolver.dbApi.GetFloor(tctx, input); err != nil {
 		if gorm.IsRecordNotFoundError(err) {
 			code = base_const.CodeOkNotFound
 			return
@@ -25,9 +25,9 @@ func (resolver *Resolver) GetFloor(tctx *logger.TraceContext, db *gorm.DB, input
 	return
 }
 
-func (resolver *Resolver) GetFloors(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetFloors) (data *spec.GetFloorsData, code uint8, err error) {
+func (resolver *Resolver) GetFloors(tctx *logger.TraceContext, input *spec.GetFloors) (data *spec.GetFloorsData, code uint8, err error) {
 	var floors []spec.Floor
-	if floors, err = resolver.dbApi.GetFloors(tctx, db, input); err != nil {
+	if floors, err = resolver.dbApi.GetFloors(tctx, input); err != nil {
 		code = base_const.CodeServerInternalError
 		return
 	}
@@ -36,13 +36,13 @@ func (resolver *Resolver) GetFloors(tctx *logger.TraceContext, db *gorm.DB, inpu
 	return
 }
 
-func (resolver *Resolver) CreateFloor(tctx *logger.TraceContext, db *gorm.DB, input *spec.CreateFloor) (data *spec.CreateFloorData, code uint8, err error) {
+func (resolver *Resolver) CreateFloor(tctx *logger.TraceContext, input *spec.CreateFloor) (data *spec.CreateFloorData, code uint8, err error) {
 	var specs []spec.Floor
 	if specs, err = resolver.ConvertToFloorSpecs(input.Spec); err != nil {
 		code = base_const.CodeClientBadRequest
 		return
 	}
-	if err = resolver.dbApi.CreateFloors(tctx, db, specs); err != nil {
+	if err = resolver.dbApi.CreateFloors(tctx, specs); err != nil {
 		code = base_const.CodeServerInternalError
 		return
 	}
@@ -51,13 +51,13 @@ func (resolver *Resolver) CreateFloor(tctx *logger.TraceContext, db *gorm.DB, in
 	return
 }
 
-func (resolver *Resolver) UpdateFloor(tctx *logger.TraceContext, db *gorm.DB, input *spec.UpdateFloor) (data *spec.UpdateFloorData, code uint8, err error) {
+func (resolver *Resolver) UpdateFloor(tctx *logger.TraceContext, input *spec.UpdateFloor) (data *spec.UpdateFloorData, code uint8, err error) {
 	var specs []spec.Floor
 	if specs, err = resolver.ConvertToFloorSpecs(input.Spec); err != nil {
 		code = base_const.CodeClientBadRequest
 		return
 	}
-	if err = resolver.dbApi.UpdateFloors(tctx, db, specs); err != nil {
+	if err = resolver.dbApi.UpdateFloors(tctx, specs); err != nil {
 		code = base_const.CodeServerInternalError
 		return
 	}
@@ -66,8 +66,8 @@ func (resolver *Resolver) UpdateFloor(tctx *logger.TraceContext, db *gorm.DB, in
 	return
 }
 
-func (resolver *Resolver) DeleteFloor(tctx *logger.TraceContext, db *gorm.DB, input *spec.DeleteFloor) (data *spec.DeleteFloorData, code uint8, err error) {
-	if err = resolver.dbApi.DeleteFloor(tctx, db, input); err != nil {
+func (resolver *Resolver) DeleteFloor(tctx *logger.TraceContext, input *spec.DeleteFloor) (data *spec.DeleteFloorData, code uint8, err error) {
+	if err = resolver.dbApi.DeleteFloor(tctx, input); err != nil {
 		code = base_const.CodeServerInternalError
 		return
 	}
@@ -76,13 +76,13 @@ func (resolver *Resolver) DeleteFloor(tctx *logger.TraceContext, db *gorm.DB, in
 	return
 }
 
-func (resolver *Resolver) DeleteFloors(tctx *logger.TraceContext, db *gorm.DB, input *spec.DeleteFloors) (data *spec.DeleteFloorsData, code uint8, err error) {
+func (resolver *Resolver) DeleteFloors(tctx *logger.TraceContext, input *spec.DeleteFloors) (data *spec.DeleteFloorsData, code uint8, err error) {
 	var specs []spec.Floor
 	if specs, err = resolver.ConvertToFloorSpecs(input.Spec); err != nil {
 		code = base_const.CodeClientBadRequest
 		return
 	}
-	if err = resolver.dbApi.DeleteFloors(tctx, db, specs); err != nil {
+	if err = resolver.dbApi.DeleteFloors(tctx, specs); err != nil {
 		code = base_const.CodeServerInternalError
 		return
 	}

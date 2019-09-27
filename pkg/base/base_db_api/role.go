@@ -7,11 +7,11 @@ import (
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
 
-func (api *Api) CreateRole(tctx *logger.TraceContext, db *gorm.DB, name string, projectName string) (err error) {
+func (api *Api) CreateRole(tctx *logger.TraceContext, name string, projectName string) (err error) {
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
-	err = api.Transact(tctx, db, func(tx *gorm.DB) (err error) {
+	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
 		var project base_db_model.Project
 		if err = tx.First(&project, "name = ?", projectName).Error; err != nil {
 			if !gorm.IsRecordNotFoundError(err) {
@@ -36,11 +36,11 @@ func (api *Api) CreateRole(tctx *logger.TraceContext, db *gorm.DB, name string, 
 	return
 }
 
-func (api *Api) AssignRoleToUser(tctx *logger.TraceContext, db *gorm.DB, roleName string, userName string) (err error) {
+func (api *Api) AssignRoleToUser(tctx *logger.TraceContext, roleName string, userName string) (err error) {
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
-	err = api.Transact(tctx, db, func(tx *gorm.DB) (err error) {
+	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
 		var role base_db_model.Role
 		if err = tx.Where("name = ?", roleName).First(&role).Error; err != nil {
 			return

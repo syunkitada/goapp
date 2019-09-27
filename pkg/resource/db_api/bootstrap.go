@@ -1,8 +1,6 @@
 package db_api
 
 import (
-	"github.com/jinzhu/gorm"
-
 	"github.com/syunkitada/goapp/pkg/lib/exec_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/resource/db_model"
@@ -15,29 +13,25 @@ func (api *Api) BootstrapResource(tctx *logger.TraceContext, isRecreate bool) (e
 		return err
 	}
 
-	var db *gorm.DB
-	db, err = api.Open(tctx)
-	if err != nil {
-		return err
-	}
-	defer api.Close(tctx, db)
+	api.MustOpen()
+	defer api.MustClose()
 
-	if err = db.AutoMigrate(&db_model.Region{}).Error; err != nil {
+	if err = api.DB.AutoMigrate(&db_model.Region{}).Error; err != nil {
 		return err
 	}
-	if err = db.AutoMigrate(&db_model.Datacenter{}).Error; err != nil {
+	if err = api.DB.AutoMigrate(&db_model.Datacenter{}).Error; err != nil {
 		return err
 	}
-	if err = db.AutoMigrate(&db_model.Floor{}).Error; err != nil {
+	if err = api.DB.AutoMigrate(&db_model.Floor{}).Error; err != nil {
 		return err
 	}
-	if err = db.AutoMigrate(&db_model.Rack{}).Error; err != nil {
+	if err = api.DB.AutoMigrate(&db_model.Rack{}).Error; err != nil {
 		return err
 	}
-	if err = db.AutoMigrate(&db_model.PhysicalModel{}).Error; err != nil {
+	if err = api.DB.AutoMigrate(&db_model.PhysicalModel{}).Error; err != nil {
 		return err
 	}
-	if err = db.AutoMigrate(&db_model.PhysicalResource{}).Error; err != nil {
+	if err = api.DB.AutoMigrate(&db_model.PhysicalResource{}).Error; err != nil {
 		return err
 	}
 

@@ -18,6 +18,6 @@ func New(baseConf *base_config.Config, mainConf *config.Config, dbApi *db_api.Ap
 	return &Resolver{
 		Resolver: base_resolver.New(baseConf, &mainConf.Resource.App, dbApi),
 		appConf:  mainConf.Resource.App,
-		dbApi:    db_api.New(baseConf, mainConf),
+		dbApi:    dbApi,
 	}
 }

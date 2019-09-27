@@ -1,11 +1,7 @@
 package base_app
 
 import (
-	"bytes"
-	"crypto/tls"
 	"encoding/json"
-	"fmt"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"os/signal"
@@ -16,19 +12,17 @@ import (
 
 	"golang.org/x/net/context"
 
-	"github.com/jinzhu/gorm"
 	"github.com/syunkitada/goapp/pkg/base/base_client"
 	"github.com/syunkitada/goapp/pkg/base/base_config"
 	"github.com/syunkitada/goapp/pkg/base/base_db_api"
 	"github.com/syunkitada/goapp/pkg/base/base_model"
 	"github.com/syunkitada/goapp/pkg/base/base_model/spec_model"
 	"github.com/syunkitada/goapp/pkg/base/base_spec"
-	"github.com/syunkitada/goapp/pkg/lib/error_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
 
 type BaseAppDriver interface {
-	MainTask(*logger.TraceContext, *gorm.DB) error
+	MainTask(tctx *logger.TraceContext) (err error)
 }
 
 type BaseApp struct {
@@ -48,7 +42,7 @@ type BaseApp struct {
 }
 
 type IQueryHandler interface {
-	Exec(tctx *logger.TraceContext, db *gorm.DB, userAuthority *base_spec.UserAuthority, httpReq *http.Request, rw http.ResponseWriter, req *base_model.Request, rep *base_model.Response) error
+	Exec(tctx *logger.TraceContext, userAuthority *base_spec.UserAuthority, httpReq *http.Request, rw http.ResponseWriter, req *base_model.Request, rep *base_model.Response) error
 }
 
 func New(conf *base_config.Config, appConf *base_config.AppConfig, dbApi base_db_api.IApi, queryHandler IQueryHandler) BaseApp {
@@ -61,6 +55,8 @@ func New(conf *base_config.Config, appConf *base_config.AppConfig, dbApi base_db
 	if appConf.KeyFile == "" {
 		appConf.KeyFile = "server.key"
 	}
+
+	dbApi.MustOpen()
 
 	return BaseApp{
 		host:               conf.Host,
@@ -76,14 +72,21 @@ func New(conf *base_config.Config, appConf *base_config.AppConfig, dbApi base_db
 	}
 }
 
+func (app *BaseApp) Bootstrap() {
+	app.dbApi.MustOpen()
+}
+
+func (app *BaseApp) MustClose() {
+}
+
 func (app *BaseApp) SetDriver(driver BaseAppDriver) {
 	app.driver = driver
 }
 
-func (app *BaseApp) SyncService(tctx *logger.TraceContext, db *gorm.DB) (err error) {
+func (app *BaseApp) SyncService(tctx *logger.TraceContext) (err error) {
 	queries := []base_client.Query{}
 	var data *base_spec.GetServicesData
-	if data, err = app.dbApi.GetServices(tctx, db, &base_spec.GetServices{}); err != nil {
+	if data, err = app.dbApi.GetServices(tctx, &base_spec.GetServices{}); err != nil {
 		return
 	}
 
@@ -94,15 +97,22 @@ func (app *BaseApp) SyncService(tctx *logger.TraceContext, db *gorm.DB) (err err
 			return
 		}
 		serviceMap[service.Name] = spec_model.ServiceRouter{
+			Token:     service.Token,
 			Endpoints: strings.Split(service.Endpoints, ","),
 			QueryMap:  queryMap,
 		}
 
 		if service.SyncRootCluster {
+			var token string
+			token, err = app.dbApi.IssueToken(service.Name)
+			if err != nil {
+				return
+			}
 			queries = append(queries, base_client.Query{
 				Name: "UpdateService",
 				Data: base_spec.UpdateService{
 					Name:            service.Name,
+					Token:           token,
 					Scope:           service.Scope,
 					Endpoints:       app.appConf.Endpoints,
 					ProjectRoles:    strings.Split(service.ProjectRoles, ","),
@@ -146,6 +156,7 @@ func (app *BaseApp) mainLoop() {
 				logger.Fatalf(tctx, "Failed graceful shutdown: %v", err)
 			}
 
+			app.dbApi.MustClose()
 			logger.Info(tctx, "Completed graceful shutdown")
 			logger.EndTrace(tctx, startTime, nil, 0)
 			os.Exit(0)
@@ -159,16 +170,11 @@ func (app *BaseApp) mainTask(tctx *logger.TraceContext) {
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 0) }()
 
-	var db *gorm.DB
-	if db, err = app.dbApi.Open(tctx); err != nil {
-		return
-	}
-	defer app.dbApi.Close(tctx, db)
-	if err = app.SyncService(tctx, db); err != nil {
+	if err = app.SyncService(tctx); err != nil {
 		return
 	}
 
-	if err = app.driver.MainTask(tctx, db); err != nil {
+	if err = app.driver.MainTask(tctx); err != nil {
 		return
 	}
 }
@@ -234,109 +240,4 @@ func (app *BaseApp) gracefulShutdown(ctx context.Context) error {
 	}
 
 	return nil
-}
-
-func (app *BaseApp) Proxy(tctx *logger.TraceContext, endpoint string, rawReq []byte) (repBytes []byte, statusCode int, err error) {
-	var httpResp *http.Response
-	reqBuffer := bytes.NewBuffer(rawReq)
-	var httpReq *http.Request
-	if httpReq, err = http.NewRequest("POST", endpoint+"/q", reqBuffer); err != nil {
-		return
-	}
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}
-	httpClient := &http.Client{
-		Transport: tr,
-	}
-
-	httpResp, err = httpClient.Do(httpReq)
-	if err != nil {
-		return
-	}
-
-	defer func() {
-		if tmpErr := httpResp.Body.Close(); tmpErr != nil {
-			logger.Errorf(tctx, err, "Failed httpResp.Body.Close()")
-		}
-	}()
-	statusCode = httpResp.StatusCode
-	repBytes, err = ioutil.ReadAll(httpResp.Body)
-	return
-}
-
-func (app *BaseApp) NewHandler() http.Handler {
-	handler := http.NewServeMux()
-	handler.HandleFunc("/q", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("DEBUGHOST req", r.Host)
-		var err error
-		tctx := logger.NewTraceContext(app.host, app.name)
-		startTime := logger.StartTrace(tctx)
-		defer func() {
-			if p := recover(); p != nil {
-				w.WriteHeader(http.StatusInternalServerError)
-				err = error_utils.NewRecoveredError(p)
-				logger.Errorf(tctx, err, "Panic occured")
-			}
-		}()
-
-		w.Header().Set("Access-Control-Allow-Origin", "http://192.168.10.121:3000") // TODO FIXME
-		w.Header().Set("Access-Control-Allow-Credentials", "true")                  // TODO FIXME
-
-		var db *gorm.DB
-		if db, err = app.dbApi.Open(tctx); err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			// TODO write body
-			return
-		}
-		defer app.dbApi.Close(tctx, db)
-
-		service, userAuthority, rawReq, req, rep, err := app.Start(tctx, db, r)
-		defer func() { app.End(tctx, startTime, err) }()
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			var bytes []byte
-			bytes, err = json.Marshal(&rep)
-			if err != nil {
-				logger.Error(tctx, err, "Failed json.Marshal")
-				return
-			}
-			w.Write(bytes)
-			return
-		}
-
-		statusCode := 0
-		var repBytes []byte
-		for _, endpoint := range service.Endpoints {
-			if endpoint == "" {
-				if err = app.queryHandler.Exec(tctx, db, userAuthority, r, w, req, rep); err != nil {
-					fmt.Println("DEBUG, req", req)
-					break
-				}
-				repBytes, err = json.Marshal(&rep)
-				break
-			}
-
-			if repBytes, statusCode, err = app.Proxy(tctx, endpoint, rawReq); err != nil {
-				fmt.Println("DEBUG proxy failed", err)
-				continue
-			} else {
-				fmt.Println("DEBUG proxy success", endpoint)
-				break
-			}
-		}
-
-		if statusCode != 0 {
-			w.WriteHeader(statusCode)
-		} else {
-			if err == nil {
-				w.WriteHeader(http.StatusOK)
-			} else {
-				w.WriteHeader(http.StatusInternalServerError)
-			}
-		}
-		w.Write(repBytes)
-	})
-
-	return handler
 }

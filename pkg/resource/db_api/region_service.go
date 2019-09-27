@@ -7,19 +7,19 @@ import (
 	"github.com/syunkitada/goapp/pkg/resource/spec"
 )
 
-func (api *Api) GetRegionService(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetRegionService) (data *spec.RegionService, err error) {
+func (api *Api) GetRegionService(tctx *logger.TraceContext, input *spec.GetRegionService) (data *spec.RegionService, err error) {
 	data = &spec.RegionService{}
-	err = db.Where("name = ? AND deleted_at IS NULL", input.Name).First(data).Error
+	err = api.DB.Where("name = ? AND deleted_at IS NULL", input.Name).First(data).Error
 	return
 }
 
-func (api *Api) GetRegionServices(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetRegionServices) (data []spec.RegionService, err error) {
-	err = db.Where("region = ? AND deleted_at IS NULL", input.Region).Find(&data).Error
+func (api *Api) GetRegionServices(tctx *logger.TraceContext, input *spec.GetRegionServices) (data []spec.RegionService, err error) {
+	err = api.DB.Where("region = ? AND deleted_at IS NULL", input.Region).Find(&data).Error
 	return
 }
 
-func (api *Api) CreateRegionServices(tctx *logger.TraceContext, db *gorm.DB, input []spec.RegionService) (err error) {
-	err = api.Transact(tctx, db, func(tx *gorm.DB) (err error) {
+func (api *Api) CreateRegionServices(tctx *logger.TraceContext, input []spec.RegionService) (err error) {
+	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
 		for _, val := range input {
 			var tmp db_model.RegionService
 			if err = tx.Where("name = ? AND region = ?", val.Name, val.Region).
@@ -42,8 +42,8 @@ func (api *Api) CreateRegionServices(tctx *logger.TraceContext, db *gorm.DB, inp
 	return
 }
 
-func (api *Api) UpdateRegionServices(tctx *logger.TraceContext, db *gorm.DB, input []spec.RegionService) (err error) {
-	err = api.Transact(tctx, db, func(tx *gorm.DB) (err error) {
+func (api *Api) UpdateRegionServices(tctx *logger.TraceContext, input []spec.RegionService) (err error) {
+	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
 		for _, val := range input {
 			if err = tx.Model(&db_model.RegionService{}).
 				Where("name = ? AND region = ?", val.Name, val.Region).
@@ -58,8 +58,8 @@ func (api *Api) UpdateRegionServices(tctx *logger.TraceContext, db *gorm.DB, inp
 	return
 }
 
-func (api *Api) DeleteRegionService(tctx *logger.TraceContext, db *gorm.DB, input *spec.DeleteRegionService) (err error) {
-	err = api.Transact(tctx, db, func(tx *gorm.DB) (err error) {
+func (api *Api) DeleteRegionService(tctx *logger.TraceContext, input *spec.DeleteRegionService) (err error) {
+	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
 		err = tx.Where("name = ? AND region = ?", input.Name, input.Region).
 			Delete(&db_model.RegionService{}).Error
 		return
@@ -67,8 +67,8 @@ func (api *Api) DeleteRegionService(tctx *logger.TraceContext, db *gorm.DB, inpu
 	return
 }
 
-func (api *Api) DeleteRegionServices(tctx *logger.TraceContext, db *gorm.DB, input []spec.RegionService) (err error) {
-	err = api.Transact(tctx, db, func(tx *gorm.DB) (err error) {
+func (api *Api) DeleteRegionServices(tctx *logger.TraceContext, input []spec.RegionService) (err error) {
+	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
 		for _, val := range input {
 			if err = tx.Where("name = ? AND region = ?", val.Name, val.Region).
 				Delete(&db_model.RegionService{}).Error; err != nil {

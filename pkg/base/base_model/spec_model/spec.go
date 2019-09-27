@@ -12,7 +12,6 @@ type Api struct {
 	Cmds            map[string]string
 	RequiredAuth    bool
 	RequiredProject bool
-	RequiredService bool
 	Queries         []Query
 	QueryModels     []QueryModel
 	ViewModels      []interface{}

@@ -52,10 +52,19 @@ var ApiQueryMap = map[string]map[string]spec_model.QueryModel{
 		"UpdateService": spec_model.QueryModel{},
 	},
 	"Home": map[string]spec_model.QueryModel{
-		"GetAllUsers": spec_model.QueryModel{},
-		"GetUser":     spec_model.QueryModel{},
+		"GetAllUsers": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: false,
+		},
+		"GetUser": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: false,
+		},
 	},
 	"HomeProject": map[string]spec_model.QueryModel{
-		"GetUsers": spec_model.QueryModel{},
+		"GetUsers": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
 	},
 }

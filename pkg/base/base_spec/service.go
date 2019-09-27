@@ -7,6 +7,7 @@ import (
 
 type UpdateService struct {
 	Name            string
+	Token           string
 	Scope           string
 	SyncRootCluster bool
 	ProjectRoles    []string
@@ -26,6 +27,7 @@ type GetServicesData struct {
 
 type Service struct {
 	Name            string
+	Token           string
 	Scope           string
 	Endpoints       string
 	ProjectRoles    string

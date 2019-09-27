@@ -10,9 +10,9 @@ import (
 	"github.com/syunkitada/goapp/pkg/resource/spec"
 )
 
-func (resolver *Resolver) GetPhysicalResource(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetPhysicalResource) (data *spec.GetPhysicalResourceData, code uint8, err error) {
+func (resolver *Resolver) GetPhysicalResource(tctx *logger.TraceContext, input *spec.GetPhysicalResource) (data *spec.GetPhysicalResourceData, code uint8, err error) {
 	var physicalResource *spec.PhysicalResource
-	if physicalResource, err = resolver.dbApi.GetPhysicalResource(tctx, db, input); err != nil {
+	if physicalResource, err = resolver.dbApi.GetPhysicalResource(tctx, input); err != nil {
 		if gorm.IsRecordNotFoundError(err) {
 			code = base_const.CodeOkNotFound
 			return
@@ -25,9 +25,9 @@ func (resolver *Resolver) GetPhysicalResource(tctx *logger.TraceContext, db *gor
 	return
 }
 
-func (resolver *Resolver) GetPhysicalResources(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetPhysicalResources) (data *spec.GetPhysicalResourcesData, code uint8, err error) {
+func (resolver *Resolver) GetPhysicalResources(tctx *logger.TraceContext, input *spec.GetPhysicalResources) (data *spec.GetPhysicalResourcesData, code uint8, err error) {
 	var physicalResources []spec.PhysicalResource
-	if physicalResources, err = resolver.dbApi.GetPhysicalResources(tctx, db, input); err != nil {
+	if physicalResources, err = resolver.dbApi.GetPhysicalResources(tctx, input); err != nil {
 		code = base_const.CodeServerInternalError
 		return
 	}
@@ -36,13 +36,13 @@ func (resolver *Resolver) GetPhysicalResources(tctx *logger.TraceContext, db *go
 	return
 }
 
-func (resolver *Resolver) CreatePhysicalResource(tctx *logger.TraceContext, db *gorm.DB, input *spec.CreatePhysicalResource) (data *spec.CreatePhysicalResourceData, code uint8, err error) {
+func (resolver *Resolver) CreatePhysicalResource(tctx *logger.TraceContext, input *spec.CreatePhysicalResource) (data *spec.CreatePhysicalResourceData, code uint8, err error) {
 	var specs []spec.PhysicalResource
 	if specs, err = resolver.ConvertToPhysicalResourceSpecs(input.Spec); err != nil {
 		code = base_const.CodeClientBadRequest
 		return
 	}
-	if err = resolver.dbApi.CreatePhysicalResources(tctx, db, specs); err != nil {
+	if err = resolver.dbApi.CreatePhysicalResources(tctx, specs); err != nil {
 		code = base_const.CodeServerInternalError
 		return
 	}
@@ -51,13 +51,13 @@ func (resolver *Resolver) CreatePhysicalResource(tctx *logger.TraceContext, db *
 	return
 }
 
-func (resolver *Resolver) UpdatePhysicalResource(tctx *logger.TraceContext, db *gorm.DB, input *spec.UpdatePhysicalResource) (data *spec.UpdatePhysicalResourceData, code uint8, err error) {
+func (resolver *Resolver) UpdatePhysicalResource(tctx *logger.TraceContext, input *spec.UpdatePhysicalResource) (data *spec.UpdatePhysicalResourceData, code uint8, err error) {
 	var specs []spec.PhysicalResource
 	if specs, err = resolver.ConvertToPhysicalResourceSpecs(input.Spec); err != nil {
 		code = base_const.CodeClientBadRequest
 		return
 	}
-	if err = resolver.dbApi.UpdatePhysicalResources(tctx, db, specs); err != nil {
+	if err = resolver.dbApi.UpdatePhysicalResources(tctx, specs); err != nil {
 		code = base_const.CodeServerInternalError
 		return
 	}
@@ -66,8 +66,8 @@ func (resolver *Resolver) UpdatePhysicalResource(tctx *logger.TraceContext, db *
 	return
 }
 
-func (resolver *Resolver) DeletePhysicalResource(tctx *logger.TraceContext, db *gorm.DB, input *spec.DeletePhysicalResource) (data *spec.DeletePhysicalResourceData, code uint8, err error) {
-	if err = resolver.dbApi.DeletePhysicalResource(tctx, db, input); err != nil {
+func (resolver *Resolver) DeletePhysicalResource(tctx *logger.TraceContext, input *spec.DeletePhysicalResource) (data *spec.DeletePhysicalResourceData, code uint8, err error) {
+	if err = resolver.dbApi.DeletePhysicalResource(tctx, input); err != nil {
 		code = base_const.CodeServerInternalError
 		return
 	}
@@ -76,13 +76,13 @@ func (resolver *Resolver) DeletePhysicalResource(tctx *logger.TraceContext, db *
 	return
 }
 
-func (resolver *Resolver) DeletePhysicalResources(tctx *logger.TraceContext, db *gorm.DB, input *spec.DeletePhysicalResources) (data *spec.DeletePhysicalResourcesData, code uint8, err error) {
+func (resolver *Resolver) DeletePhysicalResources(tctx *logger.TraceContext, input *spec.DeletePhysicalResources) (data *spec.DeletePhysicalResourcesData, code uint8, err error) {
 	var specs []spec.PhysicalResource
 	if specs, err = resolver.ConvertToPhysicalResourceSpecs(input.Spec); err != nil {
 		code = base_const.CodeClientBadRequest
 		return
 	}
-	if err = resolver.dbApi.DeletePhysicalResources(tctx, db, specs); err != nil {
+	if err = resolver.dbApi.DeletePhysicalResources(tctx, specs); err != nil {
 		code = base_const.CodeServerInternalError
 		return
 	}

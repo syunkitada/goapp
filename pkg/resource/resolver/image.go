@@ -10,9 +10,9 @@ import (
 	"github.com/syunkitada/goapp/pkg/resource/spec"
 )
 
-func (resolver *Resolver) GetImage(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetImage) (data *spec.GetImageData, code uint8, err error) {
+func (resolver *Resolver) GetImage(tctx *logger.TraceContext, input *spec.GetImage) (data *spec.GetImageData, code uint8, err error) {
 	var image *spec.Image
-	if image, err = resolver.dbApi.GetImage(tctx, db, input); err != nil {
+	if image, err = resolver.dbApi.GetImage(tctx, input); err != nil {
 		if gorm.IsRecordNotFoundError(err) {
 			code = base_const.CodeOkNotFound
 			return
@@ -25,9 +25,9 @@ func (resolver *Resolver) GetImage(tctx *logger.TraceContext, db *gorm.DB, input
 	return
 }
 
-func (resolver *Resolver) GetImages(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetImages) (data *spec.GetImagesData, code uint8, err error) {
+func (resolver *Resolver) GetImages(tctx *logger.TraceContext, input *spec.GetImages) (data *spec.GetImagesData, code uint8, err error) {
 	var images []spec.Image
-	if images, err = resolver.dbApi.GetImages(tctx, db, input); err != nil {
+	if images, err = resolver.dbApi.GetImages(tctx, input); err != nil {
 		code = base_const.CodeServerInternalError
 		return
 	}
@@ -36,13 +36,13 @@ func (resolver *Resolver) GetImages(tctx *logger.TraceContext, db *gorm.DB, inpu
 	return
 }
 
-func (resolver *Resolver) CreateImage(tctx *logger.TraceContext, db *gorm.DB, input *spec.CreateImage) (data *spec.CreateImageData, code uint8, err error) {
+func (resolver *Resolver) CreateImage(tctx *logger.TraceContext, input *spec.CreateImage) (data *spec.CreateImageData, code uint8, err error) {
 	var specs []spec.Image
 	if specs, err = resolver.ConvertToImageSpecs(input.Spec); err != nil {
 		code = base_const.CodeClientBadRequest
 		return
 	}
-	if err = resolver.dbApi.CreateImages(tctx, db, specs); err != nil {
+	if err = resolver.dbApi.CreateImages(tctx, specs); err != nil {
 		code = base_const.CodeServerInternalError
 		return
 	}
@@ -51,13 +51,13 @@ func (resolver *Resolver) CreateImage(tctx *logger.TraceContext, db *gorm.DB, in
 	return
 }
 
-func (resolver *Resolver) UpdateImage(tctx *logger.TraceContext, db *gorm.DB, input *spec.UpdateImage) (data *spec.UpdateImageData, code uint8, err error) {
+func (resolver *Resolver) UpdateImage(tctx *logger.TraceContext, input *spec.UpdateImage) (data *spec.UpdateImageData, code uint8, err error) {
 	var specs []spec.Image
 	if specs, err = resolver.ConvertToImageSpecs(input.Spec); err != nil {
 		code = base_const.CodeClientBadRequest
 		return
 	}
-	if err = resolver.dbApi.UpdateImages(tctx, db, specs); err != nil {
+	if err = resolver.dbApi.UpdateImages(tctx, specs); err != nil {
 		code = base_const.CodeServerInternalError
 		return
 	}
@@ -66,8 +66,8 @@ func (resolver *Resolver) UpdateImage(tctx *logger.TraceContext, db *gorm.DB, in
 	return
 }
 
-func (resolver *Resolver) DeleteImage(tctx *logger.TraceContext, db *gorm.DB, input *spec.DeleteImage) (data *spec.DeleteImageData, code uint8, err error) {
-	if err = resolver.dbApi.DeleteImage(tctx, db, input); err != nil {
+func (resolver *Resolver) DeleteImage(tctx *logger.TraceContext, input *spec.DeleteImage) (data *spec.DeleteImageData, code uint8, err error) {
+	if err = resolver.dbApi.DeleteImage(tctx, input); err != nil {
 		code = base_const.CodeServerInternalError
 		return
 	}
@@ -76,13 +76,13 @@ func (resolver *Resolver) DeleteImage(tctx *logger.TraceContext, db *gorm.DB, in
 	return
 }
 
-func (resolver *Resolver) DeleteImages(tctx *logger.TraceContext, db *gorm.DB, input *spec.DeleteImages) (data *spec.DeleteImagesData, code uint8, err error) {
+func (resolver *Resolver) DeleteImages(tctx *logger.TraceContext, input *spec.DeleteImages) (data *spec.DeleteImagesData, code uint8, err error) {
 	var specs []spec.Image
 	if specs, err = resolver.ConvertToImageSpecs(input.Spec); err != nil {
 		code = base_const.CodeClientBadRequest
 		return
 	}
-	if err = resolver.dbApi.DeleteImages(tctx, db, specs); err != nil {
+	if err = resolver.dbApi.DeleteImages(tctx, specs); err != nil {
 		code = base_const.CodeServerInternalError
 		return
 	}

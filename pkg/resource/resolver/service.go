@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jinzhu/gorm"
 
 	"github.com/syunkitada/goapp/pkg/base/base_const"
 	"github.com/syunkitada/goapp/pkg/base/base_model/index_model"
@@ -14,7 +13,7 @@ import (
 	"github.com/syunkitada/goapp/pkg/resource/spec/genpkg"
 )
 
-func (resolver *Resolver) GetServiceIndex(tctx *logger.TraceContext, db *gorm.DB, input *base_spec.GetServiceIndex) (data *base_spec.GetServiceIndexData, code uint8, err error) {
+func (resolver *Resolver) GetServiceIndex(tctx *logger.TraceContext, input *base_spec.GetServiceIndex) (data *base_spec.GetServiceIndexData, code uint8, err error) {
 	fmt.Println("DEBUG adminalalalal", input.Name)
 	switch input.Name {
 	case "ResourcePhysical":
@@ -53,13 +52,62 @@ func (resolver *Resolver) GetServiceIndex(tctx *logger.TraceContext, db *gorm.DB
 	return
 }
 
-func (resolver *Resolver) GetServiceDashboardIndex(tctx *logger.TraceContext, db *gorm.DB,
+func (resolver *Resolver) GetServiceDashboardIndex(tctx *logger.TraceContext,
 	input *base_spec.GetServiceDashboardIndex) (data *base_spec.GetServiceDashboardIndexData, code uint8, err error) {
 	// TODO
 	switch input.Name {
+	case "ResourcePhysicalAdmin":
+		var datacenters []spec.Datacenter
+		datacenters, err = resolver.dbApi.GetDatacenters(tctx, &spec.GetDatacenters{})
+		if err != nil {
+			return
+		}
+
+		data = &base_spec.GetServiceDashboardIndexData{
+			Data: map[string]interface{}{
+				"Datacenters": datacenters,
+			},
+			Index: index_model.DashboardIndex{
+				View: index_model.Panels{
+					Name: "Root",
+					Kind: "RoutePanels",
+					Panels: []interface{}{
+						spec.DatacentersTable,
+						index_model.Tabs{
+							Name:             "Resources",
+							Kind:             "RouteTabs",
+							Subname:          "Kind",
+							Route:            "/Datacenters/:Datacenter/Resources/:Kind",
+							TabParam:         "Kind",
+							GetQueries:       []string{"GetPhysicalResources", "GetRacks", "GetFloors", "GetPhysicalModels"},
+							ExpectedDataKeys: []string{"PhysicalResources", "Racks", "Floors", "PhysicalModels"},
+							IsSync:           true,
+							Tabs: []interface{}{
+								spec.PhysicalResourcesTable,
+								spec.RacksTable,
+								spec.FloorsTable,
+								spec.PhysicalModelsTable,
+							}, // Tabs
+						},
+						gin.H{
+							"Name":      "Resource",
+							"Subname":   "Name",
+							"Route":     "/Datacenters/:Datacenter/Resources/:Kind/Detail/:Name/:Subkind",
+							"Kind":      "RoutePanes",
+							"PaneParam": "Kind",
+							"Panes": []interface{}{
+								spec.PhysicalModelsDetail,
+								spec.PhysicalResourcesDetail,
+							},
+						},
+					},
+				},
+			},
+		}
+		code = base_const.CodeOk
 	case "ResourcePhysical":
 		var datacenters []spec.Datacenter
-		datacenters, err = resolver.dbApi.GetDatacenters(tctx, db, &spec.GetDatacenters{})
+		datacenters, err = resolver.dbApi.GetDatacenters(tctx, &spec.GetDatacenters{})
 		if err != nil {
 			return
 		}

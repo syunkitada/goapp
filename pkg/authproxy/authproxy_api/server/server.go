@@ -19,7 +19,7 @@ type Server struct {
 func New(baseConf *base_config.Config, mainConf *config.Config) *Server {
 	dbApi := db_api.New(baseConf, mainConf)
 	resolver := resolver.New(baseConf, mainConf, dbApi)
-	queryHandler := genpkg.NewQueryHandler(baseConf, &mainConf.Authproxy.App, dbApi, resolver)
+	queryHandler := genpkg.NewQueryHandler(baseConf, &mainConf.Authproxy.App, resolver)
 	baseApp := base_app.New(baseConf, &mainConf.Authproxy.App, dbApi, queryHandler)
 
 	srv := &Server{

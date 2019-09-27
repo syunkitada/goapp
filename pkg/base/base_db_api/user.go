@@ -17,12 +17,12 @@ import (
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
 
-func (api *Api) GetUserWithValidatePassword(tctx *logger.TraceContext, db *gorm.DB, name string, password string) (user *base_db_model.User, code uint8, err error) {
+func (api *Api) GetUserWithValidatePassword(tctx *logger.TraceContext, name string, password string) (user *base_db_model.User, code uint8, err error) {
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
 	var tmpUser base_db_model.User
-	if err = db.Where("name = ?", name).First(&tmpUser).Error; err != nil {
+	if err = api.DB.Where("name = ?", name).First(&tmpUser).Error; err != nil {
 		if !gorm.IsRecordNotFoundError(err) {
 			code = base_const.CodeClientInvalidAuth
 		} else {
@@ -46,7 +46,7 @@ func (api *Api) GetUserWithValidatePassword(tctx *logger.TraceContext, db *gorm.
 	return
 }
 
-func (api *Api) GetUserAuthority(tctx *logger.TraceContext, db *gorm.DB, username string) (*base_spec.UserAuthority, error) {
+func (api *Api) GetUserAuthority(tctx *logger.TraceContext, username string) (*base_spec.UserAuthority, error) {
 	var err error
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
@@ -64,7 +64,7 @@ func (api *Api) GetUserAuthority(tctx *logger.TraceContext, db *gorm.DB, usernam
 		"INNER JOIN project_roles as pr ON p.project_role_id = pr.id " +
 		"INNER JOIN project_role_services as prs ON pr.id = prs.project_role_id " +
 		"INNER JOIN services as s ON prs.service_id = s.id "
-	if err = db.Raw(query+"WHERE u.name = ?", username).Scan(&users).Error; err != nil {
+	if err = api.DB.Raw(query+"WHERE u.name = ?", username).Scan(&users).Error; err != nil {
 		return nil, err
 	}
 
@@ -101,11 +101,11 @@ func (api *Api) GetUserAuthority(tctx *logger.TraceContext, db *gorm.DB, usernam
 	return &userAuthority, nil
 }
 
-func (api *Api) CreateUser(tctx *logger.TraceContext, db *gorm.DB, name string, password string) (err error) {
+func (api *Api) CreateUser(tctx *logger.TraceContext, name string, password string) (err error) {
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
-	err = api.Transact(tctx, db, func(tx *gorm.DB) (err error) {
+	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
 		var user base_db_model.User
 		if err = tx.Where("name = ?", name).First(&user).Error; err != nil {
 			if !gorm.IsRecordNotFoundError(err) {
@@ -152,7 +152,7 @@ func (api *Api) IssueToken(userName string) (string, error) {
 	return tokenString, tokenErr
 }
 
-func (api *Api) LoginWithToken(tctx *logger.TraceContext, db *gorm.DB, token string) (data *base_spec.UserAuthority, err error) {
+func (api *Api) LoginWithToken(tctx *logger.TraceContext, token string) (data *base_spec.UserAuthority, err error) {
 	parsedToken, err := jwt.Parse(token, func(t *jwt.Token) (interface{}, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 			msg := fmt.Errorf("Unexpected signing method: %v", t.Header["alg"])
@@ -176,6 +176,6 @@ func (api *Api) LoginWithToken(tctx *logger.TraceContext, db *gorm.DB, token str
 	}
 
 	issuer := claims["iss"].(string)
-	data, err = api.GetUserAuthority(tctx, db, issuer)
+	data, err = api.GetUserAuthority(tctx, issuer)
 	return
 }

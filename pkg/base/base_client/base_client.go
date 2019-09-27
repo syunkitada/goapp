@@ -22,6 +22,7 @@ type Client struct {
 	localHandler http.Handler
 	token        string
 	service      string
+	project      string
 	endpoints    []string
 }
 
@@ -41,6 +42,10 @@ func NewClient(conf *base_config.ClientConfig) *Client {
 	}
 
 	return client
+}
+
+func (client *Client) SetProject(project string) {
+	client.project = project
 }
 
 type Query struct {
@@ -69,10 +74,8 @@ func (client *Client) Request(tctx *logger.TraceContext, service string, queries
 	req := base_model.Request{
 		Tctx:    tctx,
 		Service: service,
+		Project: client.project,
 		Queries: reqQueries,
-	}
-	if requiredAuth {
-		req.Token = client.token
 	}
 
 	var reqJson []byte
@@ -89,6 +92,10 @@ func (client *Client) Request(tctx *logger.TraceContext, service string, queries
 			"POST", "http://127.0.0.1/q", reqBuffer); err != nil {
 			return err
 		}
+		if requiredAuth {
+			httpReq.Header.Add("X-Auth-Token", client.token)
+		}
+
 		w := httptest.NewRecorder()
 		client.localHandler.ServeHTTP(w, httpReq)
 		body = w.Body.Bytes()
@@ -98,6 +105,9 @@ func (client *Client) Request(tctx *logger.TraceContext, service string, queries
 		for _, target := range client.endpoints {
 			if httpReq, err = http.NewRequest("POST", target+"/q", reqBuffer); err != nil {
 				return err
+			}
+			if requiredAuth {
+				httpReq.Header.Add("X-Auth-Token", client.token)
 			}
 
 			httpResp, err = client.httpClient.Do(httpReq)
@@ -162,6 +172,7 @@ func (client *Client) Login(tctx *logger.TraceContext, input *base_spec.Login) (
 		return
 	}
 	data = &result.Data
+	client.token = data.Token
 	return
 }
 

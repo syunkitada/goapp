@@ -12,19 +12,20 @@ import (
 )
 
 type IApi interface {
-	Open(tctx *logger.TraceContext) (db *gorm.DB, err error)
-	Close(tctx *logger.TraceContext, db *gorm.DB)
-	GetUserWithValidatePassword(tctx *logger.TraceContext, db *gorm.DB, name string, password string) (user *base_db_model.User, code uint8, err error)
-	GetUserAuthority(tctx *logger.TraceContext, db *gorm.DB, username string) (data *base_spec.UserAuthority, err error)
-	CreateOrUpdateService(tctx *logger.TraceContext, db *gorm.DB, input *base_spec.UpdateService) (err error)
-	GetServices(tctx *logger.TraceContext, db *gorm.DB, input *base_spec.GetServices) (data *base_spec.GetServicesData, err error)
-	LoginWithToken(tctx *logger.TraceContext, db *gorm.DB, token string) (data *base_spec.UserAuthority, err error)
+	MustOpen()
+	MustClose()
+	GetUserWithValidatePassword(tctx *logger.TraceContext, name string, password string) (user *base_db_model.User, code uint8, err error)
+	GetUserAuthority(tctx *logger.TraceContext, username string) (data *base_spec.UserAuthority, err error)
+	CreateOrUpdateService(tctx *logger.TraceContext, input *base_spec.UpdateService) (err error)
+	GetServices(tctx *logger.TraceContext, input *base_spec.GetServices) (data *base_spec.GetServicesData, err error)
+	LoginWithToken(tctx *logger.TraceContext, token string) (data *base_spec.UserAuthority, err error)
 	IssueToken(userName string) (token string, err error)
 }
 
 type Api struct {
 	baseConf     *base_config.Config
 	appConf      *base_config.AppConfig
+	DB           *gorm.DB
 	databaseConf base_config.DatabaseConfig
 	secrets      []string
 	apiQueryMap  map[string]map[string]spec_model.QueryModel
@@ -42,29 +43,23 @@ func New(baseConf *base_config.Config, appConf *base_config.AppConfig, apiQueryM
 	return &api
 }
 
-func (api *Api) Open(tctx *logger.TraceContext) (*gorm.DB, error) {
-	var err error
-	startTime := logger.StartTrace(tctx)
-	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
-
-	var db *gorm.DB
-	db, err = gorm.Open("mysql", api.databaseConf.Connection)
-	if err != nil {
-		return nil, err
+func (api *Api) MustOpen() {
+	db, tmpErr := gorm.Open("mysql", api.databaseConf.Connection)
+	if tmpErr != nil {
+		logger.StdoutFatalf("Failed Open: %v", tmpErr)
 	}
 	db.LogMode(api.baseConf.EnableDatabaseLog)
-
-	return db, nil
+	api.DB = db
 }
 
-func (api *Api) Close(tctx *logger.TraceContext, db *gorm.DB) {
-	if err := db.Close(); err != nil {
-		logger.Error(tctx, err)
+func (api *Api) MustClose() {
+	if tmpErr := api.DB.Close(); tmpErr != nil {
+		logger.StdoutFatalf("Failed Close: %v", tmpErr)
 	}
 }
 
-func (api *Api) Transact(tctx *logger.TraceContext, db *gorm.DB, txFunc func(tx *gorm.DB) (err error)) (err error) {
-	tx := db.Begin()
+func (api *Api) Transact(tctx *logger.TraceContext, txFunc func(tx *gorm.DB) (err error)) (err error) {
+	tx := api.DB.Begin()
 	if err = tx.Error; err != nil {
 		return
 	}

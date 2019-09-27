@@ -10,9 +10,9 @@ import (
 	"github.com/syunkitada/goapp/pkg/resource/spec"
 )
 
-func (resolver *Resolver) GetCluster(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetCluster) (data *spec.GetClusterData, code uint8, err error) {
+func (resolver *Resolver) GetCluster(tctx *logger.TraceContext, input *spec.GetCluster) (data *spec.GetClusterData, code uint8, err error) {
 	var cluster *spec.Cluster
-	if cluster, err = resolver.dbApi.GetCluster(tctx, db, input); err != nil {
+	if cluster, err = resolver.dbApi.GetCluster(tctx, input); err != nil {
 		if gorm.IsRecordNotFoundError(err) {
 			code = base_const.CodeOkNotFound
 			return
@@ -25,9 +25,9 @@ func (resolver *Resolver) GetCluster(tctx *logger.TraceContext, db *gorm.DB, inp
 	return
 }
 
-func (resolver *Resolver) GetClusters(tctx *logger.TraceContext, db *gorm.DB, input *spec.GetClusters) (data *spec.GetClustersData, code uint8, err error) {
+func (resolver *Resolver) GetClusters(tctx *logger.TraceContext, input *spec.GetClusters) (data *spec.GetClustersData, code uint8, err error) {
 	var clusters []spec.Cluster
-	if clusters, err = resolver.dbApi.GetClusters(tctx, db, input); err != nil {
+	if clusters, err = resolver.dbApi.GetClusters(tctx, input); err != nil {
 		code = base_const.CodeServerInternalError
 		return
 	}
@@ -36,13 +36,13 @@ func (resolver *Resolver) GetClusters(tctx *logger.TraceContext, db *gorm.DB, in
 	return
 }
 
-func (resolver *Resolver) CreateCluster(tctx *logger.TraceContext, db *gorm.DB, input *spec.CreateCluster) (data *spec.CreateClusterData, code uint8, err error) {
+func (resolver *Resolver) CreateCluster(tctx *logger.TraceContext, input *spec.CreateCluster) (data *spec.CreateClusterData, code uint8, err error) {
 	var specs []spec.Cluster
 	if specs, err = resolver.ConvertToClusterSpecs(input.Spec); err != nil {
 		code = base_const.CodeClientBadRequest
 		return
 	}
-	if err = resolver.dbApi.CreateClusters(tctx, db, specs); err != nil {
+	if err = resolver.dbApi.CreateClusters(tctx, specs); err != nil {
 		code = base_const.CodeServerInternalError
 		return
 	}
@@ -51,13 +51,13 @@ func (resolver *Resolver) CreateCluster(tctx *logger.TraceContext, db *gorm.DB, 
 	return
 }
 
-func (resolver *Resolver) UpdateCluster(tctx *logger.TraceContext, db *gorm.DB, input *spec.UpdateCluster) (data *spec.UpdateClusterData, code uint8, err error) {
+func (resolver *Resolver) UpdateCluster(tctx *logger.TraceContext, input *spec.UpdateCluster) (data *spec.UpdateClusterData, code uint8, err error) {
 	var specs []spec.Cluster
 	if specs, err = resolver.ConvertToClusterSpecs(input.Spec); err != nil {
 		code = base_const.CodeClientBadRequest
 		return
 	}
-	if err = resolver.dbApi.UpdateClusters(tctx, db, specs); err != nil {
+	if err = resolver.dbApi.UpdateClusters(tctx, specs); err != nil {
 		code = base_const.CodeServerInternalError
 		return
 	}
@@ -66,8 +66,8 @@ func (resolver *Resolver) UpdateCluster(tctx *logger.TraceContext, db *gorm.DB, 
 	return
 }
 
-func (resolver *Resolver) DeleteCluster(tctx *logger.TraceContext, db *gorm.DB, input *spec.DeleteCluster) (data *spec.DeleteClusterData, code uint8, err error) {
-	if err = resolver.dbApi.DeleteCluster(tctx, db, input); err != nil {
+func (resolver *Resolver) DeleteCluster(tctx *logger.TraceContext, input *spec.DeleteCluster) (data *spec.DeleteClusterData, code uint8, err error) {
+	if err = resolver.dbApi.DeleteCluster(tctx, input); err != nil {
 		code = base_const.CodeServerInternalError
 		return
 	}
@@ -76,13 +76,13 @@ func (resolver *Resolver) DeleteCluster(tctx *logger.TraceContext, db *gorm.DB, 
 	return
 }
 
-func (resolver *Resolver) DeleteClusters(tctx *logger.TraceContext, db *gorm.DB, input *spec.DeleteClusters) (data *spec.DeleteClustersData, code uint8, err error) {
+func (resolver *Resolver) DeleteClusters(tctx *logger.TraceContext, input *spec.DeleteClusters) (data *spec.DeleteClustersData, code uint8, err error) {
 	var specs []spec.Cluster
 	if specs, err = resolver.ConvertToClusterSpecs(input.Spec); err != nil {
 		code = base_const.CodeClientBadRequest
 		return
 	}
-	if err = resolver.dbApi.DeleteClusters(tctx, db, specs); err != nil {
+	if err = resolver.dbApi.DeleteClusters(tctx, specs); err != nil {
 		code = base_const.CodeServerInternalError
 		return
 	}
