@@ -5,7 +5,7 @@
     "Kind": "Compute",
     "Region": "kanto",
     "ExpireDate": -1,
-    "Compute": {
+    "Spec": {
       "SchedulePolicy": {
         "Replicas": 1
       },

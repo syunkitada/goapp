@@ -13,6 +13,10 @@ type Image struct {
 	Spec         interface{}
 }
 
+type ImageUrlSpec struct {
+	Url string
+}
+
 type GetImage struct {
 	Name   string `validate:"required"`
 	Region string `validate:"required"`

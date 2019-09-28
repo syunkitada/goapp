@@ -9,7 +9,7 @@ import (
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
 
-func (resolver *Resolver) GetServiceIndex(tctx *logger.TraceContext, input *base_spec.GetServiceIndex) (data *base_spec.GetServiceIndexData, code uint8, err error) {
+func (resolver *Resolver) GetServiceIndex(tctx *logger.TraceContext, input *base_spec.GetServiceIndex, user *base_spec.UserAuthority) (data *base_spec.GetServiceIndexData, code uint8, err error) {
 	cmdMap := map[string]index_model.Cmd{}
 	cmdMaps := []map[string]index_model.Cmd{
 		base_spec.UserCmd,
@@ -30,7 +30,7 @@ func (resolver *Resolver) GetServiceIndex(tctx *logger.TraceContext, input *base
 	return
 }
 
-func (resolver *Resolver) GetServiceDashboardIndex(tctx *logger.TraceContext, input *base_spec.GetServiceDashboardIndex) (data *base_spec.GetServiceDashboardIndexData, code uint8, err error) {
+func (resolver *Resolver) GetServiceDashboardIndex(tctx *logger.TraceContext, input *base_spec.GetServiceDashboardIndex, user *base_spec.UserAuthority) (data *base_spec.GetServiceDashboardIndexData, code uint8, err error) {
 	data = &base_spec.GetServiceDashboardIndexData{
 		Index: index_model.DashboardIndex{
 			View: index_model.Panels{

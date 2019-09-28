@@ -10,9 +10,9 @@ import (
 	"github.com/syunkitada/goapp/pkg/resource/spec"
 )
 
-func (resolver *Resolver) GetRack(tctx *logger.TraceContext, input *spec.GetRack) (data *spec.GetRackData, code uint8, err error) {
+func (resolver *Resolver) GetRack(tctx *logger.TraceContext, input *spec.GetRack, user *base_spec.UserAuthority) (data *spec.GetRackData, code uint8, err error) {
 	var rack *spec.Rack
-	if rack, err = resolver.dbApi.GetRack(tctx, input); err != nil {
+	if rack, err = resolver.dbApi.GetRack(tctx, input, user); err != nil {
 		if gorm.IsRecordNotFoundError(err) {
 			code = base_const.CodeOkNotFound
 			return
@@ -25,9 +25,9 @@ func (resolver *Resolver) GetRack(tctx *logger.TraceContext, input *spec.GetRack
 	return
 }
 
-func (resolver *Resolver) GetRacks(tctx *logger.TraceContext, input *spec.GetRacks) (data *spec.GetRacksData, code uint8, err error) {
+func (resolver *Resolver) GetRacks(tctx *logger.TraceContext, input *spec.GetRacks, user *base_spec.UserAuthority) (data *spec.GetRacksData, code uint8, err error) {
 	var racks []spec.Rack
-	if racks, err = resolver.dbApi.GetRacks(tctx, input); err != nil {
+	if racks, err = resolver.dbApi.GetRacks(tctx, input, user); err != nil {
 		code = base_const.CodeServerInternalError
 		return
 	}
@@ -36,13 +36,13 @@ func (resolver *Resolver) GetRacks(tctx *logger.TraceContext, input *spec.GetRac
 	return
 }
 
-func (resolver *Resolver) CreateRack(tctx *logger.TraceContext, input *spec.CreateRack) (data *spec.CreateRackData, code uint8, err error) {
+func (resolver *Resolver) CreateRack(tctx *logger.TraceContext, input *spec.CreateRack, user *base_spec.UserAuthority) (data *spec.CreateRackData, code uint8, err error) {
 	var specs []spec.Rack
 	if specs, err = resolver.ConvertToRackSpecs(input.Spec); err != nil {
 		code = base_const.CodeClientBadRequest
 		return
 	}
-	if err = resolver.dbApi.CreateRacks(tctx, specs); err != nil {
+	if err = resolver.dbApi.CreateRacks(tctx, specs, user); err != nil {
 		code = base_const.CodeServerInternalError
 		return
 	}
@@ -51,13 +51,13 @@ func (resolver *Resolver) CreateRack(tctx *logger.TraceContext, input *spec.Crea
 	return
 }
 
-func (resolver *Resolver) UpdateRack(tctx *logger.TraceContext, input *spec.UpdateRack) (data *spec.UpdateRackData, code uint8, err error) {
+func (resolver *Resolver) UpdateRack(tctx *logger.TraceContext, input *spec.UpdateRack, user *base_spec.UserAuthority) (data *spec.UpdateRackData, code uint8, err error) {
 	var specs []spec.Rack
 	if specs, err = resolver.ConvertToRackSpecs(input.Spec); err != nil {
 		code = base_const.CodeClientBadRequest
 		return
 	}
-	if err = resolver.dbApi.UpdateRacks(tctx, specs); err != nil {
+	if err = resolver.dbApi.UpdateRacks(tctx, specs, user); err != nil {
 		code = base_const.CodeServerInternalError
 		return
 	}
@@ -66,8 +66,8 @@ func (resolver *Resolver) UpdateRack(tctx *logger.TraceContext, input *spec.Upda
 	return
 }
 
-func (resolver *Resolver) DeleteRack(tctx *logger.TraceContext, input *spec.DeleteRack) (data *spec.DeleteRackData, code uint8, err error) {
-	if err = resolver.dbApi.DeleteRack(tctx, input); err != nil {
+func (resolver *Resolver) DeleteRack(tctx *logger.TraceContext, input *spec.DeleteRack, user *base_spec.UserAuthority) (data *spec.DeleteRackData, code uint8, err error) {
+	if err = resolver.dbApi.DeleteRack(tctx, input, user); err != nil {
 		code = base_const.CodeServerInternalError
 		return
 	}
@@ -76,13 +76,13 @@ func (resolver *Resolver) DeleteRack(tctx *logger.TraceContext, input *spec.Dele
 	return
 }
 
-func (resolver *Resolver) DeleteRacks(tctx *logger.TraceContext, input *spec.DeleteRacks) (data *spec.DeleteRacksData, code uint8, err error) {
+func (resolver *Resolver) DeleteRacks(tctx *logger.TraceContext, input *spec.DeleteRacks, user *base_spec.UserAuthority) (data *spec.DeleteRacksData, code uint8, err error) {
 	var specs []spec.Rack
 	if specs, err = resolver.ConvertToRackSpecs(input.Spec); err != nil {
 		code = base_const.CodeClientBadRequest
 		return
 	}
-	if err = resolver.dbApi.DeleteRacks(tctx, specs); err != nil {
+	if err = resolver.dbApi.DeleteRacks(tctx, specs, user); err != nil {
 		code = base_const.CodeServerInternalError
 		return
 	}
@@ -91,13 +91,12 @@ func (resolver *Resolver) DeleteRacks(tctx *logger.TraceContext, input *spec.Del
 	return
 }
 
-func (resolver *Resolver) ConvertToRackSpecs(specStr string) (data []spec.Rack, err error) {
+func (resolver *Resolver) ConvertToRackSpecs(specStr string) (specs []spec.Rack, err error) {
 	var baseSpecs []base_spec.Spec
 	if err = json.Unmarshal([]byte(specStr), &baseSpecs); err != nil {
 		return
 	}
 
-	specs := []spec.Rack{}
 	for _, base := range baseSpecs {
 		if base.Kind != "Rack" {
 			continue

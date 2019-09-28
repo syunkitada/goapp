@@ -3,23 +3,24 @@ package db_api
 import (
 	"github.com/jinzhu/gorm"
 
+	"github.com/syunkitada/goapp/pkg/base/base_spec"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/resource/db_model"
 	"github.com/syunkitada/goapp/pkg/resource/spec"
 )
 
-func (api *Api) GetDatacenter(tctx *logger.TraceContext, input *spec.GetDatacenter) (data *spec.Datacenter, err error) {
+func (api *Api) GetDatacenter(tctx *logger.TraceContext, input *spec.GetDatacenter, user *base_spec.UserAuthority) (data *spec.Datacenter, err error) {
 	data = &spec.Datacenter{}
 	err = api.DB.Where("name = ? AND deleted_at IS NULL", input.Name).First(data).Error
 	return
 }
 
-func (api *Api) GetDatacenters(tctx *logger.TraceContext, input *spec.GetDatacenters) (data []spec.Datacenter, err error) {
+func (api *Api) GetDatacenters(tctx *logger.TraceContext, input *spec.GetDatacenters, user *base_spec.UserAuthority) (data []spec.Datacenter, err error) {
 	err = api.DB.Where("deleted_at IS NULL").Find(&data).Error
 	return
 }
 
-func (api *Api) CreateDatacenters(tctx *logger.TraceContext, input []spec.Datacenter) (err error) {
+func (api *Api) CreateDatacenters(tctx *logger.TraceContext, input []spec.Datacenter, user *base_spec.UserAuthority) (err error) {
 	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
 		for _, val := range input {
 			var tmp db_model.Datacenter
@@ -44,7 +45,7 @@ func (api *Api) CreateDatacenters(tctx *logger.TraceContext, input []spec.Datace
 	return
 }
 
-func (api *Api) UpdateDatacenters(tctx *logger.TraceContext, input []spec.Datacenter) (err error) {
+func (api *Api) UpdateDatacenters(tctx *logger.TraceContext, input []spec.Datacenter, user *base_spec.UserAuthority) (err error) {
 	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
 		for _, val := range input {
 			if err = tx.Model(&db_model.Datacenter{}).Where("name = ?", val.Name).Updates(&db_model.Datacenter{
@@ -59,7 +60,7 @@ func (api *Api) UpdateDatacenters(tctx *logger.TraceContext, input []spec.Datace
 	return
 }
 
-func (api *Api) DeleteDatacenter(tctx *logger.TraceContext, input *spec.DeleteDatacenter) (err error) {
+func (api *Api) DeleteDatacenter(tctx *logger.TraceContext, input *spec.DeleteDatacenter, user *base_spec.UserAuthority) (err error) {
 	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
 		err = tx.Where("name = ?", input.Name).Delete(&db_model.Datacenter{}).Error
 		return
@@ -67,7 +68,7 @@ func (api *Api) DeleteDatacenter(tctx *logger.TraceContext, input *spec.DeleteDa
 	return
 }
 
-func (api *Api) DeleteDatacenters(tctx *logger.TraceContext, input []spec.Datacenter) (err error) {
+func (api *Api) DeleteDatacenters(tctx *logger.TraceContext, input []spec.Datacenter, user *base_spec.UserAuthority) (err error) {
 	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
 		for _, data := range input {
 			if err = tx.Where("name = ?", data.Name).

@@ -11,8 +11,8 @@ type Compute struct {
 	Labels        string
 	Status        string
 	StatusReason  string
-	Spec          string
 	Project       string
+	Spec          interface{}
 	LinkSpec      string
 	Image         string
 	Vcpus         uint

@@ -3,25 +3,26 @@ package db_api
 import (
 	"github.com/jinzhu/gorm"
 	"github.com/syunkitada/goapp/pkg/base/base_const"
+	"github.com/syunkitada/goapp/pkg/base/base_spec"
 	"github.com/syunkitada/goapp/pkg/lib/json_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/resource/db_model"
 	"github.com/syunkitada/goapp/pkg/resource/spec"
 )
 
-func (api *Api) GetImage(tctx *logger.TraceContext, input *spec.GetImage) (data *spec.Image, err error) {
+func (api *Api) GetImage(tctx *logger.TraceContext, input *spec.GetImage, user *base_spec.UserAuthority) (data *spec.Image, err error) {
 	data = &spec.Image{}
 	err = api.DB.Where("name = ? AND region = ? AND deleted_at IS NULL", input.Name, input.Region).
 		First(data).Error
 	return
 }
 
-func (api *Api) GetImages(tctx *logger.TraceContext, input *spec.GetImages) (data []spec.Image, err error) {
+func (api *Api) GetImages(tctx *logger.TraceContext, input *spec.GetImages, user *base_spec.UserAuthority) (data []spec.Image, err error) {
 	err = api.DB.Where("region = ? AND deleted_at IS NULL", input.Region).Find(&data).Error
 	return
 }
 
-func (api *Api) CreateImages(tctx *logger.TraceContext, input []spec.Image) (err error) {
+func (api *Api) CreateImages(tctx *logger.TraceContext, input []spec.Image, user *base_spec.UserAuthority) (err error) {
 	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
 		for _, val := range input {
 			var specBytes []byte
@@ -52,7 +53,7 @@ func (api *Api) CreateImages(tctx *logger.TraceContext, input []spec.Image) (err
 	return
 }
 
-func (api *Api) UpdateImages(tctx *logger.TraceContext, input []spec.Image) (err error) {
+func (api *Api) UpdateImages(tctx *logger.TraceContext, input []spec.Image, user *base_spec.UserAuthority) (err error) {
 	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
 		for _, val := range input {
 			if err = tx.Model(&db_model.Image{}).
@@ -70,7 +71,7 @@ func (api *Api) UpdateImages(tctx *logger.TraceContext, input []spec.Image) (err
 	return
 }
 
-func (api *Api) DeleteImage(tctx *logger.TraceContext, input *spec.DeleteImage) (err error) {
+func (api *Api) DeleteImage(tctx *logger.TraceContext, input *spec.DeleteImage, user *base_spec.UserAuthority) (err error) {
 	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
 		err = tx.Where("name = ? AND region = ?", input.Name, input.Region).Delete(&db_model.Image{}).Error
 		return
@@ -78,7 +79,7 @@ func (api *Api) DeleteImage(tctx *logger.TraceContext, input *spec.DeleteImage) 
 	return
 }
 
-func (api *Api) DeleteImages(tctx *logger.TraceContext, input []spec.Image) (err error) {
+func (api *Api) DeleteImages(tctx *logger.TraceContext, input []spec.Image, user *base_spec.UserAuthority) (err error) {
 	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
 		for _, val := range input {
 			if err = tx.Where("name = ? AND region = ?", val.Name, val.Region).

@@ -3,13 +3,56 @@ package spec
 import "github.com/syunkitada/goapp/pkg/authproxy/index_model"
 
 type RegionService struct {
-	Region       string `gorm:"not null;size:50;"`
-	Name         string `gorm:"not null;size:63;"` // Vip Domain
-	Project      string `gorm:"not null;size:63;"`
-	Kind         string `gorm:"not null;size:25;"`
-	Status       string `gorm:"not null;size:25;"`
-	StatusReason string `gorm:"not null;size:50;"`
-	Spec         string `gorm:"not null;size:100000;"`
+	Region       string `validate:"required"`
+	Name         string `validate:"required"` // Vip Domain
+	Kind         string `validate:"required"`
+	Status       string
+	StatusReason string
+	Cluster      string
+	Spec         interface{} `validate:"required"`
+}
+
+type RegionComputeSpec struct {
+	Kind           string             `validate:"required"`
+	Image          string             `validate:"required"`
+	SchedulePolicy SchedulePolicySpec `validate:"required"`
+	NetworkPolicy  NetworkPolicySpec  `validate:"required"`
+	Vcpus          uint               `validate:"required"`
+	Memory         uint               `validate:"required"`
+	Disk           uint               `validate:"required"`
+
+	ImageSpec Image      // Auto Generated
+	Name      string     // Auto Generated
+	Cluster   string     // Auto Generated
+	Ports     []PortSpec // Auto Generated
+}
+
+type SchedulePolicySpec struct {
+	Replicas                    int `validate:"required"`
+	ClusterFilters              []string
+	ClusterLabelFilters         []string
+	NodeFilters                 []string
+	NodeLabelFilters            []string
+	NodeLabelHardAffinities     []string
+	NodeLabelHardAntiAffinities []string
+	NodeLabelSoftAffinities     []string
+	NodeLabelSoftAntiAffinities []string
+}
+
+type NetworkPolicySpec struct {
+	Version        int
+	Interfaces     int
+	AssignPolicy   string
+	StaticNetworks []string
+}
+
+type PortSpec struct {
+	NetworkID uint
+	Version   int
+	Subnet    string
+	Gateway   string
+	Ip        string
+	Mac       string
 }
 
 type GetRegionService struct {

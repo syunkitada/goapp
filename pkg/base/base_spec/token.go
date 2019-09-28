@@ -28,6 +28,7 @@ type LoginWithTokenData struct {
 
 type UserAuthority struct {
 	Name                 string
+	ProjectName          string
 	ServiceMap           map[string]uint
 	ProjectServiceMap    map[string]ProjectService
 	ActionProjectService ProjectService

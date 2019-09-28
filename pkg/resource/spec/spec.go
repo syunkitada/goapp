@@ -76,52 +76,19 @@ var Spec = spec_model.Spec{
 				spec_model.QueryModel{Req: DeletePhysicalResource{}, Rep: DeletePhysicalResourceData{}},
 				spec_model.QueryModel{Req: DeletePhysicalResources{}, Rep: DeletePhysicalResourcesData{}},
 			},
-			ViewModels: []interface{}{
-				spec_model.Table{
-					Name:          "Datacenters",
-					Data:          GetDatacenter{},
-					Actions:       []interface{}{CreateDatacenter{}},
-					SelectActions: []interface{}{DeleteDatacenter{}},
-					ColumnLinkMap: map[string]spec_model.Link{
-						"Name": spec_model.Link{Target: "Resources/PhysicalResources"},
-					},
-				},
-				spec_model.Tab{
-					Name: "Resources",
-					Tabs: []interface{}{
-						spec_model.Table{
-							Name:          "PhysicalResources",
-							Data:          GetPhysicalResources{},
-							Actions:       []interface{}{CreateDatacenter{}},
-							SelectActions: []interface{}{DeleteDatacenter{}},
-						},
-						spec_model.Table{
-							Name:          "Racks",
-							Data:          GetRacks{},
-							Actions:       []interface{}{CreateRack{}},
-							SelectActions: []interface{}{DeleteRack{}},
-						},
-						spec_model.Table{
-							Name:          "Floor",
-							Data:          GetFloors{},
-							Actions:       []interface{}{CreateFloor{}},
-							SelectActions: []interface{}{DeleteFloor{}},
-						},
-						spec_model.Table{
-							Name:          "PhysicalModels",
-							Data:          GetPhysicalModels{},
-							Actions:       []interface{}{CreatePhysicalModel{}},
-							SelectActions: []interface{}{DeletePhysicalModel{}},
-						},
-					},
-				},
-			},
 		},
 		spec_model.Api{
 			Name:            "ResourceVirtualAdmin",
 			RequiredAuth:    true,
 			RequiredProject: true,
 			QueryModels: []spec_model.QueryModel{
+				spec_model.QueryModel{Req: GetRegion{}, Rep: GetRegionData{}},
+				spec_model.QueryModel{Req: GetRegions{}, Rep: GetRegionsData{}},
+				spec_model.QueryModel{Req: CreateRegion{}, Rep: CreateRegionData{}},
+				spec_model.QueryModel{Req: UpdateRegion{}, Rep: UpdateRegionData{}},
+				spec_model.QueryModel{Req: DeleteRegion{}, Rep: DeleteRegionData{}},
+				spec_model.QueryModel{Req: DeleteRegions{}, Rep: DeleteRegionsData{}},
+
 				spec_model.QueryModel{Req: GetCluster{}, Rep: GetClusterData{}},
 				spec_model.QueryModel{Req: GetClusters{}, Rep: GetClustersData{}},
 				spec_model.QueryModel{Req: CreateCluster{}, Rep: CreateClusterData{}},
@@ -142,6 +109,13 @@ var Spec = spec_model.Spec{
 				spec_model.QueryModel{Req: UpdateImage{}, Rep: UpdateImageData{}},
 				spec_model.QueryModel{Req: DeleteImage{}, Rep: DeleteImageData{}},
 				spec_model.QueryModel{Req: DeleteImages{}, Rep: DeleteImagesData{}},
+
+				spec_model.QueryModel{Req: GetRegionService{}, Rep: GetRegionServiceData{}},
+				spec_model.QueryModel{Req: GetRegionServices{}, Rep: GetRegionServicesData{}},
+				spec_model.QueryModel{Req: CreateRegionService{}, Rep: CreateRegionServiceData{}},
+				spec_model.QueryModel{Req: UpdateRegionService{}, Rep: UpdateRegionServiceData{}},
+				spec_model.QueryModel{Req: DeleteRegionService{}, Rep: DeleteRegionServiceData{}},
+				spec_model.QueryModel{Req: DeleteRegionServices{}, Rep: DeleteRegionServicesData{}},
 			},
 		},
 		spec_model.Api{

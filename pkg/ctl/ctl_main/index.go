@@ -137,7 +137,7 @@ func (ctl *Ctl) index(args []string) error {
 	helpMsgs := [][]string{}
 	for query, cmd := range getServiceIndexData.Index.CmdMap {
 		args := strings.Split(query, ".")
-		helpQuery := strings.Join(args, " ")
+		helpQuery := query
 		helpMsg := []string{helpQuery}
 		flags := []string{}
 		for f, flag := range cmd.FlagMap {
@@ -157,7 +157,7 @@ func (ctl *Ctl) index(args []string) error {
 			continue
 		}
 
-		if len(cmdArgs) > len(args) {
+		if len(cmdArgs) == len(args)+1 {
 			isMatch := true
 			for i, arg := range args {
 				if arg != cmdArgs[i+1] {

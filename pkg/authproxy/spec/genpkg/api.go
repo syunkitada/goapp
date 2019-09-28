@@ -19,11 +19,11 @@ type QueryResolver interface {
 	Login(tctx *logger.TraceContext, input *base_spec.Login) (*base_spec.LoginData, uint8, error)
 	LoginWithToken(tctx *logger.TraceContext, input *base_spec.LoginWithToken, user *base_spec.UserAuthority) (*base_spec.LoginWithTokenData, uint8, error)
 	UpdateService(tctx *logger.TraceContext, input *base_spec.UpdateService) (*base_spec.UpdateServiceData, uint8, error)
-	GetServiceIndex(tctx *logger.TraceContext, input *base_spec.GetServiceIndex) (*base_spec.GetServiceIndexData, uint8, error)
-	GetServiceDashboardIndex(tctx *logger.TraceContext, input *base_spec.GetServiceDashboardIndex) (*base_spec.GetServiceDashboardIndexData, uint8, error)
-	GetAllUsers(tctx *logger.TraceContext, input *base_spec.GetAllUsers) (*base_spec.GetAllUsersData, uint8, error)
-	GetUser(tctx *logger.TraceContext, input *base_spec.GetUser) (*base_spec.GetUserData, uint8, error)
-	GetUsers(tctx *logger.TraceContext, input *base_spec.GetUsers) (*base_spec.GetUsersData, uint8, error)
+	GetServiceIndex(tctx *logger.TraceContext, input *base_spec.GetServiceIndex, user *base_spec.UserAuthority) (*base_spec.GetServiceIndexData, uint8, error)
+	GetServiceDashboardIndex(tctx *logger.TraceContext, input *base_spec.GetServiceDashboardIndex, user *base_spec.UserAuthority) (*base_spec.GetServiceDashboardIndexData, uint8, error)
+	GetAllUsers(tctx *logger.TraceContext, input *base_spec.GetAllUsers, user *base_spec.UserAuthority) (*base_spec.GetAllUsersData, uint8, error)
+	GetUser(tctx *logger.TraceContext, input *base_spec.GetUser, user *base_spec.UserAuthority) (*base_spec.GetUserData, uint8, error)
+	GetUsers(tctx *logger.TraceContext, input *base_spec.GetUsers, user *base_spec.UserAuthority) (*base_spec.GetUsersData, uint8, error)
 }
 
 type QueryHandler struct {
@@ -142,7 +142,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				return err
 			}
 
-			data, code, tmpErr := handler.resolver.GetServiceIndex(tctx, &input)
+			data, code, tmpErr := handler.resolver.GetServiceIndex(tctx, &input, user)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -164,7 +164,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				return err
 			}
 
-			data, code, tmpErr := handler.resolver.GetServiceDashboardIndex(tctx, &input)
+			data, code, tmpErr := handler.resolver.GetServiceDashboardIndex(tctx, &input, user)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -185,8 +185,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-
-			data, code, tmpErr := handler.resolver.GetAllUsers(tctx, &input)
+			data, code, tmpErr := handler.resolver.GetAllUsers(tctx, &input, user)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -207,8 +206,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-
-			data, code, tmpErr := handler.resolver.GetUser(tctx, &input)
+			data, code, tmpErr := handler.resolver.GetUser(tctx, &input, user)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -229,8 +227,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-
-			data, code, tmpErr := handler.resolver.GetUsers(tctx, &input)
+			data, code, tmpErr := handler.resolver.GetUsers(tctx, &input, user)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError

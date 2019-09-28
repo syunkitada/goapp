@@ -3,18 +3,19 @@ package db_api
 import (
 	"github.com/jinzhu/gorm"
 
+	"github.com/syunkitada/goapp/pkg/base/base_spec"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/resource/db_model"
 	"github.com/syunkitada/goapp/pkg/resource/spec"
 )
 
-func (api *Api) GetCompute(tctx *logger.TraceContext, name string) (data *spec.Compute, err error) {
+func (api *Api) GetCompute(tctx *logger.TraceContext, name string, user *base_spec.UserAuthority) (data *spec.Compute, err error) {
 	data = &spec.Compute{}
 	err = api.DB.Where("name = ?", name).First(data).Error
 	return
 }
 
-func (api *Api) GetComputes(tctx *logger.TraceContext, db *gorm.DB) (data []spec.Compute, err error) {
+func (api *Api) GetComputes(tctx *logger.TraceContext, db *gorm.DB, user *base_spec.UserAuthority) (data []spec.Compute, err error) {
 	err = api.DB.Find(&data).Error
 	return
 }

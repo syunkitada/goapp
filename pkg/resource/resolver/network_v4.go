@@ -10,9 +10,9 @@ import (
 	"github.com/syunkitada/goapp/pkg/resource/spec"
 )
 
-func (resolver *Resolver) GetNetworkV4(tctx *logger.TraceContext, input *spec.GetNetworkV4) (data *spec.GetNetworkV4Data, code uint8, err error) {
+func (resolver *Resolver) GetNetworkV4(tctx *logger.TraceContext, input *spec.GetNetworkV4, user *base_spec.UserAuthority) (data *spec.GetNetworkV4Data, code uint8, err error) {
 	var rack *spec.NetworkV4
-	if rack, err = resolver.dbApi.GetNetworkV4(tctx, input); err != nil {
+	if rack, err = resolver.dbApi.GetNetworkV4(tctx, input, user); err != nil {
 		if gorm.IsRecordNotFoundError(err) {
 			code = base_const.CodeOkNotFound
 			return
@@ -25,9 +25,9 @@ func (resolver *Resolver) GetNetworkV4(tctx *logger.TraceContext, input *spec.Ge
 	return
 }
 
-func (resolver *Resolver) GetNetworkV4s(tctx *logger.TraceContext, input *spec.GetNetworkV4s) (data *spec.GetNetworkV4sData, code uint8, err error) {
+func (resolver *Resolver) GetNetworkV4s(tctx *logger.TraceContext, input *spec.GetNetworkV4s, user *base_spec.UserAuthority) (data *spec.GetNetworkV4sData, code uint8, err error) {
 	var racks []spec.NetworkV4
-	if racks, err = resolver.dbApi.GetNetworkV4s(tctx, input); err != nil {
+	if racks, err = resolver.dbApi.GetNetworkV4s(tctx, input, user); err != nil {
 		code = base_const.CodeServerInternalError
 		return
 	}
@@ -36,13 +36,13 @@ func (resolver *Resolver) GetNetworkV4s(tctx *logger.TraceContext, input *spec.G
 	return
 }
 
-func (resolver *Resolver) CreateNetworkV4(tctx *logger.TraceContext, input *spec.CreateNetworkV4) (data *spec.CreateNetworkV4Data, code uint8, err error) {
+func (resolver *Resolver) CreateNetworkV4(tctx *logger.TraceContext, input *spec.CreateNetworkV4, user *base_spec.UserAuthority) (data *spec.CreateNetworkV4Data, code uint8, err error) {
 	var specs []spec.NetworkV4
 	if specs, err = resolver.ConvertToNetworkV4Specs(input.Spec); err != nil {
 		code = base_const.CodeClientBadRequest
 		return
 	}
-	if err = resolver.dbApi.CreateNetworkV4s(tctx, specs); err != nil {
+	if err = resolver.dbApi.CreateNetworkV4s(tctx, specs, user); err != nil {
 		code = base_const.CodeServerInternalError
 		return
 	}
@@ -51,13 +51,13 @@ func (resolver *Resolver) CreateNetworkV4(tctx *logger.TraceContext, input *spec
 	return
 }
 
-func (resolver *Resolver) UpdateNetworkV4(tctx *logger.TraceContext, input *spec.UpdateNetworkV4) (data *spec.UpdateNetworkV4Data, code uint8, err error) {
+func (resolver *Resolver) UpdateNetworkV4(tctx *logger.TraceContext, input *spec.UpdateNetworkV4, user *base_spec.UserAuthority) (data *spec.UpdateNetworkV4Data, code uint8, err error) {
 	var specs []spec.NetworkV4
 	if specs, err = resolver.ConvertToNetworkV4Specs(input.Spec); err != nil {
 		code = base_const.CodeClientBadRequest
 		return
 	}
-	if err = resolver.dbApi.UpdateNetworkV4s(tctx, specs); err != nil {
+	if err = resolver.dbApi.UpdateNetworkV4s(tctx, specs, user); err != nil {
 		code = base_const.CodeServerInternalError
 		return
 	}
@@ -66,8 +66,8 @@ func (resolver *Resolver) UpdateNetworkV4(tctx *logger.TraceContext, input *spec
 	return
 }
 
-func (resolver *Resolver) DeleteNetworkV4(tctx *logger.TraceContext, input *spec.DeleteNetworkV4) (data *spec.DeleteNetworkV4Data, code uint8, err error) {
-	if err = resolver.dbApi.DeleteNetworkV4(tctx, input); err != nil {
+func (resolver *Resolver) DeleteNetworkV4(tctx *logger.TraceContext, input *spec.DeleteNetworkV4, user *base_spec.UserAuthority) (data *spec.DeleteNetworkV4Data, code uint8, err error) {
+	if err = resolver.dbApi.DeleteNetworkV4(tctx, input, user); err != nil {
 		code = base_const.CodeServerInternalError
 		return
 	}
@@ -76,13 +76,13 @@ func (resolver *Resolver) DeleteNetworkV4(tctx *logger.TraceContext, input *spec
 	return
 }
 
-func (resolver *Resolver) DeleteNetworkV4s(tctx *logger.TraceContext, input *spec.DeleteNetworkV4s) (data *spec.DeleteNetworkV4sData, code uint8, err error) {
+func (resolver *Resolver) DeleteNetworkV4s(tctx *logger.TraceContext, input *spec.DeleteNetworkV4s, user *base_spec.UserAuthority) (data *spec.DeleteNetworkV4sData, code uint8, err error) {
 	var specs []spec.NetworkV4
 	if specs, err = resolver.ConvertToNetworkV4Specs(input.Spec); err != nil {
 		code = base_const.CodeClientBadRequest
 		return
 	}
-	if err = resolver.dbApi.DeleteNetworkV4s(tctx, specs); err != nil {
+	if err = resolver.dbApi.DeleteNetworkV4s(tctx, specs, user); err != nil {
 		code = base_const.CodeServerInternalError
 		return
 	}
@@ -91,13 +91,12 @@ func (resolver *Resolver) DeleteNetworkV4s(tctx *logger.TraceContext, input *spe
 	return
 }
 
-func (resolver *Resolver) ConvertToNetworkV4Specs(specStr string) (data []spec.NetworkV4, err error) {
+func (resolver *Resolver) ConvertToNetworkV4Specs(specStr string) (specs []spec.NetworkV4, err error) {
 	var baseSpecs []base_spec.Spec
 	if err = json.Unmarshal([]byte(specStr), &baseSpecs); err != nil {
 		return
 	}
 
-	specs := []spec.NetworkV4{}
 	for _, base := range baseSpecs {
 		if base.Kind != "NetworkV4" {
 			continue

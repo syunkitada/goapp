@@ -60,10 +60,10 @@ func (app *BaseApp) ExecQuery(w http.ResponseWriter, r *http.Request, isProxy bo
 		}
 
 		if repBytes, statusCode, err = app.Proxy(tctx, service, endpoint, rawReq); err != nil {
-			fmt.Println("DEBUG proxy failed", err)
+			fmt.Println("DEBUG proxy failed", err, req.Queries)
 			continue
 		} else {
-			fmt.Println("DEBUG proxy success", endpoint)
+			fmt.Println("DEBUG proxy success", endpoint, req.Queries)
 			break
 		}
 	}
@@ -163,6 +163,7 @@ func (app *BaseApp) Start(tctx *logger.TraceContext, httpReq *http.Request, isPr
 						res.Error = err.Error()
 						return
 					}
+					userAuthority.ProjectName = req.Project
 					if projectService, ok := userAuthority.ProjectServiceMap[req.Project]; !ok {
 						err = fmt.Errorf("InvalidAuthProjectService")
 						res.Code = base_const.CodeClientInvalidAuth

@@ -2,24 +2,25 @@ package db_api
 
 import (
 	"github.com/jinzhu/gorm"
+	"github.com/syunkitada/goapp/pkg/base/base_spec"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/resource/db_model"
 	"github.com/syunkitada/goapp/pkg/resource/spec"
 )
 
-func (api *Api) GetPhysicalResource(tctx *logger.TraceContext, input *spec.GetPhysicalResource) (data *spec.PhysicalResource, err error) {
+func (api *Api) GetPhysicalResource(tctx *logger.TraceContext, input *spec.GetPhysicalResource, user *base_spec.UserAuthority) (data *spec.PhysicalResource, err error) {
 	data = &spec.PhysicalResource{}
 	err = api.DB.Where("name = ? AND datacenter = ? AND deleted_at IS NULL", input.Name, input.Datacenter).
 		First(data).Error
 	return
 }
 
-func (api *Api) GetPhysicalResources(tctx *logger.TraceContext, input *spec.GetPhysicalResources) (data []spec.PhysicalResource, err error) {
+func (api *Api) GetPhysicalResources(tctx *logger.TraceContext, input *spec.GetPhysicalResources, user *base_spec.UserAuthority) (data []spec.PhysicalResource, err error) {
 	err = api.DB.Where("datacenter = ? AND deleted_at IS NULL", input.Datacenter).Find(&data).Error
 	return
 }
 
-func (api *Api) CreatePhysicalResources(tctx *logger.TraceContext, input []spec.PhysicalResource) (err error) {
+func (api *Api) CreatePhysicalResources(tctx *logger.TraceContext, input []spec.PhysicalResource, user *base_spec.UserAuthority) (err error) {
 	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
 		for _, val := range input {
 			var tmp db_model.PhysicalResource
@@ -47,7 +48,7 @@ func (api *Api) CreatePhysicalResources(tctx *logger.TraceContext, input []spec.
 	return
 }
 
-func (api *Api) UpdatePhysicalResources(tctx *logger.TraceContext, input []spec.PhysicalResource) (err error) {
+func (api *Api) UpdatePhysicalResources(tctx *logger.TraceContext, input []spec.PhysicalResource, user *base_spec.UserAuthority) (err error) {
 	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
 		for _, val := range input {
 			if err = tx.Model(&db_model.PhysicalResource{}).
@@ -67,7 +68,7 @@ func (api *Api) UpdatePhysicalResources(tctx *logger.TraceContext, input []spec.
 	return
 }
 
-func (api *Api) DeletePhysicalResource(tctx *logger.TraceContext, input *spec.DeletePhysicalResource) (err error) {
+func (api *Api) DeletePhysicalResource(tctx *logger.TraceContext, input *spec.DeletePhysicalResource, user *base_spec.UserAuthority) (err error) {
 	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
 		err = tx.Where("name = ? AND datacenter = ?", input.Name, input.Datacenter).
 			Delete(&db_model.PhysicalResource{}).Error
@@ -76,7 +77,7 @@ func (api *Api) DeletePhysicalResource(tctx *logger.TraceContext, input *spec.De
 	return
 }
 
-func (api *Api) DeletePhysicalResources(tctx *logger.TraceContext, input []spec.PhysicalResource) (err error) {
+func (api *Api) DeletePhysicalResources(tctx *logger.TraceContext, input []spec.PhysicalResource, user *base_spec.UserAuthority) (err error) {
 	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
 		for _, data := range input {
 			if err = tx.Where("name = ? AND datacenter = ?", data.Name, data.Datacenter).

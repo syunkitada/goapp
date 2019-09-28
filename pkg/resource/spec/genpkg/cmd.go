@@ -566,6 +566,72 @@ var ResourcePhysicalAdminCmdMap = map[string]index_model.Cmd{
 	},
 }
 var ResourceVirtualAdminCmdMap = map[string]index_model.Cmd{
+	"get.region": index_model.Cmd{
+		QueryName: "GetRegion",
+		FlagMap: map[string]index_model.Flag{
+			"name,n": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
+	"get.regions": index_model.Cmd{
+		QueryName:    "GetRegions",
+		FlagMap:      map[string]index_model.Flag{},
+		OutputKind:   "table",
+		OutputFormat: "Name,Kind",
+	},
+	"create.region": index_model.Cmd{
+		QueryName: "CreateRegion",
+		FlagMap: map[string]index_model.Flag{
+			"spec,s": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "file",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
+	"update.region": index_model.Cmd{
+		QueryName: "UpdateRegion",
+		FlagMap: map[string]index_model.Flag{
+			"spec,s": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "file",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
+	"delete.region": index_model.Cmd{
+		QueryName: "DeleteRegion",
+		FlagMap: map[string]index_model.Flag{
+			"name,n": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
+	"delete.regions": index_model.Cmd{
+		QueryName: "DeleteRegions",
+		FlagMap: map[string]index_model.Flag{
+			"spec,s": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "file",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
 	"get.cluster": index_model.Cmd{
 		QueryName: "GetCluster",
 		FlagMap: map[string]index_model.Flag{
@@ -786,6 +852,88 @@ var ResourceVirtualAdminCmdMap = map[string]index_model.Cmd{
 	},
 	"delete.images": index_model.Cmd{
 		QueryName: "DeleteImages",
+		FlagMap: map[string]index_model.Flag{
+			"spec,s": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "file",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
+	"get.region.service": index_model.Cmd{
+		QueryName: "GetRegionService",
+		FlagMap: map[string]index_model.Flag{
+			"name,n": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+			"region,r": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
+	"get.region.services": index_model.Cmd{
+		QueryName: "GetRegionServices",
+		FlagMap: map[string]index_model.Flag{
+			"region,r": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+		},
+		OutputKind:   "table",
+		OutputFormat: "Region,Name,Project,Kind,Status,StatusReason,Cluster,Spec",
+	},
+	"create.region.service": index_model.Cmd{
+		QueryName: "CreateRegionService",
+		FlagMap: map[string]index_model.Flag{
+			"spec,s": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "file",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
+	"update.region.service": index_model.Cmd{
+		QueryName: "UpdateRegionService",
+		FlagMap: map[string]index_model.Flag{
+			"spec,s": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "file",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
+	"delete.region.service": index_model.Cmd{
+		QueryName: "DeleteRegionService",
+		FlagMap: map[string]index_model.Flag{
+			"name,n": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+			"region,r": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
+	"delete.region.services": index_model.Cmd{
+		QueryName: "DeleteRegionServices",
 		FlagMap: map[string]index_model.Flag{
 			"spec,s": index_model.Flag{
 				Required: true,
@@ -1039,7 +1187,7 @@ var ResourceVirtualCmdMap = map[string]index_model.Cmd{
 			},
 		},
 		OutputKind:   "table",
-		OutputFormat: "Region,Name,Project,Kind,Status,StatusReason,Spec",
+		OutputFormat: "Region,Name,Project,Kind,Status,StatusReason,Cluster,Spec",
 	},
 	"create.region.service": index_model.Cmd{
 		QueryName: "CreateRegionService",
@@ -1290,6 +1438,30 @@ var ApiQueryMap = map[string]map[string]spec_model.QueryModel{
 		},
 	},
 	"ResourceVirtualAdmin": map[string]spec_model.QueryModel{
+		"GetRegion": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"GetRegions": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"CreateRegion": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"UpdateRegion": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"DeleteRegion": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"DeleteRegions": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
 		"GetCluster": spec_model.QueryModel{
 			RequiredAuth:    true,
 			RequiredProject: true,
@@ -1359,6 +1531,30 @@ var ApiQueryMap = map[string]map[string]spec_model.QueryModel{
 			RequiredProject: true,
 		},
 		"DeleteImages": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"GetRegionService": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"GetRegionServices": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"CreateRegionService": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"UpdateRegionService": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"DeleteRegionService": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"DeleteRegionServices": spec_model.QueryModel{
 			RequiredAuth:    true,
 			RequiredProject: true,
 		},

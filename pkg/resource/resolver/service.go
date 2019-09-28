@@ -13,8 +13,7 @@ import (
 	"github.com/syunkitada/goapp/pkg/resource/spec/genpkg"
 )
 
-func (resolver *Resolver) GetServiceIndex(tctx *logger.TraceContext, input *base_spec.GetServiceIndex) (data *base_spec.GetServiceIndexData, code uint8, err error) {
-	fmt.Println("DEBUG adminalalalal", input.Name)
+func (resolver *Resolver) GetServiceIndex(tctx *logger.TraceContext, input *base_spec.GetServiceIndex, user *base_spec.UserAuthority) (data *base_spec.GetServiceIndexData, code uint8, err error) {
 	switch input.Name {
 	case "ResourcePhysical":
 		data = &base_spec.GetServiceIndexData{
@@ -53,12 +52,12 @@ func (resolver *Resolver) GetServiceIndex(tctx *logger.TraceContext, input *base
 }
 
 func (resolver *Resolver) GetServiceDashboardIndex(tctx *logger.TraceContext,
-	input *base_spec.GetServiceDashboardIndex) (data *base_spec.GetServiceDashboardIndexData, code uint8, err error) {
+	input *base_spec.GetServiceDashboardIndex, user *base_spec.UserAuthority) (data *base_spec.GetServiceDashboardIndexData, code uint8, err error) {
 	// TODO
 	switch input.Name {
 	case "ResourcePhysicalAdmin":
 		var datacenters []spec.Datacenter
-		datacenters, err = resolver.dbApi.GetDatacenters(tctx, &spec.GetDatacenters{})
+		datacenters, err = resolver.dbApi.GetDatacenters(tctx, &spec.GetDatacenters{}, user)
 		if err != nil {
 			return
 		}
@@ -107,7 +106,7 @@ func (resolver *Resolver) GetServiceDashboardIndex(tctx *logger.TraceContext,
 		code = base_const.CodeOk
 	case "ResourcePhysical":
 		var datacenters []spec.Datacenter
-		datacenters, err = resolver.dbApi.GetDatacenters(tctx, &spec.GetDatacenters{})
+		datacenters, err = resolver.dbApi.GetDatacenters(tctx, &spec.GetDatacenters{}, user)
 		if err != nil {
 			return
 		}
