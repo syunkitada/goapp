@@ -1,12 +1,16 @@
 package spec
 
-import "github.com/syunkitada/goapp/pkg/base/base_model/spec_model"
+import (
+	"github.com/syunkitada/goapp/pkg/base/base_const"
+	"github.com/syunkitada/goapp/pkg/base/base_model/spec_model"
+)
 
 type Meta struct{}
 
 var Spec = spec_model.Spec{
 	Meta: Meta{},
-	Name: "Resource",
+	Name: "ResourceApi",
+	Kind: base_const.KindApi,
 	Apis: []spec_model.Api{
 		spec_model.Api{
 			Name:            "ResourcePhysical",

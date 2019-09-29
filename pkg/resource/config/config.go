@@ -9,10 +9,19 @@ type Config struct {
 }
 
 type ResourceConfig struct {
-	App base_config.AppConfig
+	Api        base_config.AppConfig
+	Controller base_config.AppConfig
 }
 
-var (
-	BaseConf base_config.Config
-	MainConf Config
-)
+var BaseConf = base_config.Config{}
+
+var MainConf = Config{
+	Resource: ResourceConfig{
+		Api: base_config.AppConfig{
+			Name: "ResourceApi",
+		},
+		Controller: base_config.AppConfig{
+			Name: "ReosurceController",
+		},
+	},
+}

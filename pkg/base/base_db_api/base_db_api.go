@@ -1,6 +1,8 @@
 package base_db_api
 
 import (
+	"time"
+
 	"github.com/jinzhu/gorm"
 
 	"github.com/syunkitada/goapp/pkg/base/base_config"
@@ -18,26 +20,30 @@ type IApi interface {
 	GetUserAuthority(tctx *logger.TraceContext, username string) (data *base_spec.UserAuthority, err error)
 	CreateOrUpdateService(tctx *logger.TraceContext, input *base_spec.UpdateService) (err error)
 	GetServices(tctx *logger.TraceContext, input *base_spec.GetServices) (data *base_spec.GetServicesData, err error)
+	CreateOrUpdateNode(tctx *logger.TraceContext, input *base_spec.UpdateNode) (err error)
+	SyncNodeRole(tctx *logger.TraceContext, kind string) (nodes []base_db_model.Node, err error)
 	LoginWithToken(tctx *logger.TraceContext, token string) (data *base_spec.UserAuthority, err error)
 	IssueToken(userName string) (token string, err error)
 }
 
 type Api struct {
-	baseConf     *base_config.Config
-	appConf      *base_config.AppConfig
-	DB           *gorm.DB
-	databaseConf base_config.DatabaseConfig
-	secrets      []string
-	apiQueryMap  map[string]map[string]spec_model.QueryModel
+	baseConf             *base_config.Config
+	appConf              *base_config.AppConfig
+	DB                   *gorm.DB
+	databaseConf         base_config.DatabaseConfig
+	nodeDownTimeDuration time.Duration
+	secrets              []string
+	apiQueryMap          map[string]map[string]spec_model.QueryModel
 }
 
 func New(baseConf *base_config.Config, appConf *base_config.AppConfig, apiQueryMap map[string]map[string]spec_model.QueryModel) *Api {
 	api := Api{
-		baseConf:     baseConf,
-		appConf:      appConf,
-		databaseConf: appConf.Database,
-		secrets:      appConf.Auth.Secrets,
-		apiQueryMap:  apiQueryMap,
+		baseConf:             baseConf,
+		appConf:              appConf,
+		nodeDownTimeDuration: time.Duration(appConf.NodeDownTimeDuration) * time.Second,
+		databaseConf:         appConf.Database,
+		secrets:              appConf.Auth.Secrets,
+		apiQueryMap:          apiQueryMap,
 	}
 
 	return &api

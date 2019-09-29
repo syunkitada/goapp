@@ -16,8 +16,8 @@ type Resolver struct {
 
 func New(baseConf *base_config.Config, mainConf *config.Config, dbApi *db_api.Api) *Resolver {
 	return &Resolver{
-		Resolver: base_resolver.New(baseConf, &mainConf.Resource.Api, dbApi),
-		appConf:  mainConf.Resource.Api,
+		Resolver: base_resolver.New(baseConf, &mainConf.Resource.Controller, dbApi),
+		appConf:  mainConf.Resource.Controller,
 		dbApi:    dbApi,
 	}
 }

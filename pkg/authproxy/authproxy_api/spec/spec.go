@@ -1,6 +1,7 @@
 package spec
 
 import (
+	"github.com/syunkitada/goapp/pkg/base/base_const"
 	"github.com/syunkitada/goapp/pkg/base/base_model/spec_model"
 	"github.com/syunkitada/goapp/pkg/base/base_spec"
 )
@@ -9,7 +10,8 @@ type Meta struct{}
 
 var Spec = spec_model.Spec{
 	Meta: Meta{},
-	Name: "Authproxy",
+	Name: "AuthproxyApi",
+	Kind: base_const.KindApi,
 	Apis: []spec_model.Api{
 		spec_model.Api{
 			Name:            "Home",

@@ -3,6 +3,7 @@ package spec_model
 type Spec struct {
 	Meta     interface{}
 	Name     string
+	Kind     string
 	Apis     []Api
 	QuerySet map[string]Query
 }

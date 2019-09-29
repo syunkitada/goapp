@@ -6,9 +6,13 @@ import (
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
 
-func (srv *Server) MainTask(tctx *logger.TraceContext) error {
-	if err := srv.UpdateNodeTask(tctx); err != nil {
-		return err
+func (srv *Server) MainTask(tctx *logger.TraceContext) (err error) {
+	if err = srv.SyncService(tctx); err != nil {
+		return
+	}
+
+	if err = srv.UpdateNodeTask(tctx); err != nil {
+		return
 	}
 
 	return nil

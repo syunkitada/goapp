@@ -1,5 +1,5 @@
 authproxy:
-  app:
+  api:
     listen: '0.0.0.0:8000'
     allowedHosts: ['127.0.0.1:8000']
     accessControlAllowOrigin: '127.0.0.1:3000'
@@ -33,9 +33,16 @@ authproxy:
         - name: 'HomeProject'
           scope: 'project'
           projectRoles: ['admin', 'tenant']
+  controller:
+    listen: '0.0.0.0:8000'
+    allowedHosts: ['127.0.0.1:8000']
+    accessControlAllowOrigin: '127.0.0.1:3000'
+    certFile: 'tls-assets/server.pem'
+    keyFile: 'tls-assets/server.key'
+    gracefulTimeout: 10
 
 resource:
-  app:
+  api:
     listen: '0.0.0.0:13300'
     endpoints: ['https://127.0.0.1:13300']
     allowedHosts: ['127.0.0.1:13300']
@@ -85,6 +92,11 @@ resource:
       password: 'service'
       tlsInsecureSkipVerify: true
       endpoints: ['https://127.0.0.1:8000']
-
-ctl:
-  project: 'guestpj'
+  controller:
+    listen: '0.0.0.0:13305'
+    endpoints: ['https://127.0.0.1:13305']
+    allowedHosts: ['127.0.0.1:13305']
+    accessControlAllowOrigin: '127.0.0.1:13305'
+    certFile: 'tls-assets/server.pem'
+    keyFile: 'tls-assets/server.key'
+    gracefulTimeout: 10

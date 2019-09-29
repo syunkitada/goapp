@@ -1,12 +1,10 @@
 package base_app
 
 import (
-	"encoding/json"
 	"net/http"
 	"os"
 	"os/signal"
 	"path/filepath"
-	"strings"
 	"syscall"
 	"time"
 
@@ -83,56 +81,6 @@ func (app *BaseApp) SetDriver(driver BaseAppDriver) {
 	app.driver = driver
 }
 
-func (app *BaseApp) SyncService(tctx *logger.TraceContext) (err error) {
-	queries := []base_client.Query{}
-	var data *base_spec.GetServicesData
-	if data, err = app.dbApi.GetServices(tctx, &base_spec.GetServices{}); err != nil {
-		return
-	}
-
-	serviceMap := map[string]spec_model.ServiceRouter{}
-	for _, service := range data.Services {
-		var queryMap map[string]spec_model.QueryModel
-		if err = json.Unmarshal([]byte(service.QueryMap), &queryMap); err != nil {
-			return
-		}
-		serviceMap[service.Name] = spec_model.ServiceRouter{
-			Token:     service.Token,
-			Endpoints: strings.Split(service.Endpoints, ","),
-			QueryMap:  queryMap,
-		}
-
-		if service.SyncRootCluster {
-			var token string
-			token, err = app.dbApi.IssueToken(service.Name)
-			if err != nil {
-				return
-			}
-			queries = append(queries, base_client.Query{
-				Name: "UpdateService",
-				Data: base_spec.UpdateService{
-					Name:            service.Name,
-					Token:           token,
-					Scope:           service.Scope,
-					Endpoints:       app.appConf.Endpoints,
-					ProjectRoles:    strings.Split(service.ProjectRoles, ","),
-					QueryMap:        queryMap,
-					SyncRootCluster: false,
-				},
-			})
-		}
-	}
-	app.serviceMap = serviceMap
-
-	if len(queries) > 0 {
-		// var data *base_spec.UpdateServiceData,
-		if _, err = app.rootClient.UpdateServices(tctx, queries); err != nil {
-			return
-		}
-	}
-	return
-}
-
 func (app *BaseApp) StartMainLoop() {
 	go app.mainLoop()
 }
@@ -169,10 +117,6 @@ func (app *BaseApp) mainTask(tctx *logger.TraceContext) {
 	var err error
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 0) }()
-
-	if err = app.SyncService(tctx); err != nil {
-		return
-	}
 
 	if err = app.driver.MainTask(tctx); err != nil {
 		return

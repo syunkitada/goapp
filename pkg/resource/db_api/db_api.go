@@ -17,11 +17,11 @@ type Api struct {
 
 func New(baseConf *base_config.Config, mainConf *config.Config) *Api {
 	api := Api{
-		Api:          base_db_api.New(baseConf, &mainConf.Resource.App, genpkg.ApiQueryMap),
-		databaseConf: mainConf.Resource.App.Database,
+		Api:          base_db_api.New(baseConf, &mainConf.Resource.Api, genpkg.ApiQueryMap),
+		databaseConf: mainConf.Resource.Api.Database,
 		baseConf:     baseConf,
 		mainConf:     mainConf,
-		appConf:      mainConf.Resource.App,
+		appConf:      mainConf.Resource.Api,
 	}
 
 	return &api

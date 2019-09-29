@@ -11,6 +11,7 @@ import (
 	"github.com/syunkitada/goapp/pkg/resource/config"
 	"github.com/syunkitada/goapp/pkg/resource/ctl"
 	"github.com/syunkitada/goapp/pkg/resource/resource_api"
+	"github.com/syunkitada/goapp/pkg/resource/resource_controller"
 )
 
 var rootCmd = &cobra.Command{}
@@ -26,6 +27,7 @@ func init() {
 	cobra.OnInitialize(initMain)
 
 	rootCmd.AddCommand(resource_api.RootCmd)
+	rootCmd.AddCommand(resource_controller.RootCmd)
 	rootCmd.AddCommand(ctl.RootCmd)
 
 	// rootCmd.AddCommand(resource_controller.RootCmd)

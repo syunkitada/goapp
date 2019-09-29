@@ -5,6 +5,7 @@ package genpkg
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -1497,6 +1498,10 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				Code: code,
 				Data: data,
 			}
+
+		default:
+			err = fmt.Errorf("InvalidQueryName: %s", query.Name)
+			return err
 		}
 	}
 	return nil

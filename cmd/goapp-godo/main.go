@@ -5,13 +5,6 @@ import (
 )
 
 func tasks(p *do.Project) {
-	p.Task("default", do.S{"goapp-adminctl-db-migrate"}, nil)
-
-	p.Task("goapp-adminctl-db-migrate", nil, func(c *do.Context) {
-		c.Bash("go run cmd/goapp-adminctl/main.go db-migrate")
-		c.Bash("make compile-pb")
-	}).Src("pkg/model/**/*.go")
-
 	p.Task("goapp-authproxy-api", nil, func(c *do.Context) {
 		c.Start("main.go api", do.M{"$in": "cmd/goapp-authproxy"})
 	}).Src("pkg/**/*.go")

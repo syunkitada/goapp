@@ -22,13 +22,16 @@ import (
 )
 
 type QueryResolver interface {
+	{{- if eq $spec.Kind "Api" }}
 	Login(tctx *logger.TraceContext, input *base_spec.Login) (*base_spec.LoginData, uint8, error)
 	LoginWithToken(tctx *logger.TraceContext, input *base_spec.LoginWithToken, user *base_spec.UserAuthority) (*base_spec.LoginWithTokenData, uint8, error)
 	UpdateService(tctx *logger.TraceContext, input *base_spec.UpdateService) (*base_spec.UpdateServiceData, uint8, error)
 	GetServiceIndex(tctx *logger.TraceContext, input *base_spec.GetServiceIndex, user *base_spec.UserAuthority) (*base_spec.GetServiceIndexData, uint8, error)
 	GetServiceDashboardIndex(tctx *logger.TraceContext, input *base_spec.GetServiceDashboardIndex, user *base_spec.UserAuthority) (*base_spec.GetServiceDashboardIndexData, uint8, error)
+	{{- end }}
+
 	{{- range $query := $spec.QuerySet }}
-    {{- if $query.RequiredAuth }}
+	{{- if $query.RequiredAuth }}
 	{{ $query.Name }}(tctx *logger.TraceContext, input *{{ $query.PkgName }}.{{ $query.Name }}, user *base_spec.UserAuthority) (*{{ $query.PkgName }}.{{ $query.Name }}Data, uint8, error)
 	{{- else }}
 	{{ $query.Name }}(tctx *logger.TraceContext, input *{{ $query.PkgName }}.{{ $query.Name }}) (*{{ $query.PkgName }}.{{ $query.Name }}Data, uint8, error)
@@ -55,6 +58,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 	var err error
 	for _, query := range req.Queries {
 		switch query.Name {
+		{{- if eq $spec.Kind "Api" }}
 		case "Login":
 			var input base_spec.Login
 			err = json.Unmarshal([]byte(query.Data), &input)
@@ -189,6 +193,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				Code: code,
 				Data: data,
 			}
+		{{- end }}
 
 		{{- range $query := $spec.QuerySet }}
 		case "{{ $query.Name }}":
@@ -198,11 +203,11 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				return err
 			}
 
-            {{- if $query.RequiredAuth }}
+			{{- if $query.RequiredAuth }}
 			data, code, tmpErr := handler.resolver.{{ $query.Name }}(tctx, &input, user)
-            {{- else }}
+			{{- else }}
 			data, code, tmpErr := handler.resolver.{{ $query.Name }}(tctx, &input)
-            {{- end }}
+			{{- end }}
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -218,6 +223,10 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				Data: data,
 			}
 		{{- end }}
+
+		default:
+			err = fmt.Errorf("InvalidQueryName: %s", query.Name)
+			return err
 		}
 	}
 	return nil

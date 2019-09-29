@@ -9,7 +9,7 @@ type Config struct {
 }
 
 type AuthproxyConfig struct {
-	App base_config.AppConfig
+	Api base_config.AppConfig
 }
 
 var (

@@ -20,14 +20,3 @@ const (
 	StatusDeleted               = "Deleted"
 	StatusError                 = "Error"
 )
-
-const (
-	StateUp      = "Up"
-	StateDown    = "Down"
-	StateUnknown = "Unknown"
-)
-
-const (
-	RoleLeader = "Leader"
-	RoleMember = "Member"
-)

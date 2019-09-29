@@ -2,6 +2,7 @@ package db_model
 
 import (
 	"github.com/jinzhu/gorm"
+	"github.com/syunkitada/goapp/pkg/base/base_db_model"
 )
 
 type Compute struct {
@@ -27,10 +28,10 @@ type Compute struct {
 
 type ComputeAssignment struct {
 	gorm.Model
-	Compute      Compute `gorm:"foreignkey:ComputeID;association_foreignkey:Refer;"`
-	ComputeID    uint    `gorm:"not null;"`
-	Node         Node    `gorm:"foreignkey:NodeID;association_foreignkey:Refer;"`
-	NodeID       uint    `gorm:"not null;"`
-	Status       string  `gorm:"not null;size:25;"`
-	StatusReason string  `gorm:"not null;size:50;"`
+	Compute      Compute            `gorm:"foreignkey:ComputeID;association_foreignkey:Refer;"`
+	ComputeID    uint               `gorm:"not null;"`
+	Node         base_db_model.Node `gorm:"foreignkey:NodeID;association_foreignkey:Refer;"`
+	NodeID       uint               `gorm:"not null;"`
+	Status       string             `gorm:"not null;size:25;"`
+	StatusReason string             `gorm:"not null;size:50;"`
 }

@@ -35,6 +35,9 @@ func (api *Api) Bootstrap(tctx *logger.TraceContext, isRecreate bool) (err error
 	if err = api.DB.AutoMigrate(&base_db_model.Service{}).Error; err != nil {
 		return err
 	}
+	if err = api.DB.AutoMigrate(&base_db_model.Node{}).Error; err != nil {
+		return err
+	}
 
 	for _, projectRole := range api.appConf.Auth.DefaultProjectRoles {
 		if err = api.CreateProjectRole(tctx, projectRole.Name); err != nil {

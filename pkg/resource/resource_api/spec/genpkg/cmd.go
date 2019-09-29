@@ -889,7 +889,7 @@ var ResourceVirtualAdminCmdMap = map[string]index_model.Cmd{
 			},
 		},
 		OutputKind:   "table",
-		OutputFormat: "Region,Name,Project,Kind,Status,StatusReason,Cluster,Spec",
+		OutputFormat: "Region,Name,Kind,Status,StatusReason,Cluster,Spec",
 	},
 	"create.region.service": index_model.Cmd{
 		QueryName: "CreateRegionService",
@@ -1187,7 +1187,7 @@ var ResourceVirtualCmdMap = map[string]index_model.Cmd{
 			},
 		},
 		OutputKind:   "table",
-		OutputFormat: "Region,Name,Project,Kind,Status,StatusReason,Cluster,Spec",
+		OutputFormat: "Region,Name,Kind,Status,StatusReason,Cluster,Spec",
 	},
 	"create.region.service": index_model.Cmd{
 		QueryName: "CreateRegionService",

@@ -41,6 +41,7 @@ type AppConfig struct {
 	ServerHostOverride       string
 	Targets                  []string
 	Labels                   []string
+	NodeDownTimeDuration     int
 	Database                 DatabaseConfig
 	Auth                     AuthConfig
 	RootClient               ClientConfig
