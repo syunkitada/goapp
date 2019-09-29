@@ -1,10 +1,10 @@
 package server
 
 import (
+	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_api/resolver"
+	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_api/spec/genpkg"
 	"github.com/syunkitada/goapp/pkg/authproxy/config"
 	"github.com/syunkitada/goapp/pkg/authproxy/db_api"
-	"github.com/syunkitada/goapp/pkg/authproxy/resolver"
-	"github.com/syunkitada/goapp/pkg/authproxy/spec/genpkg"
 	"github.com/syunkitada/goapp/pkg/base/base_app"
 	"github.com/syunkitada/goapp/pkg/base/base_config"
 )

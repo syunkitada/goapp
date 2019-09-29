@@ -4,7 +4,7 @@ import (
 	"github.com/syunkitada/goapp/pkg/base/base_config"
 	"github.com/syunkitada/goapp/pkg/base/base_db_api"
 	"github.com/syunkitada/goapp/pkg/resource/config"
-	"github.com/syunkitada/goapp/pkg/resource/spec/genpkg"
+	"github.com/syunkitada/goapp/pkg/resource/resource_api/spec/genpkg"
 )
 
 type Api struct {

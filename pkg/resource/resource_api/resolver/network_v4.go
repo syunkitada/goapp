@@ -7,7 +7,7 @@ import (
 	"github.com/syunkitada/goapp/pkg/base/base_const"
 	"github.com/syunkitada/goapp/pkg/base/base_spec"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
-	"github.com/syunkitada/goapp/pkg/resource/spec"
+	"github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
 )
 
 func (resolver *Resolver) GetNetworkV4(tctx *logger.TraceContext, input *spec.GetNetworkV4, user *base_spec.UserAuthority) (data *spec.GetNetworkV4Data, code uint8, err error) {

@@ -8,7 +8,7 @@ import (
 	"github.com/syunkitada/goapp/pkg/base/base_spec"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/resource/db_model"
-	"github.com/syunkitada/goapp/pkg/resource/spec"
+	"github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
 )
 
 func (api *Api) GetRegion(tctx *logger.TraceContext, input *spec.GetRegion, user *base_spec.UserAuthority) (data *spec.Region, err error) {

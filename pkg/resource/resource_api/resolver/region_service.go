@@ -8,7 +8,7 @@ import (
 	"github.com/syunkitada/goapp/pkg/base/base_const"
 	"github.com/syunkitada/goapp/pkg/base/base_spec"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
-	"github.com/syunkitada/goapp/pkg/resource/spec"
+	"github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
 )
 
 func (resolver *Resolver) GetRegionService(tctx *logger.TraceContext, input *spec.GetRegionService, user *base_spec.UserAuthority) (data *spec.GetRegionServiceData, code uint8, err error) {

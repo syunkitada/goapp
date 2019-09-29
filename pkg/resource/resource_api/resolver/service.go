@@ -9,8 +9,8 @@ import (
 	"github.com/syunkitada/goapp/pkg/base/base_model/index_model"
 	"github.com/syunkitada/goapp/pkg/base/base_spec"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
-	"github.com/syunkitada/goapp/pkg/resource/spec"
-	"github.com/syunkitada/goapp/pkg/resource/spec/genpkg"
+	"github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
+	"github.com/syunkitada/goapp/pkg/resource/resource_api/spec/genpkg"
 )
 
 func (resolver *Resolver) GetServiceIndex(tctx *logger.TraceContext, input *base_spec.GetServiceIndex, user *base_spec.UserAuthority) (data *base_spec.GetServiceIndexData, code uint8, err error) {

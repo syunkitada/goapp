@@ -3,8 +3,8 @@ package main
 import (
 	"github.com/syunkitada/goapp/pkg/base/code_generator"
 
-	authproxy_spec "github.com/syunkitada/goapp/pkg/authproxy/spec"
-	resource_spec "github.com/syunkitada/goapp/pkg/resource/spec"
+	authproxy_spec "github.com/syunkitada/goapp/pkg/authproxy/authproxy_api/spec"
+	resource_spec "github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
 )
 
 func main() {

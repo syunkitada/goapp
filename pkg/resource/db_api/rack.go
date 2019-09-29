@@ -5,7 +5,7 @@ import (
 	"github.com/syunkitada/goapp/pkg/base/base_spec"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/resource/db_model"
-	"github.com/syunkitada/goapp/pkg/resource/spec"
+	"github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
 )
 
 func (api *Api) GetRack(tctx *logger.TraceContext, input *spec.GetRack, user *base_spec.UserAuthority) (data *spec.Rack, err error) {

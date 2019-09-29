@@ -13,7 +13,7 @@ import (
 	"github.com/syunkitada/goapp/pkg/base/base_model"
 	"github.com/syunkitada/goapp/pkg/base/base_spec"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
-	"github.com/syunkitada/goapp/pkg/resource/spec"
+	"github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
 )
 
 type QueryResolver interface {

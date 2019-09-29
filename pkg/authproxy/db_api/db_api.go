@@ -2,7 +2,7 @@ package db_api
 
 import (
 	"github.com/syunkitada/goapp/pkg/authproxy/config"
-	"github.com/syunkitada/goapp/pkg/authproxy/spec/genpkg"
+	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_api/spec/genpkg"
 	"github.com/syunkitada/goapp/pkg/base/base_config"
 	"github.com/syunkitada/goapp/pkg/base/base_db_api"
 )
