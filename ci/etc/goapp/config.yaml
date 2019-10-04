@@ -100,3 +100,24 @@ resource:
     certFile: 'tls-assets/server.pem'
     keyFile: 'tls-assets/server.key'
     gracefulTimeout: 10
+  clusterName: 'tokyo1'
+  clusterMap:
+    tokyo1:
+      api:
+        listen: '0.0.0.0:13400'
+        endpoints: ['https://127.0.0.1:13400']
+        allowedHosts: ['127.0.0.1:13400']
+        accessControlAllowOrigin: '127.0.0.1:13400'
+        certFile: 'tls-assets/server.pem'
+        keyFile: 'tls-assets/server.key'
+        gracefulTimeout: 10
+        database:
+          connection: 'goapp:goapppass@tcp(127.0.0.1:3306)/goapp_resource_tokyo1?charset=utf8&parseTime=true'
+      controller:
+        listen: '0.0.0.0:13405'
+        endpoints: ['https://127.0.0.1:13405']
+        allowedHosts: ['127.0.0.1:13405']
+        accessControlAllowOrigin: '127.0.0.1:13405'
+        certFile: 'tls-assets/server.pem'
+        keyFile: 'tls-assets/server.key'
+        gracefulTimeout: 10

@@ -9,6 +9,13 @@ type Config struct {
 }
 
 type ResourceConfig struct {
+	Api         base_config.AppConfig
+	Controller  base_config.AppConfig
+	ClusterName string
+	ClusterMap  map[string]ResourceClusterConfig
+}
+
+type ResourceClusterConfig struct {
 	Api        base_config.AppConfig
 	Controller base_config.AppConfig
 }

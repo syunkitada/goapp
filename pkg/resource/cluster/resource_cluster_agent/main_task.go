@@ -5,7 +5,6 @@ import (
 
 	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_model"
 	"github.com/syunkitada/goapp/pkg/lib/codes"
-	"github.com/syunkitada/goapp/pkg/lib/error_utils"
 	"github.com/syunkitada/goapp/pkg/lib/json_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/resource/resource_model"
@@ -59,7 +58,7 @@ func (srv *ResourceClusterAgentServer) UpdateNode(tctx *logger.TraceContext) err
 	}
 
 	if response.Tctx.StatusCode != codes.OkUpdated {
-		err = error_utils.NewInvalidResponseError(fmt.Sprintf("UnexpectedStatusCode: %v", response.Tctx.StatusCode))
+		err = fmt.Errorf("UnexpectedStatusCode: %v", response.Tctx.StatusCode)
 		return err
 	}
 
