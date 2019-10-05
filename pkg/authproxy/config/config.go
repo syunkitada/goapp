@@ -14,5 +14,13 @@ type AuthproxyConfig struct {
 
 var (
 	BaseConf base_config.Config
-	MainConf Config
 )
+
+var MainConf = Config{
+	Authproxy: AuthproxyConfig{
+		Api: base_config.AppConfig{
+			Name:                 "AuthproxyApi",
+			NodeDownTimeDuration: 60,
+		},
+	},
+}

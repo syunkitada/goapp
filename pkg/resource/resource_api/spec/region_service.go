@@ -12,7 +12,7 @@ type RegionService struct {
 	Spec         interface{} `validate:"required"`
 }
 
-type RegionComputeSpec struct {
+type RegionServiceComputeSpec struct {
 	Kind           string             `validate:"required"`
 	Image          string             `validate:"required"`
 	SchedulePolicy SchedulePolicySpec `validate:"required"`

@@ -1,7 +1,7 @@
 package server
 
 import (
-	"fmt"
+	"context"
 	"sync"
 
 	"github.com/syunkitada/goapp/pkg/lib/logger"
@@ -24,6 +24,10 @@ func (srv *Server) MainTask(tctx *logger.TraceContext) (err error) {
 		return
 	}
 
+	if err = srv.SyncNodeState(tctx); err != nil {
+		return
+	}
+
 	wg := sync.WaitGroup{}
 	wg.Add(1)
 	go srv.SyncRegionService(tctx, &wg)
@@ -34,23 +38,24 @@ func (srv *Server) MainTask(tctx *logger.TraceContext) (err error) {
 
 func (srv *Server) SyncRegionService(tctx *logger.TraceContext, wg *sync.WaitGroup) {
 	defer func() { wg.Done() }()
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
-	fmt.Println("DEBUG SyncRegionService")
+	errChan := make(chan error)
 
-	// errChan := make(chan error)
+	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(ctx, srv.syncRegionServiceTimeout)
+	defer cancel()
 
-	// ctx := context.Background()
-	// ctx, cancel := context.WithTimeout(ctx, srv.syncResourceTimeout)
-	// defer cancel()
+	go func() {
+		errChan <- srv.dbApi.SyncRegionService(tctx)
+	}()
 
-	// go func() {
-	// 	errChan <- srv.resourceModelApi.SyncRegionService(tctx)
-	// }()
-
-	// select {
-	// case err = <-errChan:
-	// 	break
-	// case <-ctx.Done():
-	// 	err = ctx.Err()
-	// }
+	select {
+	case err = <-errChan:
+		break
+	case <-ctx.Done():
+		err = ctx.Err()
+	}
 }

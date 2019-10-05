@@ -2,6 +2,7 @@ package resolver
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/jinzhu/gorm"
 	"github.com/syunkitada/goapp/pkg/base/base_const"
@@ -52,17 +53,18 @@ func (resolver *Resolver) CreateCluster(tctx *logger.TraceContext, input *spec.C
 }
 
 func (resolver *Resolver) UpdateCluster(tctx *logger.TraceContext, input *spec.UpdateCluster, user *base_spec.UserAuthority) (data *spec.UpdateClusterData, code uint8, err error) {
-	var specs []spec.Cluster
-	if specs, err = resolver.ConvertToClusterSpecs(input.Spec); err != nil {
-		code = base_const.CodeClientBadRequest
-		return
-	}
-	if err = resolver.dbApi.UpdateClusters(tctx, specs, user); err != nil {
-		code = base_const.CodeServerInternalError
-		return
-	}
-	code = base_const.CodeOkUpdated
-	data = &spec.UpdateClusterData{}
+	fmt.Println("DEBUG UpdateCluster")
+	// var specs []spec.Cluster
+	// if specs, err = resolver.ConvertToClusterSpecs(input.Spec); err != nil {
+	// 	code = base_const.CodeClientBadRequest
+	// 	return
+	// }
+	// if err = resolver.dbApi.UpdateClusters(tctx, specs, user); err != nil {
+	// 	code = base_const.CodeServerInternalError
+	// 	return
+	// }
+	// code = base_const.CodeOkUpdated
+	// data = &spec.UpdateClusterData{}
 	return
 }
 

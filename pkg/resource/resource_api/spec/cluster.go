@@ -32,7 +32,10 @@ type CreateCluster struct {
 type CreateClusterData struct{}
 
 type UpdateCluster struct {
-	Spec string `validate:"required" flagKind:"file"`
+	Name      string
+	Region    string
+	Token     string
+	Endpoints []string
 }
 
 type UpdateClusterData struct{}

@@ -1,12 +1,14 @@
 package db_api
 
 import (
+	"fmt"
+	"strconv"
+
 	"github.com/jinzhu/gorm"
 	"github.com/syunkitada/goapp/pkg/base/base_spec"
 	"github.com/syunkitada/goapp/pkg/lib/json_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/resource/db_model"
-	"github.com/syunkitada/goapp/pkg/resource/resource_model"
 	"github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
 )
 
@@ -39,7 +41,7 @@ func (api *Api) CreateRegionServices(tctx *logger.TraceContext, input []spec.Reg
 					Name:         val.Name,
 					Region:       val.Region,
 					Kind:         val.Kind,
-					Status:       resource_model.StatusInitializing,
+					Status:       db_model.StatusInitializing,
 					StatusReason: "CreateRegionService",
 					Spec:         string(specBytes),
 				}
@@ -92,5 +94,260 @@ func (api *Api) DeleteRegionServices(tctx *logger.TraceContext, input []spec.Reg
 		}
 		return
 	})
+	return
+}
+
+func (api *Api) SyncRegionService(tctx *logger.TraceContext) (err error) {
+	fmt.Println("DEBUG SyncRegionService")
+
+	clusterNetworkV4sMap := map[string][]db_model.NetworkV4{}
+	var networks []db_model.NetworkV4
+	if err = api.DB.Find(&networks).Error; err != nil {
+		return
+	}
+	for _, network := range networks {
+		if networks, ok := clusterNetworkV4sMap[network.Cluster]; ok {
+			networks = append(networks, network)
+		} else {
+			clusterNetworkV4sMap[network.Cluster] = []db_model.NetworkV4{network}
+		}
+	}
+
+	regionClustersMap := map[string][]db_model.Cluster{}
+	var clusters []db_model.Cluster
+	if err = api.DB.Find(&clusters).Error; err != nil {
+		return
+	}
+	for _, cluster := range clusters {
+		if rclusters, ok := regionClustersMap[cluster.Region]; ok {
+			rclusters = append(rclusters, cluster)
+		} else {
+			regionClustersMap[cluster.Region] = []db_model.Cluster{cluster}
+		}
+	}
+
+	regionImageMap := map[string]map[string]db_model.Image{}
+	var images []db_model.Image
+	if err = api.DB.Where(&db_model.Image{Status: db_model.StatusActive}).
+		Find(&images).Error; err != nil {
+		return err
+	}
+	for _, image := range images {
+		imageMap, ok := regionImageMap[image.Region]
+		if !ok {
+			imageMap = map[string]db_model.Image{}
+		}
+		imageMap[image.Name] = image
+		regionImageMap[image.Region] = imageMap
+	}
+
+	var regionServices []db_model.RegionService
+	if err = api.DB.Find(&regionServices).Error; err != nil {
+		return err
+	}
+
+	fmt.Println("DEBUG regionServices", regionServices)
+
+	for _, service := range regionServices {
+		tctx.Metadata["RegionServiceId"] = strconv.FormatUint(uint64(service.ID), 10)
+		switch service.Status {
+		case db_model.StatusInitializing:
+			switch service.Kind {
+			case "Compute":
+				api.InitializeRegionServiceCompute(
+					tctx, &service, regionClustersMap, clusterNetworkV4sMap, regionImageMap)
+			}
+		case db_model.StatusCreatingInitialized:
+			logger.Infof(tctx, "Found %v resource: %v", service.Status, service.Name)
+		case db_model.StatusCreatingScheduled:
+			logger.Infof(tctx, "Found %v resource: %v", service.Status, service.Name)
+		case db_model.StatusUpdating:
+			logger.Infof(tctx, "Found %v resource: %v", service.Status, service.Name)
+		case db_model.StatusUpdatingScheduled:
+			logger.Infof(tctx, "Found %v resource: %v", service.Status, service.Name)
+		case db_model.StatusDeleting:
+			logger.Infof(tctx, "Found %v resource: %v", service.Status, service.Name)
+		case db_model.StatusDeletingScheduled:
+			logger.Infof(tctx, "Found %v resource: %v", service.Status, service.Name)
+		}
+		tctx.Metadata = map[string]string{}
+	}
+
+	// clusterComputeMap := map[string]map[string]model.Compute{}
+	// for clusterName, clusterApiClient := range modelApi.clusterClientMap {
+	// 	computeMap, ok := clusterComputeMap[clusterName]
+	// 	if !ok {
+	// 		computeMap = map[string]db_model.Compute{}
+	// 	}
+
+	// 	queries := []authproxy_model.Query{
+	// 		authproxy_model.Query{
+	// 			Kind: "get_computes",
+	// 		},
+	// 	}
+	// 	var rep *authproxy_grpc_pb.ActionReply
+	// 	if rep, err = clusterApiClient.Action(
+	// 		logger.NewActionTraceContext(tctx, "system", "system", queries)); err != nil {
+	// 		return err
+	// 	}
+
+	// 	var resp db_model.ActionResponse
+	// 	if err = json_utils.Unmarshal(rep.Response, &resp); err != nil {
+	// 		return err
+	// 	}
+	// 	if resp.Tctx.StatusCode == codes.OkRead {
+	// 		for _, compute := range resp.Data.Computes {
+	// 			fmt.Println("DEBUG NAME", compute.Name)
+	// 			computeMap[compute.Name] = compute
+	// 		}
+	// 	}
+
+	// 	clusterComputeMap[clusterName] = computeMap
+	// }
+	// fmt.Println("DEBUG clusterComputeMap", clusterComputeMap)
+
+	// SyncComputes
+	var computes []db_model.Compute
+	if err = api.DB.Find(&computes).Error; err != nil {
+		return err
+	}
+
+	for _, compute := range computes {
+		tctx.Metadata["ComputeId"] = strconv.FormatUint(uint64(compute.ID), 10)
+		switch compute.Status {
+		// case db_model.StatusCreating:
+		// 	modelApi.CreateClusterCompute(tctx, db, &compute, clusterComputeMap)
+		// case db_model.StatusCreatingScheduled:
+		// 	modelApi.ConfirmCreatingScheduledCompute(tctx, db, &compute, clusterComputeMap)
+		case db_model.StatusUpdating:
+			logger.Infof(tctx, "Found %v resource: %v", compute.Status, compute.Name)
+		case db_model.StatusUpdatingScheduled:
+			logger.Infof(tctx, "Found %v resource: %v", compute.Status, compute.Name)
+		case db_model.StatusDeleting:
+			logger.Infof(tctx, "Found %v resource: %v", compute.Status, compute.Name)
+		case db_model.StatusDeletingScheduled:
+			logger.Infof(tctx, "Found %v resource: %v", compute.Status, compute.Name)
+		}
+		tctx.Metadata = map[string]string{}
+	}
+
+	return
+}
+
+func (api *Api) InitializeRegionServiceCompute(tctx *logger.TraceContext,
+	service *db_model.RegionService, regionClustersMap map[string][]db_model.Cluster,
+	clusterNetworkV4sMap map[string][]db_model.NetworkV4,
+	regionImageMap map[string]map[string]db_model.Image) {
+
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	var spec spec.RegionServiceComputeSpec
+	if err = json_utils.Unmarshal(service.Spec, &spec); err != nil {
+		return
+	}
+
+	fmt.Println("Debug Initialize", spec)
+
+	tmpClusters, ok := regionClustersMap[service.Region]
+	if !ok {
+		logger.Warningf(tctx, "cluster not found: region=%v", service.Region)
+		return
+	}
+	fmt.Println("DEBUG tmpClusters", tmpClusters)
+
+	imageMap, ok := regionImageMap[service.Region]
+	if !ok {
+		logger.Warningf(tctx, "image not found: region=%v", service.Region)
+		return
+	}
+	image, ok := imageMap[spec.Image]
+	if !ok {
+		logger.Warningf(tctx, "image not found: region=%v, image=%v", service.Region, spec.Image)
+		return
+	}
+	fmt.Println("DEBUG image", image)
+
+	// var imageSpec model.ImageSpec
+	// if err = json_utils.Unmarshal(image.Spec, &imageSpec); err != nil {
+	// 	return
+	// }
+	// spec.Compute.ImageSpec = imageSpec
+
+	// policy := spec.Compute.SchedulePolicy
+	// enableClusterFilters := false
+	// if len(policy.ClusterFilters) > 0 {
+	// 	enableClusterFilters = true
+	// }
+	// enableLabelFilters := false
+	// if len(policy.ClusterLabelFilters) > 0 {
+	// 	enableLabelFilters = true
+	// }
+
+	// clusters := []db_model.Cluster{}
+	// for _, cluster := range tmpClusters {
+	// 	_, ok := clusterNetworkV4sMap[cluster.Name]
+	// 	if !ok {
+	// 		continue
+	// 	}
+
+	// 	if enableClusterFilters {
+	// 		ok = false
+	// 		for _, filter := range policy.ClusterFilters {
+	// 			if filter == cluster.Name {
+	// 				ok = true
+	// 				break
+	// 			}
+	// 		}
+	// 		if !ok {
+	// 			continue
+	// 		}
+	// 	}
+
+	// 	if enableLabelFilters {
+	// 		ok = false
+	// 		for _, labelFilter := range policy.ClusterLabelFilters {
+	// 			if strings.Index(cluster.Labels, labelFilter) >= 0 {
+	// 				ok = true
+	// 				break
+	// 			}
+	// 		}
+	// 		if !ok {
+	// 			continue
+	// 		}
+	// 	}
+
+	// 	clusters = append(clusters, cluster)
+	// }
+
+	// if len(clusters) == 0 {
+	// 	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
+	// 		err = error_utils.NewNotFoundError(db_model.StatusMsgInitializeErrorNoValidCluster)
+	// 		regionService.Status = db_model.StatusError
+	// 		regionService.StatusReason = db_model.StatusMsgInitializeErrorNoValidCluster
+	// 		return
+	// 	})
+	// 	if err != nil {
+	// 		return
+	// 	}
+	// }
+
+	// // TODO Sort clusters by weight
+	// // TODO Sort clusters by resource
+	// cluster := clusters[0]
+	// clusterNetworkV4s := clusterNetworkV4sMap[cluster.Name]
+
+	// err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
+	// 	if err = modelApi.CreateCompute(tctx, tx, regionService, &spec,
+	// 		&cluster, clusterNetworkV4s); err != nil {
+	// 		return
+	// 	}
+
+	// 	regionService.Status = db_model.StatusCreating
+	// 	regionService.StatusReason = db_model.StatusMsgInitializeSuccess
+	// 	tx.Save(regionService)
+	// 	return
+	// })
 	return
 }

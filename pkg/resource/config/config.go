@@ -10,14 +10,25 @@ type Config struct {
 
 type ResourceConfig struct {
 	Api         base_config.AppConfig
-	Controller  base_config.AppConfig
+	Controller  ResourceControllerConfig
 	ClusterName string
 	ClusterMap  map[string]ResourceClusterConfig
 }
 
+type ResourceControllerConfig struct {
+	base_config.AppConfig
+	SyncRegionServiceTimeout int
+}
+
 type ResourceClusterConfig struct {
+	RegionName string
 	Api        base_config.AppConfig
 	Controller base_config.AppConfig
+}
+
+type ResourceClusterApiConfig struct {
+	base_config.AppConfig
+	RegionName string
 }
 
 var BaseConf = base_config.Config{}
@@ -25,10 +36,14 @@ var BaseConf = base_config.Config{}
 var MainConf = Config{
 	Resource: ResourceConfig{
 		Api: base_config.AppConfig{
-			Name: "ResourceApi",
+			Name:                 "ResourceApi",
+			NodeDownTimeDuration: 60,
 		},
-		Controller: base_config.AppConfig{
-			Name: "ReosurceController",
+		Controller: ResourceControllerConfig{
+			AppConfig: base_config.AppConfig{
+				Name: "ReosurceController",
+			},
+			SyncRegionServiceTimeout: 10,
 		},
 	},
 }

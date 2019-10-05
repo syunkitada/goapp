@@ -24,7 +24,6 @@ func (app *BaseApp) SyncNodeByDb(tctx *logger.TraceContext, spec interface{}) (e
 	}
 
 	err = app.dbApi.CreateOrUpdateNode(tctx, data)
-	fmt.Println("SyncedNode", data)
 	return
 }
 
@@ -58,5 +57,10 @@ func (app *BaseApp) SyncNodeRole(tctx *logger.TraceContext) (role string, err er
 		err = fmt.Errorf("Active Leader is not exists, after ReassignNode")
 		return
 	}
+	return
+}
+
+func (app *BaseApp) SyncNodeState(tctx *logger.TraceContext) (err error) {
+	err = app.dbApi.SyncNodeState(tctx)
 	return
 }

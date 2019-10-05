@@ -8,6 +8,7 @@ import (
 	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_api/resolver"
 	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_api/spec/genpkg"
 	"github.com/syunkitada/goapp/pkg/resource/config"
+	resource_api "github.com/syunkitada/goapp/pkg/resource/resource_api/spec/genpkg"
 )
 
 type Server struct {
@@ -15,6 +16,8 @@ type Server struct {
 	baseConf     *base_config.Config
 	clusterConf  *config.ResourceClusterConfig
 	queryHandler *genpkg.QueryHandler
+	dbApi        *db_api.Api
+	rootClient   *resource_api.Client
 }
 
 func New(baseConf *base_config.Config, mainConf *config.Config) *Server {
@@ -33,6 +36,8 @@ func New(baseConf *base_config.Config, mainConf *config.Config) *Server {
 		baseConf:     baseConf,
 		clusterConf:  &clusterConf,
 		queryHandler: queryHandler,
+		dbApi:        dbApi,
+		rootClient:   resource_api.NewClient(&clusterConf.Api.RootClient),
 	}
 	srv.SetDriver(srv)
 	return srv

@@ -22,6 +22,7 @@ type IApi interface {
 	GetServices(tctx *logger.TraceContext, input *base_spec.GetServices) (data *base_spec.GetServicesData, err error)
 	CreateOrUpdateNode(tctx *logger.TraceContext, input *base_spec.UpdateNode) (err error)
 	SyncNodeRole(tctx *logger.TraceContext, kind string) (nodes []base_db_model.Node, err error)
+	SyncNodeState(tctx *logger.TraceContext) (err error)
 	LoginWithToken(tctx *logger.TraceContext, token string) (data *base_spec.UserAuthority, err error)
 	IssueToken(userName string) (token string, err error)
 }

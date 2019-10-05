@@ -109,7 +109,7 @@ func (api *Api) SyncNodeRole(tctx *logger.TraceContext, kind string) (nodes []ba
 				}
 			} else if node.Status == base_const.StatusEnabled &&
 				node.State == base_const.StateUp &&
-				node.UpdatedAt.After(downTime) {
+				node.UpdatedAt.Before(downTime) {
 
 				node.Role = base_const.RoleLeader
 				if err = tx.Save(&node).Error; err != nil {
@@ -131,16 +131,16 @@ func (api *Api) SyncNodeRole(tctx *logger.TraceContext, kind string) (nodes []ba
 	return
 }
 
-func (api *Api) CheckNodes(tctx *logger.TraceContext) (err error) {
+func (api *Api) SyncNodeState(tctx *logger.TraceContext) (err error) {
 	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
 		var nodes []base_db_model.Node
 		if err = tx.Find(&nodes).Error; err != nil {
 			return
 		}
 
-		downTime := time.Now().Add(-1 * api.nodeDownTimeDuration)
+		downTime := time.Now().Add(api.nodeDownTimeDuration)
 		for _, node := range nodes {
-			if node.UpdatedAt.Before(downTime) {
+			if node.UpdatedAt.After(downTime) {
 				node.State = resource_model.StateDown
 				if err = tx.Save(&node).Error; err != nil {
 					return

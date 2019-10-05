@@ -35,6 +35,8 @@ func (app *BaseApp) ExecQuery(w http.ResponseWriter, r *http.Request, isProxy bo
 	w.Header().Set("Access-Control-Allow-Credentials", "true")                  // TODO FIXME
 
 	service, userAuthority, rawReq, req, rep, err := app.Start(tctx, r, isProxy)
+
+	fmt.Println("DEBUG ExecQuery", string(rawReq), err)
 	defer func() { app.End(tctx, startTime, err) }()
 	if err != nil {
 		var bytes []byte

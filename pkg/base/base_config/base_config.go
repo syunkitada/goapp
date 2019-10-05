@@ -27,41 +27,41 @@ type Config struct {
 }
 
 type AppConfig struct {
-	Name                     string
-	ClientTimeout            int
-	ShutdownTimeout          int
-	LoopInterval             int
-	Listen                   string
-	HttpListen               string
-	Endpoints                []string
-	CertFile                 string
-	KeyFile                  string
-	CaFile                   string
-	AccessControlAllowOrigin string
-	ServerHostOverride       string
-	Targets                  []string
-	Labels                   []string
-	NodeDownTimeDuration     int
+	Name                     string   `validate:"required"`
+	ClientTimeout            int      `validate:"required"`
+	ShutdownTimeout          int      `validate:"required"`
+	LoopInterval             int      `validate:"required"`
+	Listen                   string   `validate:"required"`
+	HttpListen               string   `validate:"required"`
+	Endpoints                []string `validate:"required"`
+	CertFile                 string   `validate:"required"`
+	KeyFile                  string   `validate:"required"`
+	CaFile                   string   `validate:"required"`
+	AccessControlAllowOrigin string   `validate:"required"`
+	ServerHostOverride       string   `validate:"required"`
+	Targets                  []string `validate:"required"`
+	Labels                   []string `validate:"required"`
+	NodeDownTimeDuration     int      `validate:"required"`
 	Database                 DatabaseConfig
 	Auth                     AuthConfig
 	RootClient               ClientConfig
 }
 
 type ClientConfig struct {
-	User                  string
-	Password              string
-	Service               string
-	Endpoints             []string
+	User                  string   `validate:"required"`
+	Password              string   `validate:"required"`
+	Service               string   `validate:"required"`
+	Endpoints             []string `validate:"required"`
 	TlsInsecureSkipVerify bool
 	LocalHandler          http.Handler
 }
 
 type DatabaseConfig struct {
-	Connection string
+	Connection string `validate:"required"`
 }
 
 type AuthConfig struct {
-	Secrets             []string
+	Secrets             []string `validate:"required"`
 	DefaultUsers        []AuthUser
 	DefaultRoles        []AuthRole
 	DefaultProjects     []AuthProject

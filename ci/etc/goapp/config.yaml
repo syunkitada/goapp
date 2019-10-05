@@ -103,6 +103,7 @@ resource:
   clusterName: 'tokyo1'
   clusterMap:
     tokyo1:
+      regionName: 'kanto'
       api:
         listen: '0.0.0.0:13400'
         endpoints: ['https://127.0.0.1:13400']
@@ -113,6 +114,13 @@ resource:
         gracefulTimeout: 10
         database:
           connection: 'goapp:goapppass@tcp(127.0.0.1:3306)/goapp_resource_tokyo1?charset=utf8&parseTime=true'
+        rootClient:
+          user: 'service'
+          password: 'service'
+          tlsInsecureSkipVerify: true
+          endpoints: ['https://127.0.0.1:13300']
+        auth:
+          secrets: ['changeme1', 'changeme2']
       controller:
         listen: '0.0.0.0:13405'
         endpoints: ['https://127.0.0.1:13405']
