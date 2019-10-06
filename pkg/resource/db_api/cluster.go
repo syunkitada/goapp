@@ -1,6 +1,8 @@
 package db_api
 
 import (
+	"strings"
+
 	"github.com/jinzhu/gorm"
 
 	"github.com/syunkitada/goapp/pkg/base/base_spec"
@@ -48,19 +50,25 @@ func (api *Api) CreateClusters(tctx *logger.TraceContext, input []spec.Cluster, 
 	return
 }
 
-func (api *Api) UpdateClusters(tctx *logger.TraceContext, input []spec.Cluster, user *base_spec.UserAuthority) (err error) {
+func (api *Api) CreateOrUpdateCluster(tctx *logger.TraceContext, input *spec.UpdateCluster) (err error) {
 	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
-		for _, val := range input {
-			if err = tx.Model(&db_model.Cluster{}).
-				Where("name = ?", val.Name).
-				Updates(&db_model.Cluster{
-					Kind:        val.Kind,
-					Description: val.Description,
-					Weight:      val.Weight,
-				}).Error; err != nil {
+		cluster := db_model.Cluster{
+			Region:     input.Region,
+			Datacenter: input.Datacenter,
+			Name:       input.Name,
+			Kind:       input.Kind,
+			Token:      input.Token,
+			Endpoints:  strings.Join(input.Endpoints, ","),
+			Weight:     input.Weight,
+		}
+		if err = tx.Where("name = ?", input.Name).First(&cluster).Error; err != nil {
+			if !gorm.IsRecordNotFoundError(err) {
 				return
 			}
+			err = tx.Create(&cluster).Error
+			return
 		}
+		err = tx.Model(&cluster).Where("name = ?", cluster.Name).Updates(&cluster).Error
 		return
 	})
 	return

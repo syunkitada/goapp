@@ -8,7 +8,10 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"strings"
+	"time"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/syunkitada/goapp/pkg/base/base_config"
 	"github.com/syunkitada/goapp/pkg/base/base_const"
 	"github.com/syunkitada/goapp/pkg/base/base_model"
@@ -22,6 +25,8 @@ type Client struct {
 	localHandler http.Handler
 	token        string
 	service      string
+	user         string
+	password     string
 	project      string
 	endpoints    []string
 }
@@ -37,6 +42,9 @@ func NewClient(conf *base_config.ClientConfig) *Client {
 	client := &Client{
 		httpClient:   httpClient,
 		localHandler: conf.LocalHandler,
+		user:         conf.User,
+		password:     conf.Password,
+		project:      conf.Project,
 		service:      conf.Service,
 		endpoints:    conf.Endpoints,
 	}
@@ -93,6 +101,9 @@ func (client *Client) Request(tctx *logger.TraceContext, service string, queries
 			return err
 		}
 		if requiredAuth {
+			if err = client.Auth(tctx); err != nil {
+				return err
+			}
 			httpReq.Header.Add("X-Auth-Token", client.token)
 		}
 
@@ -107,6 +118,9 @@ func (client *Client) Request(tctx *logger.TraceContext, service string, queries
 				return err
 			}
 			if requiredAuth {
+				if err = client.Auth(tctx); err != nil {
+					return err
+				}
 				httpReq.Header.Add("X-Auth-Token", client.token)
 			}
 
@@ -142,6 +156,35 @@ func (client *Client) Request(tctx *logger.TraceContext, service string, queries
 	}
 
 	return nil
+}
+
+func (client *Client) Auth(tctx *logger.TraceContext) (err error) {
+	if client.token != "" {
+		splitedToken := strings.Split(client.token, ".")
+		if decoded, tmpErr := jwt.DecodeSegment(splitedToken[1]); tmpErr != nil {
+			logger.Warningf(tctx, "Failed decode token: %s", tmpErr.Error())
+		} else {
+			var claim jwt.StandardClaims
+			if tmpErr := json.Unmarshal(decoded, &claim); tmpErr != nil {
+				logger.Warningf(tctx, "Failed unmarshal token: %s", tmpErr.Error())
+			} else {
+				if time.Now().Add(60 * time.Second).Before(time.Unix(claim.ExpiresAt, 0)) {
+					return
+				}
+			}
+		}
+	}
+
+	var data *base_spec.LoginData
+	data, err = client.Login(tctx, &base_spec.Login{
+		User:     client.user,
+		Password: client.password,
+	})
+	if err != nil {
+		return
+	}
+	client.token = data.Token
+	return
 }
 
 type LoginResponse struct {

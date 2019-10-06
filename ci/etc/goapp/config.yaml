@@ -73,11 +73,11 @@ resource:
       defaultServices:
         - name: 'ResourcePhysicalAdmin'
           scope: 'project'
-          projectRoles: ['admin']
+          projectRoles: ['admin', 'service']
           syncRootCluster: true
         - name: 'ResourceVirtualAdmin'
           scope: 'project'
-          projectRoles: ['admin']
+          projectRoles: ['admin', 'service']
           syncRootCluster: true
         - name: 'ResourcePhysical'
           scope: 'project'
@@ -103,7 +103,9 @@ resource:
   clusterName: 'tokyo1'
   clusterMap:
     tokyo1:
-      regionName: 'kanto'
+      region: 'kanto'
+      datacenter: 'tokyo'
+      kind: 'public'
       api:
         listen: '0.0.0.0:13400'
         endpoints: ['https://127.0.0.1:13400']
@@ -117,6 +119,7 @@ resource:
         rootClient:
           user: 'service'
           password: 'service'
+          project: 'service'
           tlsInsecureSkipVerify: true
           endpoints: ['https://127.0.0.1:13300']
         auth:

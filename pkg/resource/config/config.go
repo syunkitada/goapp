@@ -21,7 +21,10 @@ type ResourceControllerConfig struct {
 }
 
 type ResourceClusterConfig struct {
-	RegionName string
+	Region     string
+	Datacenter string
+	Kind       string
+	Weight     int
 	Api        base_config.AppConfig
 	Controller base_config.AppConfig
 }

@@ -32,10 +32,13 @@ type CreateCluster struct {
 type CreateClusterData struct{}
 
 type UpdateCluster struct {
-	Name      string
-	Region    string
-	Token     string
-	Endpoints []string
+	Name       string
+	Region     string
+	Datacenter string
+	Token      string
+	Kind       string
+	Weight     int
+	Endpoints  []string
 }
 
 type UpdateClusterData struct{}

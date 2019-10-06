@@ -1,12 +1,11 @@
 package genpkg
 
 import (
-	"fmt"
-
 	"github.com/syunkitada/goapp/pkg/base/base_client"
 	"github.com/syunkitada/goapp/pkg/base/base_config"
 	"github.com/syunkitada/goapp/pkg/base/base_const"
 	"github.com/syunkitada/goapp/pkg/base/base_model"
+	"github.com/syunkitada/goapp/pkg/base/base_spec"
 	"github.com/syunkitada/goapp/pkg/lib/error_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
@@ -39,9 +38,9 @@ type UpdateClusterResult struct {
 }
 
 func (client *Client) UpdateCluster(tctx *logger.TraceContext, queries []base_client.Query) (data *spec.UpdateClusterData, err error) {
-	fmt.Println("Debug UpdateCluster", queries)
 	var res UpdateClusterResponse
-	err = client.Request(tctx, "ResourceVirtual", queries, &res, false)
+	client.Login(tctx, &base_spec.Login{})
+	err = client.Request(tctx, "ResourceVirtualAdmin", queries, &res, true)
 	if err != nil {
 		return
 	}

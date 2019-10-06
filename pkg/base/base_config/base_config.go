@@ -50,6 +50,7 @@ type AppConfig struct {
 type ClientConfig struct {
 	User                  string   `validate:"required"`
 	Password              string   `validate:"required"`
+	Project               string   `validate:"required"`
 	Service               string   `validate:"required"`
 	Endpoints             []string `validate:"required"`
 	TlsInsecureSkipVerify bool

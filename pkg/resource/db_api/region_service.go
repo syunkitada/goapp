@@ -269,6 +269,8 @@ func (api *Api) InitializeRegionServiceCompute(tctx *logger.TraceContext,
 	}
 	fmt.Println("DEBUG image", image)
 
+	// TODO
+
 	// var imageSpec model.ImageSpec
 	// if err = json_utils.Unmarshal(image.Spec, &imageSpec); err != nil {
 	// 	return

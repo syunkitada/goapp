@@ -30,10 +30,13 @@ func (srv *Server) SyncCluster(tctx *logger.TraceContext) (err error) {
 		base_client.Query{
 			Name: "UpdateCluster",
 			Data: resource_api_spec.UpdateCluster{
-				Name:      srv.clusterConf.Api.Name,
-				Region:    srv.clusterConf.RegionName,
-				Token:     token,
-				Endpoints: srv.clusterConf.Api.Endpoints,
+				Name:       srv.clusterConf.Api.Name,
+				Region:     srv.clusterConf.Region,
+				Datacenter: srv.clusterConf.Datacenter,
+				Kind:       srv.clusterConf.Kind,
+				Weight:     srv.clusterConf.Weight,
+				Token:      token,
+				Endpoints:  srv.clusterConf.Api.Endpoints,
 			},
 		},
 	}
