@@ -45,7 +45,7 @@ func (client *Client) UpdateCluster(tctx *logger.TraceContext, queries []base_cl
 		return
 	}
 	result := res.ResultMap.UpdateCluster
-	if result.Code != base_const.CodeOk || result.Error != "" {
+	if result.Code != base_const.CodeOkUpdated || result.Error != "" {
 		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
 		return
 	}

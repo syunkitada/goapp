@@ -39,10 +39,12 @@ func (api *Api) Bootstrap(tctx *logger.TraceContext, isRecreate bool) (err error
 		return err
 	}
 
+	projectRoles := []string{}
 	for _, projectRole := range api.appConf.Auth.DefaultProjectRoles {
 		if err = api.CreateProjectRole(tctx, projectRole.Name); err != nil {
 			return err
 		}
+		projectRoles = append(projectRoles, projectRole.Name)
 		fmt.Printf("Created ProjectRole: %s\n", projectRole.Name)
 	}
 
@@ -77,7 +79,7 @@ func (api *Api) Bootstrap(tctx *logger.TraceContext, isRecreate bool) (err error
 		Name:            "Auth",
 		Scope:           "user",
 		SyncRootCluster: false,
-		ProjectRoles:    []string{"admin", "service", "tenant"},
+		ProjectRoles:    projectRoles,
 		Endpoints:       []string{},
 		QueryMap: map[string]spec_model.QueryModel{
 			"Login":          spec_model.QueryModel{},

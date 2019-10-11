@@ -22,11 +22,12 @@ func New(baseConf *base_config.Config, mainConf *config.Config) *Server {
 	if !ok {
 		logger.StdoutFatalf("cluster config is not found: cluster=%s", mainConf.Resource.ClusterName)
 	}
+	clusterConf.Controller.Name = "ReosurceClusterController"
 
 	dbApi := db_api.New(baseConf, &clusterConf)
 	resolver := resolver.New(baseConf, &clusterConf, dbApi)
-	queryHandler := genpkg.NewQueryHandler(baseConf, &clusterConf.Api, resolver)
-	baseApp := base_app.New(baseConf, &clusterConf.Api, dbApi, queryHandler)
+	queryHandler := genpkg.NewQueryHandler(baseConf, &clusterConf.Controller, resolver)
+	baseApp := base_app.New(baseConf, &clusterConf.Controller, dbApi, queryHandler)
 
 	srv := &Server{
 		BaseApp:      baseApp,

@@ -1,7 +1,6 @@
 package db_api
 
 import (
-	"github.com/syunkitada/goapp/pkg/lib/exec_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/resource/db_model"
 )
@@ -9,9 +8,6 @@ import (
 func (api *Api) BootstrapResource(tctx *logger.TraceContext, isRecreate bool) (err error) {
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 0) }()
-	if err = exec_utils.CreateDatabase(tctx, api.baseConf, api.databaseConf.Connection, isRecreate); err != nil {
-		return err
-	}
 
 	api.MustOpen()
 	defer api.MustClose()

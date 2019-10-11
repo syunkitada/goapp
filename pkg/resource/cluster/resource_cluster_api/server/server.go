@@ -18,6 +18,7 @@ type Server struct {
 	queryHandler *genpkg.QueryHandler
 	dbApi        *db_api.Api
 	rootClient   *resource_api.Client
+	clusterName  string
 }
 
 func New(baseConf *base_config.Config, mainConf *config.Config) *Server {
@@ -25,6 +26,7 @@ func New(baseConf *base_config.Config, mainConf *config.Config) *Server {
 	if !ok {
 		logger.StdoutFatalf("cluster config is not found: cluster=%s", mainConf.Resource.ClusterName)
 	}
+	clusterConf.Api.Name = "ReosurceClusterApi"
 
 	dbApi := db_api.New(baseConf, &clusterConf)
 	resolver := resolver.New(baseConf, &clusterConf, dbApi)
@@ -38,6 +40,7 @@ func New(baseConf *base_config.Config, mainConf *config.Config) *Server {
 		queryHandler: queryHandler,
 		dbApi:        dbApi,
 		rootClient:   resource_api.NewClient(&clusterConf.Api.RootClient),
+		clusterName:  mainConf.Resource.ClusterName,
 	}
 	srv.SetDriver(srv)
 	return srv

@@ -100,6 +100,8 @@ var Spec = spec_model.Spec{
 				spec_model.QueryModel{Req: DeleteCluster{}, Rep: DeleteClusterData{}},
 				spec_model.QueryModel{Req: DeleteClusters{}, Rep: DeleteClustersData{}},
 
+				spec_model.QueryModel{Req: GetNodes{}, Rep: GetNodesData{}},
+
 				spec_model.QueryModel{Req: GetNetworkV4{}, Rep: GetNetworkV4Data{}},
 				spec_model.QueryModel{Req: GetNetworkV4s{}, Rep: GetNetworkV4sData{}},
 				spec_model.QueryModel{Req: CreateNetworkV4{}, Rep: CreateNetworkV4Data{}},

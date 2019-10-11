@@ -675,9 +675,29 @@ var ResourceVirtualAdminCmdMap = map[string]index_model.Cmd{
 				FlagType: "string",
 				FlagKind: "",
 			},
+			"datacenter,d": index_model.Flag{
+				Required: false,
+				FlagType: "string",
+				FlagKind: "",
+			},
+			"domain.suffix,d": index_model.Flag{
+				Required: false,
+				FlagType: "string",
+				FlagKind: "",
+			},
 			"token,t": index_model.Flag{
 				Required: false,
 				FlagType: "string",
+				FlagKind: "",
+			},
+			"kind,k": index_model.Flag{
+				Required: false,
+				FlagType: "string",
+				FlagKind: "",
+			},
+			"weight,w": index_model.Flag{
+				Required: false,
+				FlagType: "int",
 				FlagKind: "",
 			},
 			"endpoints,e": index_model.Flag{
@@ -712,6 +732,18 @@ var ResourceVirtualAdminCmdMap = map[string]index_model.Cmd{
 		},
 		OutputKind:   "",
 		OutputFormat: "",
+	},
+	"get.nodes": index_model.Cmd{
+		QueryName: "GetNodes",
+		FlagMap: map[string]index_model.Flag{
+			"cluster,c": index_model.Flag{
+				Required: false,
+				FlagType: "string",
+				FlagKind: "",
+			},
+		},
+		OutputKind:   "table",
+		OutputFormat: "Name,Kind,Role,Status,StatusReason,State,StateReason,Labels,Spec",
 	},
 	"get.network.v4": index_model.Cmd{
 		QueryName: "GetNetworkV4",
@@ -1070,9 +1102,29 @@ var ResourceVirtualCmdMap = map[string]index_model.Cmd{
 				FlagType: "string",
 				FlagKind: "",
 			},
+			"datacenter,d": index_model.Flag{
+				Required: false,
+				FlagType: "string",
+				FlagKind: "",
+			},
+			"domain.suffix,d": index_model.Flag{
+				Required: false,
+				FlagType: "string",
+				FlagKind: "",
+			},
 			"token,t": index_model.Flag{
 				Required: false,
 				FlagType: "string",
+				FlagKind: "",
+			},
+			"kind,k": index_model.Flag{
+				Required: false,
+				FlagType: "string",
+				FlagKind: "",
+			},
+			"weight,w": index_model.Flag{
+				Required: false,
+				FlagType: "int",
 				FlagKind: "",
 			},
 			"endpoints,e": index_model.Flag{
@@ -1513,6 +1565,10 @@ var ApiQueryMap = map[string]map[string]spec_model.QueryModel{
 			RequiredProject: true,
 		},
 		"DeleteClusters": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"GetNodes": spec_model.QueryModel{
 			RequiredAuth:    true,
 			RequiredProject: true,
 		},

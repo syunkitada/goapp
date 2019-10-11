@@ -53,13 +53,14 @@ func (api *Api) CreateClusters(tctx *logger.TraceContext, input []spec.Cluster, 
 func (api *Api) CreateOrUpdateCluster(tctx *logger.TraceContext, input *spec.UpdateCluster) (err error) {
 	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
 		cluster := db_model.Cluster{
-			Region:     input.Region,
-			Datacenter: input.Datacenter,
-			Name:       input.Name,
-			Kind:       input.Kind,
-			Token:      input.Token,
-			Endpoints:  strings.Join(input.Endpoints, ","),
-			Weight:     input.Weight,
+			Region:       input.Region,
+			Datacenter:   input.Datacenter,
+			Name:         input.Name,
+			Kind:         input.Kind,
+			DomainSuffix: input.DomainSuffix,
+			Token:        input.Token,
+			Endpoints:    strings.Join(input.Endpoints, ","),
+			Weight:       input.Weight,
 		}
 		if err = tx.Where("name = ?", input.Name).First(&cluster).Error; err != nil {
 			if !gorm.IsRecordNotFoundError(err) {

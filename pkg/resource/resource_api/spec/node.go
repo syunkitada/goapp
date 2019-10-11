@@ -1,5 +1,7 @@
 package spec
 
+import "github.com/syunkitada/goapp/pkg/base/base_spec"
+
 type NodeSpec struct {
 	NumaNodes []NumaNodeSpec
 	Storages  []StorageSpec
@@ -19,4 +21,12 @@ type StorageSpec struct {
 	AvailableGb        int
 	UsedGb             int
 	AvailableNumaNodes []int
+}
+
+type GetNodes struct {
+	Cluster string
+}
+
+type GetNodesData struct {
+	Nodes []base_spec.Node
 }
