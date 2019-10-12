@@ -62,14 +62,16 @@ func (api *Api) CreateOrUpdateCluster(tctx *logger.TraceContext, input *spec.Upd
 			Endpoints:    strings.Join(input.Endpoints, ","),
 			Weight:       input.Weight,
 		}
-		if err = tx.Where("name = ?", input.Name).First(&cluster).Error; err != nil {
+		var tmpCluster db_model.Cluster
+		if err = tx.Where("name = ?", input.Name).First(&tmpCluster).Error; err != nil {
 			if !gorm.IsRecordNotFoundError(err) {
 				return
 			}
 			err = tx.Create(&cluster).Error
 			return
 		}
-		err = tx.Model(&cluster).Where("name = ?", cluster.Name).Updates(&cluster).Error
+		err = tx.Model(&tmpCluster).Updates(&cluster).Error
+
 		return
 	})
 	return

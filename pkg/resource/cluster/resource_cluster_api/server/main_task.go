@@ -8,7 +8,7 @@ import (
 )
 
 func (srv *Server) MainTask(tctx *logger.TraceContext) (err error) {
-	if err = srv.SyncCluster(tctx); err != nil {
+	if err = srv.SyncService(tctx); err != nil {
 		return
 	}
 
@@ -17,12 +17,17 @@ func (srv *Server) MainTask(tctx *logger.TraceContext) (err error) {
 		return
 	}
 
+	if err = srv.SyncCluster(tctx); err != nil {
+		return
+	}
+
 	return
 }
 
 func (srv *Server) SyncCluster(tctx *logger.TraceContext) (err error) {
 	var token string
-	if token, err = srv.dbApi.IssueToken(srv.clusterConf.Api.Name); err != nil {
+	// TODO FIX username
+	if token, err = srv.dbApi.IssueToken("service"); err != nil {
 		return
 	}
 	queries := []base_client.Query{

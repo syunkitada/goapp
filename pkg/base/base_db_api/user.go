@@ -23,7 +23,8 @@ func (api *Api) GetUserWithValidatePassword(tctx *logger.TraceContext, name stri
 
 	var tmpUser base_db_model.User
 	if err = api.DB.Where("name = ?", name).First(&tmpUser).Error; err != nil {
-		if !gorm.IsRecordNotFoundError(err) {
+		if gorm.IsRecordNotFoundError(err) {
+			err = error_utils.NewNotFoundError(name)
 			code = base_const.CodeClientInvalidAuth
 		} else {
 			code = base_const.CodeRemoteError

@@ -5,7 +5,7 @@ import (
 	"github.com/syunkitada/goapp/pkg/base/base_model/spec_model"
 )
 
-var ResourceVirtualCmdMap = map[string]index_model.Cmd{
+var ResourceVirtualAdminCmdMap = map[string]index_model.Cmd{
 	"get.compute": index_model.Cmd{
 		QueryName: "GetCompute",
 		FlagMap: map[string]index_model.Flag{
@@ -88,6 +88,18 @@ var ResourceVirtualCmdMap = map[string]index_model.Cmd{
 		OutputKind:   "",
 		OutputFormat: "",
 	},
+	"get.nodes": index_model.Cmd{
+		QueryName: "GetNodes",
+		FlagMap: map[string]index_model.Flag{
+			"cluster,c": index_model.Flag{
+				Required: false,
+				FlagType: "string",
+				FlagKind: "",
+			},
+		},
+		OutputKind:   "table",
+		OutputFormat: "Name,Kind,Role,Status,StatusReason,State,StateReason,Labels,Spec",
+	},
 }
 
 var ApiQueryMap = map[string]map[string]spec_model.QueryModel{
@@ -95,7 +107,7 @@ var ApiQueryMap = map[string]map[string]spec_model.QueryModel{
 		"Login":         spec_model.QueryModel{},
 		"UpdateService": spec_model.QueryModel{},
 	},
-	"ResourceVirtual": map[string]spec_model.QueryModel{
+	"ResourceVirtualAdmin": map[string]spec_model.QueryModel{
 		"GetCompute": spec_model.QueryModel{
 			RequiredAuth:    true,
 			RequiredProject: true,
@@ -117,6 +129,10 @@ var ApiQueryMap = map[string]map[string]spec_model.QueryModel{
 			RequiredProject: true,
 		},
 		"DeleteComputes": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"GetNodes": spec_model.QueryModel{
 			RequiredAuth:    true,
 			RequiredProject: true,
 		},

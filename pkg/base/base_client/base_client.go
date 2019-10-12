@@ -21,14 +21,15 @@ import (
 )
 
 type Client struct {
-	httpClient   *http.Client
-	localHandler http.Handler
-	token        string
-	service      string
-	user         string
-	password     string
-	project      string
-	endpoints    []string
+	httpClient     *http.Client
+	localHandler   http.Handler
+	token          string
+	isRefreshToken bool
+	service        string
+	user           string
+	password       string
+	project        string
+	endpoints      []string
 }
 
 func NewClient(conf *base_config.ClientConfig) *Client {
@@ -39,14 +40,21 @@ func NewClient(conf *base_config.ClientConfig) *Client {
 		Transport: tr,
 	}
 
+	isRefreshToken := false
+	if conf.User != "" && conf.Password != "" {
+		isRefreshToken = true
+	}
+
 	client := &Client{
-		httpClient:   httpClient,
-		localHandler: conf.LocalHandler,
-		user:         conf.User,
-		password:     conf.Password,
-		project:      conf.Project,
-		service:      conf.Service,
-		endpoints:    conf.Endpoints,
+		httpClient:     httpClient,
+		localHandler:   conf.LocalHandler,
+		user:           conf.User,
+		password:       conf.Password,
+		project:        conf.Project,
+		service:        conf.Service,
+		token:          conf.Token,
+		endpoints:      conf.Endpoints,
+		isRefreshToken: isRefreshToken,
 	}
 
 	return client
@@ -140,6 +148,7 @@ func (client *Client) Request(tctx *logger.TraceContext, service string, queries
 		if err != nil {
 			return err
 		}
+
 		statusCode = httpResp.StatusCode
 	}
 
@@ -160,6 +169,9 @@ func (client *Client) Request(tctx *logger.TraceContext, service string, queries
 
 func (client *Client) Auth(tctx *logger.TraceContext) (err error) {
 	if client.token != "" {
+		if !client.isRefreshToken {
+			return
+		}
 		splitedToken := strings.Split(client.token, ".")
 		if decoded, tmpErr := jwt.DecodeSegment(splitedToken[1]); tmpErr != nil {
 			logger.Warningf(tctx, "Failed decode token: %s", tmpErr.Error())
@@ -209,6 +221,12 @@ func (client *Client) Login(tctx *logger.TraceContext, input *base_spec.Login) (
 	if err != nil {
 		return
 	}
+
+	if res.Code >= 100 || res.Error != "" {
+		err = error_utils.NewInvalidResponseError(res.Code, res.Error)
+		return
+	}
+
 	result := res.ResultMap.Login
 	if result.Code != base_const.CodeOk || result.Error != "" {
 		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
@@ -238,6 +256,11 @@ func (client *Client) GetServiceIndex(tctx *logger.TraceContext, input *base_spe
 	var res GetServiceIndexResponse
 	err = client.Request(tctx, input.Name, queries, &res, false)
 	if err != nil {
+		return
+	}
+
+	if res.Code >= 100 || res.Error != "" {
+		err = error_utils.NewInvalidResponseError(res.Code, res.Error)
 		return
 	}
 

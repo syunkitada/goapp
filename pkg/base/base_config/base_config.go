@@ -48,10 +48,11 @@ type AppConfig struct {
 }
 
 type ClientConfig struct {
-	User                  string   `validate:"required"`
-	Password              string   `validate:"required"`
-	Project               string   `validate:"required"`
-	Service               string   `validate:"required"`
+	User                  string `validate:"required"`
+	Password              string `validate:"required"`
+	Project               string `validate:"required"`
+	Service               string `validate:"required"`
+	Token                 string
 	Endpoints             []string `validate:"required"`
 	TlsInsecureSkipVerify bool
 	LocalHandler          http.Handler

@@ -15,7 +15,7 @@ var Spec = spec_model.Spec{
 	Kind: base_const.KindApi,
 	Apis: []spec_model.Api{
 		spec_model.Api{
-			Name:            "ResourceVirtual",
+			Name:            "ResourceVirtualAdmin",
 			RequiredAuth:    true,
 			RequiredProject: true,
 			QueryModels: []spec_model.QueryModel{
@@ -25,6 +25,8 @@ var Spec = spec_model.Spec{
 				spec_model.QueryModel{Req: api_spec.UpdateCompute{}, Rep: api_spec.UpdateComputeData{}},
 				spec_model.QueryModel{Req: api_spec.DeleteCompute{}, Rep: api_spec.DeleteComputeData{}},
 				spec_model.QueryModel{Req: api_spec.DeleteComputes{}, Rep: api_spec.DeleteComputesData{}},
+
+				spec_model.QueryModel{Req: api_spec.GetNodes{}, Rep: api_spec.GetNodesData{}},
 			},
 		},
 	},

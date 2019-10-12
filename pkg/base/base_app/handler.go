@@ -110,7 +110,11 @@ func (app *BaseApp) Start(tctx *logger.TraceContext, httpReq *http.Request, isPr
 	tmpService, ok := app.serviceMap[req.Service]
 	if !ok {
 		res.Code = base_const.CodeClientBadRequest
-		err = fmt.Errorf("InvalidService")
+		queries := []string{}
+		for _, query := range req.Queries {
+			queries = append(queries, query.Name)
+		}
+		err = fmt.Errorf("InvalidService: service=%s, queries=%v", req.Service, queries)
 		res.Error = err.Error()
 		return
 	}
@@ -152,7 +156,7 @@ func (app *BaseApp) Start(tctx *logger.TraceContext, httpReq *http.Request, isPr
 		if queryModel.RequiredAuth {
 			if !isProxy {
 				if userAuthority == nil {
-					err = fmt.Errorf("InvalidAuth")
+					err = fmt.Errorf("InvalidAuth: InvalidToken")
 					res.Code = base_const.CodeClientInvalidAuth
 					res.Error = err.Error()
 					return
@@ -166,12 +170,12 @@ func (app *BaseApp) Start(tctx *logger.TraceContext, httpReq *http.Request, isPr
 					}
 					userAuthority.ProjectName = req.Project
 					if projectService, ok := userAuthority.ProjectServiceMap[req.Project]; !ok {
-						err = fmt.Errorf("InvalidAuthProjectService")
+						err = fmt.Errorf("InvalidAuthProjectService: project=%s", req.Project)
 						res.Code = base_const.CodeClientInvalidAuth
 						res.Error = err.Error()
 					} else {
 						if _, ok := projectService.ServiceMap[req.Service]; !ok {
-							err = fmt.Errorf("InvalidAuthService")
+							err = fmt.Errorf("InvalidAuthService: service=%s", req.Service)
 							res.Code = base_const.CodeClientInvalidAuth
 							res.Error = err.Error()
 							return
