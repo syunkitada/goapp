@@ -28,6 +28,7 @@ type ResourceClusterConfig struct {
 	DomainSuffix string
 	Api          base_config.AppConfig
 	Controller   base_config.AppConfig
+	Agent        base_config.AppConfig
 }
 
 type ResourceClusterApiConfig struct {

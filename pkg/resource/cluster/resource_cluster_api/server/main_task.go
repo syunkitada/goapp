@@ -26,7 +26,7 @@ func (srv *Server) MainTask(tctx *logger.TraceContext) (err error) {
 
 func (srv *Server) SyncCluster(tctx *logger.TraceContext) (err error) {
 	var token string
-	// TODO FIX username
+	// TODO make username configurable
 	if token, err = srv.dbApi.IssueToken("service"); err != nil {
 		return
 	}
@@ -41,11 +41,12 @@ func (srv *Server) SyncCluster(tctx *logger.TraceContext) (err error) {
 				DomainSuffix: srv.clusterConf.DomainSuffix,
 				Weight:       srv.clusterConf.Weight,
 				Token:        token,
+				Project:      "service", // TODO make project configurable
 				Endpoints:    srv.clusterConf.Api.Endpoints,
 			},
 		},
 	}
-	if _, err = srv.rootClient.UpdateCluster(tctx, queries); err != nil {
+	if _, err = srv.rootClient.ResourceVirtualAdminUpdateCluster(tctx, queries); err != nil {
 		return
 	}
 

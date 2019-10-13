@@ -1,3 +1,6 @@
+// This code is auto generated.
+// Don't modify this code.
+
 package genpkg
 
 import (
@@ -100,6 +103,18 @@ var ResourceVirtualAdminCmdMap = map[string]index_model.Cmd{
 		OutputKind:   "table",
 		OutputFormat: "Name,Kind,Role,Status,StatusReason,State,StateReason,Labels,Spec",
 	},
+	"sync.node": index_model.Cmd{
+		QueryName: "SyncNode",
+		FlagMap: map[string]index_model.Flag{
+			"node,n": index_model.Flag{
+				Required: false,
+				FlagType: "base_spec.Node",
+				FlagKind: "",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
 }
 
 var ApiQueryMap = map[string]map[string]spec_model.QueryModel{
@@ -133,6 +148,10 @@ var ApiQueryMap = map[string]map[string]spec_model.QueryModel{
 			RequiredProject: true,
 		},
 		"GetNodes": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"SyncNode": spec_model.QueryModel{
 			RequiredAuth:    true,
 			RequiredProject: true,
 		},

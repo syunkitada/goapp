@@ -8,6 +8,7 @@ type Cluster struct {
 	Datacenter   string `gorm:"not null;size:50;"`
 	Name         string `gorm:"not null;size:50;unique_index;"`
 	Kind         string `gorm:"not null;size:25;"`
+	Project      string `gorm:"not null;size:255;"`
 	Description  string `gorm:"not null;size:200;"`
 	DomainSuffix string `gorm:"not null;size:255;unique;"`
 	Labels       string `gorm:"not null;size:500;"`

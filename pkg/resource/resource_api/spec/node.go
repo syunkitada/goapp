@@ -1,6 +1,10 @@
 package spec
 
-import "github.com/syunkitada/goapp/pkg/base/base_spec"
+import (
+	"time"
+
+	"github.com/syunkitada/goapp/pkg/base/base_spec"
+)
 
 type NodeSpec struct {
 	NumaNodes []NumaNodeSpec
@@ -29,4 +33,23 @@ type GetNodes struct {
 
 type GetNodesData struct {
 	Nodes []base_spec.Node
+}
+
+type SyncNode struct {
+	Node base_spec.Node
+}
+
+type SyncNodeData struct {
+	Task NodeTask
+}
+
+type NodeTask struct {
+	ComputeAssignments []ComputeAssignmentEx
+}
+
+type ComputeAssignmentEx struct {
+	ID        uint
+	Status    string
+	Spec      RegionServiceComputeSpec
+	UpdatedAt time.Time
 }

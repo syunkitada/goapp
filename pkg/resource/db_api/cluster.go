@@ -59,6 +59,7 @@ func (api *Api) CreateOrUpdateCluster(tctx *logger.TraceContext, input *spec.Upd
 			Kind:         input.Kind,
 			DomainSuffix: input.DomainSuffix,
 			Token:        input.Token,
+			Project:      input.Project,
 			Endpoints:    strings.Join(input.Endpoints, ","),
 			Weight:       input.Weight,
 		}

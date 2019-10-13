@@ -1,3 +1,6 @@
+// This code is auto generated.
+// Don't modify this code.
+
 package genpkg
 
 import (
@@ -690,6 +693,11 @@ var ResourceVirtualAdminCmdMap = map[string]index_model.Cmd{
 				FlagType: "string",
 				FlagKind: "",
 			},
+			"project,p": index_model.Flag{
+				Required: false,
+				FlagType: "string",
+				FlagKind: "",
+			},
 			"kind,k": index_model.Flag{
 				Required: false,
 				FlagType: "string",
@@ -1113,6 +1121,11 @@ var ResourceVirtualCmdMap = map[string]index_model.Cmd{
 				FlagKind: "",
 			},
 			"token,t": index_model.Flag{
+				Required: false,
+				FlagType: "string",
+				FlagKind: "",
+			},
+			"project,p": index_model.Flag{
 				Required: false,
 				FlagType: "string",
 				FlagKind: "",

@@ -1,179 +1,113 @@
+// This code is auto generated.
+// Don't modify this code.
+
 package genpkg
 
 import (
-	"bytes"
-	"crypto/tls"
-	"encoding/json"
-	"fmt"
-	"io/ioutil"
-	"net/http"
-	"net/http/httptest"
-
+	"github.com/syunkitada/goapp/pkg/base/base_client"
 	"github.com/syunkitada/goapp/pkg/base/base_config"
-	"github.com/syunkitada/goapp/pkg/base/base_const"
 	"github.com/syunkitada/goapp/pkg/base/base_model"
 	"github.com/syunkitada/goapp/pkg/base/base_spec"
 	"github.com/syunkitada/goapp/pkg/lib/error_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
 
-// AuthproxyClient is http client for authproxy
 type Client struct {
-	httpClient   *http.Client
-	localHandler http.Handler
-	token        string
-	service      string
-	endpoints    []string
+	*base_client.Client
 }
 
 func NewClient(conf *base_config.ClientConfig) *Client {
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: conf.TlsInsecureSkipVerify},
+	client := Client{
+		Client: base_client.NewClient(conf),
 	}
-	httpClient := &http.Client{
-		Transport: tr,
-	}
-
-	client := &Client{
-		httpClient:   httpClient,
-		localHandler: conf.LocalHandler,
-		endpoints:    conf.Endpoints,
-	}
-
-	return client
+	return &client
 }
 
-type Query struct {
-	Name string
-	Data interface{}
-}
-
-func (client *Client) Request(tctx *logger.TraceContext, queries []Query, resp interface{}, requiredAuth bool) error {
-	var err error
-	startTime := logger.StartTrace(tctx)
-	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
-
-	reqQueries := []base_model.ReqQuery{}
-	var queryBytes []byte
-	for _, query := range queries {
-		if queryBytes, err = json.Marshal(query.Data); err != nil {
-			return err
-		} else {
-			reqQueries = append(reqQueries, base_model.ReqQuery{
-				Name: query.Name,
-				Data: string(queryBytes),
-			})
-		}
-	}
-
-	req := base_model.Request{
-		Tctx:    tctx,
-		Service: "Auth",
-		Queries: reqQueries,
-	}
-	if requiredAuth {
-		req.Token = client.token
-	}
-
-	var reqJson []byte
-	if reqJson, err = json.Marshal(req); err != nil {
-		return err
-	}
-
-	var body []byte
-	var statusCode int
-	var httpReq *http.Request
-	reqBuffer := bytes.NewBuffer(reqJson)
-	if client.localHandler != nil {
-		if httpReq, err = http.NewRequest(
-			"POST", "http://127.0.0.1/q", reqBuffer); err != nil {
-			return err
-		}
-		w := httptest.NewRecorder()
-		client.localHandler.ServeHTTP(w, httpReq)
-		body = w.Body.Bytes()
-		statusCode = w.Code
-	} else {
-		var httpResp *http.Response
-		for _, target := range client.endpoints {
-			if httpReq, err = http.NewRequest("POST", target+"/q", reqBuffer); err != nil {
-				return err
-			}
-
-			httpResp, err = client.httpClient.Do(httpReq)
-			if err != nil {
-				return err
-			}
-			break
-		}
-
-		defer func() {
-			if tmpErr := httpResp.Body.Close(); tmpErr != nil {
-				logger.Errorf(tctx, err, "Failed httpResp.Body.Close()")
-			}
-		}()
-		body, err = ioutil.ReadAll(httpResp.Body)
-		if err != nil {
-			return err
-		}
-		statusCode = httpResp.StatusCode
-	}
-
-	if err = json.Unmarshal(body, resp); err != nil {
-		return err
-	}
-
-	if statusCode != 200 {
-		return fmt.Errorf("Invalid StatusCode: get=%v, want=%v", statusCode, 200)
-	}
-
-	return nil
-}
-
-type LoginResponse struct {
+type GetAllUsersResponse struct {
 	base_model.Response
-	Data LoginResponseData
+	ResultMap GetAllUsersResultMap
 }
 
-type LoginResponseData struct {
-	Login base_spec.LoginData
+type GetAllUsersResultMap struct {
+	GetAllUsers GetAllUsersResult
 }
 
-func (client *Client) Login(tctx *logger.TraceContext, input *base_spec.Login) (data *base_spec.LoginData, err error) {
-	queries := []Query{Query{Name: "Login", Data: input}}
-	var reply LoginResponse
-	err = client.Request(tctx, queries, &reply, false)
+type GetAllUsersResult struct {
+	Code  uint8
+	Error string
+	Data  spec.GetAllUsersData
+}
+type GetUserResponse struct {
+	base_model.Response
+	ResultMap GetUserResultMap
+}
+
+type GetUserResultMap struct {
+	GetUser GetUserResult
+}
+
+type GetUserResult struct {
+	Code  uint8
+	Error string
+	Data  spec.GetUserData
+}
+type GetUsersResponse struct {
+	base_model.Response
+	ResultMap GetUsersResultMap
+}
+
+type GetUsersResultMap struct {
+	GetUsers GetUsersResult
+}
+
+type GetUsersResult struct {
+	Code  uint8
+	Error string
+	Data  spec.GetUsersData
+}
+
+func (client *Client) HomeGetAllUsers(tctx *logger.TraceContext, queries []base_client.Query) (data *base_spec.GetAllUsersData, err error) {
+	var res GetAllUsersResponse
+	err = client.Request(tctx, "Home", queries, &res, true)
 	if err != nil {
 		return
 	}
-	if reply.Code != base_const.CodeOk || reply.Error != "" {
-		err = error_utils.NewInvalidResponseError(reply.Code, reply.Error)
+	result := res.ResultMap.GetAllUsers
+	if result.Code >= 100 || result.Error != "" {
+		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
 		return
 	}
-	data = &reply.Data.Login
+
+	data = &result.Data
 	return
 }
-
-type GetServiceIndexResponse struct {
-	base_model.Response
-	Data GetServiceIndexResponseData
-}
-
-type GetServiceIndexResponseData struct {
-	GetServiceIndex base_spec.GetServiceIndexData
-}
-
-func (client *Client) GetServiceIndex(tctx *logger.TraceContext, input *base_spec.GetServiceIndex) (data *base_spec.GetServiceIndexData, err error) {
-	queries := []Query{Query{Name: "GetServiceIndex", Data: input}}
-	var reply GetServiceIndexResponse
-	err = client.Request(tctx, queries, &reply, false)
+func (client *Client) HomeGetUser(tctx *logger.TraceContext, queries []base_client.Query) (data *base_spec.GetUserData, err error) {
+	var res GetUserResponse
+	err = client.Request(tctx, "Home", queries, &res, true)
 	if err != nil {
 		return
 	}
-	if reply.Code != base_const.CodeOk || reply.Error != "" {
-		err = error_utils.NewInvalidResponseError(reply.Code, reply.Error)
+	result := res.ResultMap.GetUser
+	if result.Code >= 100 || result.Error != "" {
+		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
 		return
 	}
-	data = &reply.Data.GetServiceIndex
+
+	data = &result.Data
+	return
+}
+func (client *Client) HomeProjectGetUsers(tctx *logger.TraceContext, queries []base_client.Query) (data *base_spec.GetUsersData, err error) {
+	var res GetUsersResponse
+	err = client.Request(tctx, "HomeProject", queries, &res, true)
+	if err != nil {
+		return
+	}
+	result := res.ResultMap.GetUsers
+	if result.Code >= 100 || result.Error != "" {
+		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
+		return
+	}
+
+	data = &result.Data
 	return
 }

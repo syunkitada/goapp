@@ -1,11 +1,13 @@
 package db_api
 
 import (
-	"fmt"
 	"strings"
 
+	"github.com/jinzhu/gorm"
 	"github.com/syunkitada/goapp/pkg/base/base_client"
 	"github.com/syunkitada/goapp/pkg/base/base_config"
+	"github.com/syunkitada/goapp/pkg/base/base_db_model"
+	"github.com/syunkitada/goapp/pkg/base/base_spec"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 
 	resource_cluster_api "github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_api/spec/genpkg"
@@ -14,20 +16,17 @@ import (
 )
 
 func (api *Api) SyncClusterNode(tctx *logger.TraceContext) (err error) {
-	fmt.Println("DEBUG SyncClusterNode")
-
 	var clusters []db_model.Cluster
 	if err = api.DB.Find(&clusters).Error; err != nil {
 		return
 	}
 
-	// TODO FIX project
 	for _, cluster := range clusters {
 		endpoints := strings.Split(cluster.Endpoints, ",")
 		client := resource_cluster_api.NewClient(&base_config.ClientConfig{
 			Endpoints:             endpoints,
 			Token:                 cluster.Token,
-			Project:               "service",
+			Project:               cluster.Project,
 			TlsInsecureSkipVerify: true,
 		})
 
@@ -37,12 +36,50 @@ func (api *Api) SyncClusterNode(tctx *logger.TraceContext) (err error) {
 				Data: resource_api_spec.GetNodes{},
 			},
 		}
-		res, tmpErr := client.GetNodes(tctx, queries)
+		res, tmpErr := client.ResourceVirtualAdminGetNodes(tctx, queries)
 		if tmpErr != nil {
-			fmt.Println("DEBUG tmpErr", tmpErr)
+			logger.Warningf(tctx, "Failed GetNodes: %s", tmpErr.Error())
+			continue
 		}
-		fmt.Println("DEBUG GetNodes", endpoints, cluster.Token, res)
+		if tmpErr := api.CreateOrUpdateClusterNode(tctx, res.Nodes); tmpErr != nil {
+			logger.Warningf(tctx, "Failed CreateOrUpdateClusterNode: %s", tmpErr.Error())
+			continue
+		}
 	}
-	// TODO sync cluster node
+	return
+}
+
+func (api *Api) CreateOrUpdateClusterNode(tctx *logger.TraceContext, nodes []base_spec.Node) (err error) {
+	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
+		for _, node := range nodes {
+			var tmp db_model.ClusterNode
+			if err = tx.Where("name = ? and kind = ?", node.Name, node.Kind).First(&tmp).Error; err != nil {
+				if !gorm.IsRecordNotFoundError(err) {
+					return
+				}
+				tmp = db_model.ClusterNode{
+					Node: base_db_model.Node{
+						Name:         node.Name,
+						Kind:         node.Kind,
+						Role:         node.Role,
+						Status:       node.Status,
+						StatusReason: node.StatusReason,
+						State:        node.State,
+						StateReason:  node.StateReason,
+					},
+				}
+				if err = tx.Create(&tmp).Error; err != nil {
+					return
+				}
+			} else {
+				tmp.State = node.State
+				tmp.StateReason = node.StateReason
+				if err = tx.Save(&tmp).Error; err != nil {
+					return
+				}
+			}
+		}
+		return
+	})
 	return
 }

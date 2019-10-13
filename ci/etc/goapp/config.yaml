@@ -146,3 +146,17 @@ resource:
         certFile: 'tls-assets/server.pem'
         keyFile: 'tls-assets/server.key'
         gracefulTimeout: 10
+      agent:
+        listen: '0.0.0.0:13410'
+        endpoints: ['https://127.0.0.1:13410']
+        allowedHosts: ['127.0.0.1:13410']
+        accessControlAllowOrigin: '127.0.0.1:13410'
+        certFile: 'tls-assets/server.pem'
+        keyFile: 'tls-assets/server.key'
+        gracefulTimeout: 10
+        rootClient:
+          user: 'service'
+          password: 'service'
+          project: 'service'
+          tlsInsecureSkipVerify: true
+          endpoints: ['https://127.0.0.1:13400']

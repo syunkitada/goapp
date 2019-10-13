@@ -37,6 +37,7 @@ type UpdateCluster struct {
 	Datacenter   string
 	DomainSuffix string
 	Token        string
+	Project      string
 	Kind         string
 	Weight       int
 	Endpoints    []string

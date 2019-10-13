@@ -1,0 +1,66 @@
+// This code is auto generated.
+// Don't modify this code.
+{{- $spec := . }}
+
+package genpkg
+
+import (
+	"github.com/syunkitada/goapp/pkg/base/base_client"
+	"github.com/syunkitada/goapp/pkg/base/base_config"
+	"github.com/syunkitada/goapp/pkg/base/base_const"
+	"github.com/syunkitada/goapp/pkg/base/base_model"
+	"github.com/syunkitada/goapp/pkg/base/base_spec"
+	"github.com/syunkitada/goapp/pkg/lib/error_utils"
+	"github.com/syunkitada/goapp/pkg/lib/logger"
+	{{- range $query := $spec.QuerySet }}
+	"{{ $query.PkgPath }}"
+	{{- end }}
+)
+
+type Client struct {
+	*base_client.Client
+}
+
+func NewClient(conf *base_config.ClientConfig) *Client {
+	client := Client{
+		Client: base_client.NewClient(conf),
+	}
+	return &client
+}
+
+{{- range $query := $spec.QuerySet }}
+type {{ $query.Name }}Response struct {
+	base_model.Response
+	ResultMap {{ $query.Name }}ResultMap
+}
+
+type {{ $query.Name }}ResultMap struct {
+	{{ $query.Name }} {{ $query.Name }}Result
+}
+
+type {{ $query.Name }}Result struct {
+	Code  uint8
+	Error string
+	Data  spec.{{ $query.Name }}Data
+}
+{{- end }}
+
+{{- range $api := $spec.Apis }}
+{{- range $query := $api.Queries }}
+func (client *Client) {{ $api.Name }}{{ $query.Name }}(tctx *logger.TraceContext, queries []base_client.Query) (data *{{ $query.PkgName }}.{{ $query.Name }}Data, err error) {
+	var res {{ $query.Name }}Response
+	err = client.Request(tctx, "{{ $api.Name }}", queries, &res, true)
+	if err != nil {
+		return
+	}
+	result := res.ResultMap.{{ $query.Name }}
+    if result.Code >= 100 || result.Error != "" {
+		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
+		return
+	}
+
+	data = &result.Data
+	return
+}
+{{- end }}
+{{- end }}

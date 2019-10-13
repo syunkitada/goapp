@@ -57,6 +57,9 @@ func Generate(spec *spec_model.Spec) {
 	apiTemplatePath := filepath.Join(pkgPath, "templates", "genpkg", "api.go.tmpl")
 	generateCodeFromTemplate(apiTemplatePath, pkgDir, "api.go", spec)
 
+	generateCodeFromTemplate(
+		filepath.Join(pkgPath, "templates", "genpkg", "client.go.tmpl"), pkgDir, "client.go", spec)
+
 	cmdTemplatePath := filepath.Join(pkgPath, "templates", "genpkg", "cmd.go.tmpl")
 	generateCodeFromTemplate(cmdTemplatePath, pkgDir, "cmd.go", spec)
 }

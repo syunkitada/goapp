@@ -6,6 +6,7 @@ import (
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_agent/resolver"
 	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_agent/spec/genpkg"
+	resource_cluster_api "github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_api/spec/genpkg"
 	"github.com/syunkitada/goapp/pkg/resource/config"
 )
 
@@ -14,6 +15,7 @@ type Server struct {
 	baseConf     *base_config.Config
 	clusterConf  *config.ResourceClusterConfig
 	queryHandler *genpkg.QueryHandler
+	apiClient    *resource_cluster_api.Client
 }
 
 func New(baseConf *base_config.Config, mainConf *config.Config) *Server {
@@ -23,14 +25,16 @@ func New(baseConf *base_config.Config, mainConf *config.Config) *Server {
 	}
 
 	resolver := resolver.New(baseConf, &clusterConf)
-	queryHandler := genpkg.NewQueryHandler(baseConf, &clusterConf.Api, resolver)
-	baseApp := base_app.New(baseConf, &clusterConf.Api, nil, queryHandler)
+	queryHandler := genpkg.NewQueryHandler(baseConf, &clusterConf.Agent, resolver)
+	baseApp := base_app.New(baseConf, &clusterConf.Agent, nil, queryHandler)
+	apiClient := resource_cluster_api.NewClient(&clusterConf.Agent.RootClient)
 
 	srv := &Server{
 		BaseApp:      baseApp,
 		baseConf:     baseConf,
 		clusterConf:  &clusterConf,
 		queryHandler: queryHandler,
+		apiClient:    apiClient,
 	}
 	srv.SetDriver(srv)
 	return srv
