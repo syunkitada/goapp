@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/jinzhu/gorm"
+	"github.com/syunkitada/goapp/pkg/base/base_client"
 	"github.com/syunkitada/goapp/pkg/base/base_const"
 	"github.com/syunkitada/goapp/pkg/base/base_spec"
 	"github.com/syunkitada/goapp/pkg/lib/error_utils"
@@ -177,37 +178,30 @@ func (api *Api) SyncRegionService(tctx *logger.TraceContext) (err error) {
 	}
 
 	clusterComputeMap := map[string]map[string]spec.Compute{}
-	// for clusterName, clusterApiClient := range modelApi.clusterClientMap {
-	// 	computeMap, ok := clusterComputeMap[clusterName]
-	// 	if !ok {
-	// 		computeMap = map[string]db_model.Compute{}
-	// 	}
+	for clusterName, clusterApiClient := range api.clusterClientMap {
+		computeMap, ok := clusterComputeMap[clusterName]
+		if !ok {
+			computeMap = map[string]spec.Compute{}
+		}
 
-	// 	queries := []authproxy_model.Query{
-	// 		authproxy_model.Query{
-	// 			Kind: "get_computes",
-	// 		},
-	// 	}
-	// 	var rep *authproxy_grpc_pb.ActionReply
-	// 	if rep, err = clusterApiClient.Action(
-	// 		logger.NewActionTraceContext(tctx, "system", "system", queries)); err != nil {
-	// 		return err
-	// 	}
+		queries := []base_client.Query{
+			base_client.Query{
+				Name: "GetComputes",
+				Data: spec.GetCompute{},
+			},
+		}
 
-	// 	var resp db_model.ActionResponse
-	// 	if err = json_utils.Unmarshal(rep.Response, &resp); err != nil {
-	// 		return err
-	// 	}
-	// 	if resp.Tctx.StatusCode == codes.OkRead {
-	// 		for _, compute := range resp.Data.Computes {
-	// 			fmt.Println("DEBUG NAME", compute.Name)
-	// 			computeMap[compute.Name] = compute
-	// 		}
-	// 	}
+		res, tmpErr := clusterApiClient.ResourceVirtualAdminGetComputes(tctx, queries)
+		if tmpErr != nil {
+			err = fmt.Errorf("Failed GetComputes: %s", tmpErr.Error())
+			continue
+		}
 
-	// 	clusterComputeMap[clusterName] = computeMap
-	// }
-	// fmt.Println("DEBUG clusterComputeMap", clusterComputeMap)
+		fmt.Println("DEBUG GetComputes res", res, computeMap)
+		// TODO update computeMap
+
+		clusterComputeMap[clusterName] = computeMap
+	}
 
 	// SyncComputes
 	var computes []db_model.Compute

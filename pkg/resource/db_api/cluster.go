@@ -5,8 +5,10 @@ import (
 
 	"github.com/jinzhu/gorm"
 
+	"github.com/syunkitada/goapp/pkg/base/base_config"
 	"github.com/syunkitada/goapp/pkg/base/base_spec"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
+	resource_cluster_api "github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_api/spec/genpkg"
 	"github.com/syunkitada/goapp/pkg/resource/db_model"
 	"github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
 )
@@ -96,5 +98,23 @@ func (api *Api) DeleteClusters(tctx *logger.TraceContext, input []spec.Cluster, 
 		}
 		return
 	})
+	return
+}
+
+func (api *Api) SyncClusterClient(tctx *logger.TraceContext) (err error) {
+	var clusters []db_model.Cluster
+	if err = api.DB.Find(&clusters).Error; err != nil {
+		return
+	}
+
+	for _, cluster := range clusters {
+		endpoints := strings.Split(cluster.Endpoints, ",")
+		api.clusterClientMap[cluster.Name] = resource_cluster_api.NewClient(&base_config.ClientConfig{
+			Endpoints:             endpoints,
+			Token:                 cluster.Token,
+			Project:               cluster.Project,
+			TlsInsecureSkipVerify: true,
+		})
+	}
 	return
 }

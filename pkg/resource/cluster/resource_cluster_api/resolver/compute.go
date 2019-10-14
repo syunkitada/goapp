@@ -1,6 +1,8 @@
 package resolver
 
 import (
+	"fmt"
+
 	"github.com/syunkitada/goapp/pkg/base/base_spec"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
@@ -22,6 +24,7 @@ func (resolver *Resolver) GetCompute(tctx *logger.TraceContext, input *spec.GetC
 }
 
 func (resolver *Resolver) GetComputes(tctx *logger.TraceContext, input *spec.GetComputes, user *base_spec.UserAuthority) (data *spec.GetComputesData, code uint8, err error) {
+	fmt.Println("DEBUG GetComputes")
 	// var images []spec.Compute
 	// if images, err = resolver.dbApi.GetComputes(tctx, input, user); err != nil {
 	// 	code = base_const.CodeServerInternalError
@@ -33,6 +36,7 @@ func (resolver *Resolver) GetComputes(tctx *logger.TraceContext, input *spec.Get
 }
 
 func (resolver *Resolver) CreateCompute(tctx *logger.TraceContext, input *spec.CreateCompute, user *base_spec.UserAuthority) (data *spec.CreateComputeData, code uint8, err error) {
+	fmt.Println("DEBUG CreateCompute")
 	// var specs []spec.Compute
 	// fmt.Println("DEBUG CreateCompute", input.Spec)
 	// if specs, err = resolver.ConvertToComputeSpecs(input.Spec); err != nil {

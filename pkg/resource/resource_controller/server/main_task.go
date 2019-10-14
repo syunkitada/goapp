@@ -27,6 +27,10 @@ func (srv *Server) MainTask(tctx *logger.TraceContext) (err error) {
 		return
 	}
 
+	if err = srv.dbApi.SyncClusterClient(tctx); err != nil {
+		return
+	}
+
 	wg := sync.WaitGroup{}
 	go srv.SyncClusterNode(tctx, &wg)
 	go srv.SyncRegionService(tctx, &wg)

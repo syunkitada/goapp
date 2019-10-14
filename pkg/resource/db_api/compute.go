@@ -5,6 +5,7 @@ import (
 
 	"github.com/jinzhu/gorm"
 
+	"github.com/syunkitada/goapp/pkg/base/base_client"
 	"github.com/syunkitada/goapp/pkg/base/base_const"
 	"github.com/syunkitada/goapp/pkg/base/base_spec"
 	"github.com/syunkitada/goapp/pkg/lib/error_utils"
@@ -105,6 +106,88 @@ func (api *Api) DeleteCompute(tctx *logger.TraceContext, name string) (err error
 func (api *Api) CreateClusterCompute(tctx *logger.TraceContext,
 	compute *db_model.Compute, clusterComputeMap map[string]map[string]spec.Compute) {
 	fmt.Println("DEBUG Api.CreateClusterCompute")
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	var rspec spec.RegionServiceComputeSpec
+	if err = json_utils.Unmarshal(compute.Spec, &rspec); err != nil {
+		return
+	}
+
+	computeMap, ok := clusterComputeMap[compute.Cluster]
+	if !ok {
+		err = error_utils.NewNotFoundError("cluster")
+		return
+	}
+
+	// すでに作成済みかを確認し、作成済みの場合はスキップされる
+	if _, ok := computeMap[compute.Name]; !ok {
+		// そうでない場合は、作成する
+		client, ok := api.clusterClientMap[compute.Cluster]
+		if !ok {
+			err = error_utils.NewNotFoundError("clusterClient")
+			return
+		}
+
+		specStr := "[" + compute.Spec + "]"
+		queries := []base_client.Query{
+			base_client.Query{
+				Name: "CreateCompute",
+				Data: spec.CreateCompute{
+					Spec: specStr,
+				},
+			},
+		}
+
+		res, tmpErr := client.ResourceVirtualAdminCreateCompute(tctx, queries)
+		if tmpErr != nil {
+			err = fmt.Errorf("Failed CreateCompute: %s", tmpErr.Error())
+			return
+		}
+
+		fmt.Println("DEBUG CreateCompute res", res)
+	}
+
+	// clusterApiClient, ok := modelApi.clusterClientMap[compute.Cluster]
+	// if !ok {
+	// 	err = error_utils.NewNotFoundError("cluster")
+	// 	return
+	// }
+
+	// if _, ok := computeMap[compute.Name]; !ok {
+	// 	specs := "[" + compute.Spec + "]"
+	// 	queries := []authproxy_model.Query{
+	// 		authproxy_model.Query{
+	// 			Kind: "create_compute",
+	// 			StrParams: map[string]string{
+	// 				"Specs": specs,
+	// 			},
+	// 		},
+	// 	}
+	// 	var rep *authproxy_grpc_pb.ActionReply
+	// 	if rep, err = clusterApiClient.Action(
+	// 		logger.NewActionTraceContext(tctx, compute.Project, "", queries)); err != nil {
+	// 		return
+	// 	}
+
+	// 	var resp resource_model.ActionResponse
+	// 	if err = json_utils.Unmarshal(rep.Response, &resp); err != nil {
+	// 		return
+	// 	}
+	// 	if resp.Tctx.StatusCode != codes.OkCreated {
+	// 		logger.Warningf(tctx, "Failed create: %s", resp.Tctx.Err)
+	// 		return
+	// 	}
+	// }
+
+	// compute.Status = resource_model.StatusCreatingScheduled
+	// compute.StatusReason = "CreateClusterCompute"
+
+	// err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
+	// 	err = tx.Save(compute).Error
+	// })
+	return
 }
 
 func (api *Api) ConfirmCreatingScheduledCompute(tctx *logger.TraceContext,
