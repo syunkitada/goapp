@@ -136,7 +136,6 @@ func (ctl *Ctl) index(args []string) error {
 	lastArgs := []string{}
 	helpMsgs := [][]string{}
 	for query, cmd := range getServiceIndexData.Index.CmdMap {
-		args := strings.Split(query, ".")
 		helpQuery := query
 		helpMsg := []string{helpQuery}
 		flags := []string{}
@@ -157,25 +156,15 @@ func (ctl *Ctl) index(args []string) error {
 			continue
 		}
 
-		if len(cmdArgs) == len(args)+1 {
-			isMatch := true
-			for i, arg := range args {
-				if arg != cmdArgs[i+1] {
-					isMatch = false
-					break
-				}
+		if len(cmdArgs) > 1 && cmdArgs[1] == query {
+			if len(cmdArgs) > 2 {
+				lastArgs = cmdArgs[2:]
 			}
-			if isMatch {
-				helpMsgs = [][]string{helpMsg}
-				cmdQuery = query
-				cmdInfo = cmd
-				if len(cmdArgs)+1 > len(args) {
-					if len(cmdArgs) > len(args)+1 {
-						lastArgs = cmdArgs[len(args)+1:]
-					}
-				}
-				break
-			}
+
+			cmdInfo = cmd
+			helpMsgs = [][]string{helpMsg}
+			cmdQuery = query
+			break
 		}
 	}
 
@@ -194,7 +183,7 @@ func (ctl *Ctl) index(args []string) error {
 					cmdFlag, ok = shortFlagMap[splitedKey[1]]
 				}
 			}
-			if flag.Flag == base_const.ArgRequired {
+			if flag.Required {
 				if !ok {
 					cmdQuery = ""
 					break

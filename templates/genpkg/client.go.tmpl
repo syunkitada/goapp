@@ -41,7 +41,7 @@ type {{ $query.Name }}ResultMap struct {
 type {{ $query.Name }}Result struct {
 	Code  uint8
 	Error string
-	Data  spec.{{ $query.Name }}Data
+	Data  {{ $query.PkgName }}.{{ $query.Name }}Data
 }
 {{- end }}
 

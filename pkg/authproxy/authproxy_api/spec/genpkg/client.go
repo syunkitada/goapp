@@ -35,7 +35,7 @@ type GetAllUsersResultMap struct {
 type GetAllUsersResult struct {
 	Code  uint8
 	Error string
-	Data  spec.GetAllUsersData
+	Data  base_spec.GetAllUsersData
 }
 type GetUserResponse struct {
 	base_model.Response
@@ -49,7 +49,7 @@ type GetUserResultMap struct {
 type GetUserResult struct {
 	Code  uint8
 	Error string
-	Data  spec.GetUserData
+	Data  base_spec.GetUserData
 }
 type GetUsersResponse struct {
 	base_model.Response
@@ -63,7 +63,7 @@ type GetUsersResultMap struct {
 type GetUsersResult struct {
 	Code  uint8
 	Error string
-	Data  spec.GetUsersData
+	Data  base_spec.GetUsersData
 }
 
 func (client *Client) HomeGetAllUsers(tctx *logger.TraceContext, queries []base_client.Query) (data *base_spec.GetAllUsersData, err error) {

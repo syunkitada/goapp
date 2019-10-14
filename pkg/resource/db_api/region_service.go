@@ -3,9 +3,12 @@ package db_api
 import (
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/jinzhu/gorm"
+	"github.com/syunkitada/goapp/pkg/base/base_const"
 	"github.com/syunkitada/goapp/pkg/base/base_spec"
+	"github.com/syunkitada/goapp/pkg/lib/error_utils"
 	"github.com/syunkitada/goapp/pkg/lib/json_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/resource/db_model"
@@ -173,7 +176,7 @@ func (api *Api) SyncRegionService(tctx *logger.TraceContext) (err error) {
 		tctx.Metadata = map[string]string{}
 	}
 
-	// clusterComputeMap := map[string]map[string]model.Compute{}
+	clusterComputeMap := map[string]map[string]spec.Compute{}
 	// for clusterName, clusterApiClient := range modelApi.clusterClientMap {
 	// 	computeMap, ok := clusterComputeMap[clusterName]
 	// 	if !ok {
@@ -215,10 +218,10 @@ func (api *Api) SyncRegionService(tctx *logger.TraceContext) (err error) {
 	for _, compute := range computes {
 		tctx.Metadata["ComputeId"] = strconv.FormatUint(uint64(compute.ID), 10)
 		switch compute.Status {
-		// case db_model.StatusCreating:
-		// 	modelApi.CreateClusterCompute(tctx, db, &compute, clusterComputeMap)
-		// case db_model.StatusCreatingScheduled:
-		// 	modelApi.ConfirmCreatingScheduledCompute(tctx, db, &compute, clusterComputeMap)
+		case db_model.StatusCreating:
+			api.CreateClusterCompute(tctx, &compute, clusterComputeMap)
+		case db_model.StatusCreatingScheduled:
+			api.ConfirmCreatingScheduledCompute(tctx, &compute, clusterComputeMap)
 		case db_model.StatusUpdating:
 			logger.Infof(tctx, "Found %v resource: %v", compute.Status, compute.Name)
 		case db_model.StatusUpdatingScheduled:
@@ -243,113 +246,119 @@ func (api *Api) InitializeRegionServiceCompute(tctx *logger.TraceContext,
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
-	var spec spec.RegionServiceComputeSpec
-	if err = json_utils.Unmarshal(service.Spec, &spec); err != nil {
+	var rspec spec.RegionServiceComputeSpec
+	if err = json_utils.Unmarshal(service.Spec, &rspec); err != nil {
 		return
 	}
-
-	fmt.Println("Debug Initialize", spec)
 
 	tmpClusters, ok := regionClustersMap[service.Region]
 	if !ok {
 		logger.Warningf(tctx, "cluster not found: region=%v", service.Region)
 		return
 	}
-	fmt.Println("DEBUG tmpClusters", tmpClusters)
 
 	imageMap, ok := regionImageMap[service.Region]
 	if !ok {
 		logger.Warningf(tctx, "image not found: region=%v", service.Region)
 		return
 	}
-	image, ok := imageMap[spec.Image]
+	image, ok := imageMap[rspec.Image]
 	if !ok {
-		logger.Warningf(tctx, "image not found: region=%v, image=%v", service.Region, spec.Image)
+		logger.Warningf(tctx, "image not found: region=%s, image=%v", service.Region, rspec.Image)
 		return
 	}
-	fmt.Println("DEBUG image", image)
 
-	// TODO
+	switch image.Kind {
+	case "Url":
+		var imageSpec spec.ImageUrlSpec
+		if err = json_utils.Unmarshal(image.Spec, &imageSpec); err != nil {
+			return
+		}
+		rspec.ImageSpec = spec.Image{
+			Region: image.Region,
+			Name:   image.Name,
+			Kind:   image.Kind,
+			Spec:   imageSpec,
+		}
+	default:
+		logger.Warningf(tctx, "invalid image kind: kind=%s", image.Kind)
+		return
+	}
 
-	// var imageSpec model.ImageSpec
-	// if err = json_utils.Unmarshal(image.Spec, &imageSpec); err != nil {
-	// 	return
-	// }
-	// spec.Compute.ImageSpec = imageSpec
+	policy := rspec.SchedulePolicy
+	enableClusterFilters := false
+	if len(policy.ClusterFilters) > 0 {
+		enableClusterFilters = true
+	}
+	enableLabelFilters := false
+	if len(policy.ClusterLabelFilters) > 0 {
+		enableLabelFilters = true
+	}
 
-	// policy := spec.Compute.SchedulePolicy
-	// enableClusterFilters := false
-	// if len(policy.ClusterFilters) > 0 {
-	// 	enableClusterFilters = true
-	// }
-	// enableLabelFilters := false
-	// if len(policy.ClusterLabelFilters) > 0 {
-	// 	enableLabelFilters = true
-	// }
+	clusters := []db_model.Cluster{}
+	for _, cluster := range tmpClusters {
+		_, ok := clusterNetworkV4sMap[cluster.Name]
+		if !ok {
+			continue
+		}
 
-	// clusters := []db_model.Cluster{}
-	// for _, cluster := range tmpClusters {
-	// 	_, ok := clusterNetworkV4sMap[cluster.Name]
-	// 	if !ok {
-	// 		continue
-	// 	}
+		if enableClusterFilters {
+			ok = false
+			for _, filter := range policy.ClusterFilters {
+				if filter == cluster.Name {
+					ok = true
+					break
+				}
+			}
+			if !ok {
+				continue
+			}
+		}
 
-	// 	if enableClusterFilters {
-	// 		ok = false
-	// 		for _, filter := range policy.ClusterFilters {
-	// 			if filter == cluster.Name {
-	// 				ok = true
-	// 				break
-	// 			}
-	// 		}
-	// 		if !ok {
-	// 			continue
-	// 		}
-	// 	}
+		if enableLabelFilters {
+			ok = false
+			for _, labelFilter := range policy.ClusterLabelFilters {
+				if strings.Index(cluster.Labels, labelFilter) >= 0 {
+					ok = true
+					break
+				}
+			}
+			if !ok {
+				continue
+			}
+		}
 
-	// 	if enableLabelFilters {
-	// 		ok = false
-	// 		for _, labelFilter := range policy.ClusterLabelFilters {
-	// 			if strings.Index(cluster.Labels, labelFilter) >= 0 {
-	// 				ok = true
-	// 				break
-	// 			}
-	// 		}
-	// 		if !ok {
-	// 			continue
-	// 		}
-	// 	}
+		clusters = append(clusters, cluster)
+	}
 
-	// 	clusters = append(clusters, cluster)
-	// }
+	if len(clusters) == 0 {
+		err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
+			err = error_utils.NewNotFoundError("NoValidCluster")
+			service.Status = base_const.StatusError
+			service.StatusReason = err.Error()
+			tx.Save(service)
+			return
+		})
+		if err != nil {
+			return
+		}
+	}
 
-	// if len(clusters) == 0 {
-	// 	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
-	// 		err = error_utils.NewNotFoundError(db_model.StatusMsgInitializeErrorNoValidCluster)
-	// 		regionService.Status = db_model.StatusError
-	// 		regionService.StatusReason = db_model.StatusMsgInitializeErrorNoValidCluster
-	// 		return
-	// 	})
-	// 	if err != nil {
-	// 		return
-	// 	}
-	// }
+	// TODO Sort clusters by weight
+	// TODO Sort clusters by resource
+	cluster := clusters[0]
+	clusterNetworkV4s := clusterNetworkV4sMap[cluster.Name]
 
-	// // TODO Sort clusters by weight
-	// // TODO Sort clusters by resource
-	// cluster := clusters[0]
-	// clusterNetworkV4s := clusterNetworkV4sMap[cluster.Name]
+	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
+		if err = api.CreateCompute(tctx, tx, service, &rspec,
+			&cluster, clusterNetworkV4s); err != nil {
+			return
+		}
 
-	// err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
-	// 	if err = modelApi.CreateCompute(tctx, tx, regionService, &spec,
-	// 		&cluster, clusterNetworkV4s); err != nil {
-	// 		return
-	// 	}
-
-	// 	regionService.Status = db_model.StatusCreating
-	// 	regionService.StatusReason = db_model.StatusMsgInitializeSuccess
-	// 	tx.Save(regionService)
-	// 	return
-	// })
+		service.Status = base_const.StatusCreating
+		service.StatusReason = "CreatingCompute"
+		tx.Save(service)
+		return
+	})
 	return
 }
