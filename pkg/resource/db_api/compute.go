@@ -105,7 +105,6 @@ func (api *Api) DeleteCompute(tctx *logger.TraceContext, name string) (err error
 
 func (api *Api) CreateClusterCompute(tctx *logger.TraceContext,
 	compute *db_model.Compute, clusterComputeMap map[string]map[string]spec.Compute) {
-	fmt.Println("DEBUG Api.CreateClusterCompute")
 	var err error
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()

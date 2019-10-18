@@ -197,9 +197,9 @@ func (api *Api) SyncRegionService(tctx *logger.TraceContext) (err error) {
 			continue
 		}
 
-		fmt.Println("DEBUG GetComputes res", res, computeMap)
-		// TODO update computeMap
-
+		for _, compute := range res.Computes {
+			computeMap[compute.Name] = compute
+		}
 		clusterComputeMap[clusterName] = computeMap
 	}
 

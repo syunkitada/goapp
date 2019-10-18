@@ -1,8 +1,11 @@
 package db_model
 
 import (
+	"time"
+
 	"github.com/jinzhu/gorm"
 	"github.com/syunkitada/goapp/pkg/base/base_db_model"
+	"github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
 )
 
 type Compute struct {
@@ -34,4 +37,24 @@ type ComputeAssignment struct {
 	NodeID       uint               `gorm:"not null;"`
 	Status       string             `gorm:"not null;size:25;"`
 	StatusReason string             `gorm:"not null;size:50;"`
+}
+
+type ComputeAssignmentWithComputeAndNode struct {
+	ID           uint
+	UpdatedAt    time.Time
+	ComputeID    uint
+	ComputeSpec  string
+	ComputeName  string
+	NodeID       uint
+	NodeName     string
+	Status       string
+	StatusReason string
+	Cost         int // calcurated by vcpu, memory, disk
+}
+
+type ComputeAssignmentEx struct {
+	ID        uint
+	Status    string
+	Spec      spec.RegionServiceComputeSpec
+	UpdatedAt time.Time
 }

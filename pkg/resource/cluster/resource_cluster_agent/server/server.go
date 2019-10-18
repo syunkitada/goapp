@@ -8,6 +8,7 @@ import (
 	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_agent/spec/genpkg"
 	resource_cluster_api "github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_api/spec/genpkg"
 	"github.com/syunkitada/goapp/pkg/resource/config"
+	"github.com/syunkitada/goapp/pkg/resource/consts"
 )
 
 type Server struct {
@@ -24,6 +25,7 @@ func New(baseConf *base_config.Config, mainConf *config.Config) *Server {
 		logger.StdoutFatalf("cluster config is not found: cluster=%s", mainConf.Resource.ClusterName)
 	}
 
+	clusterConf.Controller.Name = consts.KindResourceClusterAgent
 	resolver := resolver.New(baseConf, &clusterConf)
 	queryHandler := genpkg.NewQueryHandler(baseConf, &clusterConf.Agent, resolver)
 	baseApp := base_app.New(baseConf, &clusterConf.Agent, nil, queryHandler)
