@@ -6,7 +6,6 @@ import (
 
 	"github.com/jinzhu/gorm"
 	"github.com/syunkitada/goapp/pkg/base/base_const"
-	"github.com/syunkitada/goapp/pkg/base/base_db_model"
 	"github.com/syunkitada/goapp/pkg/lib/error_utils"
 	"github.com/syunkitada/goapp/pkg/lib/json_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
@@ -30,7 +29,6 @@ func (api *Api) GetComputes(tctx *logger.TraceContext, input *spec.GetComputes) 
 func (api *Api) CreateComputes(tctx *logger.TraceContext, specs []spec.RegionServiceComputeSpec) (err error) {
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
-	fmt.Println("CreateComputes", specs)
 
 	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
 		for _, spec := range specs {
@@ -84,7 +82,7 @@ func (api *Api) SyncCompute(tctx *logger.TraceContext) (err error) {
 	fmt.Println("SyncCompute")
 
 	var computes []db_model.Compute
-	var nodes []db_model.ClusterNode
+	var nodes []db_model.NodeWithMeta
 	var computeAssignments []db_model.ComputeAssignmentWithComputeAndNode
 	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
 		if err = tx.Find(&computes).Error; err != nil {
@@ -92,11 +90,9 @@ func (api *Api) SyncCompute(tctx *logger.TraceContext) (err error) {
 		}
 
 		// TODO filter by resource driver
-		if err = tx.Where(&db_model.ClusterNode{
-			Node: base_db_model.Node{
-				Kind: consts.KindResourceClusterAgent,
-			},
-		}).Find(&nodes).Error; err != nil {
+		if err = tx.Table("nodes as n").Select("*").
+			Joins("INNER JOIN node_meta as nm ON n.id = nm.node_id").
+			Where("n.kind = ?", consts.KindResourceClusterAgent).Scan(&nodes).Error; err != nil {
 			return
 		}
 
@@ -106,7 +102,7 @@ func (api *Api) SyncCompute(tctx *logger.TraceContext) (err error) {
 		return
 	})
 
-	nodeMap := map[uint]*db_model.ClusterNode{}
+	nodeMap := map[uint]*db_model.NodeWithMeta{}
 	nodeAssignmentsMap := map[uint][]db_model.ComputeAssignmentWithComputeAndNode{}
 	for _, node := range nodes {
 		nodeAssignmentsMap[node.ID] = []db_model.ComputeAssignmentWithComputeAndNode{}
@@ -129,7 +125,7 @@ func (api *Api) SyncCompute(tctx *logger.TraceContext) (err error) {
 
 	for _, compute := range computes {
 		switch compute.Status {
-		case base_const.StatusInitializing:
+		case base_const.StatusCreating:
 			api.AssignCompute(tctx, &compute, nodeMap, nodeAssignmentsMap, computeAssignmentsMap, false)
 		case base_const.StatusCreatingScheduled:
 			api.ConfirmCreatingScheduledCompute(tctx, &compute, computeAssignmentsMap)
@@ -157,7 +153,7 @@ func (api *Api) GetComputeAssignments(tctx *logger.TraceContext, db *gorm.DB,
 }
 
 func (api *Api) AssignCompute(tctx *logger.TraceContext,
-	compute *db_model.Compute, nodeMap map[uint]*db_model.ClusterNode,
+	compute *db_model.Compute, nodeMap map[uint]*db_model.NodeWithMeta,
 	nodeAssignmentsMap map[uint][]db_model.ComputeAssignmentWithComputeAndNode,
 	assignmentsMap map[string][]db_model.ComputeAssignmentWithComputeAndNode,
 	isReschedule bool) {
@@ -183,8 +179,6 @@ func (api *Api) AssignCompute(tctx *logger.TraceContext,
 		}
 		logger.Infof(tctx, "currentAssignments: %v", infoMsg)
 	}
-
-	fmt.Println("DEBUG nodeAssignments: ", nodeAssignmentsMap)
 
 	// filtering node
 	enableNodeFilters := false
@@ -212,9 +206,9 @@ func (api *Api) AssignCompute(tctx *logger.TraceContext,
 		enableSoftAntiAffinites = true
 	}
 
-	labelFilterNodeMap := map[uint]*db_model.ClusterNode{}
-	filteredNodes := []*db_model.ClusterNode{}
-	labelNodesMap := map[string][]*db_model.ClusterNode{} // LabelごとのNode候補
+	labelFilterNodeMap := map[uint]*db_model.NodeWithMeta{}
+	filteredNodes := []*db_model.NodeWithMeta{}
+	labelNodesMap := map[string][]*db_model.NodeWithMeta{} // LabelごとのNode候補
 	for _, node := range nodeMap {
 		labels := []string{}
 		ok := true
@@ -320,7 +314,7 @@ func (api *Api) AssignCompute(tctx *logger.TraceContext,
 		for _, label := range labels {
 			nodes, lok := labelNodesMap[label]
 			if !lok {
-				nodes = []*db_model.ClusterNode{}
+				nodes = []*db_model.NodeWithMeta{}
 			}
 			nodes = append(nodes, node)
 			labelNodesMap[label] = nodes
@@ -344,9 +338,9 @@ func (api *Api) AssignCompute(tctx *logger.TraceContext,
 
 	if replicas != 0 {
 		for i := 0; i < replicas; i++ {
-			candidates := []*db_model.ClusterNode{}
+			candidates := []*db_model.NodeWithMeta{}
 			for _, label := range policy.NodeLabelHardAntiAffinities {
-				tmpCandidates := []*db_model.ClusterNode{}
+				tmpCandidates := []*db_model.NodeWithMeta{}
 				nodes := labelNodesMap[label]
 				for _, node := range nodes {
 					existsNode := false
@@ -373,7 +367,7 @@ func (api *Api) AssignCompute(tctx *logger.TraceContext,
 				if len(candidates) == 0 {
 					candidates = tmpCandidates
 				} else {
-					newCandidates := []*db_model.ClusterNode{}
+					newCandidates := []*db_model.NodeWithMeta{}
 					for _, c := range candidates {
 						for _, tc := range tmpCandidates {
 							if c == tc {
@@ -387,7 +381,7 @@ func (api *Api) AssignCompute(tctx *logger.TraceContext,
 			}
 
 			for _, label := range policy.NodeLabelHardAffinities {
-				tmpCandidates := []*db_model.ClusterNode{}
+				tmpCandidates := []*db_model.NodeWithMeta{}
 				nodes := labelNodesMap[label]
 				if len(candidates) == 0 && len(assignNodes) == 0 && len(updateNodes) == 0 {
 					for _, node := range nodes {
@@ -503,7 +497,7 @@ func (api *Api) AssignCompute(tctx *logger.TraceContext,
 
 		for _, nodeID := range assignNodes {
 			switch compute.Status {
-			case base_const.StatusInitializing:
+			case base_const.StatusCreating:
 				tx.Create(&db_model.ComputeAssignment{
 					ComputeID:    compute.ID,
 					NodeID:       nodeID,
@@ -514,10 +508,11 @@ func (api *Api) AssignCompute(tctx *logger.TraceContext,
 		}
 
 		switch compute.Status {
-		case base_const.StatusInitializing:
+		case base_const.StatusCreating:
 			compute.Status = base_const.StatusCreatingScheduled
 			compute.StatusReason = "CreatingScheduled"
 		}
+		tx.Save(compute)
 		return
 	})
 }
@@ -525,6 +520,7 @@ func (api *Api) AssignCompute(tctx *logger.TraceContext,
 func (api *Api) ConfirmCreatingScheduledCompute(tctx *logger.TraceContext,
 	compute *db_model.Compute,
 	assignmentsMap map[string][]db_model.ComputeAssignmentWithComputeAndNode) {
+	fmt.Println("DEBUG ConfirmCreatingScheduledCompute")
 	var err error
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()

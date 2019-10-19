@@ -10,7 +10,8 @@ import (
 	api_spec "github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
 )
 
-func (resolver *Resolver) GetNodes(tctx *logger.TraceContext, input *api_spec.GetNodes, user *base_spec.UserAuthority) (data *api_spec.GetNodesData, code uint8, err error) {
+func (resolver *Resolver) GetNodes(tctx *logger.TraceContext, input *api_spec.GetNodes,
+	user *base_spec.UserAuthority) (data *api_spec.GetNodesData, code uint8, err error) {
 	var nodes []base_spec.Node
 	if nodes, err = resolver.dbApi.GetNodes(tctx, &base_spec.GetNodes{}, user); err != nil {
 		code = base_const.CodeServerInternalError
@@ -21,9 +22,19 @@ func (resolver *Resolver) GetNodes(tctx *logger.TraceContext, input *api_spec.Ge
 	return
 }
 
-func (resolver *Resolver) SyncNode(tctx *logger.TraceContext, input *api_spec.SyncNode, user *base_spec.UserAuthority) (data *api_spec.SyncNodeData, code uint8, err error) {
-	fmt.Println("DEBUG Resolver SyncNode")
+func (resolver *Resolver) SyncNode(tctx *logger.TraceContext, input *api_spec.SyncNode,
+	user *base_spec.UserAuthority) (data *api_spec.SyncNodeData, code uint8, err error) {
+	fmt.Println("DEBUG Resolver SyncNode", input)
+	var nodeTask *api_spec.NodeTask
+	if nodeTask, err = resolver.dbApi.SyncNode(tctx, input); err != nil {
+		fmt.Println("DEBUG SyncNode err", err)
+		code = base_const.CodeServerInternalError
+		return
+	}
+	fmt.Println("DEBUG SyncNode", nodeTask)
 	code = base_const.CodeOk
-	data = &api_spec.SyncNodeData{}
+	data = &api_spec.SyncNodeData{
+		Task: *nodeTask,
+	}
 	return
 }

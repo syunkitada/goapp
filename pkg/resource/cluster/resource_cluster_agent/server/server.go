@@ -25,7 +25,7 @@ func New(baseConf *base_config.Config, mainConf *config.Config) *Server {
 		logger.StdoutFatalf("cluster config is not found: cluster=%s", mainConf.Resource.ClusterName)
 	}
 
-	clusterConf.Controller.Name = consts.KindResourceClusterAgent
+	clusterConf.Agent.Name = consts.KindResourceClusterAgent
 	resolver := resolver.New(baseConf, &clusterConf)
 	queryHandler := genpkg.NewQueryHandler(baseConf, &clusterConf.Agent, resolver)
 	baseApp := base_app.New(baseConf, &clusterConf.Agent, nil, queryHandler)
