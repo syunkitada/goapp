@@ -161,7 +161,9 @@ func (api *Api) SyncRegionService(tctx *logger.TraceContext) (err error) {
 				api.InitializeRegionServiceCompute(
 					tctx, &service, regionClustersMap, clusterNetworkV4sMap, regionImageMap)
 			}
-		case db_model.StatusCreatingInitialized:
+		case db_model.StatusCreating:
+			// TODO Confirm
+			fmt.Println("DEBUG RegionService Creating")
 			logger.Infof(tctx, "Found %v resource: %v", service.Status, service.Name)
 		case db_model.StatusCreatingScheduled:
 			logger.Infof(tctx, "Found %v resource: %v", service.Status, service.Name)

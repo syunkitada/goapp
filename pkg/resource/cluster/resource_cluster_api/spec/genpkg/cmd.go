@@ -115,6 +115,18 @@ var ResourceVirtualAdminCmdMap = map[string]index_model.Cmd{
 		OutputKind:   "",
 		OutputFormat: "",
 	},
+	"report.node.task": index_model.Cmd{
+		QueryName: "ReportNodeTask",
+		FlagMap: map[string]index_model.Flag{
+			"compute.assignment.reports,c": index_model.Flag{
+				Required: false,
+				FlagType: "[]spec.AssignmentReport",
+				FlagKind: "",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
 }
 
 var ApiQueryMap = map[string]map[string]spec_model.QueryModel{
@@ -152,6 +164,10 @@ var ApiQueryMap = map[string]map[string]spec_model.QueryModel{
 			RequiredProject: true,
 		},
 		"SyncNode": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"ReportNodeTask": spec_model.QueryModel{
 			RequiredAuth:    true,
 			RequiredProject: true,
 		},

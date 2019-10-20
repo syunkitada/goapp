@@ -83,3 +83,20 @@ func (api *Api) SyncNode(tctx *logger.TraceContext, input *api_spec.SyncNode) (n
 	}
 	return
 }
+
+func (api *Api) ReportNodeTask(tctx *logger.TraceContext, input *api_spec.ReportNodeTask) (err error) {
+	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
+		for _, report := range input.ComputeAssignmentReports {
+			data := db_model.ComputeAssignment{
+				Status:       report.Status,
+				StatusReason: report.StatusReason,
+			}
+			if err = tx.Model(&data).Where("id = ? AND updated_at = ?", report.ID, report.UpdatedAt).
+				Updates(&data).Error; err != nil {
+				return
+			}
+		}
+		return
+	})
+	return
+}

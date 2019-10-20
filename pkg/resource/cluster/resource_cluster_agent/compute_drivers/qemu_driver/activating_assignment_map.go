@@ -1,6 +1,7 @@
 package qemu_driver
 
 import (
+	"fmt"
 	"io/ioutil"
 	"path/filepath"
 
@@ -10,11 +11,11 @@ import (
 	"github.com/syunkitada/goapp/pkg/lib/os_utils"
 	"github.com/syunkitada/goapp/pkg/lib/template_utils"
 	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_agent/compute_models"
-	"github.com/syunkitada/goapp/pkg/resource/resource_model"
+	"github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
 )
 
 func (driver *QemuDriver) syncActivatingAssignmentMap(tctx *logger.TraceContext,
-	assignmentMap map[uint]resource_model.ComputeAssignmentEx,
+	assignmentMap map[uint]spec.ComputeAssignmentEx,
 	computeNetnsPortsMap map[uint][]compute_models.NetnsPort) error {
 	var err error
 	for _, assignment := range assignmentMap {
@@ -26,16 +27,17 @@ func (driver *QemuDriver) syncActivatingAssignmentMap(tctx *logger.TraceContext,
 }
 
 func (driver *QemuDriver) syncActivatingAssignment(tctx *logger.TraceContext,
-	assignment resource_model.ComputeAssignmentEx, netnsPorts []compute_models.NetnsPort) error {
+	assignment spec.ComputeAssignmentEx, netnsPorts []compute_models.NetnsPort) error {
 	var err error
-	compute := assignment.Spec.Compute
+	compute := assignment.Spec
+	fmt.Println("DEBUG QemuDriver syncActivatingAssignment")
 
-	vmDir := filepath.Join(driver.vmsDir, compute.Name)
+	vmDir := filepath.Join(driver.conf.VmsDir, compute.Name)
 	vmImagePath := filepath.Join(vmDir, "img")
 	vmConfigImagePath := filepath.Join(vmDir, "config.img")
 	configDir := filepath.Join(vmDir, "config")
 	vmServiceShFilePath := filepath.Join(vmDir, "service.sh")
-	vmServiceFilePath := filepath.Join(driver.systemdDir, compute.Name+".service")
+	vmServiceFilePath := filepath.Join(driver.conf.SystemdDir, compute.Name+".service")
 	vmMetaDataConfigFilePath := filepath.Join(configDir, "meta-data")
 	vmUserDataConfigFilePath := filepath.Join(configDir, "user-data")
 
@@ -44,11 +46,16 @@ func (driver *QemuDriver) syncActivatingAssignment(tctx *logger.TraceContext,
 	}
 
 	// Initialize Image
-	srcImagePath := filepath.Join(driver.imagesDir, compute.ImageSpec.Name)
+	srcImagePath := filepath.Join(driver.conf.ImagesDir, compute.ImageSpec.Name)
 	if !os_utils.PathExists(srcImagePath) {
 		tctx.SetTimeout(3600)
-		if _, err = exec_utils.Cmdf(tctx, "wget -O %s %s", srcImagePath, compute.ImageSpec.Url); err != nil {
-			return err
+
+		switch compute.ImageSpec.Kind {
+		case "Url":
+			imageUrlSpec := compute.ImageSpec.Spec.(spec.ImageUrlSpec)
+			if _, err = exec_utils.Cmdf(tctx, "wget -O %s %s", srcImagePath, imageUrlSpec.Url); err != nil {
+				return err
+			}
 		}
 	}
 	if !os_utils.PathExists(vmImagePath) {
@@ -74,7 +81,7 @@ func (driver *QemuDriver) syncActivatingAssignment(tctx *logger.TraceContext,
 	}
 
 	defaultGateway := netnsPorts[0].NetnsGateway
-	if err = template_utils.Template(tctx, vmUserDataConfigFilePath, 0644, driver.userdataTmpl,
+	if err = template_utils.Template(tctx, vmUserDataConfigFilePath, 0644, driver.conf.UserdataTmpl,
 		map[string]interface{}{
 			"DefaultGateway": defaultGateway,
 			"Ports":          netnsPorts,
@@ -87,7 +94,7 @@ func (driver *QemuDriver) syncActivatingAssignment(tctx *logger.TraceContext,
 		return err
 	}
 
-	if err = template_utils.Template(tctx, vmServiceShFilePath, 0755, driver.vmServiceShTmpl,
+	if err = template_utils.Template(tctx, vmServiceShFilePath, 0755, driver.conf.VmServiceShTmpl,
 		map[string]interface{}{
 			"Compute":           compute,
 			"Ports":             netnsPorts,
@@ -97,7 +104,7 @@ func (driver *QemuDriver) syncActivatingAssignment(tctx *logger.TraceContext,
 		return err
 	}
 
-	if err = template_utils.Template(tctx, vmServiceFilePath, 0755, driver.vmServiceTmpl,
+	if err = template_utils.Template(tctx, vmServiceFilePath, 0755, driver.conf.VmServiceTmpl,
 		map[string]interface{}{
 			"Compute":             compute,
 			"VmServiceShFilePath": vmServiceShFilePath,

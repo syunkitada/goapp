@@ -1,11 +1,12 @@
 package compute_drivers
 
 import (
-	"github.com/syunkitada/goapp/pkg/config"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
+	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_agent/compute_drivers/mock_driver"
 	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_agent/compute_drivers/qemu_driver"
 	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_agent/compute_models"
-	"github.com/syunkitada/goapp/pkg/resource/resource_model"
+	"github.com/syunkitada/goapp/pkg/resource/config"
+	"github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
 )
 
 type ComputeDriver interface {
@@ -13,18 +14,21 @@ type ComputeDriver interface {
 	Deploy(tctx *logger.TraceContext) error
 	ConfirmDeploy(tctx *logger.TraceContext) (bool, error)
 	SyncActivatingAssignmentMap(tctx *logger.TraceContext,
-		assignmentMap map[uint]resource_model.ComputeAssignmentEx,
+		assignmentMap map[uint]spec.ComputeAssignmentEx,
 		computeNetnsPortsMap map[uint][]compute_models.NetnsPort) error
 	ConfirmActivatingAssignmentMap(tctx *logger.TraceContext,
-		assignmentMap map[uint]resource_model.ComputeAssignmentEx) (bool, error)
+		assignmentMap map[uint]spec.ComputeAssignmentEx) (bool, error)
 	SyncDeletingAssignmentMap(tctx *logger.TraceContext,
-		assignmentMap map[uint]resource_model.ComputeAssignmentEx) error
+		assignmentMap map[uint]spec.ComputeAssignmentEx) error
 	ConfirmDeletingAssignmentMap(tctx *logger.TraceContext,
-		assignmentMap map[uint]resource_model.ComputeAssignmentEx) (bool, error)
+		assignmentMap map[uint]spec.ComputeAssignmentEx) (bool, error)
 }
 
-func Load(conf *config.Config) ComputeDriver {
-	switch conf.Resource.Node.Compute.Driver {
+func Load(conf *config.ResourceComputeExConfig) ComputeDriver {
+	switch conf.Driver {
+	case "mock":
+		driver := mock_driver.New(conf)
+		return driver
 	case "qemu":
 		driver := qemu_driver.New(conf)
 		return driver

@@ -13,6 +13,7 @@ import (
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/resource/db_model"
 	"github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
+	"github.com/syunkitada/goapp/pkg/resource/resource_model"
 )
 
 func (api *Api) GetCompute(tctx *logger.TraceContext, name string, user *base_spec.UserAuthority) (data *spec.Compute, err error) {
@@ -148,149 +149,46 @@ func (api *Api) CreateClusterCompute(tctx *logger.TraceContext,
 		fmt.Println("DEBUG CreateCompute res", res)
 	}
 
-	// clusterApiClient, ok := modelApi.clusterClientMap[compute.Cluster]
-	// if !ok {
-	// 	err = error_utils.NewNotFoundError("cluster")
-	// 	return
-	// }
-
-	// if _, ok := computeMap[compute.Name]; !ok {
-	// 	specs := "[" + compute.Spec + "]"
-	// 	queries := []authproxy_model.Query{
-	// 		authproxy_model.Query{
-	// 			Kind: "create_compute",
-	// 			StrParams: map[string]string{
-	// 				"Specs": specs,
-	// 			},
-	// 		},
-	// 	}
-	// 	var rep *authproxy_grpc_pb.ActionReply
-	// 	if rep, err = clusterApiClient.Action(
-	// 		logger.NewActionTraceContext(tctx, compute.Project, "", queries)); err != nil {
-	// 		return
-	// 	}
-
-	// 	var resp resource_model.ActionResponse
-	// 	if err = json_utils.Unmarshal(rep.Response, &resp); err != nil {
-	// 		return
-	// 	}
-	// 	if resp.Tctx.StatusCode != codes.OkCreated {
-	// 		logger.Warningf(tctx, "Failed create: %s", resp.Tctx.Err)
-	// 		return
-	// 	}
-	// }
-
-	// compute.Status = resource_model.StatusCreatingScheduled
-	// compute.StatusReason = "CreateClusterCompute"
-
-	// err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
-	// 	err = tx.Save(compute).Error
-	// })
+	compute.Status = resource_model.StatusCreatingScheduled
+	compute.StatusReason = "CreateClusterCompute"
+	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
+		err = tx.Save(compute).Error
+		return
+	})
 	return
 }
 
 func (api *Api) ConfirmCreatingScheduledCompute(tctx *logger.TraceContext,
 	compute *db_model.Compute, clusterComputeMap map[string]map[string]spec.Compute) {
 	fmt.Println("DEBUG Api.ConfirmClusterCompute")
-}
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
-// TODO
-// func (modelApi *ResourceModelApi) CreateClusterCompute(tctx *logger.TraceContext, db *gorm.DB,
-// 	compute *resource_model.Compute, clusterComputeMap map[string]map[string]resource_model.Compute) {
-// 	var err error
-// 	startTime := logger.StartTrace(tctx)
-// 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
-//
-// 	var spec resource_model.RegionServiceSpec
-// 	if err = json_utils.Unmarshal(compute.Spec, &spec); err != nil {
-// 		return
-// 	}
-//
-// 	computeMap, ok := clusterComputeMap[compute.Cluster]
-// 	if !ok {
-// 		err = error_utils.NewNotFoundError("cluster")
-// 		return
-// 	}
-//
-// 	clusterApiClient, ok := modelApi.clusterClientMap[compute.Cluster]
-// 	if !ok {
-// 		err = error_utils.NewNotFoundError("cluster")
-// 		return
-// 	}
-//
-// 	if _, ok := computeMap[compute.Name]; !ok {
-// 		specs := "[" + compute.Spec + "]"
-// 		queries := []authproxy_model.Query{
-// 			authproxy_model.Query{
-// 				Kind: "create_compute",
-// 				StrParams: map[string]string{
-// 					"Specs": specs,
-// 				},
-// 			},
-// 		}
-// 		var rep *authproxy_grpc_pb.ActionReply
-// 		if rep, err = clusterApiClient.Action(
-// 			logger.NewActionTraceContext(tctx, compute.Project, "", queries)); err != nil {
-// 			return
-// 		}
-//
-// 		var resp resource_model.ActionResponse
-// 		if err = json_utils.Unmarshal(rep.Response, &resp); err != nil {
-// 			return
-// 		}
-// 		if resp.Tctx.StatusCode != codes.OkCreated {
-// 			logger.Warningf(tctx, "Failed create: %s", resp.Tctx.Err)
-// 			return
-// 		}
-// 	}
-//
-// 	compute.Status = resource_model.StatusCreatingScheduled
-// 	compute.StatusReason = "CreateClusterCompute"
-//
-// 	tx := db.Begin()
-// 	defer tx.Rollback()
-// 	if err = tx.Save(compute).Error; err != nil {
-// 		return
-// 	}
-//
-// 	tx.Commit()
-// 	return
-// }
-//
-// func (modelApi *ResourceModelApi) ConfirmCreatingScheduledCompute(tctx *logger.TraceContext, db *gorm.DB,
-// 	compute *resource_model.Compute, clusterComputeMap map[string]map[string]resource_model.Compute) {
-// 	var err error
-// 	startTime := logger.StartTrace(tctx)
-// 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
-//
-// 	computeMap, ok := clusterComputeMap[compute.Cluster]
-// 	if !ok {
-// 		err = error_utils.NewConflictNotFoundError(compute.Cluster)
-// 		return
-// 	}
-//
-// 	clusterCompute, ok := computeMap[compute.Name]
-// 	if !ok {
-// 		err = error_utils.NewConflictNotFoundError(compute.Name)
-// 		return
-// 	}
-//
-// 	if clusterCompute.Status != resource_model.StatusActive {
-// 		logger.Info(tctx, "Waiting: status is not Active")
-// 		return
-// 	}
-//
-// 	tx := db.Begin()
-// 	defer tx.Rollback()
-//
-// 	tmpCompute := resource_model.Compute{
-// 		Status:       resource_model.StatusActive,
-// 		StatusReason: "ConfirmedCreagingScheduled",
-// 	}
-// 	if err = tx.Model(&tmpCompute).Where("id = ?", compute.ID).Updates(&tmpCompute).Error; err != nil {
-// 		return
-// 	}
-// 	tx.Commit()
-//
-// 	return
-// }
+	computeMap, ok := clusterComputeMap[compute.Cluster]
+	if !ok {
+		err = error_utils.NewConflictNotFoundError(compute.Cluster)
+		return
+	}
+
+	clusterCompute, ok := computeMap[compute.Name]
+	if !ok {
+		err = error_utils.NewConflictNotFoundError(compute.Name)
+		return
+	}
+
+	if clusterCompute.Status != resource_model.StatusActive {
+		logger.Info(tctx, "Waiting: status is not Active")
+		return
+	}
+
+	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
+		tmpCompute := resource_model.Compute{
+			Status:       resource_model.StatusActive,
+			StatusReason: "ConfirmedCreagingScheduled",
+		}
+		err = tx.Model(&tmpCompute).Where("id = ?", compute.ID).Updates(&tmpCompute).Error
+		return
+	})
+	return
+}

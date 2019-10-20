@@ -1,8 +1,6 @@
 package resolver
 
 import (
-	"fmt"
-
 	"github.com/syunkitada/goapp/pkg/base/base_const"
 	"github.com/syunkitada/goapp/pkg/base/base_spec"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
@@ -24,17 +22,25 @@ func (resolver *Resolver) GetNodes(tctx *logger.TraceContext, input *api_spec.Ge
 
 func (resolver *Resolver) SyncNode(tctx *logger.TraceContext, input *api_spec.SyncNode,
 	user *base_spec.UserAuthority) (data *api_spec.SyncNodeData, code uint8, err error) {
-	fmt.Println("DEBUG Resolver SyncNode", input)
 	var nodeTask *api_spec.NodeTask
 	if nodeTask, err = resolver.dbApi.SyncNode(tctx, input); err != nil {
-		fmt.Println("DEBUG SyncNode err", err)
 		code = base_const.CodeServerInternalError
 		return
 	}
-	fmt.Println("DEBUG SyncNode", nodeTask)
 	code = base_const.CodeOk
 	data = &api_spec.SyncNodeData{
 		Task: *nodeTask,
 	}
+	return
+}
+
+func (resolver *Resolver) ReportNodeTask(tctx *logger.TraceContext, input *api_spec.ReportNodeTask,
+	user *base_spec.UserAuthority) (data *api_spec.ReportNodeTaskData, code uint8, err error) {
+	if err = resolver.dbApi.ReportNodeTask(tctx, input); err != nil {
+		code = base_const.CodeServerInternalError
+		return
+	}
+	code = base_const.CodeOk
+	data = &api_spec.ReportNodeTaskData{}
 	return
 }

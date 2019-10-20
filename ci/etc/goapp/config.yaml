@@ -160,3 +160,15 @@ resource:
           project: 'service'
           tlsInsecureSkipVerify: true
           endpoints: ['https://127.0.0.1:13400']
+        compute:
+          enable: true
+          confirmRetryCount: 2
+          confirmRetryInterval: 10
+          vmNetnsGatewayStartIp: '169.254.1.1'
+          vmNetnsGatewayEndIp: '169.254.1.100'
+          vmNetnsServiceIp: '169.254.1.200'
+          vmNetnsStartIp: '169.254.32.1'
+          vmNetnsEndIp: '169.254.63.254'
+          configDir: '/home/owner/.goapp/etc/resource/compute/'
+          varDir: '/home/owner/.goapp/var/compute'
+          driver: 'mock'

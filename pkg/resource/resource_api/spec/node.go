@@ -53,3 +53,22 @@ type ComputeAssignmentEx struct {
 	Spec      RegionServiceComputeSpec
 	UpdatedAt time.Time
 }
+type AssignmentReports struct {
+	ComputeAssignmentReports []AssignmentReport
+}
+
+type AssignmentReport struct {
+	ID           uint
+	Status       string
+	StatusReason string
+	State        string
+	StateReason  string
+	UpdatedAt    time.Time
+}
+
+type ReportNodeTask struct {
+	ComputeAssignmentReports []AssignmentReport
+}
+
+type ReportNodeTaskData struct {
+}
