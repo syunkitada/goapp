@@ -69,7 +69,9 @@ func (api *Api) UpdateRegionServices(tctx *logger.TraceContext, input []spec.Reg
 			if err = tx.Model(&db_model.RegionService{}).
 				Where("name = ? AND region = ?", val.Name, val.Region).
 				Updates(&db_model.RegionService{
-					Spec: string(specBytes),
+					Status:       db_model.StatusUpdating,
+					StatusReason: "UpdateRegionService",
+					Spec:         string(specBytes),
 				}).Error; err != nil {
 				return
 			}
@@ -161,14 +163,17 @@ func (api *Api) SyncRegionService(tctx *logger.TraceContext) (err error) {
 				api.InitializeRegionServiceCompute(
 					tctx, &service, regionClustersMap, clusterNetworkV4sMap, regionImageMap)
 			}
-		case db_model.StatusCreating:
-			// TODO Confirm
-			fmt.Println("DEBUG RegionService Creating")
-			logger.Infof(tctx, "Found %v resource: %v", service.Status, service.Name)
 		case db_model.StatusCreatingScheduled:
-			logger.Infof(tctx, "Found %v resource: %v", service.Status, service.Name)
+			switch service.Kind {
+			case "Compute":
+				api.ConfirmCreatingRegionServiceCompute(tctx, &service)
+			}
 		case db_model.StatusUpdating:
-			logger.Infof(tctx, "Found %v resource: %v", service.Status, service.Name)
+			switch service.Kind {
+			case "Compute":
+				api.UpdateRegionServiceCompute(
+					tctx, &service, regionClustersMap, clusterNetworkV4sMap, regionImageMap)
+			}
 		case db_model.StatusUpdatingScheduled:
 			logger.Infof(tctx, "Found %v resource: %v", service.Status, service.Name)
 		case db_model.StatusDeleting:
@@ -346,15 +351,56 @@ func (api *Api) InitializeRegionServiceCompute(tctx *logger.TraceContext,
 	clusterNetworkV4s := clusterNetworkV4sMap[cluster.Name]
 
 	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
-		if err = api.CreateCompute(tctx, tx, service, &rspec,
+		if err = api.CreateOrUpdateCompute(tctx, tx, service, &rspec,
 			&cluster, clusterNetworkV4s); err != nil {
 			return
 		}
 
-		service.Status = base_const.StatusCreating
+		service.Status = base_const.StatusCreatingScheduled
 		service.StatusReason = "CreatingCompute"
 		tx.Save(service)
 		return
 	})
+	return
+}
+
+func (api *Api) ConfirmCreatingRegionServiceCompute(tctx *logger.TraceContext,
+	service *db_model.RegionService) {
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
+		var computes []db_model.Compute
+		if err = tx.Table("region_services AS rs").
+			Select("c.status").
+			Joins("INNER JOIN computes as c ON rs.name = c.region_service").
+			Where("rs.name = ? AND rs.project = ?", service.Name, service.Project).Scan(&computes).Error; err != nil {
+			return
+		}
+		for _, compute := range computes {
+			if compute.Status != base_const.StatusActive {
+				logger.Infof(tctx, "Wating to be activated: status=%s", compute.Status)
+			}
+		}
+		service.Status = base_const.StatusActive
+		service.StatusReason = "CreatedCompute"
+		err = tx.Save(service).Error
+		return
+	})
+	return
+}
+
+func (api *Api) UpdateRegionServiceCompute(tctx *logger.TraceContext,
+	service *db_model.RegionService, regionClustersMap map[string][]db_model.Cluster,
+	clusterNetworkV4sMap map[string][]db_model.NetworkV4,
+	regionImageMap map[string]map[string]db_model.Image) {
+
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	fmt.Println("DEBUG UpdateRegionServiceCompute")
+
 	return
 }

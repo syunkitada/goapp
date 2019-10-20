@@ -27,7 +27,7 @@ func (api *Api) GetComputes(tctx *logger.TraceContext, db *gorm.DB, user *base_s
 	return
 }
 
-func (api *Api) CreateCompute(tctx *logger.TraceContext, tx *gorm.DB,
+func (api *Api) CreateOrUpdateCompute(tctx *logger.TraceContext, tx *gorm.DB,
 	service *db_model.RegionService, rspec *spec.RegionServiceComputeSpec,
 	cluster *db_model.Cluster, clusterNetworkV4s []db_model.NetworkV4) (err error) {
 	startTime := logger.StartTrace(tctx)
@@ -35,6 +35,14 @@ func (api *Api) CreateCompute(tctx *logger.TraceContext, tx *gorm.DB,
 
 	for i := 0; i < rspec.SchedulePolicy.Replicas; i++ {
 		name := fmt.Sprintf("%s.r%d.%s.%s", service.Name, i, service.Project, cluster.DomainSuffix)
+
+		var specBytes []byte
+		specBytes, err = json_utils.Marshal(rspec)
+		if err != nil {
+			err = error_utils.NewInvalidDataError("spec", rspec, "Failed Marshal")
+			return
+		}
+
 		var data db_model.Compute
 		if err = tx.Where("name = ?", name).First(&data).Error; err != nil {
 			if !gorm.IsRecordNotFoundError(err) {
@@ -48,15 +56,10 @@ func (api *Api) CreateCompute(tctx *logger.TraceContext, tx *gorm.DB,
 				// TODO FIX Kind Compute
 				if ports, err = api.AssignNetworkV4Port(tctx, tx, &rspec.NetworkPolicy,
 					clusterNetworkV4s, "Compute", name); err != nil {
-					return err
+					return
 				}
 			}
 			rspec.Ports = ports
-
-			specBytes, err := json_utils.Marshal(rspec)
-			if err != nil {
-				return error_utils.NewInvalidDataError("spec", rspec, "Failed Marshal")
-			}
 
 			data = db_model.Compute{
 				Project:       service.Project,
@@ -71,28 +74,26 @@ func (api *Api) CreateCompute(tctx *logger.TraceContext, tx *gorm.DB,
 				Disk:          rspec.Disk,
 				Spec:          string(specBytes),
 				Status:        base_const.StatusCreating,
-				StatusReason:  "CreatingRegionService",
+				StatusReason:  "CreateRegionService",
 			}
 			if err = tx.Create(&data).Error; err != nil {
-				return err
+				return
+			}
+
+		} else { // Update
+			data.Image = rspec.Image
+			data.Vcpus = rspec.Vcpus
+			data.Memory = rspec.Memory
+			data.Disk = rspec.Disk
+			data.Spec = string(specBytes)
+			data.Status = base_const.StatusUpdating
+			data.StatusReason = "UpdateRegionService"
+			if err = tx.Save(&data).Error; err != nil {
+				return
 			}
 		}
 	}
 
-	return
-}
-
-func (api *Api) UpdateComputes(tctx *logger.TraceContext, regions []spec.Compute) (err error) {
-	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
-		for _, region := range regions {
-			if err = tx.Model(&db_model.Compute{}).Where("name = ?", region.Name).Updates(&db_model.Compute{
-				Kind: region.Kind,
-			}).Error; err != nil {
-				return
-			}
-		}
-		return
-	})
 	return
 }
 
