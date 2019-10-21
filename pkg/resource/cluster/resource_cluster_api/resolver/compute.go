@@ -38,7 +38,6 @@ func (resolver *Resolver) GetComputes(tctx *logger.TraceContext, input *spec.Get
 }
 
 func (resolver *Resolver) CreateCompute(tctx *logger.TraceContext, input *spec.CreateCompute, user *base_spec.UserAuthority) (data *spec.CreateComputeData, code uint8, err error) {
-	fmt.Println("DEBUG input", input.Spec)
 	var specs []spec.RegionServiceComputeSpec
 	if specs, err = resolver.ConvertToComputeSpecs(input.Spec); err != nil {
 		fmt.Println(err)

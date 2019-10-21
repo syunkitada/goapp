@@ -33,7 +33,9 @@ func (api *Api) CreateComputes(tctx *logger.TraceContext, specs []spec.RegionSer
 	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
 		for _, spec := range specs {
 			var specBytes []byte
-			specBytes, err = json_utils.Marshal(spec)
+			if specBytes, err = json_utils.Marshal(spec); err != nil {
+				return
+			}
 			data := db_model.Compute{
 				Name:         spec.Name,
 				Spec:         string(specBytes),
@@ -49,11 +51,18 @@ func (api *Api) CreateComputes(tctx *logger.TraceContext, specs []spec.RegionSer
 	return
 }
 
-func (api *Api) UpdateComputes(tctx *logger.TraceContext, computes []spec.RegionServiceComputeSpec) (err error) {
+func (api *Api) UpdateComputes(tctx *logger.TraceContext, specs []spec.RegionServiceComputeSpec) (err error) {
 	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
-		for _, compute := range computes {
-			if err = tx.Model(&db_model.Compute{}).Where("name = ?", compute.Name).Updates(&db_model.Compute{
-				Kind: compute.Kind,
+		for _, spec := range specs {
+			var specBytes []byte
+			if specBytes, err = json_utils.Marshal(spec); err != nil {
+				return
+			}
+			if err = tx.Model(&db_model.Compute{}).
+				Where("name = ?", spec.Name).Updates(&db_model.Compute{
+				Spec:         string(specBytes),
+				Status:       base_const.StatusUpdating,
+				StatusReason: "UpdateComputes",
 			}).Error; err != nil {
 				return
 			}

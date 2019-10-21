@@ -29,9 +29,12 @@ func (api *Api) GetComputes(tctx *logger.TraceContext, db *gorm.DB, user *base_s
 
 func (api *Api) CreateOrUpdateCompute(tctx *logger.TraceContext, tx *gorm.DB,
 	service *db_model.RegionService, rspec *spec.RegionServiceComputeSpec,
-	cluster *db_model.Cluster, clusterNetworkV4s []db_model.NetworkV4) (err error) {
+	clusters []db_model.Cluster, clusterNetworkV4sMap map[string][]db_model.NetworkV4) (err error) {
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	cluster := clusters[0]
+	clusterNetworkV4s := clusterNetworkV4sMap[cluster.Name]
 
 	for i := 0; i < rspec.SchedulePolicy.Replicas; i++ {
 		name := fmt.Sprintf("%s.r%d.%s.%s", service.Name, i, service.Project, cluster.DomainSuffix)
@@ -111,11 +114,6 @@ func (api *Api) CreateClusterCompute(tctx *logger.TraceContext,
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
-	var rspec spec.RegionServiceComputeSpec
-	if err = json_utils.Unmarshal(compute.Spec, &rspec); err != nil {
-		return
-	}
-
 	computeMap, ok := clusterComputeMap[compute.Cluster]
 	if !ok {
 		err = error_utils.NewNotFoundError("cluster")
@@ -141,13 +139,11 @@ func (api *Api) CreateClusterCompute(tctx *logger.TraceContext,
 			},
 		}
 
-		res, tmpErr := client.ResourceVirtualAdminCreateCompute(tctx, queries)
+		_, tmpErr := client.ResourceVirtualAdminCreateCompute(tctx, queries)
 		if tmpErr != nil {
 			err = fmt.Errorf("Failed CreateCompute: %s", tmpErr.Error())
 			return
 		}
-
-		fmt.Println("DEBUG CreateCompute res", res)
 	}
 
 	compute.Status = resource_model.StatusCreatingScheduled
@@ -159,9 +155,8 @@ func (api *Api) CreateClusterCompute(tctx *logger.TraceContext,
 	return
 }
 
-func (api *Api) ConfirmCreatingScheduledCompute(tctx *logger.TraceContext,
+func (api *Api) ConfirmCreatingOrUpdatingScheduledCompute(tctx *logger.TraceContext,
 	compute *db_model.Compute, clusterComputeMap map[string]map[string]spec.Compute) {
-	fmt.Println("DEBUG Api.ConfirmClusterCompute")
 	var err error
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
@@ -186,9 +181,46 @@ func (api *Api) ConfirmCreatingScheduledCompute(tctx *logger.TraceContext,
 	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
 		tmpCompute := resource_model.Compute{
 			Status:       resource_model.StatusActive,
-			StatusReason: "ConfirmedCreagingScheduled",
+			StatusReason: "ConfirmedActive",
 		}
 		err = tx.Model(&tmpCompute).Where("id = ?", compute.ID).Updates(&tmpCompute).Error
+		return
+	})
+	return
+}
+
+func (api *Api) UpdateClusterCompute(tctx *logger.TraceContext,
+	compute *db_model.Compute, clusterComputeMap map[string]map[string]spec.Compute) {
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	client, ok := api.clusterClientMap[compute.Cluster]
+	if !ok {
+		err = error_utils.NewNotFoundError("clusterClient")
+		return
+	}
+
+	specStr := "[" + compute.Spec + "]"
+	queries := []base_client.Query{
+		base_client.Query{
+			Name: "UpdateCompute",
+			Data: spec.UpdateCompute{
+				Spec: specStr,
+			},
+		},
+	}
+
+	_, tmpErr := client.ResourceVirtualAdminUpdateCompute(tctx, queries)
+	if tmpErr != nil {
+		err = fmt.Errorf("Failed UpdateCompute: %s", tmpErr.Error())
+		return
+	}
+
+	compute.Status = resource_model.StatusUpdatingScheduled
+	compute.StatusReason = "UpdateClusterCompute"
+	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
+		err = tx.Save(compute).Error
 		return
 	})
 	return

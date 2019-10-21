@@ -154,21 +154,25 @@ func (app *BaseApp) Start(tctx *logger.TraceContext, httpReq *http.Request, isPr
 		}
 
 		if queryModel.RequiredAuth {
-			if !isProxy {
-				if userAuthority == nil {
-					err = fmt.Errorf("InvalidAuth: InvalidToken")
+			if userAuthority == nil {
+				err = fmt.Errorf("InvalidAuth: InvalidToken")
+				res.Code = base_const.CodeClientInvalidAuth
+				res.Error = err.Error()
+				return
+			}
+
+			if queryModel.RequiredProject {
+				if req.Project == "" {
+					err = fmt.Errorf("InvalidProject")
 					res.Code = base_const.CodeClientInvalidAuth
 					res.Error = err.Error()
 					return
 				}
+				userAuthority.ProjectName = req.Project
+			}
+
+			if !isProxy {
 				if queryModel.RequiredProject {
-					if req.Project == "" {
-						err = fmt.Errorf("InvalidProject")
-						res.Code = base_const.CodeClientInvalidAuth
-						res.Error = err.Error()
-						return
-					}
-					userAuthority.ProjectName = req.Project
 					if projectService, ok := userAuthority.ProjectServiceMap[req.Project]; !ok {
 						err = fmt.Errorf("InvalidAuthProjectService: project=%s", req.Project)
 						res.Code = base_const.CodeClientInvalidAuth
