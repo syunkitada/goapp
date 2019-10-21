@@ -1,9 +1,9 @@
 package db_model
 
-import "github.com/syunkitada/goapp/pkg/base/base_db_model"
+import "github.com/jinzhu/gorm"
 
 type Region struct {
-	base_db_model.Model
-	Name string `gorm:"not null;size:25;primary_key;"`
+	gorm.Model
+	Name string `gorm:"not null;size:25;unique_index;"`
 	Kind string `gorm:"not null;size:25;"`
 }

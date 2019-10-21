@@ -111,8 +111,6 @@ func (api *Api) DeleteRegionServices(tctx *logger.TraceContext, input []spec.Reg
 }
 
 func (api *Api) SyncRegionService(tctx *logger.TraceContext) (err error) {
-	fmt.Println("DEBUG SyncRegionService")
-
 	clusterNetworkV4sMap := map[string][]db_model.NetworkV4{}
 	var networks []db_model.NetworkV4
 	if err = api.DB.Find(&networks).Error; err != nil {

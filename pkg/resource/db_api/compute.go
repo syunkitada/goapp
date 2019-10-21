@@ -84,16 +84,18 @@ func (api *Api) CreateOrUpdateCompute(tctx *logger.TraceContext, tx *gorm.DB,
 			}
 
 		} else { // Update
-			data.Image = rspec.Image
-			data.Vcpus = rspec.Vcpus
-			data.Memory = rspec.Memory
-			data.Disk = rspec.Disk
-			data.Spec = string(specBytes)
-			data.Status = base_const.StatusUpdating
-			data.StatusReason = "UpdateRegionService"
 			if err = tx.Save(&data).Error; err != nil {
 				return
 			}
+			err = tx.Table("computes").Where("id = ?", data.ID).Updates(map[string]interface{}{
+				"image":         rspec.Image,
+				"vcpus":         rspec.Vcpus,
+				"memory":        rspec.Memory,
+				"disk":          rspec.Disk,
+				"spec":          string(specBytes),
+				"status":        base_const.StatusUpdating,
+				"status_reason": "UpdateRegionService",
+			}).Error
 		}
 	}
 
@@ -102,7 +104,10 @@ func (api *Api) CreateOrUpdateCompute(tctx *logger.TraceContext, tx *gorm.DB,
 
 func (api *Api) DeleteCompute(tctx *logger.TraceContext, name string) (err error) {
 	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
-		err = tx.Where("name = ?", name).Unscoped().Delete(&db_model.Compute{}).Error
+		err = tx.Table("computes").Where("name = ?", name).Updates(map[string]interface{}{
+			"status":        resource_model.StatusDeleting,
+			"status_reason": "DeleteCompute",
+		}).Error
 		return
 	})
 	return
@@ -146,10 +151,11 @@ func (api *Api) CreateClusterCompute(tctx *logger.TraceContext,
 		}
 	}
 
-	compute.Status = resource_model.StatusCreatingScheduled
-	compute.StatusReason = "CreateClusterCompute"
 	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
-		err = tx.Save(compute).Error
+		err = tx.Table("computes").Where("id = ?", compute.ID).Updates(map[string]interface{}{
+			"status":        resource_model.StatusCreatingScheduled,
+			"status_reason": "CreateClusterCompute",
+		}).Error
 		return
 	})
 	return
@@ -179,11 +185,10 @@ func (api *Api) ConfirmCreatingOrUpdatingScheduledCompute(tctx *logger.TraceCont
 	}
 
 	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
-		tmpCompute := resource_model.Compute{
-			Status:       resource_model.StatusActive,
-			StatusReason: "ConfirmedActive",
-		}
-		err = tx.Model(&tmpCompute).Where("id = ?", compute.ID).Updates(&tmpCompute).Error
+		err = tx.Table("computes").Where("id = ?", compute.ID).Updates(map[string]interface{}{
+			"status":        resource_model.StatusActive,
+			"status_reason": "ConfirmedActive",
+		}).Error
 		return
 	})
 	return
@@ -217,10 +222,11 @@ func (api *Api) UpdateClusterCompute(tctx *logger.TraceContext,
 		return
 	}
 
-	compute.Status = resource_model.StatusUpdatingScheduled
-	compute.StatusReason = "UpdateClusterCompute"
 	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
-		err = tx.Save(compute).Error
+		err = tx.Table("computes").Where("id = ?", compute.ID).Updates(map[string]interface{}{
+			"status":        resource_model.StatusUpdatingScheduled,
+			"status_reason": "UpdateClusterCompute",
+		}).Error
 		return
 	})
 	return
