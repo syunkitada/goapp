@@ -3,23 +3,16 @@ package resource_controller
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/syunkitada/goapp/pkg/config"
-	"github.com/syunkitada/goapp/pkg/lib/logger"
+	"github.com/syunkitada/goapp/pkg/resource/config"
+	"github.com/syunkitada/goapp/pkg/resource/resource_controller/server"
 )
 
 var RootCmd = &cobra.Command{
 	Use:   "controller",
-	Short: "controller for management all resources",
-	Long: `controller for management all resources
-	`,
+	Short: "controller",
 	Run: func(cmd *cobra.Command, args []string) {
-		server := NewResourceControllerServer(&config.Conf)
-		if err := server.StartMainLoop(); err != nil {
-			logger.StdoutFatal(err)
-		}
-
-		if err := server.Serve(); err != nil {
-			logger.StdoutFatal(err)
-		}
+		srv := server.New(&config.BaseConf, &config.MainConf)
+		srv.StartMainLoop()
+		srv.Serve()
 	},
 }

@@ -3,23 +3,16 @@ package resource_api
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/syunkitada/goapp/pkg/config"
-	"github.com/syunkitada/goapp/pkg/lib/logger"
+	"github.com/syunkitada/goapp/pkg/resource/config"
+	"github.com/syunkitada/goapp/pkg/resource/resource_api/server"
 )
 
 var RootCmd = &cobra.Command{
 	Use:   "api",
-	Short: "This is api for controlle all resources",
-	Long: `This is api for controlle all resources
-	`,
+	Short: "api",
 	Run: func(cmd *cobra.Command, args []string) {
-		server := NewResourceApiServer(&config.Conf)
-		if err := server.StartMainLoop(); err != nil {
-			logger.StdoutFatal(err)
-		}
-
-		if err := server.Serve(); err != nil {
-			logger.StdoutFatal(err)
-		}
+		srv := server.New(&config.BaseConf, &config.MainConf)
+		srv.StartMainLoop()
+		srv.Serve()
 	},
 }

@@ -38,7 +38,7 @@ const styles = (theme: Theme): StyleRules =>
       fontSize: 20,
     },
     iconVariant: {
-      marginRight: theme.spacing.unit,
+      marginRight: theme.spacing(1),
       opacity: 0.9,
     },
     info: {

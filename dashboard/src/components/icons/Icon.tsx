@@ -18,10 +18,10 @@ const styles = (theme: Theme): StyleRules =>
       backgroundColor: theme.palette.error.dark,
     },
     marginLeft: {
-      marginLeft: theme.spacing.unit,
+      marginLeft: theme.spacing(1),
     },
     marginRight: {
-      marginRight: theme.spacing.unit,
+      marginRight: theme.spacing(1),
     },
   });
 

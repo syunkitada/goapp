@@ -1,0 +1,11 @@
+{
+  "Kind": "Image",
+  "Spec": {
+    "Kind": "Url",
+    "Name": "cirros-0.4.0",
+    "Region": "kanto",
+    "Spec": {
+      "Url": "http://download.cirros-cloud.net/0.4.0/cirros-0.4.0-x86_64-disk.img"
+    }
+  }
+}

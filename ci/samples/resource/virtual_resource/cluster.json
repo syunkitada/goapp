@@ -1,0 +1,9 @@
+{
+  "Kind": "Cluster",
+  "Spec": {
+    "Kind": "Private",
+    "Name": "tokyo1",
+    "Datacenter": "tokyo",
+    "DomainSuffix": "tokyo1.vir.example.com"
+  }
+}

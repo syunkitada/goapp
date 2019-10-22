@@ -12,15 +12,12 @@ function post({
   queries,
 }): Promise<IResponse> {
   const body = JSON.stringify({
-    Action: {
-      Name: actionName,
-      ProjectName: projectName,
-      Queries: queries,
-      ServiceName: serviceName,
-    },
+    Project: projectName,
+    Queries: queries,
+    Service: serviceName,
   });
 
-  return fetch(process.env.REACT_APP_AUTHPROXY_URL + '/' + serviceName, {
+  return fetch(process.env.REACT_APP_AUTHPROXY_URL + '/q', {
     body,
     credentials: 'include',
     method: 'POST',
@@ -31,7 +28,7 @@ function post({
         return resp.json().then(payload => {
           const result: IResponse = {
             error: {
-              err: payload.Err,
+              err: payload.Error,
               errCode: resp.status,
             },
             result: null,

@@ -2,6 +2,7 @@ package base
 
 import (
 	"net"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -34,6 +35,10 @@ type BaseApp struct {
 }
 
 func NewBaseApp(conf *config.Config, appConf *config.AppConfig) BaseApp {
+	if appConf.LoopInterval == 0 {
+		appConf.LoopInterval = 5
+	}
+
 	return BaseApp{
 		Host:               conf.Default.Host,
 		Name:               appConf.Name,
@@ -49,9 +54,8 @@ func (app *BaseApp) RegisterDriver(driver BaseAppDriver) {
 	app.driver = driver
 }
 
-func (app *BaseApp) StartMainLoop() error {
+func (app *BaseApp) StartMainLoop() {
 	go app.mainLoop()
-	return nil
 }
 
 func (app *BaseApp) mainLoop() {
@@ -80,7 +84,11 @@ func (app *BaseApp) mainLoop() {
 	}
 }
 
-func (app *BaseApp) Serve() error {
+func (app *BaseApp) NewTraceContext() *logger.TraceContext {
+	return logger.NewTraceContext(app.Host, app.Name)
+}
+
+func (app *BaseApp) Serve() {
 	var err error
 	tctx := logger.NewTraceContext(app.Host, app.Name)
 	startTime := logger.StartTrace(tctx)
@@ -91,7 +99,7 @@ func (app *BaseApp) Serve() error {
 	var lis net.Listener
 	lis, err = net.Listen("tcp", app.appConf.Listen)
 	if err != nil {
-		return err
+		logger.Fatal(tctx, err)
 	}
 
 	var opts []grpc.ServerOption
@@ -101,13 +109,13 @@ func (app *BaseApp) Serve() error {
 		app.conf.Path(app.appConf.KeyFile),
 	)
 	if err != nil {
-		return err
+		logger.Fatal(tctx, err)
 	}
 	opts = []grpc.ServerOption{grpc.Creds(creds)}
 
 	app.grpcServer = grpc.NewServer(opts...)
 	if err = app.driver.RegisterGrpcServer(app.grpcServer); err != nil {
-		return err
+		logger.Fatal(tctx, err)
 	}
 
 	go func() {
@@ -121,6 +129,33 @@ func (app *BaseApp) Serve() error {
 
 	logger.Infof(tctx, "Serve: %v", app.appConf.Listen)
 	if err := app.grpcServer.Serve(lis); err != nil {
+		logger.Error(tctx, err, "Failed Serve")
+		logger.Fatal(tctx, err)
+	}
+
+	logger.Infof(tctx, "Completed Serve: %v", app.appConf.Listen)
+}
+
+func (app *BaseApp) ServeHttp() error {
+	var err error
+	tctx := logger.NewTraceContext(app.Host, app.Name)
+	startTime := logger.StartTrace(tctx)
+	defer func() {
+		logger.EndTrace(tctx, startTime, err, 0)
+	}()
+
+	srv := &http.Server{Addr: app.appConf.HttpListen}
+	go func() {
+		shutdown := make(chan os.Signal, 1)
+		signal.Notify(shutdown, syscall.SIGTERM)
+		<-shutdown
+		if err := srv.Shutdown(context.Background()); err != nil {
+			logger.Error(tctx, err, "Failed gracefulShutdown")
+		}
+	}()
+
+	logger.Infof(tctx, "Serve: %v", app.appConf.HttpListen)
+	if err := srv.ListenAndServe(); err != nil {
 		logger.Error(tctx, err, "Failed Serve")
 		return err
 	}

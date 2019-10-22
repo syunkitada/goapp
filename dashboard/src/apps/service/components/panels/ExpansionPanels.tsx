@@ -106,7 +106,7 @@ class ExpansionPanels extends React.Component<IExpansionPanels> {
             )
           }>
           <ExpansionPanelSummary expandIcon={<ExpandMoreIcon />}>
-            <Typography variant="title">
+            <Typography variant="subtitle1">
               {panel.Name} {route.match.params[panel.Subname]}
             </Typography>
           </ExpansionPanelSummary>

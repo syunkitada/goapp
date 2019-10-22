@@ -1,0 +1,3 @@
+export APP_USER=guest
+export APP_PASSWORD=guest
+export APP_PROJECT=guestpj

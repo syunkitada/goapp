@@ -21,9 +21,9 @@ function* post(action) {
     queries,
     isSync,
     queryKind,
+    dataKind,
     items,
     fieldMap,
-    targets,
   } = action.payload;
 
   let payload: any = null;
@@ -32,21 +32,29 @@ function* post(action) {
     case 'SERVICE_GET_INDEX':
       payload = {
         projectName: params.project,
-        queries: [{Kind: 'GetDashboardIndex', StrParams: params}],
+        queries: [
+          {
+            Data: JSON.stringify({Name: params.service}),
+            Name: 'GetServiceDashboardIndex',
+          },
+        ],
         serviceName: params.service,
         stateKey: 'index',
       };
       break;
+
     case 'SERVICE_GET_QUERIES':
       const syncQueryMap: any[] = [];
       for (let i = 0, len = queries.length; i < len; i++) {
-        dataQueries.push({Kind: queries[i], StrParams: params});
+        dataQueries.push({Name: queries[i], Data: JSON.stringify(params)});
         if (isSync) {
-          syncQueryMap[queries[i]] = {Kind: queries[i], StrParams: params};
+          syncQueryMap[queries[i]] = {
+            Data: JSON.stringify(params),
+            Name: queries[i],
+          };
         }
       }
       payload = {
-        actionName: 'UserQuery',
         isSync,
         projectName: params.project,
         queries: dataQueries,
@@ -58,10 +66,7 @@ function* post(action) {
       break;
 
     case 'SERVICE_SUBMIT_QUERIES':
-      const strParams = Object.assign({}, params);
-      const numParams = {};
       const specs: any[] = [];
-
       const spec = Object.assign({}, params);
       for (const key of Object.keys(fieldMap)) {
         const field = fieldMap[key];
@@ -69,29 +74,16 @@ function* post(action) {
       }
 
       for (let i = 0, len = items.length; i < len; i++) {
-        specs.push(Object.assign({}, spec, items[i]));
-      }
-
-      const specsStr = JSON.stringify(specs);
-      strParams.Specs = specsStr;
-
-      if (targets) {
-        for (let i = 0, len = targets.length; i < len; i++) {
-          const target = targets[i];
-          strParams.Target = target;
-          dataQueries.push({
-            Kind: queryKind,
-            NumParams: numParams,
-            StrParams: strParams,
-          });
-        }
-      } else {
-        dataQueries.push({
-          Kind: queryKind,
-          NumParams: numParams,
-          StrParams: strParams,
+        specs.push({
+          Kind: dataKind,
+          Spec: Object.assign({}, spec, items[i]),
         });
       }
+
+      dataQueries.push({
+        Data: JSON.stringify({Spec: JSON.stringify(specs)}),
+        Name: queryKind,
+      });
 
       const serviceState = Object.assign({}, store.getState().service);
       if (serviceState.syncQueryMap) {
@@ -101,12 +93,12 @@ function* post(action) {
       }
 
       payload = {
-        actionName: 'UserQuery',
         projectName: params.project,
         queries: dataQueries,
         serviceName: params.service,
         stateKey: 'index',
       };
+
       break;
 
     default:

@@ -18,7 +18,7 @@ class IndexForm extends React.Component<IIndexForm> {
       return null;
     }
 
-    const queryKind = index.SubmitAction + index.DataKey;
+    const queryKind = index.SubmitAction;
     return (
       <BasicForm
         data={data}

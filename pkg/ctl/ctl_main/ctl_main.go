@@ -1,20 +1,26 @@
 package ctl_main
 
 import (
-	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_client"
-	"github.com/syunkitada/goapp/pkg/config"
+	"github.com/syunkitada/goapp/pkg/base/base_client"
+	"github.com/syunkitada/goapp/pkg/base/base_config"
+	"github.com/syunkitada/goapp/pkg/ctl/config"
 )
 
-type CtlMain struct {
-	name   string
-	conf   *config.Config
-	client *authproxy_client.AuthproxyClient
+type Ctl struct {
+	name     string
+	baseConf *base_config.Config
+	mainConf *config.Config
+	client   *base_client.Client
 }
 
-func New(conf *config.Config) *CtlMain {
-	return &CtlMain{
-		name:   "ctl",
-		conf:   conf,
-		client: authproxy_client.New(conf, nil),
+func New(baseConf *base_config.Config, mainConf *config.Config) *Ctl {
+	return &Ctl{
+		name:     "ctl",
+		baseConf: baseConf,
+		mainConf: mainConf,
+		client: base_client.NewClient(&base_config.ClientConfig{
+			Endpoints:             []string{"https://localhost:8000"},
+			TlsInsecureSkipVerify: true,
+		}),
 	}
 }

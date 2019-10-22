@@ -27,19 +27,19 @@ type RackSpec struct {
 }
 
 var RackCmd map[string]index_model.Cmd = map[string]index_model.Cmd{
-	"CreateRack": index_model.Cmd{
+	"create_rack": index_model.Cmd{
 		Arg:     index_model.ArgRequired,
 		ArgType: index_model.ArgTypeFile,
 		ArgKind: RackKind,
 		Help:    "helptext",
 	},
-	"UpdateRack": index_model.Cmd{
+	"update_rack": index_model.Cmd{
 		Arg:     index_model.ArgRequired,
 		ArgType: index_model.ArgTypeFile,
 		ArgKind: RackKind,
 		Help:    "helptext",
 	},
-	"GetRacks": index_model.Cmd{
+	"get_racks": index_model.Cmd{
 		Arg:         index_model.ArgOptional,
 		ArgType:     index_model.ArgTypeString,
 		ArgKind:     RackKind,
@@ -53,7 +53,7 @@ var RackCmd map[string]index_model.Cmd = map[string]index_model.Cmd{
 			},
 		},
 	},
-	"GetRack": index_model.Cmd{
+	"get_rack": index_model.Cmd{
 		Arg:     index_model.ArgRequired,
 		ArgType: index_model.ArgTypeString,
 		ArgKind: RackKind,
@@ -66,10 +66,38 @@ var RackCmd map[string]index_model.Cmd = map[string]index_model.Cmd{
 			},
 		},
 	},
-	"DeleteRack": index_model.Cmd{
+	"delete_rack": index_model.Cmd{
 		Arg:     index_model.ArgRequired,
 		ArgType: index_model.ArgTypeString,
 		ArgKind: RackKind,
 		Help:    "helptext",
+	},
+}
+
+var RacksTable = index_model.Table{
+	Name:    "Racks",
+	Route:   "/Racks",
+	Kind:    "Table",
+	DataKey: "Racks",
+	SelectActions: []index_model.Action{
+		index_model.Action{
+			Name:      "Delete",
+			Icon:      "Delete",
+			Kind:      "Form",
+			DataKind:  "Rack",
+			SelectKey: "Name",
+		},
+	},
+	Columns: []index_model.TableColumn{
+		index_model.TableColumn{
+			Name: "Name", IsSearch: true,
+			Link:           "Datacenters/:datacenter/Resources/Racks/Detail/:0/View",
+			LinkParam:      "resource",
+			LinkSync:       false,
+			LinkGetQueries: []string{"GetRack"},
+		},
+		index_model.TableColumn{Name: "Kind"},
+		index_model.TableColumn{Name: "UpdatedAt", Kind: "Time"},
+		index_model.TableColumn{Name: "CreatedAt", Kind: "Time"},
 	},
 }

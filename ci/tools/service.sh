@@ -4,7 +4,7 @@ COMMAND="${@:-start}"
 LOG_DIR=~/.goapp/logs
 
 declare -a SERVICES=("authproxy")
-declare -a RESOURCE_SERVICES=("resource-api" "resource-controller" "resource-cluster-api" "resource-cluster-controller" "resource-cluster-agent")
+declare -a RESOURCE_SERVICES=("resource-api" "resource-controller" "resource-cluster-api" "resource-cluster-controller")
 declare -a MONITOR_SERVICES=("monitor-api" "monitor-alert-manager" "monitor-agent")
 
 start_all() {
@@ -18,11 +18,16 @@ start_all() {
 }
 
 start_resource() {
+    sudo ls
     for service in ${RESOURCE_SERVICES[@]}
     do
         go run cmd/goapp-godo/main.go goapp-${service} --watch &> ${LOG_DIR}/stdout-${service}.log &
         echo "Started goapp-${service}"
     done
+
+    service="resource-cluster-agent"
+    sudo -E sh -c "export PATH=$PATH; go run cmd/goapp-godo/main.go goapp-${service} --watch" &> ${LOG_DIR}/stdout-${service}.log &
+    echo "Started goapp-${service}"
 
     echo "If you want to logs, you watch ${LOG_DIR}/*.log"
 }
@@ -60,9 +65,10 @@ start_multi() {
 }
 
 stop_all() {
+    sudo ls
     for pid in `ps ax | grep goapp | grep -v grep | grep -v vim | awk '{print $1}'`
     do
-        kill $pid
+        sudo kill $pid
     done
 }
 

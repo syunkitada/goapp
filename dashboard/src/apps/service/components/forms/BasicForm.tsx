@@ -284,15 +284,7 @@ class BasicForm extends React.Component<IBasicForm> {
   };
 
   private handleActionSubmit = () => {
-    const {
-      index,
-      data,
-      rawData,
-      selected,
-      routes,
-      targets,
-      submitQueries,
-    } = this.props;
+    const {index, data, rawData, selected, routes, submitQueries} = this.props;
     const {fieldMap} = this.state;
     const route = routes.slice(-1)[0];
     const fieldData = {};
@@ -373,7 +365,7 @@ class BasicForm extends React.Component<IBasicForm> {
       }
     }
 
-    submitQueries(index, items, fieldData, targets, route.match.params);
+    submitQueries(index, items, fieldData, route.match.params);
   };
 }
 
@@ -386,17 +378,17 @@ function mapStateToProps(state, ownProps) {
 }
 
 function mapDispatchToProps(dispatch, ownProps) {
-  const {queryKind} = ownProps;
+  const {queryKind, dataKind} = ownProps;
   return {
-    submitQueries: (index, items, fieldMap, targets, params) => {
+    submitQueries: (index, items, fieldMap, params) => {
       dispatch(
         actions.service.serviceSubmitQueries({
           action: index,
+          dataKind,
           fieldMap,
           items,
           params,
           queryKind,
-          targets,
         }),
       );
     },
@@ -406,7 +398,7 @@ function mapDispatchToProps(dispatch, ownProps) {
 const styles = (theme: Theme): StyleRules =>
   createStyles({
     button: {
-      margin: theme.spacing.unit,
+      margin: theme.spacing(1),
     },
     buttonFailed: {
       '&:hover': {
@@ -439,7 +431,7 @@ const styles = (theme: Theme): StyleRules =>
       width: '100%',
     },
     wrapper: {
-      margin: theme.spacing.unit,
+      margin: theme.spacing(1),
       position: 'relative',
     },
   });

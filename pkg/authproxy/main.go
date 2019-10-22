@@ -1,25 +1,20 @@
 package authproxy
 
 import (
+	"os"
+	"path/filepath"
+
 	"github.com/golang/glog"
 	"github.com/spf13/cobra"
 
-	"github.com/syunkitada/goapp/pkg/authproxy/core"
-	"github.com/syunkitada/goapp/pkg/config"
+	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_api"
+	"github.com/syunkitada/goapp/pkg/authproxy/config"
+	"github.com/syunkitada/goapp/pkg/authproxy/ctl"
+	"github.com/syunkitada/goapp/pkg/base/base_config"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
 
-var rootCmd = &cobra.Command{
-	Use:   "goapp-authproxy",
-	Short: "goapp-authproxy",
-	Long: `goapp-authproxy
-                This is sample description1.
-                This is sample description2.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		authproxy := core.NewAuthproxy(&config.Conf)
-		authproxy.Serv()
-	},
-}
+var rootCmd = &cobra.Command{}
 
 func Main() {
 	if err := rootCmd.Execute(); err != nil {
@@ -28,6 +23,17 @@ func Main() {
 }
 
 func init() {
-	cobra.OnInitialize(config.InitConfig, logger.Init)
-	config.InitFlags(rootCmd)
+	base_config.InitFlags(rootCmd, &config.BaseConf)
+	cobra.OnInitialize(initMain)
+
+	rootCmd.AddCommand(authproxy_api.RootCmd)
+	rootCmd.AddCommand(ctl.RootCmd)
+}
+
+func initMain() {
+	os.Setenv("LANG", "en_US.UTF-8")
+	config.BaseConf.BaseDir = filepath.Join(os.Getenv("HOME"), ".goapp")
+	config.BaseConf.LogTimeFormat = "2006-01-02T15:04:05Z09:00"
+	base_config.InitConfig(&config.BaseConf, &config.MainConf)
+	logger.InitLogger(&config.BaseConf)
 }

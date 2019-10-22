@@ -18,10 +18,10 @@ export const serviceGetQueries = actionCreator<{
 }>('SERVICE_GET_QUERIES');
 export const serviceSubmitQueries = actionCreator<{
   queryKind: any;
+  dataKind: any;
   action: any;
   fieldMap: any;
   items: any;
-  targets: any;
   params: any;
 }>('SERVICE_SUBMIT_QUERIES');
 export const serviceCloseErr = actionCreator('SERVICE_CLOSE_ERR');

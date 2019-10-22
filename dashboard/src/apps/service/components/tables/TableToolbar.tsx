@@ -31,8 +31,8 @@ const styles = (theme: Theme): StyleRules =>
       color: theme.palette.text.secondary,
     },
     buttonMargin: {
-      marginBottom: theme.spacing.unit * 2,
-      marginTop: theme.spacing.unit * 2,
+      marginBottom: theme.spacing(2),
+      marginTop: theme.spacing(2),
     },
     highlight:
       theme.palette.type === 'light'
@@ -45,7 +45,7 @@ const styles = (theme: Theme): StyleRules =>
             color: theme.palette.text.primary,
           },
     margin: {
-      margin: theme.spacing.unit * 2,
+      margin: theme.spacing(2),
     },
     root: {
       width: '100%',
@@ -57,11 +57,11 @@ const styles = (theme: Theme): StyleRules =>
       backgroundColor: fade(theme.palette.common.white, 0.15),
       borderRadius: theme.shape.borderRadius,
       marginLeft: 0,
-      marginRight: theme.spacing.unit * 2,
+      marginRight: theme.spacing(2),
       position: 'relative',
       width: '100%',
       [theme.breakpoints.up('sm')]: {
-        marginLeft: theme.spacing.unit * 3,
+        marginLeft: theme.spacing(3),
         width: 'auto',
       },
     },
@@ -72,7 +72,7 @@ const styles = (theme: Theme): StyleRules =>
       justifyContent: 'center',
       pointerEvents: 'none',
       position: 'absolute',
-      width: theme.spacing.unit * 9,
+      width: theme.spacing(9),
     },
     spacer: {
       flex: '1 1 100%',
@@ -157,7 +157,7 @@ class TableToolbar extends React.Component<ITableToolbar> {
 
     return (
       <Toolbar>
-        <Grid container={true} justify="space-between" spacing={24}>
+        <Grid container={true} justify="space-between" spacing={1}>
           <Grid item={true}>
             <div>
               <FormControl className={classes.margin}>

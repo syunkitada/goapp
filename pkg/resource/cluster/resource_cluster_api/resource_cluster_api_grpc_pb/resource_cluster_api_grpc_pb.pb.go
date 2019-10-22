@@ -8,7 +8,6 @@ import (
 	fmt "fmt"
 	proto "github.com/golang/protobuf/proto"
 	authproxy_grpc_pb "github.com/syunkitada/goapp/pkg/authproxy/authproxy_grpc_pb"
-	resource_api_grpc_pb "github.com/syunkitada/goapp/pkg/resource/resource_api/resource_api_grpc_pb"
 	grpc "google.golang.org/grpc"
 	math "math"
 )
@@ -24,434 +23,26 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
-type StatusRequest struct {
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *StatusRequest) Reset()         { *m = StatusRequest{} }
-func (m *StatusRequest) String() string { return proto.CompactTextString(m) }
-func (*StatusRequest) ProtoMessage()    {}
-func (*StatusRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_c7fc55d762109246, []int{0}
-}
-
-func (m *StatusRequest) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_StatusRequest.Unmarshal(m, b)
-}
-func (m *StatusRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_StatusRequest.Marshal(b, m, deterministic)
-}
-func (m *StatusRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_StatusRequest.Merge(m, src)
-}
-func (m *StatusRequest) XXX_Size() int {
-	return xxx_messageInfo_StatusRequest.Size(m)
-}
-func (m *StatusRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_StatusRequest.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_StatusRequest proto.InternalMessageInfo
-
-type StatusReply struct {
-	Msg                  string   `protobuf:"bytes,1,opt,name=Msg,proto3" json:"Msg,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *StatusReply) Reset()         { *m = StatusReply{} }
-func (m *StatusReply) String() string { return proto.CompactTextString(m) }
-func (*StatusReply) ProtoMessage()    {}
-func (*StatusReply) Descriptor() ([]byte, []int) {
-	return fileDescriptor_c7fc55d762109246, []int{1}
-}
-
-func (m *StatusReply) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_StatusReply.Unmarshal(m, b)
-}
-func (m *StatusReply) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_StatusReply.Marshal(b, m, deterministic)
-}
-func (m *StatusReply) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_StatusReply.Merge(m, src)
-}
-func (m *StatusReply) XXX_Size() int {
-	return xxx_messageInfo_StatusReply.Size(m)
-}
-func (m *StatusReply) XXX_DiscardUnknown() {
-	xxx_messageInfo_StatusReply.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_StatusReply proto.InternalMessageInfo
-
-func (m *StatusReply) GetMsg() string {
-	if m != nil {
-		return m.Msg
-	}
-	return ""
-}
-
-//
-// Action
-//
-type ActionRequest struct {
-	Tctx                 *authproxy_grpc_pb.TraceContext `protobuf:"bytes,1,opt,name=Tctx,proto3" json:"Tctx,omitempty"`
-	Target               string                          `protobuf:"bytes,2,opt,name=Target,proto3" json:"Target,omitempty"`
-	Cluster              string                          `protobuf:"bytes,3,opt,name=Cluster,proto3" json:"Cluster,omitempty"`
-	Spec                 string                          `protobuf:"bytes,4,opt,name=Spec,proto3" json:"Spec,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}                        `json:"-"`
-	XXX_unrecognized     []byte                          `json:"-"`
-	XXX_sizecache        int32                           `json:"-"`
-}
-
-func (m *ActionRequest) Reset()         { *m = ActionRequest{} }
-func (m *ActionRequest) String() string { return proto.CompactTextString(m) }
-func (*ActionRequest) ProtoMessage()    {}
-func (*ActionRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_c7fc55d762109246, []int{2}
-}
-
-func (m *ActionRequest) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_ActionRequest.Unmarshal(m, b)
-}
-func (m *ActionRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_ActionRequest.Marshal(b, m, deterministic)
-}
-func (m *ActionRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ActionRequest.Merge(m, src)
-}
-func (m *ActionRequest) XXX_Size() int {
-	return xxx_messageInfo_ActionRequest.Size(m)
-}
-func (m *ActionRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_ActionRequest.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_ActionRequest proto.InternalMessageInfo
-
-func (m *ActionRequest) GetTctx() *authproxy_grpc_pb.TraceContext {
-	if m != nil {
-		return m.Tctx
-	}
-	return nil
-}
-
-func (m *ActionRequest) GetTarget() string {
-	if m != nil {
-		return m.Target
-	}
-	return ""
-}
-
-func (m *ActionRequest) GetCluster() string {
-	if m != nil {
-		return m.Cluster
-	}
-	return ""
-}
-
-func (m *ActionRequest) GetSpec() string {
-	if m != nil {
-		return m.Spec
-	}
-	return ""
-}
-
-type ActionReply struct {
-	Tctx                 *authproxy_grpc_pb.TraceContext `protobuf:"bytes,1,opt,name=Tctx,proto3" json:"Tctx,omitempty"`
-	Nodes                []*Node                         `protobuf:"bytes,3,rep,name=Nodes,proto3" json:"Nodes,omitempty"`
-	Computes             []*Compute                      `protobuf:"bytes,4,rep,name=Computes,proto3" json:"Computes,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}                        `json:"-"`
-	XXX_unrecognized     []byte                          `json:"-"`
-	XXX_sizecache        int32                           `json:"-"`
-}
-
-func (m *ActionReply) Reset()         { *m = ActionReply{} }
-func (m *ActionReply) String() string { return proto.CompactTextString(m) }
-func (*ActionReply) ProtoMessage()    {}
-func (*ActionReply) Descriptor() ([]byte, []int) {
-	return fileDescriptor_c7fc55d762109246, []int{3}
-}
-
-func (m *ActionReply) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_ActionReply.Unmarshal(m, b)
-}
-func (m *ActionReply) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_ActionReply.Marshal(b, m, deterministic)
-}
-func (m *ActionReply) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ActionReply.Merge(m, src)
-}
-func (m *ActionReply) XXX_Size() int {
-	return xxx_messageInfo_ActionReply.Size(m)
-}
-func (m *ActionReply) XXX_DiscardUnknown() {
-	xxx_messageInfo_ActionReply.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_ActionReply proto.InternalMessageInfo
-
-func (m *ActionReply) GetTctx() *authproxy_grpc_pb.TraceContext {
-	if m != nil {
-		return m.Tctx
-	}
-	return nil
-}
-
-func (m *ActionReply) GetNodes() []*Node {
-	if m != nil {
-		return m.Nodes
-	}
-	return nil
-}
-
-func (m *ActionReply) GetComputes() []*Compute {
-	if m != nil {
-		return m.Computes
-	}
-	return nil
-}
-
-//
-// Node
-//
-type UpdateNodeRequest struct {
-	Tctx                 *authproxy_grpc_pb.TraceContext `protobuf:"bytes,1,opt,name=Tctx,proto3" json:"Tctx,omitempty"`
-	Node                 *Node                           `protobuf:"bytes,2,opt,name=Node,proto3" json:"Node,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}                        `json:"-"`
-	XXX_unrecognized     []byte                          `json:"-"`
-	XXX_sizecache        int32                           `json:"-"`
-}
-
-func (m *UpdateNodeRequest) Reset()         { *m = UpdateNodeRequest{} }
-func (m *UpdateNodeRequest) String() string { return proto.CompactTextString(m) }
-func (*UpdateNodeRequest) ProtoMessage()    {}
-func (*UpdateNodeRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_c7fc55d762109246, []int{4}
-}
-
-func (m *UpdateNodeRequest) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_UpdateNodeRequest.Unmarshal(m, b)
-}
-func (m *UpdateNodeRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_UpdateNodeRequest.Marshal(b, m, deterministic)
-}
-func (m *UpdateNodeRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_UpdateNodeRequest.Merge(m, src)
-}
-func (m *UpdateNodeRequest) XXX_Size() int {
-	return xxx_messageInfo_UpdateNodeRequest.Size(m)
-}
-func (m *UpdateNodeRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_UpdateNodeRequest.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_UpdateNodeRequest proto.InternalMessageInfo
-
-func (m *UpdateNodeRequest) GetTctx() *authproxy_grpc_pb.TraceContext {
-	if m != nil {
-		return m.Tctx
-	}
-	return nil
-}
-
-func (m *UpdateNodeRequest) GetNode() *Node {
-	if m != nil {
-		return m.Node
-	}
-	return nil
-}
-
-type UpdateNodeReply struct {
-	Tctx                 *authproxy_grpc_pb.TraceContext `protobuf:"bytes,1,opt,name=Tctx,proto3" json:"Tctx,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}                        `json:"-"`
-	XXX_unrecognized     []byte                          `json:"-"`
-	XXX_sizecache        int32                           `json:"-"`
-}
-
-func (m *UpdateNodeReply) Reset()         { *m = UpdateNodeReply{} }
-func (m *UpdateNodeReply) String() string { return proto.CompactTextString(m) }
-func (*UpdateNodeReply) ProtoMessage()    {}
-func (*UpdateNodeReply) Descriptor() ([]byte, []int) {
-	return fileDescriptor_c7fc55d762109246, []int{5}
-}
-
-func (m *UpdateNodeReply) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_UpdateNodeReply.Unmarshal(m, b)
-}
-func (m *UpdateNodeReply) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_UpdateNodeReply.Marshal(b, m, deterministic)
-}
-func (m *UpdateNodeReply) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_UpdateNodeReply.Merge(m, src)
-}
-func (m *UpdateNodeReply) XXX_Size() int {
-	return xxx_messageInfo_UpdateNodeReply.Size(m)
-}
-func (m *UpdateNodeReply) XXX_DiscardUnknown() {
-	xxx_messageInfo_UpdateNodeReply.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_UpdateNodeReply proto.InternalMessageInfo
-
-func (m *UpdateNodeReply) GetTctx() *authproxy_grpc_pb.TraceContext {
-	if m != nil {
-		return m.Tctx
-	}
-	return nil
-}
-
-//
-// Resources
-//
-type Node struct {
-	Node                 *resource_api_grpc_pb.Node `protobuf:"bytes,1,opt,name=node,proto3" json:"node,omitempty"`
-	Labels               string                     `protobuf:"bytes,2,opt,name=Labels,proto3" json:"Labels,omitempty"`
-	DriverLabels         string                     `protobuf:"bytes,3,opt,name=DriverLabels,proto3" json:"DriverLabels,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}                   `json:"-"`
-	XXX_unrecognized     []byte                     `json:"-"`
-	XXX_sizecache        int32                      `json:"-"`
-}
-
-func (m *Node) Reset()         { *m = Node{} }
-func (m *Node) String() string { return proto.CompactTextString(m) }
-func (*Node) ProtoMessage()    {}
-func (*Node) Descriptor() ([]byte, []int) {
-	return fileDescriptor_c7fc55d762109246, []int{6}
-}
-
-func (m *Node) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_Node.Unmarshal(m, b)
-}
-func (m *Node) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_Node.Marshal(b, m, deterministic)
-}
-func (m *Node) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_Node.Merge(m, src)
-}
-func (m *Node) XXX_Size() int {
-	return xxx_messageInfo_Node.Size(m)
-}
-func (m *Node) XXX_DiscardUnknown() {
-	xxx_messageInfo_Node.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_Node proto.InternalMessageInfo
-
-func (m *Node) GetNode() *resource_api_grpc_pb.Node {
-	if m != nil {
-		return m.Node
-	}
-	return nil
-}
-
-func (m *Node) GetLabels() string {
-	if m != nil {
-		return m.Labels
-	}
-	return ""
-}
-
-func (m *Node) GetDriverLabels() string {
-	if m != nil {
-		return m.DriverLabels
-	}
-	return ""
-}
-
-type Compute struct {
-	Compute              *resource_api_grpc_pb.Compute `protobuf:"bytes,1,opt,name=compute,proto3" json:"compute,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}                      `json:"-"`
-	XXX_unrecognized     []byte                        `json:"-"`
-	XXX_sizecache        int32                         `json:"-"`
-}
-
-func (m *Compute) Reset()         { *m = Compute{} }
-func (m *Compute) String() string { return proto.CompactTextString(m) }
-func (*Compute) ProtoMessage()    {}
-func (*Compute) Descriptor() ([]byte, []int) {
-	return fileDescriptor_c7fc55d762109246, []int{7}
-}
-
-func (m *Compute) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_Compute.Unmarshal(m, b)
-}
-func (m *Compute) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_Compute.Marshal(b, m, deterministic)
-}
-func (m *Compute) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_Compute.Merge(m, src)
-}
-func (m *Compute) XXX_Size() int {
-	return xxx_messageInfo_Compute.Size(m)
-}
-func (m *Compute) XXX_DiscardUnknown() {
-	xxx_messageInfo_Compute.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_Compute proto.InternalMessageInfo
-
-func (m *Compute) GetCompute() *resource_api_grpc_pb.Compute {
-	if m != nil {
-		return m.Compute
-	}
-	return nil
-}
-
-func init() {
-	proto.RegisterType((*StatusRequest)(nil), "resource_cluster_api_grpc_pb.StatusRequest")
-	proto.RegisterType((*StatusReply)(nil), "resource_cluster_api_grpc_pb.StatusReply")
-	proto.RegisterType((*ActionRequest)(nil), "resource_cluster_api_grpc_pb.ActionRequest")
-	proto.RegisterType((*ActionReply)(nil), "resource_cluster_api_grpc_pb.ActionReply")
-	proto.RegisterType((*UpdateNodeRequest)(nil), "resource_cluster_api_grpc_pb.UpdateNodeRequest")
-	proto.RegisterType((*UpdateNodeReply)(nil), "resource_cluster_api_grpc_pb.UpdateNodeReply")
-	proto.RegisterType((*Node)(nil), "resource_cluster_api_grpc_pb.Node")
-	proto.RegisterType((*Compute)(nil), "resource_cluster_api_grpc_pb.Compute")
-}
-
 func init() {
 	proto.RegisterFile("resource/cluster/resource_cluster_api/resource_cluster_api_grpc_pb/resource_cluster_api_grpc_pb.proto", fileDescriptor_c7fc55d762109246)
 }
 
 var fileDescriptor_c7fc55d762109246 = []byte{
-	// 530 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x54, 0x4d, 0x6f, 0xd3, 0x40,
-	0x10, 0xad, 0x1b, 0x93, 0xc0, 0x84, 0x2a, 0xb0, 0x07, 0x64, 0x05, 0x50, 0xab, 0x95, 0x90, 0x8a,
-	0x10, 0xb6, 0x94, 0x48, 0xc0, 0x35, 0x09, 0x1f, 0x17, 0x40, 0x95, 0x1b, 0x2e, 0x5c, 0xa2, 0xb5,
-	0xb3, 0x72, 0xad, 0x26, 0xde, 0x65, 0x3f, 0x50, 0x72, 0xe3, 0xcc, 0x99, 0xff, 0xc3, 0x1f, 0xe0,
-	0x47, 0xa1, 0xdd, 0xb5, 0xdd, 0x46, 0x89, 0xdc, 0xa8, 0xbd, 0x8d, 0x67, 0xdf, 0x9b, 0xf7, 0x3c,
-	0x3b, 0xb3, 0x40, 0x05, 0x95, 0x4c, 0x8b, 0x94, 0x46, 0xe9, 0x42, 0x4b, 0x45, 0x45, 0x54, 0x25,
-	0x66, 0x65, 0x62, 0x46, 0x78, 0xbe, 0x33, 0x39, 0xcb, 0x04, 0x4f, 0x67, 0x3c, 0x69, 0x3c, 0x0c,
-	0xb9, 0x60, 0x8a, 0xa1, 0x67, 0x4d, 0x98, 0xfe, 0x90, 0x68, 0x75, 0xc1, 0x05, 0x5b, 0xad, 0xa3,
-	0x3a, 0xaa, 0xab, 0x6f, 0x65, 0x5c, 0xc9, 0xfe, 0x87, 0xda, 0x79, 0x5d, 0x7b, 0xc3, 0xe9, 0x4e,
-	0x87, 0x5b, 0xce, 0x70, 0x0f, 0x8e, 0xce, 0x15, 0x51, 0x5a, 0xc6, 0xf4, 0x87, 0xa6, 0x52, 0xe1,
-	0x63, 0xe8, 0x56, 0x09, 0xbe, 0x58, 0xa3, 0x47, 0xd0, 0xfa, 0x22, 0xb3, 0xc0, 0x3b, 0xf1, 0x4e,
-	0x1f, 0xc4, 0x26, 0xc4, 0xbf, 0x3d, 0x38, 0x1a, 0xa5, 0x2a, 0x67, 0x45, 0x49, 0x41, 0x43, 0xf0,
-	0xa7, 0xa9, 0x5a, 0x59, 0x50, 0x77, 0x70, 0x1c, 0x6e, 0x5b, 0x9e, 0x0a, 0x92, 0xd2, 0x09, 0x2b,
-	0x14, 0x5d, 0xa9, 0xd8, 0x82, 0xd1, 0x13, 0x68, 0x4f, 0x89, 0xc8, 0xa8, 0x0a, 0x0e, 0x6d, 0xed,
-	0xf2, 0x0b, 0x05, 0xd0, 0x99, 0xb8, 0x1e, 0x05, 0x2d, 0x7b, 0x50, 0x7d, 0x22, 0x04, 0xfe, 0x39,
-	0xa7, 0x69, 0xe0, 0xdb, 0xb4, 0x8d, 0xf1, 0x5f, 0x0f, 0xba, 0x95, 0x19, 0x63, 0xf7, 0x56, 0x56,
-	0xde, 0xc1, 0xbd, 0xaf, 0x6c, 0x4e, 0x65, 0xd0, 0x3a, 0x69, 0x9d, 0x76, 0x07, 0x38, 0x6c, 0xbc,
-	0x51, 0x03, 0x8d, 0x1d, 0x01, 0x8d, 0xe0, 0xfe, 0x84, 0x2d, 0xb9, 0x56, 0x54, 0x06, 0xbe, 0x25,
-	0xbf, 0x68, 0x26, 0x97, 0xe8, 0xb8, 0xa6, 0xe1, 0x5f, 0x1e, 0x3c, 0xfe, 0xc6, 0xe7, 0x44, 0x51,
-	0x5b, 0xf8, 0x2e, 0x2d, 0x7d, 0x03, 0xbe, 0xa9, 0x61, 0x1b, 0xba, 0xdf, 0x6f, 0x58, 0x3c, 0xfe,
-	0x08, 0xbd, 0xeb, 0x0e, 0x6e, 0xdb, 0x47, 0x2c, 0x9c, 0x3e, 0x0a, 0xc1, 0x2f, 0x8c, 0x0f, 0x47,
-	0xee, 0x87, 0x3b, 0xc7, 0xcf, 0xe9, 0x1b, 0x9c, 0x19, 0x85, 0xcf, 0x24, 0xa1, 0x0b, 0x59, 0x8d,
-	0x82, 0xfb, 0x42, 0x18, 0x1e, 0xbe, 0x17, 0xf9, 0x4f, 0x2a, 0xca, 0x53, 0x37, 0x0f, 0x1b, 0x39,
-	0x3c, 0x86, 0x4e, 0xd9, 0x4a, 0xf4, 0x16, 0x3a, 0xa9, 0x0b, 0x4b, 0xe5, 0xe7, 0xbb, 0x95, 0xab,
-	0x3b, 0xa8, 0xd0, 0x83, 0x7f, 0x87, 0x80, 0xe2, 0x12, 0x59, 0x0e, 0xdb, 0x88, 0xe7, 0x28, 0x81,
-	0xb6, 0xdb, 0x04, 0xf4, 0xaa, 0xb9, 0x95, 0x1b, 0x0b, 0xd4, 0x7f, 0xb9, 0x1f, 0x98, 0x2f, 0xd6,
-	0xf8, 0xc0, 0x68, 0xb8, 0xf1, 0xbd, 0x49, 0x63, 0x63, 0xe3, 0x6e, 0xd2, 0xb8, 0xb6, 0x11, 0xf8,
-	0x00, 0x15, 0x00, 0x57, 0xd7, 0x8b, 0xa2, 0x66, 0xea, 0xd6, 0x28, 0xf6, 0x5f, 0xef, 0x4f, 0xb0,
-	0x7a, 0xe3, 0x3f, 0x1e, 0x3c, 0xcd, 0x59, 0x68, 0x00, 0x21, 0x5d, 0x91, 0x25, 0x5f, 0x50, 0x19,
-	0x0a, 0xa6, 0x15, 0xcd, 0x74, 0x3e, 0xa7, 0xe3, 0x5e, 0x6c, 0xe2, 0x4f, 0x26, 0x3e, 0x33, 0x6f,
-	0xd0, 0x99, 0xf7, 0x3d, 0xc9, 0x72, 0x75, 0xa1, 0x93, 0x30, 0x65, 0xcb, 0x48, 0xae, 0x75, 0x71,
-	0x99, 0x2b, 0x32, 0x27, 0x51, 0xc6, 0x08, 0xe7, 0x11, 0xbf, 0xcc, 0xa2, 0xbb, 0x3f, 0xd3, 0x49,
-	0xdb, 0x3e, 0x78, 0xc3, 0xff, 0x01, 0x00, 0x00, 0xff, 0xff, 0x6c, 0x27, 0x1f, 0xd8, 0xf3, 0x05,
-	0x00, 0x00,
+	// 220 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x90, 0x31, 0x4e, 0x03, 0x31,
+	0x10, 0x45, 0x49, 0x93, 0xc2, 0x0d, 0x92, 0xcb, 0x80, 0x10, 0xe2, 0x00, 0xb6, 0x44, 0x4e, 0x90,
+	0x50, 0xd0, 0x50, 0x44, 0x5b, 0xd2, 0x58, 0xb6, 0x33, 0x72, 0xac, 0x6c, 0x32, 0x83, 0x3d, 0x23,
+	0x65, 0xef, 0xc1, 0x81, 0x91, 0xd9, 0x90, 0x26, 0x68, 0x9b, 0x74, 0x5f, 0xef, 0x8f, 0x9f, 0xac,
+	0xaf, 0xa0, 0x40, 0x45, 0x29, 0x11, 0x6c, 0xec, 0xa5, 0x32, 0x14, 0xfb, 0x07, 0xdc, 0x19, 0x38,
+	0x4f, 0xf9, 0x5f, 0xe8, 0x52, 0xa1, 0xe8, 0x28, 0x4c, 0x96, 0x86, 0x0a, 0x32, 0xea, 0xc7, 0xa9,
+	0x9b, 0xc5, 0xd2, 0x0b, 0xef, 0xa8, 0xe0, 0x69, 0xb0, 0x97, 0x74, 0xb1, 0x5f, 0x91, 0x51, 0xf9,
+	0x1a, 0x94, 0xee, 0xce, 0xd2, 0xb7, 0xd1, 0xb9, 0xa2, 0xac, 0x3f, 0xd4, 0x7c, 0x15, 0x39, 0xe3,
+	0x51, 0x3f, 0x9b, 0xeb, 0x97, 0x63, 0xd5, 0xc1, 0x97, 0x40, 0xe5, 0xc5, 0xd3, 0xc4, 0x05, 0xf5,
+	0xc3, 0xcb, 0xdd, 0xfa, 0x7b, 0xa6, 0x1e, 0x32, 0x9a, 0x56, 0x1a, 0x38, 0xf9, 0x03, 0xf5, 0x50,
+	0x4d, 0x41, 0x61, 0x48, 0x92, 0xb7, 0xb0, 0xbe, 0xef, 0x5a, 0x7e, 0x6f, 0x79, 0xd3, 0x3e, 0xb5,
+	0x99, 0x7d, 0x86, 0x94, 0x79, 0x27, 0xc1, 0x44, 0x3c, 0xd8, 0x3a, 0xc8, 0x71, 0x9f, 0xd9, 0x6f,
+	0xbd, 0x4d, 0xe8, 0x89, 0x2c, 0xed, 0x93, 0xbd, 0x7d, 0xf0, 0x30, 0xff, 0x5d, 0x60, 0xf9, 0x13,
+	0x00, 0x00, 0xff, 0xff, 0xf9, 0xaa, 0xab, 0x9c, 0xbd, 0x01, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -466,9 +57,7 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type ResourceClusterApiClient interface {
-	Status(ctx context.Context, in *StatusRequest, opts ...grpc.CallOption) (*StatusReply, error)
-	Action(ctx context.Context, in *ActionRequest, opts ...grpc.CallOption) (*ActionReply, error)
-	UpdateNode(ctx context.Context, in *UpdateNodeRequest, opts ...grpc.CallOption) (*UpdateNodeReply, error)
+	Action(ctx context.Context, in *authproxy_grpc_pb.ActionRequest, opts ...grpc.CallOption) (*authproxy_grpc_pb.ActionReply, error)
 }
 
 type resourceClusterApiClient struct {
@@ -479,27 +68,9 @@ func NewResourceClusterApiClient(cc *grpc.ClientConn) ResourceClusterApiClient {
 	return &resourceClusterApiClient{cc}
 }
 
-func (c *resourceClusterApiClient) Status(ctx context.Context, in *StatusRequest, opts ...grpc.CallOption) (*StatusReply, error) {
-	out := new(StatusReply)
-	err := c.cc.Invoke(ctx, "/resource_cluster_api_grpc_pb.ResourceClusterApi/Status", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *resourceClusterApiClient) Action(ctx context.Context, in *ActionRequest, opts ...grpc.CallOption) (*ActionReply, error) {
-	out := new(ActionReply)
+func (c *resourceClusterApiClient) Action(ctx context.Context, in *authproxy_grpc_pb.ActionRequest, opts ...grpc.CallOption) (*authproxy_grpc_pb.ActionReply, error) {
+	out := new(authproxy_grpc_pb.ActionReply)
 	err := c.cc.Invoke(ctx, "/resource_cluster_api_grpc_pb.ResourceClusterApi/Action", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *resourceClusterApiClient) UpdateNode(ctx context.Context, in *UpdateNodeRequest, opts ...grpc.CallOption) (*UpdateNodeReply, error) {
-	out := new(UpdateNodeReply)
-	err := c.cc.Invoke(ctx, "/resource_cluster_api_grpc_pb.ResourceClusterApi/UpdateNode", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -508,35 +79,15 @@ func (c *resourceClusterApiClient) UpdateNode(ctx context.Context, in *UpdateNod
 
 // ResourceClusterApiServer is the server API for ResourceClusterApi service.
 type ResourceClusterApiServer interface {
-	Status(context.Context, *StatusRequest) (*StatusReply, error)
-	Action(context.Context, *ActionRequest) (*ActionReply, error)
-	UpdateNode(context.Context, *UpdateNodeRequest) (*UpdateNodeReply, error)
+	Action(context.Context, *authproxy_grpc_pb.ActionRequest) (*authproxy_grpc_pb.ActionReply, error)
 }
 
 func RegisterResourceClusterApiServer(s *grpc.Server, srv ResourceClusterApiServer) {
 	s.RegisterService(&_ResourceClusterApi_serviceDesc, srv)
 }
 
-func _ResourceClusterApi_Status_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(StatusRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ResourceClusterApiServer).Status(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/resource_cluster_api_grpc_pb.ResourceClusterApi/Status",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ResourceClusterApiServer).Status(ctx, req.(*StatusRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _ResourceClusterApi_Action_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ActionRequest)
+	in := new(authproxy_grpc_pb.ActionRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -548,25 +99,7 @@ func _ResourceClusterApi_Action_Handler(srv interface{}, ctx context.Context, de
 		FullMethod: "/resource_cluster_api_grpc_pb.ResourceClusterApi/Action",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ResourceClusterApiServer).Action(ctx, req.(*ActionRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _ResourceClusterApi_UpdateNode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UpdateNodeRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ResourceClusterApiServer).UpdateNode(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/resource_cluster_api_grpc_pb.ResourceClusterApi/UpdateNode",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ResourceClusterApiServer).UpdateNode(ctx, req.(*UpdateNodeRequest))
+		return srv.(ResourceClusterApiServer).Action(ctx, req.(*authproxy_grpc_pb.ActionRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -576,16 +109,8 @@ var _ResourceClusterApi_serviceDesc = grpc.ServiceDesc{
 	HandlerType: (*ResourceClusterApiServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "Status",
-			Handler:    _ResourceClusterApi_Status_Handler,
-		},
-		{
 			MethodName: "Action",
 			Handler:    _ResourceClusterApi_Action_Handler,
-		},
-		{
-			MethodName: "UpdateNode",
-			Handler:    _ResourceClusterApi_UpdateNode_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

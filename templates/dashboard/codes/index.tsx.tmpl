@@ -1,0 +1,18 @@
+// This code is auto generated.
+// Don't modify this code.
+
+{{- $codeMap := . }}
+
+{{- range $code, $status := $codeMap }}
+const {{ $status }} = {{ $code }};
+{{- end }}
+
+export function toStringFromStatusCode(code) {
+  switch(code) {
+{{- range $code, $status := $codeMap }}
+    case {{ $status }}:
+      return "{{ $status }}";
+{{- end }}
+  }
+  return "Unknown";
+}

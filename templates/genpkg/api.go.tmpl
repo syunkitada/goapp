@@ -1,0 +1,232 @@
+// This code is auto generated.
+// Don't modify this code.
+{{- $spec := . }}
+
+package genpkg
+
+import (
+	"encoding/json"
+
+	"github.com/jinzhu/gorm"
+
+	"github.com/syunkitada/goapp/pkg/authproxy/config"
+	"github.com/syunkitada/goapp/pkg/base/base_config"
+	"github.com/syunkitada/goapp/pkg/base/base_const"
+	"github.com/syunkitada/goapp/pkg/base/base_model"
+	"github.com/syunkitada/goapp/pkg/base/base_spec"
+	"github.com/syunkitada/goapp/pkg/lib/logger"
+	{{- range $query := $spec.QuerySet }}
+	"{{ $query.PkgPath }}"
+	{{- end }}
+)
+
+type QueryResolver interface {
+	{{- if eq $spec.Kind "Api" }}
+	Login(tctx *logger.TraceContext, input *base_spec.Login) (*base_spec.LoginData, uint8, error)
+	LoginWithToken(tctx *logger.TraceContext, input *base_spec.LoginWithToken, user *base_spec.UserAuthority) (*base_spec.LoginWithTokenData, uint8, error)
+	UpdateService(tctx *logger.TraceContext, input *base_spec.UpdateService) (*base_spec.UpdateServiceData, uint8, error)
+	GetServiceIndex(tctx *logger.TraceContext, input *base_spec.GetServiceIndex, user *base_spec.UserAuthority) (*base_spec.GetServiceIndexData, uint8, error)
+	GetServiceDashboardIndex(tctx *logger.TraceContext, input *base_spec.GetServiceDashboardIndex, user *base_spec.UserAuthority) (*base_spec.GetServiceDashboardIndexData, uint8, error)
+	{{- end }}
+
+	{{- range $query := $spec.QuerySet }}
+	{{- if $query.RequiredAuth }}
+	{{ $query.Name }}(tctx *logger.TraceContext, input *{{ $query.PkgName }}.{{ $query.Name }}, user *base_spec.UserAuthority) (*{{ $query.PkgName }}.{{ $query.Name }}Data, uint8, error)
+	{{- else }}
+	{{ $query.Name }}(tctx *logger.TraceContext, input *{{ $query.PkgName }}.{{ $query.Name }}) (*{{ $query.PkgName }}.{{ $query.Name }}Data, uint8, error)
+	{{- end }}
+	{{- end }}
+}
+
+type QueryHandler struct {
+	baseConf *base_config.Config
+	appConf  *base_config.AppConfig
+	resolver QueryResolver
+}
+
+func NewQueryHandler(baseConf *base_config.Config, appConf *base_config.AppConfig, resolver QueryResolver) *QueryHandler {
+	return &QueryHandler{
+		baseConf: baseConf,
+		appConf:  appConf,
+		resolver: resolver,
+	}
+}
+
+func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.UserAuthority, httpReq *http.Request, rw http.ResponseWriter,
+	req *base_model.Request, rep *base_model.Response) error {
+	var err error
+	for _, query := range req.Queries {
+		switch query.Name {
+		{{- if eq $spec.Kind "Api" }}
+		case "Login":
+			var input base_spec.Login
+			err = json.Unmarshal([]byte(query.Data), &input)
+			if err != nil {
+				return err
+			}
+
+			data, code, tmpErr := handler.resolver.Login(tctx, &input)
+			if tmpErr != nil {
+				if code == 0 {
+					code = base_const.CodeServerInternalError
+				}
+				rep.ResultMap[query.Name] = base_model.Result{
+					Code: code,
+					Error: tmpErr.Error(),
+				}
+				break
+			}
+			rep.ResultMap[query.Name] = base_model.Result{
+				Code: code,
+				Data: data,
+			}
+
+			cookie := http.Cookie{
+				Name: "X-Auth-Token",
+				Value: data.Token,
+				Secure: true,
+				HttpOnly: true,
+				Expires:  time.Now().Add(1 * time.Hour),  // TODO Configurable
+			} // FIXME SameSite
+			http.SetCookie(rw, &cookie)
+
+		case "Logout":
+			rep.ResultMap[query.Name] = base_model.Result{
+				Code: base_const.CodeOk,
+			}
+			cookie := http.Cookie{
+				Name: "X-Auth-Token",
+				Value: "",
+				Secure: true,
+				HttpOnly: true,
+			}
+			http.SetCookie(rw, &cookie)
+
+		case "LoginWithToken":
+			var input base_spec.LoginWithToken
+			err = json.Unmarshal([]byte(query.Data), &input)
+			if err != nil {
+				return err
+			}
+
+			data, code, tmpErr := handler.resolver.LoginWithToken(tctx, &input, user)
+			if tmpErr != nil {
+				if code == 0 {
+					code = base_const.CodeServerInternalError
+				}
+				rep.ResultMap[query.Name] = base_model.Result{
+					Code: code,
+					Error: tmpErr.Error(),
+				}
+				break
+			}
+			rep.ResultMap[query.Name] = base_model.Result{
+				Code: code,
+				Data: data,
+			}
+
+		case "UpdateService":
+			var input base_spec.UpdateService
+			err = json.Unmarshal([]byte(query.Data), &input)
+			if err != nil {
+				return err
+			}
+
+			data, code, tmpErr := handler.resolver.UpdateService(tctx, &input)
+			if tmpErr != nil {
+				if code == 0 {
+					code = base_const.CodeServerInternalError
+				}
+				rep.ResultMap[query.Name] = base_model.Result{
+					Code: code,
+					Error: tmpErr.Error(),
+				}
+				break
+			}
+			rep.ResultMap[query.Name] = base_model.Result{
+				Code: code,
+				Data: data,
+			}
+
+		case "GetServiceIndex":
+			var input base_spec.GetServiceIndex
+			err = json.Unmarshal([]byte(query.Data), &input)
+			if err != nil {
+				return err
+			}
+
+			data, code, tmpErr := handler.resolver.GetServiceIndex(tctx, &input, user)
+			if tmpErr != nil {
+				if code == 0 {
+					code = base_const.CodeServerInternalError
+				}
+				rep.ResultMap[query.Name] = base_model.Result{
+					Code: code,
+					Error: tmpErr.Error(),
+				}
+				break
+			}
+			rep.ResultMap[query.Name] = base_model.Result{
+				Code: code,
+				Data: data,
+			}
+		case "GetServiceDashboardIndex":
+			var input base_spec.GetServiceDashboardIndex
+			err = json.Unmarshal([]byte(query.Data), &input)
+			if err != nil {
+				return err
+			}
+
+			data, code, tmpErr := handler.resolver.GetServiceDashboardIndex(tctx, &input, user)
+			if tmpErr != nil {
+				if code == 0 {
+					code = base_const.CodeServerInternalError
+				}
+				rep.ResultMap["GetServiceDashboardIndex"] = base_model.Result{
+					Code: code,
+					Error: tmpErr.Error(),
+				}
+				break
+			}
+			rep.ResultMap[query.Name] = base_model.Result{
+				Code: code,
+				Data: data,
+			}
+		{{- end }}
+
+		{{- range $query := $spec.QuerySet }}
+		case "{{ $query.Name }}":
+			var input {{ $query.PkgName }}.{{ $query.Name }}
+			err = json.Unmarshal([]byte(query.Data), &input)
+			if err != nil {
+				return err
+			}
+
+			{{- if $query.RequiredAuth }}
+			data, code, tmpErr := handler.resolver.{{ $query.Name }}(tctx, &input, user)
+			{{- else }}
+			data, code, tmpErr := handler.resolver.{{ $query.Name }}(tctx, &input)
+			{{- end }}
+			if tmpErr != nil {
+				if code == 0 {
+					code = base_const.CodeServerInternalError
+				}
+				rep.ResultMap[query.Name] = base_model.Result{
+					Code: code,
+					Error: tmpErr.Error(),
+				}
+				break
+			}
+			rep.ResultMap[query.Name] = base_model.Result{
+				Code: code,
+				Data: data,
+			}
+		{{- end }}
+
+		default:
+			err = fmt.Errorf("InvalidQueryName: %s", query.Name)
+			return err
+		}
+	}
+	return nil
+}

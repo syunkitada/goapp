@@ -1,18 +1,15 @@
 package resource_cluster_api
 
 import (
-	"fmt"
-
-	"github.com/golang/glog"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 
+	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_grpc_pb"
 	"github.com/syunkitada/goapp/pkg/base"
 	"github.com/syunkitada/goapp/pkg/config"
-	"github.com/syunkitada/goapp/pkg/lib/codes"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_api/resource_cluster_api_grpc_pb"
-	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_model/resource_cluster_model_api"
+	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_model_api"
 )
 
 type ResourceClusterApiServer struct {
@@ -25,7 +22,7 @@ type ResourceClusterApiServer struct {
 func NewResourceClusterApiServer(conf *config.Config) *ResourceClusterApiServer {
 	cluster, ok := conf.Resource.ClusterMap[conf.Resource.Node.ClusterName]
 	if !ok {
-		glog.Fatal(fmt.Errorf("Cluster(%v) is not found in ClusterMap", conf.Resource.Node.ClusterName))
+		logger.StdoutFatalf("Cluster(%s) is not found in ClusterMap", conf.Resource.Node.ClusterName)
 	}
 
 	cluster.ApiApp.Name = "resource.cluster.api"
@@ -45,41 +42,34 @@ func (srv *ResourceClusterApiServer) RegisterGrpcServer(grpcServer *grpc.Server)
 	return nil
 }
 
-func (srv *ResourceClusterApiServer) Status(ctx context.Context, statusRequest *resource_cluster_api_grpc_pb.StatusRequest) (*resource_cluster_api_grpc_pb.StatusReply, error) {
-	glog.Info("Status")
-	return &resource_cluster_api_grpc_pb.StatusReply{Msg: "Status"}, nil
-}
-
-//
-// Action
-//
-func (srv *ResourceClusterApiServer) Action(ctx context.Context, req *resource_cluster_api_grpc_pb.ActionRequest) (*resource_cluster_api_grpc_pb.ActionReply, error) {
+func (srv *ResourceClusterApiServer) Action(ctx context.Context,
+	req *authproxy_grpc_pb.ActionRequest) (*authproxy_grpc_pb.ActionReply, error) {
 	var err error
-	rep := &resource_cluster_api_grpc_pb.ActionReply{Tctx: req.Tctx}
+	rep := &authproxy_grpc_pb.ActionReply{Tctx: req.Tctx}
 	tctx := logger.NewGrpcAuthproxyTraceContext(srv.Host, srv.Name, ctx, req.Tctx)
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
-	switch req.Tctx.ActionName {
-	case "GetNode":
-		srv.resourceClusterModelApi.GetNode(tctx, req, rep)
-	case "GetCompute":
-		srv.resourceClusterModelApi.GetCompute(tctx, req, rep)
-	default:
-		rep.Tctx.Err = fmt.Sprintf("InvalidAction: %v", req.Tctx.ActionName)
-		rep.Tctx.StatusCode = codes.ClientNotFound
-	}
-
+	srv.resourceClusterModelApi.Action(tctx, req, rep)
 	return rep, nil
 }
 
-func (srv *ResourceClusterApiServer) UpdateNode(ctx context.Context, req *resource_cluster_api_grpc_pb.UpdateNodeRequest) (*resource_cluster_api_grpc_pb.UpdateNodeReply, error) {
-	var err error
-	rep := &resource_cluster_api_grpc_pb.UpdateNodeReply{Tctx: req.Tctx}
-	tctx := logger.NewGrpcAuthproxyTraceContext(srv.Host, srv.Name, ctx, req.Tctx)
-	startTime := logger.StartTrace(tctx)
-	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+func (srv *ResourceClusterApiServer) localAction(tctx *logger.TraceContext, atctx *logger.ActionTraceContext) (*authproxy_grpc_pb.ActionReply, error) {
+	queries := []*authproxy_grpc_pb.Query{}
+	for _, query := range atctx.Queries {
+		queries = append(queries, &authproxy_grpc_pb.Query{
+			Kind:      query.Kind,
+			StrParams: query.StrParams,
+			NumParams: query.NumParams,
+		})
+	}
 
-	srv.resourceClusterModelApi.UpdateNode(tctx, req, rep)
+	req := authproxy_grpc_pb.ActionRequest{
+		Tctx:    logger.NewAuthproxyTraceContext(nil, atctx),
+		Queries: queries,
+	}
+	rep := &authproxy_grpc_pb.ActionReply{Tctx: req.Tctx}
+
+	srv.resourceClusterModelApi.Action(tctx, &req, rep)
 	return rep, nil
 }

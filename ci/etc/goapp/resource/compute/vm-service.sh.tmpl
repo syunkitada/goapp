@@ -1,0 +1,79 @@
+#!/usr/bin/env bash
+
+set -xe
+
+function startpre {
+    {{- range $i, $port := .Ports }}
+    netns={{ $port.Name }}
+    exLink={{ $port.Name }}-ex
+    inLink={{ $port.Name }}-in
+
+    ip netns | grep $netns || ip netns add $netns
+
+    ip link | grep $exLink || ip link add $exLink type veth peer name $inLink
+
+    ip link set $exLink up
+    sysctl -w net.ipv4.conf.$exLink.forwarding=1
+    sysctl -w net.ipv4.conf.$exLink.proxy_arp=1
+    ip route | grep {{ $port.VmIp }} || ip route add {{ $port.VmIp }} dev $exLink
+    ip route | grep {{ $port.NetnsIp }} || ip route add {{ $port.NetnsIp }} dev $exLink
+
+    ip netns exec $netns ip link | grep $inLink || ip link set $inLink netns $netns
+
+    ip netns exec $netns ip a | grep {{ $port.NetnsIp }} || ip netns exec $netns ip addr add dev $inLink {{ $port.NetnsIp }}/32
+    ip netns exec $netns ip link set lo up
+    ip netns exec $netns ip link set $inLink up
+    ip netns exec $netns sysctl -w net.ipv4.conf.$inLink.proxy_arp=1
+
+    ip netns exec $netns ip route | grep {{ $port.NetnsGateway }} || ip netns exec $netns ip route add {{ $port.NetnsGateway }} dev $inLink
+    ip netns exec $netns ip route | grep default || ip netns exec $netns ip route add default via {{ $port.NetnsGateway }}
+
+    {{- end }}
+}
+
+function start {
+    qemu-system-x86_64 -m 2048 -drive file={{ .VmImagePath }},if=virtio -monitor telnet::4444,server,nowait \
+        -drive file={{ .VmConfigImagePath }},format=raw,if=none,id=drive-ide0-1-0,readonly=on \
+        -device ide-cd,bus=ide.1,unit=0,drive=drive-ide0-1-0,id=ide0-1-0 \
+        {{- range $i, $port := .Ports }}
+        -nic tap,ifname={{ $port.Name }}-tap,model=virtio-net-pci,mac={{ $port.VmMac }},script=no,script=no,downscript=no \
+        {{- end }}
+        -nographic -serial telnet:localhost:4321,server,nowait &
+    pid=$!
+
+    sleep 2s
+    {{- range $i, $port := .Ports }}
+    ip link set {{ $port.Name }}-tap netns {{ $port.Name }}
+    ip netns exec {{ $port.Name }} ip link set {{ $port.Name }}-tap up
+    ip netns exec {{ $port.Name }} ip route | grep {{ $port.VmIp }} || ip netns exec {{ $port.Name }} ip route add {{ $port.VmIp }} dev {{ $port.Name }}-tap
+    ip netns exec {{ $port.Name }} sysctl -w net.ipv4.conf.{{ $port.Name }}-tap.forwarding=1
+    ip netns exec {{ $port.Name }} sysctl -w net.ipv4.conf.{{ $port.Name }}-tap.forwarding=1
+    ip netns exec {{ $port.Name }} sysctl -w net.ipv4.conf.{{ $port.Name }}-tap.proxy_arp=1
+    {{- end }}
+
+    fg %$pid
+}
+
+function stop {
+    echo "stop"
+}
+
+case "$1" in
+   startpre)
+      startpre
+   ;;
+   start)
+      start
+   ;;
+   stop)
+      stop
+   ;;
+   restart)
+      stop
+      start
+   ;;
+   *)
+      echo "Usage: $0 {prestart|start|stop|restart}"
+esac
+
+

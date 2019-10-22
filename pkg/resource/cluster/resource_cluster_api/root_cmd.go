@@ -1,25 +1,18 @@
 package resource_cluster_api
 
 import (
-	"github.com/golang/glog"
 	"github.com/spf13/cobra"
 
-	"github.com/syunkitada/goapp/pkg/config"
+	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_api/server"
+	"github.com/syunkitada/goapp/pkg/resource/config"
 )
 
 var RootCmd = &cobra.Command{
 	Use:   "cluster-api",
-	Short: "This is api for controlle cluster resources",
-	Long: `This is api for controlle cluster resources
-	`,
+	Short: "cluster-api",
 	Run: func(cmd *cobra.Command, args []string) {
-		server := NewResourceClusterApiServer(&config.Conf)
-		if err := server.StartMainLoop(); err != nil {
-			glog.Fatal(err)
-		}
-
-		if err := server.Serve(); err != nil {
-			glog.Fatal(err)
-		}
+		srv := server.New(&config.BaseConf, &config.MainConf)
+		srv.StartMainLoop()
+		srv.Serve()
 	},
 }

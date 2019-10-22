@@ -1,0 +1,64 @@
+{
+  "Kind": "RegionService",
+  "Spec": {
+    "Name": "service01",
+    "Kind": "Compute",
+    "Region": "kanto",
+    "ExpireDate": -1,
+    "Compute": {
+      "SchedulePolicy": {
+        "Replicas": 3
+      },
+      "NetworkPolicy": {
+        "Version": 4,
+        "Interfaces": 1,
+        "AssignPolicy": "Affinity",
+        "StaticNetworks": []
+      },
+      "Kind": "Qemu",
+      "OnNodeDown": "None|Rebuild",
+      "OnNodeUp": "None|Restart",
+      "Vcpus": 1,
+      "Memory": 1024,
+      "Disk": 2,
+      "Image": "cirros-0.4.0",
+      "Orchestration": {
+        "ScalePolicy": {}
+      },
+      "LocalL7Proxy": {
+        "Kind": "haproxy",
+        "TLS": true
+      }
+    },
+    "Loadbalancer": {
+      "SchedulePolicy": {
+        "Replicas": 3
+      },
+      "NetworkPolicy": {
+        "Version": 4
+      },
+      "Kind": "L3DSR",
+      "MemberHaMode": "ActiveActive",
+      "Listeners": [
+        {
+          "Protocol": "TCP|UDP",
+          "Port": 80,
+          "StaticMembers": [],
+          "Healthmonitor": "healthmonitor1"
+        }
+      ],
+      "HealthmonitorMap": {
+        "healthmonitor1": {
+          "Type": "HTTP",
+          "Port": 80,
+          "RetryInterval": 3,
+          "RetryTimeout": 3,
+          "RetryCount": 3,
+          "HttpMethod": "GET",
+          "HttpPath": "/status.html",
+          "HttpExpectedCode": 200
+        }
+      }
+    }
+  }
+}

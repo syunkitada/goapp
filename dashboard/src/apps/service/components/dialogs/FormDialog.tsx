@@ -18,7 +18,6 @@ class FormDialog extends React.Component<IFormDialog> {
   public render() {
     const {data, routes, selected, open, action, onClose} = this.props;
     const title = action.Name + ' ' + action.DataKind;
-    const queryKind = action.Name + action.DataKind;
 
     return (
       <div>
@@ -33,7 +32,8 @@ class FormDialog extends React.Component<IFormDialog> {
             selected={selected}
             index={action}
             title={title}
-            queryKind={queryKind}
+            queryKind={action.Query}
+            dataKind={action.DataKind}
             submitButtonName={action.Name}
           />
         </Dialog>

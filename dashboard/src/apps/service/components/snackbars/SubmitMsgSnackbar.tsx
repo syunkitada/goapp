@@ -3,6 +3,7 @@ import {connect} from 'react-redux';
 
 import actions from '../../../../actions';
 import {toStringFromStatusCode} from '../../../../lib/codes';
+import logger from '../../../../lib/logger';
 import MsgSnackbar from './MsgSnackbar';
 
 interface ISubmitMsgSnackbar {
@@ -15,21 +16,20 @@ class SubmitMsgSnackbar extends React.Component<ISubmitMsgSnackbar> {
   public render() {
     const {open, tctx} = this.props;
 
-    if (!tctx) {
-      return null;
-    }
-
     const vertical = 'top';
     const horizontal = 'center';
     let variant = 'info';
     let msg = '';
-    if (tctx.StatusCode >= 500) {
+    if (!tctx) {
+      logger.warning('tctx is null');
+      msg = 'Unknown';
+    } else if (tctx.StatusCode >= 150) {
       variant = 'error';
       msg = tctx.Err;
-    } else if (tctx.StatusCode >= 300) {
+    } else if (tctx.StatusCode >= 100) {
       variant = 'warning';
       msg = tctx.Err;
-    } else if (tctx.StatusCode > 200) {
+    } else if (tctx.StatusCode >= 20) {
       variant = 'success';
       msg = toStringFromStatusCode(tctx.StatusCode);
     } else {

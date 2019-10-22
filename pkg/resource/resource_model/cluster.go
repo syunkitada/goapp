@@ -9,12 +9,15 @@ const ClusterKind = "Cluster"
 
 type Cluster struct {
 	gorm.Model
+	Region       string `gorm:"not null;size:50;"`
 	Datacenter   string `gorm:"not null;size:50;"`
 	Name         string `gorm:"not null;size:50;unique_index;"`
 	Kind         string `gorm:"not null;size:25;"`
 	Description  string `gorm:"not null;size:200;"`
 	DomainSuffix string `gorm:"not null;size:255;unique;"`
+	Labels       string `gorm:"not null;size:500;"`
 	Spec         string `gorm:"not null;size:1000;"`
+	Weight       int    `gorm:"not null;"`
 }
 
 type ClusterSpec struct {
@@ -27,35 +30,57 @@ type ClusterSpec struct {
 }
 
 var ClusterCmd map[string]index_model.Cmd = map[string]index_model.Cmd{
-	"CreateCluster": index_model.Cmd{
+	"create_cluster": index_model.Cmd{
 		Arg:     index_model.ArgRequired,
 		ArgType: index_model.ArgTypeFile,
 		ArgKind: ClusterKind,
 		Help:    "helptext",
 	},
-	"UpdateCluster": index_model.Cmd{
+	"update_cluster": index_model.Cmd{
 		Arg:     index_model.ArgRequired,
 		ArgType: index_model.ArgTypeFile,
 		ArgKind: ClusterKind,
 		Help:    "helptext",
 	},
-	"GetClusters": index_model.Cmd{
+	"get_clusters": index_model.Cmd{
 		Arg:         index_model.ArgOptional,
 		ArgType:     index_model.ArgTypeString,
 		ArgKind:     ClusterKind,
 		Help:        "helptext",
-		TableHeader: []string{"Name", "Kind", "Datacenter", "DomainSuffix"},
+		TableHeader: []string{"Name", "Kind", "Region", "Datacenter", "DomainSuffix"},
 	},
-	"GetCluster": index_model.Cmd{
+	"get_cluster": index_model.Cmd{
 		Arg:     index_model.ArgRequired,
 		ArgType: index_model.ArgTypeString,
 		ArgKind: ClusterKind,
 		Help:    "helptext",
 	},
-	"DeleteCluster": index_model.Cmd{
+	"delete_cluster": index_model.Cmd{
 		Arg:     index_model.ArgRequired,
 		ArgType: index_model.ArgTypeString,
 		ArgKind: ClusterKind,
 		Help:    "helptext",
+	},
+}
+
+var ClustersTable = index_model.Table{
+	Name:    "Clusters",
+	Kind:    "Table",
+	Route:   "",
+	Subname: "cluster",
+	DataKey: "Clusters",
+	Columns: []index_model.TableColumn{
+		index_model.TableColumn{
+			Name:      "Name",
+			IsSearch:  true,
+			Link:      "Clusters/:0/Resources/Computes",
+			LinkParam: "cluster",
+			LinkSync:  true,
+			LinkGetQueries: []string{
+				"get_physical-resources", "get_racks", "get_floors", "get_physical-models"},
+		},
+		index_model.TableColumn{Name: "Datacenter", IsSearch: true},
+		index_model.TableColumn{Name: "UpdatedAt", Kind: "Time", Sort: "asc"},
+		index_model.TableColumn{Name: "CreatedAt", Kind: "Time"},
 	},
 }

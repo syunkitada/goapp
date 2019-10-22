@@ -71,6 +71,7 @@ class Panes extends React.Component<IPanes> {
           }
         }
         if (isInit && pane.GetQueries) {
+          console.log('DEBUG isInit', isInit, pane.GetQueries);
           this.props.getQueries(
             pane.GetQueries,
             pane.IsSync,

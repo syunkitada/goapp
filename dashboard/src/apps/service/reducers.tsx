@@ -127,7 +127,22 @@ export default reducerWithInitialState(defaultState)
     }
 
     const actionType = payload.action.type;
-    const tctx = payload.result.Tctx;
+
+    // Merge tctx
+    const tctx: any = {
+      Error: payload.result.Error,
+      StatusCode: payload.result.Code,
+      TraceId: payload.result.TraceId,
+    };
+    if (payload.result.ResultMap) {
+      for (const key of Object.keys(payload.result.ResultMap)) {
+        const result: any = payload.result.ResultMap[key];
+        if (tctx.StatusCode < result.Code) {
+          tctx.StatusCode = result.Code;
+          tctx.Error = result.Error;
+        }
+      }
+    }
 
     let isGetIndex = false;
     switch (actionType) {
@@ -147,10 +162,6 @@ export default reducerWithInitialState(defaultState)
         console.log('DEBUG unknownaction', actionType);
         break;
     }
-    if (!tctx) {
-      logger.error('reducers', 'servicePostError: not found tctx', newState);
-      return newState;
-    }
 
     if (tctx.StatusCode >= 300) {
       logger.error('reducers', 'servicePostError: newState', newState);
@@ -158,8 +169,8 @@ export default reducerWithInitialState(defaultState)
       return newState;
     }
 
+    // updateSyncQueryMap
     if (payload.action.payload.isSync) {
-      console.log('DEBUG reducer query', payload.action.payload.syncQueryMap);
       newState.syncQueryMap = Object.assign(
         {},
         state.syncQueryMap,
@@ -167,8 +178,24 @@ export default reducerWithInitialState(defaultState)
       );
     }
 
-    const index = payload.result.Index;
-    if (index) {
+    // Merge data
+    let data = {};
+    if (isGetIndex) {
+      for (const query of payload.payload.queries) {
+        data = Object.assign(
+          data,
+          payload.result.ResultMap[query.Name].Data.Data,
+        );
+      }
+    } else {
+      for (const query of payload.payload.queries) {
+        data = Object.assign(data, payload.result.ResultMap[query.Name].Data);
+      }
+    }
+
+    let index: any = null;
+    if (isGetIndex) {
+      index = payload.result.ResultMap.GetServiceDashboardIndex.Data.Index;
       if (index.SyncDelay && index.SyncDelay > 1000) {
         newState.syncDelay = index.SyncDelay;
       }
@@ -179,28 +206,26 @@ export default reducerWithInitialState(defaultState)
     if (project) {
       newState.projectServiceMap[project][service].isFetching = false;
       if (isGetIndex) {
-        newState.projectServiceMap[project][service].Index =
-          payload.result.Index;
+        newState.projectServiceMap[project][service].Index = index;
       }
       if (newState.projectServiceMap[project][service].Data) {
-        for (const key of Object.keys(payload.result.Data)) {
-          newState.projectServiceMap[project][service].Data[key] =
-            payload.result.Data[key];
+        for (const key of Object.keys(data)) {
+          newState.projectServiceMap[project][service].Data[key] = data[key];
         }
       } else {
-        newState.projectServiceMap[project][service].Data = payload.result.Data;
+        newState.projectServiceMap[project][service].Data = data;
       }
     } else {
       newState.serviceMap[service].isFetching = false;
       if (isGetIndex) {
-        newState.serviceMap[service].Index = payload.result.Index;
+        newState.serviceMap[service].Index = index;
       }
       if (newState.serviceMap[service].Data) {
-        for (const key of Object.keys(payload.result.Data)) {
-          newState.serviceMap[service].Data[key] = payload.result.Data[key];
+        for (const key of Object.keys(data)) {
+          newState.serviceMap[service].Data[key] = data[key];
         }
       } else {
-        newState.serviceMap[service].Data = payload.result.Data;
+        newState.serviceMap[service].Data = data;
       }
     }
 

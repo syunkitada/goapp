@@ -1,0 +1,12 @@
+{
+  "Kind": "NetworkV4",
+  "Spec": {
+    "Kind": "Local",
+    "Name": "local-net1",
+    "Cluster": "tokyo1",
+    "Subnet": "192.168.100.0/24",
+    "StartIp": "192.168.100.2",
+    "EndIp": "192.168.100.254",
+    "Gateway": "192.168.100.1"
+  }
+}

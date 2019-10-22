@@ -8,6 +8,7 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -17,6 +18,7 @@ import (
 
 	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_grpc_pb"
 	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_model"
+	"github.com/syunkitada/goapp/pkg/base/base_config"
 	"github.com/syunkitada/goapp/pkg/config"
 	"github.com/syunkitada/goapp/pkg/lib/codes"
 	"github.com/syunkitada/goapp/pkg/lib/error_utils"
@@ -41,11 +43,27 @@ const (
 )
 
 type TraceContext struct {
+	mtx      *sync.Mutex
+	code     uint8
+	err      error
 	Host     string
 	App      string
 	Func     string
 	TraceId  string
+	timeout  int
 	Metadata map[string]string
+}
+
+func (tctx *TraceContext) SetTimeout(timeout int) {
+	tctx.timeout = timeout
+}
+
+func (tctx *TraceContext) GetTimeout() int {
+	return tctx.timeout
+}
+
+func (tctx *TraceContext) GetTraceId() string {
+	return tctx.TraceId
 }
 
 type ActionTraceContext struct {
@@ -59,10 +77,14 @@ type ActionTraceContext struct {
 
 func NewTraceContext(host string, app string) *TraceContext {
 	return &TraceContext{
+		mtx:      new(sync.Mutex),
 		TraceId:  xid.New().String(),
 		Host:     host,
 		App:      app,
 		Metadata: map[string]string{},
+		timeout:  3,
+		code:     0,
+		err:      nil,
 	}
 }
 
@@ -72,6 +94,9 @@ func NewTraceContextWithTraceId(traceId string, host string, app string) *TraceC
 		Host:     host,
 		App:      app,
 		Metadata: map[string]string{},
+		timeout:  3,
+		code:     0,
+		err:      nil,
 	}
 }
 
@@ -80,11 +105,24 @@ func NewCtlTraceContext(app string) *TraceContext {
 		TraceId: xid.New().String(),
 		Host:    config.Conf.Default.Host,
 		App:     app,
+		timeout: 3,
 		Metadata: map[string]string{
 			"Username": config.Conf.Ctl.Username,
 			"Project":  config.Conf.Ctl.Project,
 			"ApiUrl":   config.Conf.Ctl.ApiUrl,
 		},
+	}
+}
+
+func NewActionTraceContext(tctx *TraceContext, projectName string, projectRoleName string,
+	queries []authproxy_model.Query) *ActionTraceContext {
+	return &ActionTraceContext{
+		TraceContext:    *tctx,
+		UserName:        tctx.Host,
+		RoleName:        tctx.App,
+		ProjectName:     projectName,
+		ProjectRoleName: projectRoleName,
+		Queries:         queries,
 	}
 }
 
@@ -194,6 +232,13 @@ func NewGrpcAuthproxyTraceContext(host string, app string, ctx context.Context, 
 	return tctx
 }
 
+func (tctx *TraceContext) SetError(code uint8, err error) {
+	tctx.mtx.Lock()
+	tctx.code = code
+	tctx.err = err
+	tctx.mtx.Unlock()
+}
+
 func SetErrorTraceContext(tctx *authproxy_grpc_pb.TraceContext, statusCode int64, data interface{}) {
 	tctx.StatusCode = statusCode
 	tctx.Err = codes.GetMsg(statusCode, data)
@@ -225,6 +270,39 @@ func Init() {
 		Logger = log.New(os.Stdout, "", 0)
 	} else {
 		logfilePath := filepath.Join(conf.Default.LogDir, name+".log")
+		logfile, err := os.OpenFile(logfilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
+		if err != nil {
+			StdoutFatalf("Failed open logfile: %v", logfile)
+		} else {
+			Logger = log.New(logfile, "", 0)
+		}
+	}
+}
+
+func InitLogger(baseConf *base_config.Config) {
+	stdoutLogger = log.New(os.Stdout, "", log.Ldate|log.Ltime)
+	LogTimeFormat = baseConf.LogTimeFormat
+
+	name = os.Getenv("LOG_FILE")
+	if name == "" {
+		for _, arg := range os.Args {
+			option := strings.Index(arg, "-")
+			if option == 0 {
+				continue
+			}
+			slash := strings.LastIndex(arg, "/")
+			if slash > 0 {
+				arg = arg[slash+1:]
+			}
+			name += "-" + arg
+		}
+		name = name[1:]
+	}
+
+	if baseConf.LogDir == "stdout" {
+		Logger = log.New(os.Stdout, "", 0)
+	} else {
+		logfilePath := filepath.Join(baseConf.LogDir, name+".log")
 		logfile, err := os.OpenFile(logfilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
 		if err != nil {
 			StdoutFatalf("Failed open logfile: %v", logfile)
@@ -288,6 +366,20 @@ func StdoutFatalf(format string, args ...interface{}) {
 	os.Exit(1)
 }
 
+func Fatal(tctx *TraceContext, args ...interface{}) {
+	tctx.Func = getFunc(0)
+	Logger.Print(timePrefix() + " Level=\"" + fatalLog +
+		"\" Msg=\"" + fmt.Sprint(args...) + "\"" + convertTags(tctx))
+	os.Exit(1)
+}
+
+func Fatalf(tctx *TraceContext, format string, args ...interface{}) {
+	tctx.Func = getFunc(0)
+	Logger.Print(timePrefix() + " Level=\"" + fatalLog +
+		"\" Msg=\"" + fmt.Sprintf(format, args...) + "\"" + convertTags(tctx))
+	os.Exit(1)
+}
+
 func Info(tctx *TraceContext, args ...interface{}) {
 	tctx.Func = getFunc(0)
 	Logger.Print(timePrefix() + " Level=\"" + infoLog +
@@ -300,16 +392,16 @@ func Infof(tctx *TraceContext, format string, args ...interface{}) {
 		"\" Msg=\"" + fmt.Sprintf(format, args...) + "\"" + convertTags(tctx))
 }
 
-func Warning(tctx *TraceContext, err error, args ...interface{}) {
+func Warning(tctx *TraceContext, args ...interface{}) {
 	tctx.Func = getFunc(0)
 	Logger.Print(timePrefix() + " Level=\"" + warningLog +
-		"\" Err=\"" + err.Error() + "\" Msg=\"" + fmt.Sprint(args...) + "\"" + convertTags(tctx))
+		"\" Msg=\"" + fmt.Sprint(args...) + "\"" + convertTags(tctx))
 }
 
-func Warningf(tctx *TraceContext, err error, format string, args ...interface{}) {
+func Warningf(tctx *TraceContext, format string, args ...interface{}) {
 	tctx.Func = getFunc(0)
 	Logger.Print(timePrefix() + " Level=\"" + warningLog +
-		"\" Err=\"" + err.Error() + "\" Msg=\"" + fmt.Sprintf(format, args...) + "\"" + convertTags(tctx))
+		"\" Msg=\"" + fmt.Sprintf(format, args...) + "\"" + convertTags(tctx))
 }
 
 func Error(tctx *TraceContext, err error, args ...interface{}) {

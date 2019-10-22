@@ -159,7 +159,7 @@ function mapDispatchToProps(dispatch, ownProps) {
 const styles = (theme: Theme): StyleRules =>
   createStyles({
     button: {
-      margin: theme.spacing.unit,
+      margin: theme.spacing(1),
     },
     buttonFailed: {
       '&:hover': {
@@ -192,7 +192,7 @@ const styles = (theme: Theme): StyleRules =>
       width: '100%',
     },
     wrapper: {
-      margin: theme.spacing.unit,
+      margin: theme.spacing(1),
       position: 'relative',
     },
   });

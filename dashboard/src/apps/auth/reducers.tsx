@@ -11,7 +11,7 @@ const defaultState = {
 };
 
 export default reducerWithInitialState(defaultState)
-  .case(actions.auth.authSyncState, state =>
+  .case(actions.auth.authLoginWithToken, state =>
     Object.assign({}, state, {
       isFetching: true,
       isSyncState: true,

@@ -37,19 +37,19 @@ type PhysicalResourceSpec struct {
 }
 
 var PhysicalResourceCmd map[string]index_model.Cmd = map[string]index_model.Cmd{
-	"CreatePhysicalResource": index_model.Cmd{
+	"create_physical-resource": index_model.Cmd{
 		Arg:     index_model.ArgRequired,
 		ArgType: index_model.ArgTypeFile,
 		ArgKind: PhysicalResourceKind,
 		Help:    "helptext",
 	},
-	"UpdatePhysicalResource": index_model.Cmd{
+	"update_physical-resource": index_model.Cmd{
 		Arg:     index_model.ArgRequired,
 		ArgType: index_model.ArgTypeFile,
 		ArgKind: PhysicalResourceKind,
 		Help:    "helptext",
 	},
-	"GetPhysicalResources": index_model.Cmd{
+	"get_physical-resources": index_model.Cmd{
 		Arg:         index_model.ArgOptional,
 		ArgType:     index_model.ArgTypeString,
 		ArgKind:     PhysicalResourceKind,
@@ -63,16 +63,112 @@ var PhysicalResourceCmd map[string]index_model.Cmd = map[string]index_model.Cmd{
 			},
 		},
 	},
-	"GetPhysicalResource": index_model.Cmd{
+	"get_physical-resource": index_model.Cmd{
 		Arg:     index_model.ArgRequired,
 		ArgType: index_model.ArgTypeString,
 		ArgKind: PhysicalResourceKind,
 		Help:    "helptext",
 	},
-	"DeletePhysicalResource": index_model.Cmd{
+	"delete_physical-resource": index_model.Cmd{
 		Arg:     index_model.ArgRequired,
 		ArgType: index_model.ArgTypeString,
 		ArgKind: PhysicalResourceKind,
 		Help:    "helptext",
+	},
+}
+
+var PhysicalResourcesTable = index_model.Table{
+	Name:    "Resources",
+	Route:   "PhysicalResources",
+	Kind:    "Table",
+	DataKey: "PhysicalResources",
+	Actions: []index_model.Action{
+		index_model.Action{
+			Name: "Create", Icon: "Create", Kind: "Form",
+			DataKind: "PhysicalResource",
+			Fields: []index_model.Field{
+				index_model.Field{Name: "Name", Kind: "text",
+					Require: true, Min: 5, Max: 200, RegExp: "^[0-9a-zA-Z]+$"},
+				index_model.Field{Name: "Kind", Kind: "select", Require: true,
+					Options: []string{
+						"Server", "Pdu", "RackSpineRouter",
+						"FloorLeafRouter", "FloorSpineRouter", "GatewayRouter",
+					}},
+				index_model.Field{Name: "Rack", Kind: "select", Require: true,
+					DataKey: "Racks"},
+				index_model.Field{Name: "Model", Kind: "select", Require: true,
+					DataKey: "PhysicalModels"},
+			},
+		},
+	},
+	SelectActions: []index_model.Action{
+		index_model.Action{Name: "Delete", Icon: "Delete",
+			Kind:      "Form",
+			DataKind:  "PhysicalResource",
+			SelectKey: "Name",
+		},
+	},
+	ColumnActions: []index_model.Action{
+		index_model.Action{Name: "Detail", Icon: "Detail"},
+		index_model.Action{Name: "Update", Icon: "Update"},
+	},
+	Columns: []index_model.TableColumn{
+		index_model.TableColumn{
+			Name: "Name", IsSearch: true,
+			Link:           "Datacenters/:datacenter/Resources/Resources/Detail/:0/View",
+			LinkParam:      "resource",
+			LinkSync:       false,
+			LinkGetQueries: []string{"get_physical-resource"},
+		},
+		index_model.TableColumn{Name: "Kind"},
+		index_model.TableColumn{Name: "UpdatedAt", Kind: "Time"},
+		index_model.TableColumn{Name: "CreatedAt", Kind: "Time"},
+		index_model.TableColumn{Name: "Action", Kind: "Action"},
+	},
+}
+
+var PhysicalResourcesDetail = index_model.Tabs{
+	Name:            "Resources",
+	Kind:            "RouteTabs",
+	RouteParamKey:   "kind",
+	RouteParamValue: "Resources",
+	Route:           "/Datacenters/:datacenter/Resources/Resources/Detail/:resource/:subkind",
+	TabParam:        "subkind",
+	GetQueries: []string{
+		"get_physical-resource",
+		"get_physical-resources", "get_racks", "get_floors", "get_physical-models"},
+	ExpectedDataKeys: []string{"PhysicalResource"},
+	IsSync:           true,
+	Tabs: []interface{}{
+		index_model.View{
+			Name:    "View",
+			Route:   "/View",
+			Kind:    "View",
+			DataKey: "PhysicalResource",
+			Fields: []index_model.Field{
+				index_model.Field{Name: "Name", Kind: "text"},
+				index_model.Field{Name: "Kind", Kind: "select"},
+			},
+		},
+		index_model.Form{
+			Name:         "Edit",
+			Route:        "/Edit",
+			Kind:         "Form",
+			DataKey:      "PhysicalResource",
+			SubmitAction: "update_physical-resource",
+			Icon:         "Update",
+			Fields: []index_model.Field{
+				index_model.Field{Name: "Name", Kind: "text", Require: true,
+					Updatable: false,
+					Min:       5, Max: 200, RegExp: "^[0-9a-zA-Z]+$",
+					RegExpMsg: "Please enter alphanumeric characters."},
+				index_model.Field{Name: "Kind", Kind: "select", Require: true,
+					Updatable: true,
+					Options: []string{
+						"Server", "Pdu", "RackSpineRouter",
+						"FloorLeafRouter", "FloorSpineRouter", "GatewayRouter",
+					}},
+			},
+		},
 	},
 }

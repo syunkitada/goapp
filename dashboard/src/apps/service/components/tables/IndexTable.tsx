@@ -73,6 +73,7 @@ class IndexTable extends React.Component<IIndexTable> {
       actionName,
     } = this.state;
     logger.info('IndexTable', 'render', actionName, routes);
+    console.log('DEBUG Table', index.DataKey, index.Columns, data);
 
     const columns = index.Columns;
     let rawData = data[index.DataKey];
@@ -124,8 +125,12 @@ class IndexTable extends React.Component<IIndexTable> {
       for (const column of columns) {
         const c = d[column.Name];
         if (column.Kind === 'Time') {
-          const time = new Date(c);
-          row.push(time.toISOString());
+          const time: any = new Date(c);
+          if (!isNaN(time.getTime())) {
+            row.push(time.toISOString());
+          } else {
+            row.push(time.toString());
+          }
         } else if (column.Kind === 'Action') {
           row.push('');
         } else {
@@ -138,6 +143,7 @@ class IndexTable extends React.Component<IIndexTable> {
     for (let i = 0, l = columns.length; i < l; i++) {
       columns[i].id = i;
     }
+    columns[0].disablePadding = true;
 
     const columnActions: any[] = [];
     if (index.ColumnActions != null) {
@@ -280,7 +286,7 @@ class IndexTable extends React.Component<IIndexTable> {
                       link = baseUrl + '/' + splitedNextLink.join('/');
                       cells.push(
                         <TableCell
-                          align="right"
+                          align={i === 0 ? 'left' : 'right'}
                           key={i}
                           component="th"
                           scope="row"
@@ -416,12 +422,11 @@ class IndexTable extends React.Component<IIndexTable> {
   };
 
   private handleActionClick = (event, actionName) => {
-    console.log('DEBUG handleAction', actionName);
     this.setState({actionName});
   };
 
   private handleActionDialogClose = () => {
-    this.setState({actionName: null});
+    this.setState({actionName: null, selected: []});
   };
 
   private handleLinkClick = (event, link, value, column) => {
@@ -429,11 +434,7 @@ class IndexTable extends React.Component<IIndexTable> {
     const route = routes[routes.length - 1];
     const params = route.match.params;
     params[column.LinkParam] = value;
-    this.props.getQueries(
-      column.LinkGetQueries,
-      column.LinkSync,
-      route.match.params,
-    );
+    this.props.getQueries(column.LinkGetQueries, column.LinkSync, params);
     route.history.push(link);
   };
 }

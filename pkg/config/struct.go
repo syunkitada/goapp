@@ -20,6 +20,7 @@ type DefaultConfig struct {
 	ConfigDir         string
 	ConfigFile        string
 	TmpDir            string
+	VarDir            string
 	LogDir            string
 	LogTimeFormat     string
 	EnableTest        bool
@@ -34,11 +35,13 @@ type AppConfig struct {
 	ShutdownTimeout    int
 	LoopInterval       int
 	Listen             string
+	HttpListen         string
 	CertFile           string
 	KeyFile            string
 	CaFile             string
 	ServerHostOverride string
 	Targets            []string
+	Labels             []string
 }
 
 type AdminConfig struct {

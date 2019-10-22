@@ -42,4 +42,5 @@ type Field struct {
 	RegExpMsg string
 	Options   []string
 	DataKey   string
+	Updatable bool
 }

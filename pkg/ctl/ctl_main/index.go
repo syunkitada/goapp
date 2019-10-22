@@ -2,16 +2,21 @@ package ctl_main
 
 import (
 	"fmt"
+	"os"
+	"sort"
 	"strings"
 
-	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_client"
-	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_model"
-	"github.com/syunkitada/goapp/pkg/authproxy/index_model"
+	"github.com/olekukonko/tablewriter"
+	"github.com/syunkitada/goapp/pkg/base/base_client"
+	"github.com/syunkitada/goapp/pkg/base/base_const"
+	"github.com/syunkitada/goapp/pkg/base/base_model/index_model"
+	"github.com/syunkitada/goapp/pkg/base/base_spec"
 	"github.com/syunkitada/goapp/pkg/lib/json_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
+	"github.com/syunkitada/goapp/pkg/lib/str_utils"
 )
 
-func (ctl *CtlMain) Index(args []string) error {
+func (ctl *Ctl) index(args []string) error {
 	var err error
 	tctx := logger.NewCtlTraceContext(ctl.name)
 	startTime := logger.StartTrace(tctx)
@@ -20,27 +25,30 @@ func (ctl *CtlMain) Index(args []string) error {
 	var ok bool
 	var serviceName string
 	if len(args) > 0 {
-		serviceName = args[0]
-		tmpServiceNames := []string{}
-		splitedServiceName := strings.Split(serviceName, ".")
-		for _, str := range splitedServiceName {
-			tmpServiceNames = append(tmpServiceNames, strings.ToUpper(str[:1])+strings.ToLower(str[1:]))
-		}
-		serviceName = strings.Join(tmpServiceNames, ".")
+		serviceName = str_utils.ConvertToCamelFormat(args[0])
 	} else {
 		serviceName = ""
 	}
 
-	var resp *authproxy_client.ResponseLogin
-	// This should get userauthority
-	if resp, err = ctl.client.Login(tctx, serviceName); err != nil {
-		return err
+	appUser := os.Getenv("APP_USER")
+	appPassword := os.Getenv("APP_PASSWORD")
+	appProject := os.Getenv("APP_PROJECT")
+	ctl.client.SetProject(appProject)
+
+	var loginData *base_spec.LoginData
+	loginData, err = ctl.client.Login(tctx, &base_spec.Login{
+		User:     appUser,
+		Password: appPassword,
+	})
+	if err != nil {
+		fmt.Printf("Failed Login: %v, %v\n", loginData, err)
+		os.Exit(1)
 	}
 
 	if len(args) > 0 {
-		if _, ok = resp.Authority.ServiceMap[serviceName]; !ok {
-			var project authproxy_model.ProjectService
-			project, ok = resp.Authority.ProjectServiceMap[ctl.conf.Ctl.Project]
+		if _, ok = loginData.Authority.ServiceMap[serviceName]; !ok {
+			var project base_spec.ProjectService
+			project, ok = loginData.Authority.ProjectServiceMap[appProject]
 			if ok {
 				_, ok = project.ServiceMap[serviceName]
 			}
@@ -48,26 +56,41 @@ func (ctl *CtlMain) Index(args []string) error {
 	}
 
 	if !ok {
+		fmt.Printf("Usage: %s [SERVICE] [COMMAND] [FLAGS...]\n\n", ctl.name)
+
 		fmt.Println("--- Available Services ---")
-		for serviceName, _ := range resp.Authority.ServiceMap {
-			fmt.Println(strings.ToLower(serviceName))
+		snames := make([]string, 0, len(loginData.Authority.ServiceMap))
+		for s := range loginData.Authority.ServiceMap {
+			snames = append(snames, str_utils.ConvertToLowerFormat(s))
 		}
-		if project, ok := resp.Authority.ProjectServiceMap[ctl.conf.Ctl.Project]; ok {
-			fmt.Println("--- Available Project Services ---")
-			for serviceName, _ := range project.ServiceMap {
-				fmt.Println(strings.ToLower(serviceName))
+		sort.Sort(sort.StringSlice(snames))
+		for _, s := range snames {
+			fmt.Println(s)
+		}
+
+		if project, ok := loginData.Authority.ProjectServiceMap[appProject]; ok {
+			fmt.Println("\n--- Available Project Services ---")
+			snames := make([]string, 0, len(loginData.Authority.ServiceMap))
+			for s, _ := range project.ServiceMap {
+				snames = append(snames, str_utils.ConvertToLowerFormat(s))
+			}
+			sort.Sort(sort.StringSlice(snames))
+			for _, s := range snames {
+				fmt.Println(s)
 			}
 		}
 		return nil
 	}
 
-	var indexResp *authproxy_client.ResponseGetIndex
-	if indexResp, err = ctl.client.GetIndex(tctx, resp.Token, serviceName); err != nil {
+	// Get ServiceIndex, and exec cmd
+	var getServiceIndexData *base_spec.GetServiceIndexData
+	if getServiceIndexData, err = ctl.client.GetServiceIndex(tctx, &base_spec.GetServiceIndex{Name: serviceName}); err != nil {
 		return err
 	}
 
 	cmdArgs := []string{}
 	flagMap := map[string]interface{}{}
+	shortFlagMap := map[string]interface{}{}
 	lastIndex := len(args) - 1
 	isFlag := false
 	for index, arg := range args {
@@ -78,12 +101,26 @@ func (ctl *CtlMain) Index(args []string) error {
 			}
 
 			// bool
-			if index == lastIndex || strings.Index(args[index+1], "--") == 0 {
+			if index == lastIndex || strings.Index(args[index+1], "-") == 0 {
 				flagMap[arg[2:]] = true
 				continue
 			}
 
 			flagMap[arg[2:]] = args[index+1]
+			isFlag = true
+		} else if strings.Index(arg, "-") == 0 {
+			if len(arg) == 1 {
+				cmdArgs = append(cmdArgs, strings.Join(args[index+1:], " "))
+				break
+			}
+
+			// bool
+			if index == lastIndex || strings.Index(args[index+1], "-") == 0 {
+				shortFlagMap[arg[1:]] = true
+				continue
+			}
+
+			shortFlagMap[arg[1:]] = args[index+1]
 			isFlag = true
 		} else {
 			if isFlag {
@@ -94,135 +131,156 @@ func (ctl *CtlMain) Index(args []string) error {
 		}
 	}
 
-	argsMap := map[string]index_model.Cmd{}
 	cmdQuery := ""
 	var cmdInfo index_model.Cmd
-	argsStr := ""
 	lastArgs := []string{}
-	helpMsg := ""
-	for query, cmd := range indexResp.Index.CmdMap {
-		args := []rune{}
-		for i, c := range query {
-			if c >= 'A' && c <= 'Z' {
-				c += 'a' - 'A'
-				if i != 0 {
-					args = append(args, ' ')
-				}
+	helpMsgs := [][]string{}
+	for query, cmd := range getServiceIndexData.Index.CmdMap {
+		helpQuery := query
+		helpMsg := []string{helpQuery}
+		flags := []string{}
+		for f, flag := range cmd.FlagMap {
+			sf := strings.Split(f, ",")
+			if len(sf) == 2 {
+				flags = append(flags, fmt.Sprintf("--%s, -%s [%s (%s)]", sf[0], sf[1], flag.FlagType, flag.FlagKind))
+			} else {
+				flags = append(flags, fmt.Sprintf("--%s [%s (%s)]", sf[0], flag.FlagType, flag.FlagKind))
 			}
-			args = append(args, c)
 		}
-		argsStr = string(args)
-		argsMap[argsStr] = cmd
 
-		if cmd.Arg != "" {
-			helpMsg += fmt.Sprintf("%s [%s:%s]  :%s\n", argsStr, cmd.ArgType, cmd.Arg, cmd.Help)
-		} else {
-			helpMsg += fmt.Sprintf("%s  :%s\n", argsStr, cmd.Help)
-		}
+		sort.Sort(sort.StringSlice(flags))
+		helpMsg = append(helpMsg, strings.Join(flags, "\n"))
+		helpMsgs = append(helpMsgs, helpMsg)
 
 		if len(cmdArgs) < 2 {
 			continue
 		}
 
-		splitedArgs := strings.Split(argsStr, " ")
-		if len(cmdArgs)+1 >= len(splitedArgs) {
-			isMatch := true
-			for i, arg := range splitedArgs {
-				if arg != cmdArgs[i+1] {
-					isMatch = false
+		if len(cmdArgs) > 1 && cmdArgs[1] == query {
+			if len(cmdArgs) > 2 {
+				lastArgs = cmdArgs[2:]
+			}
+
+			cmdInfo = cmd
+			helpMsgs = [][]string{helpMsg}
+			cmdQuery = query
+			break
+		}
+	}
+
+	params := map[string]interface{}{}
+	if cmdInfo.FlagMap != nil {
+		for key, flag := range cmdInfo.FlagMap {
+			splitedKey := strings.Split(key, ",")
+			key = splitedKey[0]
+			var cmdFlag interface{}
+			var ok bool
+			if len(splitedKey) == 1 {
+				cmdFlag, ok = flagMap[key]
+			} else {
+				cmdFlag, ok = flagMap[key]
+				if !ok {
+					cmdFlag, ok = shortFlagMap[splitedKey[1]]
+				}
+			}
+			if flag.Required {
+				if !ok {
+					cmdQuery = ""
 					break
 				}
 			}
-			if isMatch {
-				cmdQuery = query
-				cmdInfo = cmd
-				if len(cmdArgs)+1 > len(splitedArgs) {
-					if len(cmdArgs) > len(splitedArgs)+1 {
-						lastArgs = cmdArgs[len(splitedArgs)+1:]
-					}
+			if ok {
+				switch cmdFlag.(type) {
+				case string:
+					if flag.FlagType == base_const.ArgTypeString {
+						flagStr := cmdFlag.(string)
+						switch flag.FlagKind {
+						case "file":
+							splitedFlag := strings.Split(flagStr, " ")
+							data, err := json_utils.ReadFilesFromMultiPath(splitedFlag)
+							if err != nil {
+								return err
+							}
 
-					if cmd.Arg == "required" && len(lastArgs) == 0 {
-						ctl.outputCmdHelp(argsStr, cmd)
-						return nil
+							dataBytes, err := json_utils.Marshal(data)
+							if err != nil {
+								return err
+							}
+							params[key] = string(dataBytes)
+						default:
+							params[key] = cmdFlag.(string)
+						}
+					}
+				case bool:
+					if flag.FlagType == base_const.ArgTypeBool {
+						params[key] = cmdFlag.(bool)
+					}
+				case int:
+					if flag.FlagType == base_const.ArgTypeInt {
+						params[key] = cmdFlag.(int)
 					}
 				}
-				break
 			}
 		}
 	}
 
-	if cmdQuery == "" {
-		fmt.Printf("# Available Commands\n-----------------------\n")
-		fmt.Println(helpMsg)
+	_, isHelp := flagMap["help"]
+	_, isShortHelp := shortFlagMap["h"]
+	if cmdQuery == "" || isHelp || isShortHelp {
+		fmt.Printf("Usage: %s [SERVICE] [COMMAND] [FLAGS...]\n\n", ctl.name)
+
+		fmt.Printf("# Available Commands\n\n")
+
+		sort.SliceStable(helpMsgs, func(i, j int) bool {
+			return helpMsgs[i][0] < helpMsgs[j][0]
+		})
+
+		table := tablewriter.NewWriter(os.Stdout)
+		table.SetHeader([]string{"COMMAND", "FLAGS"})
+		table.SetBorder(false)
+		table.SetAutoWrapText(false)
+		table.SetAlignment(tablewriter.ALIGN_LEFT)
+		table.SetRowLine(false)
+		table.AppendBulk(helpMsgs)
+		table.Render() // Send output
+
 		return nil
 	}
 
-	strParams := map[string]string{}
-	if cmdInfo.FlagMap != nil {
-		for key, flag := range cmdInfo.FlagMap {
-			cmdFlag, ok := flagMap[key]
-			if flag.Flag == index_model.ArgRequired {
-				if !ok {
-					ctl.outputCmdHelp(argsStr, cmdInfo)
-					return nil
-				}
-			}
-			if flag.FlagType == index_model.ArgTypeString {
-				strParams[key] = cmdFlag.(string)
-			}
-		}
-	}
-
-	if cmdInfo.ArgType == "file" && len(lastArgs) > 0 {
-		data, err := json_utils.ReadFilesFromMultiPath(lastArgs)
+	if len(lastArgs) > 0 {
+		specsBytes, err := json_utils.Marshal(lastArgs)
 		if err != nil {
 			return err
 		}
-
-		specs := []interface{}{}
-		for _, d := range data {
-			if _, ok := d["Kind"]; ok && d["Kind"].(string) == cmdInfo.ArgKind {
-				if spec, ok := d["Spec"]; ok {
-					specs = append(specs, spec)
-				}
-			}
-		}
-
-		specsBytes, err := json_utils.Marshal(specs)
-		if err != nil {
-			return err
-		}
-
-		queries := []authproxy_model.Query{
-			authproxy_model.Query{
-				Kind: cmdQuery,
-				StrParams: map[string]string{
-					"Specs": string(specsBytes),
-				},
-			},
-		}
-
-		var tmpResp *authproxy_model.ActionResponse
-		if tmpResp, err = ctl.client.Action(tctx, resp.Token, serviceName, queries); err != nil {
-			return err
-		}
-
-		ctl.output(&cmdInfo, tmpResp, flagMap)
-		return nil
+		params["Args"] = string(specsBytes)
 	}
 
-	queries := []authproxy_model.Query{
-		authproxy_model.Query{
-			Kind:      cmdQuery,
-			StrParams: strParams,
+	if ctl.baseConf.EnableDebug {
+		fmt.Println("DEBUG params", params)
+	}
+
+	queries := []base_client.Query{
+		base_client.Query{
+			Name: str_utils.ConvertToCamelFormat(cmdQuery),
+			Data: params,
 		},
 	}
 
-	var tmpResp *authproxy_model.ActionResponse
-	if tmpResp, err = ctl.client.Action(tctx, resp.Token, serviceName, queries); err != nil {
+	var resp Response
+	if err = ctl.client.Request(tctx, serviceName, queries, &resp, true); err != nil {
 		return err
 	}
-	ctl.output(&cmdInfo, tmpResp, flagMap)
-
+	ctl.output(&cmdInfo, &resp, flagMap, shortFlagMap)
 	return nil
+}
+
+type Response struct {
+	TraceId   string
+	Code      uint8
+	Error     string
+	ResultMap map[string]Result
+}
+
+type Result struct {
+	Data map[string]interface{}
 }

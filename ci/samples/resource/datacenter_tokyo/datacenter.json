@@ -4,6 +4,6 @@
     "Name": "tokyo",
     "Kind": "Private",
     "Region": "kanto",
-    "DomainSuffix": ".tky.phy.example.com"
+    "DomainSuffix": "tky.phy.example.com"
   }
 }

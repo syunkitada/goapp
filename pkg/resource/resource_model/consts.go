@@ -7,11 +7,15 @@ const (
 	ResourceKindRack             = "Rack"
 	ResourceKindPhysicalModel    = "PhysicalModel"
 	ResourceKindPhysicalResource = "PhysicalResource"
+	ResourceKindCompute          = "Compute"
 )
 
 const (
-	KindResourceController = "ResourceController"
-	KindResourceApi        = "ResourceApi"
+	KindResourceController        = "ResourceController"
+	KindResourceApi               = "ResourceApi"
+	KindResourceClusterController = "ResourceClusterController"
+	KindResourceClusterApi        = "ResourceClusterApi"
+	KindResourceClusterAgent      = "ResourceClusterAgent"
 )
 
 const (
@@ -20,21 +24,33 @@ const (
 	StatusDisabled  = "Disabled"
 	StatusDisabling = "Disabling"
 
-	StatusInitializing        = "Initializing"
-	StatusActive              = "Active"
-	StatusCreating            = "Creating"
-	StatusCreatingInitialized = "Creating:Initialized"
-	StatusCreatingScheduled   = "Creating:Scheduled"
-	StatusUpdating            = "Updating"
-	StatusUpdatingScheduled   = "Updating:Scheduled"
-	StatusDeleting            = "Deleting"
-	StatusDeletingScheduled   = "Deleting:Scheduled"
-	StatusDeleted             = "Deleted"
+	StatusInitializing          = "Initializing"
+	StatusActive                = "Active"
+	StatusCreating              = "Creating"
+	StatusCreatingInitialized   = "Creating:Initialized"
+	StatusCreatingScheduled     = "Creating:Scheduled"
+	StatusUpdating              = "Updating"
+	StatusUpdatingScheduled     = "Updating:Scheduled"
+	StatusUnknownActivating     = "Unknown:Activating"
+	StatusRebalancingUnassigned = "Rebalancing:Unassigned"
+	StatusDeleting              = "Deleting"
+	StatusDeletingScheduled     = "Deleting:Scheduled"
+	StatusDeleted               = "Deleted"
+	StatusError                 = "Error"
 )
 
 const (
-	StateUp   = "Up"
-	StateDown = "Down"
+	StatusMsgInitializing                  = "Initializing"
+	StatusMsgInitializeErrorNoValidCluster = "InitializeError: NoValidCluster"
+	StatusMsgInitializeSuccess             = "InitializeSuccess"
+	StatusMsgUpdating                      = "Updating"
+	StatusMsgCreating                      = "Creating"
+)
+
+const (
+	StateUp      = "Up"
+	StateDown    = "Down"
+	StateUnknown = "Unknown"
 )
 
 const (

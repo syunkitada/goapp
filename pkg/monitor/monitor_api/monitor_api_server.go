@@ -1,8 +1,6 @@
 package monitor_api
 
 import (
-	"fmt"
-
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 
@@ -125,7 +123,7 @@ func (srv *MonitorApiServer) Report(ctx context.Context, req *monitor_api_grpc_p
 			indexer.Report(tctx, req)
 		}
 	} else {
-		logger.Warningf(tctx, fmt.Errorf("InvalidIndex"), "index=%v", req.Index)
+		logger.Warningf(tctx, "index=%v", req.Index)
 	}
 
 	rep := &monitor_api_grpc_pb.ReportReply{}
@@ -145,7 +143,7 @@ func (srv *MonitorApiServer) GetIndex(ctx context.Context, req *monitor_api_grpc
 		for _, indexer := range indexers {
 			err := indexer.GetIndex(tctx, req.ProjectName, indexMap)
 			if err != nil {
-				logger.Warningf(tctx, err, "Failed GetIndex: index=%v", index)
+				logger.Warningf(tctx, "Failed GetIndex: index=%v, err=%v", index, err)
 			}
 		}
 	}
@@ -167,7 +165,7 @@ func (srv *MonitorApiServer) GetHost(ctx context.Context, req *monitor_api_grpc_
 			for _, indexer := range indexers {
 				err := indexer.GetHost(tctx, req.ProjectName, hostMap)
 				if err != nil {
-					logger.Warningf(tctx, err, "Failed GetHost: index=%v", index)
+					logger.Warningf(tctx, "Failed GetHost: index=%v, err=%v", index, err)
 				}
 			}
 		}
@@ -176,11 +174,11 @@ func (srv *MonitorApiServer) GetHost(ctx context.Context, req *monitor_api_grpc_
 			for _, indexer := range indexers {
 				err := indexer.GetHost(tctx, req.ProjectName, hostMap)
 				if err != nil {
-					logger.Warningf(tctx, err, "Failed GetHost: index=%v", req.Index)
+					logger.Warningf(tctx, "Failed GetHost: index=%v, err=%v", req.Index, err)
 				}
 			}
 		} else {
-			logger.Warningf(tctx, fmt.Errorf("InvalidIndex"), "index=%v", req.Index)
+			logger.Warningf(tctx, "InvalidIndex: index=%v", req.Index)
 		}
 	}
 
@@ -201,7 +199,7 @@ func (srv *MonitorApiServer) GetUserState(ctx context.Context, req *monitor_api_
 		for _, indexer := range indexers {
 			err := indexer.GetIndex(tctx, req.ProjectName, indexMap)
 			if err != nil {
-				logger.Warningf(tctx, err, "Failed GetIndex: index=%v", index)
+				logger.Warningf(tctx, "Failed GetIndex: index=%v, err=%v", index, err)
 			}
 		}
 	}
@@ -223,11 +221,11 @@ func (srv *MonitorApiServer) GetIndexState(ctx context.Context, req *monitor_api
 		for _, indexer := range indexers {
 			err := indexer.GetHost(tctx, req.ProjectName, hostMap)
 			if err != nil {
-				logger.Warningf(tctx, err, "Failed GetHost: index=%v", req.Index)
+				logger.Warningf(tctx, "Failed GetHost: index=%v, err=%v", req.Index, err)
 			}
 		}
 	} else {
-		logger.Warningf(tctx, fmt.Errorf("InvalidIndex"), "index=%v", req.Index)
+		logger.Warningf(tctx, "InvalidIndex: index=%v", req.Index)
 	}
 
 	rep := &monitor_api_grpc_pb.GetIndexStateReply{

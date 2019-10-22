@@ -2,10 +2,13 @@ package ctl_main
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
 
-	"github.com/syunkitada/goapp/pkg/config"
+	"github.com/syunkitada/goapp/pkg/base/base_config"
+	"github.com/syunkitada/goapp/pkg/ctl/config"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
 
@@ -15,8 +18,8 @@ var rootCmd = &cobra.Command{
 	Use:   "",
 	Short: "",
 	Run: func(cmd *cobra.Command, args []string) {
-		ctl := New(&config.Conf)
-		if err := ctl.Index(args); err != nil {
+		ctl := New(&config.BaseConf, &config.MainConf)
+		if err := ctl.index(args); err != nil {
 			fmt.Println(err)
 		}
 	},
@@ -30,6 +33,15 @@ func Main() {
 
 func init() {
 	rootCmd.Flags().SetInterspersed(false)
-	cobra.OnInitialize(config.InitConfig, logger.Init)
-	config.InitFlags(rootCmd)
+
+	base_config.InitFlags(rootCmd, &config.BaseConf)
+	cobra.OnInitialize(initMain)
+}
+
+func initMain() {
+	os.Setenv("LANG", "en_US.UTF-8")
+	config.BaseConf.BaseDir = filepath.Join(os.Getenv("HOME"), ".goapp")
+	config.BaseConf.LogTimeFormat = "2006-01-02T15:04:05Z09:00"
+	base_config.InitConfig(&config.BaseConf, &config.MainConf)
+	logger.InitLogger(&config.BaseConf)
 }
