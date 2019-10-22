@@ -11,6 +11,7 @@ import (
 	"github.com/syunkitada/goapp/pkg/lib/error_utils"
 	"github.com/syunkitada/goapp/pkg/lib/json_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
+	"github.com/syunkitada/goapp/pkg/resource/consts"
 	"github.com/syunkitada/goapp/pkg/resource/db_model"
 	"github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
 	"github.com/syunkitada/goapp/pkg/resource/resource_model"
@@ -39,6 +40,17 @@ func (api *Api) CreateOrUpdateCompute(tctx *logger.TraceContext, tx *gorm.DB,
 	for i := 0; i < rspec.SchedulePolicy.Replicas; i++ {
 		name := fmt.Sprintf("%s.r%d.%s.%s", service.Name, i, service.Project, cluster.DomainSuffix)
 
+		rspec.Name = name
+		var ports []spec.PortSpec
+		switch rspec.NetworkPolicy.Version {
+		case 4:
+			if ports, err = api.AssignNetworkV4Port(tctx, tx, &rspec.NetworkPolicy,
+				clusterNetworkV4s, consts.KindCompute, name); err != nil {
+				return
+			}
+		}
+		rspec.Ports = ports
+
 		var specBytes []byte
 		specBytes, err = json_utils.Marshal(rspec)
 		if err != nil {
@@ -46,25 +58,13 @@ func (api *Api) CreateOrUpdateCompute(tctx *logger.TraceContext, tx *gorm.DB,
 			return
 		}
 
-		var data db_model.Compute
-		if err = tx.Where("name = ?", name).First(&data).Error; err != nil {
-			if !gorm.IsRecordNotFoundError(err) {
-				return
-			}
-			rspec.Name = name
+		var data []db_model.Compute
+		if err = tx.Where("name = ?", name).Find(&data).Error; err != nil {
+			return
+		}
 
-			var ports []spec.PortSpec
-			switch rspec.NetworkPolicy.Version {
-			case 4:
-				// TODO FIX Kind Compute
-				if ports, err = api.AssignNetworkV4Port(tctx, tx, &rspec.NetworkPolicy,
-					clusterNetworkV4s, "Compute", name); err != nil {
-					return
-				}
-			}
-			rspec.Ports = ports
-
-			data = db_model.Compute{
+		if len(data) == 0 {
+			compute := db_model.Compute{
 				Project:       service.Project,
 				Kind:          "Compute", // TODO Fix Kind Compute
 				Name:          name,
@@ -79,22 +79,19 @@ func (api *Api) CreateOrUpdateCompute(tctx *logger.TraceContext, tx *gorm.DB,
 				Status:        base_const.StatusCreating,
 				StatusReason:  "CreateRegionService",
 			}
-			if err = tx.Create(&data).Error; err != nil {
+			if err = tx.Create(&compute).Error; err != nil {
 				return
 			}
 
 		} else { // Update
-			if err = tx.Save(&data).Error; err != nil {
-				return
-			}
-			err = tx.Table("computes").Where("id = ?", data.ID).Updates(map[string]interface{}{
+			err = tx.Table("computes").Where("id = ?", data[0].ID).Updates(map[string]interface{}{
 				"image":         rspec.Image,
 				"vcpus":         rspec.Vcpus,
 				"memory":        rspec.Memory,
 				"disk":          rspec.Disk,
 				"spec":          string(specBytes),
-				"status":        base_const.StatusUpdating,
-				"status_reason": "UpdateRegionService",
+				"status":        resource_model.StatusUpdating,
+				"status_reason": "UpdateCompute",
 			}).Error
 		}
 	}
@@ -227,6 +224,71 @@ func (api *Api) UpdateClusterCompute(tctx *logger.TraceContext,
 			"status":        resource_model.StatusUpdatingScheduled,
 			"status_reason": "UpdateClusterCompute",
 		}).Error
+		return
+	})
+	return
+}
+
+func (api *Api) DeleteClusterCompute(tctx *logger.TraceContext,
+	compute *db_model.Compute, clusterComputeMap map[string]map[string]spec.Compute) {
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	client, ok := api.clusterClientMap[compute.Cluster]
+	if !ok {
+		err = error_utils.NewNotFoundError("clusterClient")
+		return
+	}
+
+	queries := []base_client.Query{
+		base_client.Query{
+			Name: "DeleteCompute",
+			Data: spec.DeleteCompute{
+				Name: compute.Name,
+			},
+		},
+	}
+
+	_, tmpErr := client.ResourceVirtualAdminDeleteCompute(tctx, queries)
+	if tmpErr != nil {
+		err = fmt.Errorf("Failed DeleteCompute: %s", tmpErr.Error())
+		return
+	}
+
+	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
+		err = tx.Table("computes").Where("id = ?", compute.ID).Updates(map[string]interface{}{
+			"status":        resource_model.StatusDeletingScheduled,
+			"status_reason": "DeleteClusterCompute",
+		}).Error
+		return
+	})
+	return
+}
+
+func (api *Api) ConfirmDeletingScheduledCompute(tctx *logger.TraceContext,
+	compute *db_model.Compute, clusterComputeMap map[string]map[string]spec.Compute) {
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	computeMap, ok := clusterComputeMap[compute.Cluster]
+	if !ok {
+		err = error_utils.NewConflictNotFoundError(compute.Cluster)
+		return
+	}
+
+	if _, ok := computeMap[compute.Name]; ok {
+		logger.Info(tctx, "Waiting compute is deleted")
+		return
+	}
+
+	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
+		if err = tx.Where("resource_kind = ? AND resource_name = ?", consts.KindCompute, compute.Name).
+			Unscoped().Delete(&db_model.NetworkV4Port{}).Error; err != nil {
+			return
+		}
+		err = tx.Where("id = ?", compute.ID).Unscoped().Delete(&db_model.Compute{}).Error
 		return
 	})
 	return

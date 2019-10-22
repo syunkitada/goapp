@@ -5,3 +5,7 @@ const (
 	KindResourceClusterController = "ReosurceClusterController"
 	KindResourceClusterAgent      = "ReosurceClusterAgent"
 )
+
+const (
+	KindCompute = "Compute"
+)

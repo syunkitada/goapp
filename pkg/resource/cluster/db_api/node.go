@@ -7,6 +7,7 @@ import (
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/resource/db_model"
 	api_spec "github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
+	"github.com/syunkitada/goapp/pkg/resource/resource_model"
 )
 
 func (api *Api) SyncNode(tctx *logger.TraceContext, input *api_spec.SyncNode) (nodeTask *api_spec.NodeTask, err error) {
@@ -87,13 +88,21 @@ func (api *Api) SyncNode(tctx *logger.TraceContext, input *api_spec.SyncNode) (n
 func (api *Api) ReportNodeTask(tctx *logger.TraceContext, input *api_spec.ReportNodeTask) (err error) {
 	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
 		for _, report := range input.ComputeAssignmentReports {
-			data := db_model.ComputeAssignment{
-				Status:       report.Status,
-				StatusReason: report.StatusReason,
-			}
-			if err = tx.Model(&data).Where("id = ? AND updated_at = ?", report.ID, report.UpdatedAt).
-				Updates(&data).Error; err != nil {
-				return
+			switch report.Status {
+			case resource_model.StatusDeleted:
+				if err = tx.Where("id = ? AND updated_at = ?", report.ID, report.UpdatedAt).
+					Unscoped().Delete(&db_model.ComputeAssignment{}).Error; err != nil {
+					return
+				}
+			default:
+				if err = tx.Table("compute_assignments").
+					Where("id = ? AND updated_at = ?", report.ID, report.UpdatedAt).
+					Updates(map[string]interface{}{
+						"status":        report.Status,
+						"status_reason": report.StatusReason,
+					}).Error; err != nil {
+					return
+				}
 			}
 		}
 		return

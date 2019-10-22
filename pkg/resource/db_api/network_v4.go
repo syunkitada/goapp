@@ -105,6 +105,14 @@ func (api *Api) AssignNetworkV4Port(tctx *logger.TraceContext, tx *gorm.DB,
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
+	// TODO FIXME
+	// 既存portとnpspec *spec.NetworkPolicySpecの変更を考慮してあるべきPortsを返す
+	// var currentPorts []db_model.NetworkV4Port
+	// if err = tx.Where("resource_kind = ? AND resource_name = ?", kind, name).
+	// 	Find(&currentPorts).Error; err != nil {
+	// 	return
+	// }
+
 	netIds := []uint{}
 	netPortMap := map[uint]map[string]bool{}
 	netMacMap := map[uint]map[string]bool{}

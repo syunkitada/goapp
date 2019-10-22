@@ -94,14 +94,14 @@ func (srv *Server) SyncComputeAssignments(tctx *logger.TraceContext,
 		}
 	}
 
-	if err = srv.computeDriver.SyncDeletingAssignmentMap(tctx, activatingAssignmentMap); err != nil {
+	if err = srv.computeDriver.SyncDeletingAssignmentMap(tctx, deletingAssignmentMap); err != nil {
 		return nil, err
 	}
 
 	ok = false
 	retryCount = srv.computeConf.ConfirmRetryCount
 	for {
-		if ok, err = srv.computeDriver.ConfirmDeletingAssignmentMap(tctx, activatingAssignmentMap); err != nil {
+		if ok, err = srv.computeDriver.ConfirmDeletingAssignmentMap(tctx, deletingAssignmentMap); err != nil {
 			return nil, err
 		}
 		if ok {
@@ -121,6 +121,15 @@ func (srv *Server) SyncComputeAssignments(tctx *logger.TraceContext,
 			UpdatedAt:    assignment.UpdatedAt,
 			Status:       resource_model.StatusActive,
 			StatusReason: "Created",
+		})
+	}
+
+	for _, assignment := range deletingAssignmentMap {
+		assignmentReports = append(assignmentReports, spec.AssignmentReport{
+			ID:           assignment.ID,
+			UpdatedAt:    assignment.UpdatedAt,
+			Status:       resource_model.StatusDeleted,
+			StatusReason: "Deleted",
 		})
 	}
 

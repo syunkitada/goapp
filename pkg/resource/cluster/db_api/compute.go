@@ -58,14 +58,20 @@ func (api *Api) UpdateComputes(tctx *logger.TraceContext, specs []spec.RegionSer
 			if specBytes, err = json_utils.Marshal(spec); err != nil {
 				return
 			}
-			if err = tx.Model(&db_model.Compute{}).
-				Where("name = ?", spec.Name).Updates(&db_model.Compute{
-				Spec:         string(specBytes),
-				Status:       base_const.StatusUpdating,
-				StatusReason: "UpdateComputes",
-			}).Error; err != nil {
+			query := tx.Table("computes").Where("name = ?", spec.Name).Updates(map[string]interface{}{
+				"spec":          string(specBytes),
+				"status":        base_const.StatusUpdating,
+				"status_reason": "UpdateComputes",
+			})
+
+			var rows int64
+			if rows, err = query.RowsAffected, query.Error; err != nil {
+				return
+			} else if rows != 1 {
+				err = fmt.Errorf("updated rows is nothing: count=%d", rows)
 				return
 			}
+			return
 		}
 		return
 	})
@@ -74,14 +80,40 @@ func (api *Api) UpdateComputes(tctx *logger.TraceContext, specs []spec.RegionSer
 
 func (api *Api) DeleteCompute(tctx *logger.TraceContext, input *spec.DeleteCompute) (err error) {
 	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
-		err = tx.Where("name = ?", input.Name).Unscoped().Delete(&db_model.Compute{}).Error
+		query := tx.Table("computes").
+			Where("name = ?", input.Name).Updates(map[string]interface{}{
+			"status":        base_const.StatusDeleting,
+			"status_reason": "DeleteCompute",
+		})
+
+		var rows int64
+		if rows, err = query.RowsAffected, query.Error; err != nil {
+			return
+		} else if rows != 1 {
+			err = fmt.Errorf("deleted rows is nothing: count=%d", rows)
+			return
+		}
 		return
 	})
 	return
 }
 
-func (api *Api) DeleteComputes(tctx *logger.TraceContext, input []spec.RegionServiceComputeSpec) (err error) {
+func (api *Api) DeleteComputes(tctx *logger.TraceContext, specs []spec.RegionServiceComputeSpec) (err error) {
 	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
+		for _, spec := range specs {
+			query := tx.Table("computes").
+				Where("name = ?", spec.Name).Updates(map[string]interface{}{
+				"status":        base_const.StatusDeleting,
+				"status_reason": "DeleteComputes"})
+
+			var rows int64
+			if rows, err = query.RowsAffected, query.Error; err != nil {
+				return
+			} else if rows != 1 {
+				err = fmt.Errorf("deleted rows is nothing: count=%d", rows)
+				return
+			}
+		}
 		return
 	})
 	return
@@ -137,7 +169,15 @@ func (api *Api) SyncCompute(tctx *logger.TraceContext) (err error) {
 		case base_const.StatusCreating:
 			api.AssignCompute(tctx, &compute, nodeMap, nodeAssignmentsMap, computeAssignmentsMap, false)
 		case base_const.StatusCreatingScheduled:
-			api.ConfirmCreatingScheduledCompute(tctx, &compute, computeAssignmentsMap)
+			api.ConfirmCreatingOrUpdatingScheduledCompute(tctx, &compute, computeAssignmentsMap)
+		case base_const.StatusUpdating:
+			api.AssignCompute(tctx, &compute, nodeMap, nodeAssignmentsMap, computeAssignmentsMap, false)
+		case base_const.StatusUpdatingScheduled:
+			api.ConfirmCreatingOrUpdatingScheduledCompute(tctx, &compute, computeAssignmentsMap)
+		case base_const.StatusDeleting:
+			api.DeleteComputeAssignments(tctx, &compute)
+		case base_const.StatusDeletingScheduled:
+			api.ConfirmDeletingScheduledCompute(tctx, &compute, computeAssignmentsMap)
 		}
 	}
 
@@ -178,6 +218,7 @@ func (api *Api) AssignCompute(tctx *logger.TraceContext,
 	policy := rspec.SchedulePolicy
 	assignNodes := []uint{}
 	updateNodes := []uint{}
+	updateAssignments := []uint{}
 	unassignNodes := []uint{}
 
 	currentAssignments, ok := assignmentsMap[compute.Name]
@@ -338,6 +379,7 @@ func (api *Api) AssignCompute(tctx *logger.TraceContext,
 			_, ok := labelFilterNodeMap[assignment.NodeID]
 			if ok {
 				updateNodes = append(updateNodes, assignment.NodeID)
+				updateAssignments = append(updateAssignments, assignment.ID)
 			} else {
 				unassignNodes = append(unassignNodes, assignment.NodeID)
 			}
@@ -492,44 +534,51 @@ func (api *Api) AssignCompute(tctx *logger.TraceContext,
 	}
 
 	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
-		for _, nodeID := range updateNodes {
+		for _, id := range updateAssignments {
 			switch compute.Status {
 			case base_const.StatusUpdating:
-				tx.Create(&db_model.ComputeAssignment{
-					ComputeID:    compute.ID,
-					NodeID:       nodeID,
-					Status:       base_const.StatusUpdating,
-					StatusReason: "Updating",
-				})
+				if err = tx.Table("compute_assignments").Where("id = ?", id).Updates(map[string]interface{}{
+					"status":        base_const.StatusUpdating,
+					"status_reason": "Updating",
+				}).Error; err != nil {
+					return
+				}
 			}
 		}
 
 		for _, nodeID := range assignNodes {
 			switch compute.Status {
 			case base_const.StatusCreating:
-				tx.Create(&db_model.ComputeAssignment{
+				if err = tx.Create(&db_model.ComputeAssignment{
 					ComputeID:    compute.ID,
 					NodeID:       nodeID,
 					Status:       base_const.StatusCreating,
 					StatusReason: "Creating",
-				})
+				}).Error; err != nil {
+					return
+				}
 			}
 		}
 
 		switch compute.Status {
 		case base_const.StatusCreating:
-			compute.Status = base_const.StatusCreatingScheduled
-			compute.StatusReason = "CreatingScheduled"
+			err = tx.Table("computes").Where("id = ?", compute.ID).Updates(map[string]interface{}{
+				"status":        base_const.StatusCreatingScheduled,
+				"status_reason": "CreatingScheduled",
+			}).Error
+		case base_const.StatusUpdating:
+			err = tx.Table("computes").Where("id = ?", compute.ID).Updates(map[string]interface{}{
+				"status":        base_const.StatusUpdatingScheduled,
+				"status_reason": "UpdatingScheduled",
+			}).Error
 		}
-		tx.Save(compute)
 		return
 	})
 }
 
-func (api *Api) ConfirmCreatingScheduledCompute(tctx *logger.TraceContext,
+func (api *Api) ConfirmCreatingOrUpdatingScheduledCompute(tctx *logger.TraceContext,
 	compute *db_model.Compute,
 	assignmentsMap map[string][]db_model.ComputeAssignmentWithComputeAndNode) {
-	fmt.Println("DEBUG ConfirmCreatingScheduledCompute")
 	var err error
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
@@ -554,11 +603,46 @@ func (api *Api) ConfirmCreatingScheduledCompute(tctx *logger.TraceContext,
 	}
 
 	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
-		tmpCompute := resource_model.Compute{
-			Status:       resource_model.StatusActive,
-			StatusReason: "ConfirmedCreagingScheduled",
-		}
-		err = tx.Model(&tmpCompute).Where("id = ?", compute.ID).Updates(&tmpCompute).Error
+		err = tx.Table("computes").Where("id = ?", compute.ID).Updates(map[string]interface{}{
+			"status":        resource_model.StatusActive,
+			"status_reason": "ConfirmedActive",
+		}).Error
+		return
+	})
+}
+
+func (api *Api) DeleteComputeAssignments(tctx *logger.TraceContext, compute *db_model.Compute) (err error) {
+	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
+		err = tx.Table("computes").Where("id = ?", compute.ID).Updates(map[string]interface{}{
+			"status":        base_const.StatusDeletingScheduled,
+			"status_reason": "DeleteComputeAssignments",
+		}).Error
+
+		err = tx.Table("compute_assignments").Where("compute_id = ?", compute.ID).
+			Updates(map[string]interface{}{
+				"status":        base_const.StatusDeleting,
+				"status_reason": "Deleting",
+			}).Error
+		return
+	})
+	return
+}
+
+func (api *Api) ConfirmDeletingScheduledCompute(tctx *logger.TraceContext,
+	compute *db_model.Compute,
+	assignmentsMap map[string][]db_model.ComputeAssignmentWithComputeAndNode) {
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	_, ok := assignmentsMap[compute.Name]
+	if ok {
+		logger.Infof(tctx, "waiting compute_assignments is deleted")
+		return
+	}
+
+	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
+		err = tx.Where("id = ?", compute.ID).Unscoped().Delete(&db_model.Compute{}).Error
 		return
 	})
 }

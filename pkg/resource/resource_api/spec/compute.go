@@ -50,8 +50,7 @@ type UpdateCompute struct {
 type UpdateComputeData struct{}
 
 type DeleteCompute struct {
-	Name   string `validate:"required"`
-	Region string `validate:"required"`
+	Name string `validate:"required"`
 }
 
 type DeleteComputeData struct{}

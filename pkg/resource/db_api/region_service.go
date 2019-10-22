@@ -12,8 +12,10 @@ import (
 	"github.com/syunkitada/goapp/pkg/lib/error_utils"
 	"github.com/syunkitada/goapp/pkg/lib/json_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
+	"github.com/syunkitada/goapp/pkg/resource/consts"
 	"github.com/syunkitada/goapp/pkg/resource/db_model"
 	"github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
+	"github.com/syunkitada/goapp/pkg/resource/resource_model"
 )
 
 func (api *Api) GetRegionService(tctx *logger.TraceContext, input *spec.GetRegionService, user *base_spec.UserAuthority) (data *spec.RegionService, err error) {
@@ -97,11 +99,12 @@ func (api *Api) DeleteRegionService(tctx *logger.TraceContext, input *spec.Delet
 func (api *Api) DeleteRegionServices(tctx *logger.TraceContext, input []spec.RegionService, user *base_spec.UserAuthority) (err error) {
 	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
 		for _, val := range input {
-			if err = tx.Where("name = ? AND region = ? AND project = ?",
-				val.Name, val.Region, user.ProjectName).Updates(&db_model.RegionService{
-				Status:       db_model.StatusDeleting,
-				StatusReason: "DeleteRegionService",
-			}).Error; err != nil {
+			if err = tx.Table("region_services").
+				Where("name = ? AND region = ? AND project = ?", val.Name, val.Region, user.ProjectName).
+				Updates(map[string]interface{}{
+					"status":        db_model.StatusDeleting,
+					"status_reason": "DeleteRegionService",
+				}).Error; err != nil {
 				return
 			}
 		}
@@ -163,30 +166,36 @@ func (api *Api) SyncRegionService(tctx *logger.TraceContext) (err error) {
 		switch service.Status {
 		case db_model.StatusInitializing:
 			switch service.Kind {
-			case "Compute":
+			case consts.KindCompute:
 				api.InitializeRegionServiceCompute(
 					tctx, &service, regionClustersMap, clusterNetworkV4sMap, regionImageMap)
 			}
 		case db_model.StatusCreatingScheduled:
 			switch service.Kind {
-			case "Compute":
+			case consts.KindCompute:
 				api.ConfirmCreatingOrUpdatingRegionServiceCompute(tctx, &service)
 			}
 		case db_model.StatusUpdating:
 			switch service.Kind {
-			case "Compute":
+			case consts.KindCompute:
 				api.UpdateRegionServiceCompute(
 					tctx, &service, regionClustersMap, clusterNetworkV4sMap, regionImageMap)
 			}
 		case db_model.StatusUpdatingScheduled:
 			switch service.Kind {
-			case "Compute":
+			case consts.KindCompute:
 				api.ConfirmCreatingOrUpdatingRegionServiceCompute(tctx, &service)
 			}
 		case db_model.StatusDeleting:
-			logger.Infof(tctx, "Found %v resource: %v", service.Status, service.Name)
+			switch service.Kind {
+			case consts.KindCompute:
+				api.DeleteRegionServiceCompute(tctx, &service)
+			}
 		case db_model.StatusDeletingScheduled:
-			logger.Infof(tctx, "Found %v resource: %v", service.Status, service.Name)
+			switch service.Kind {
+			case consts.KindCompute:
+				api.ConfirmDeletingRegionServiceCompute(tctx, &service)
+			}
 		}
 		tctx.Metadata = map[string]string{}
 	}
@@ -235,9 +244,9 @@ func (api *Api) SyncRegionService(tctx *logger.TraceContext) (err error) {
 		case db_model.StatusUpdatingScheduled:
 			api.ConfirmCreatingOrUpdatingScheduledCompute(tctx, &compute, clusterComputeMap)
 		case db_model.StatusDeleting:
-			logger.Infof(tctx, "Found %v resource: %v", compute.Status, compute.Name)
+			api.DeleteClusterCompute(tctx, &compute, clusterComputeMap)
 		case db_model.StatusDeletingScheduled:
-			logger.Infof(tctx, "Found %v resource: %v", compute.Status, compute.Name)
+			api.ConfirmDeletingScheduledCompute(tctx, &compute, clusterComputeMap)
 		}
 		tctx.Metadata = map[string]string{}
 	}
@@ -292,9 +301,13 @@ func (api *Api) InitializeRegionServiceCompute(tctx *logger.TraceContext,
 	if len(clusters) == 0 {
 		err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
 			err = error_utils.NewNotFoundError("NoValidCluster")
-			service.Status = base_const.StatusError
-			service.StatusReason = err.Error()
-			tx.Save(service)
+			if tmpErr := tx.Table("region_services").Where("id = ?", service.ID).Updates(map[string]interface{}{
+				"status":        base_const.StatusError,
+				"status_reason": err.Error(),
+			}).Error; tmpErr != nil {
+				err = tmpErr
+				return
+			}
 			return
 		})
 		if err != nil {
@@ -308,9 +321,12 @@ func (api *Api) InitializeRegionServiceCompute(tctx *logger.TraceContext,
 			return
 		}
 
-		service.Status = base_const.StatusCreatingScheduled
-		service.StatusReason = "CreatingCompute"
-		tx.Save(service)
+		if err = tx.Table("region_services").Where("id = ?", service.ID).Updates(map[string]interface{}{
+			"status":        base_const.StatusCreatingScheduled,
+			"status_reason": "CreatingCompute",
+		}).Error; err != nil {
+			return
+		}
 		return
 	})
 	return
@@ -396,9 +412,12 @@ func (api *Api) ConfirmCreatingOrUpdatingRegionServiceCompute(tctx *logger.Trace
 				logger.Infof(tctx, "Wating to be activated: status=%s", compute.Status)
 			}
 		}
-		service.Status = base_const.StatusActive
-		service.StatusReason = "ConfirmedActive"
-		err = tx.Save(service).Error
+		if err = tx.Table("region_services").Where("id = ?", service.ID).Updates(map[string]interface{}{
+			"status":        base_const.StatusActive,
+			"status_reason": "ConfirmedActive",
+		}).Error; err != nil {
+			return
+		}
 		return
 	})
 	return
@@ -431,9 +450,63 @@ func (api *Api) UpdateRegionServiceCompute(tctx *logger.TraceContext,
 			return
 		}
 
-		service.Status = base_const.StatusUpdatingScheduled
-		service.StatusReason = "UpdatingCompute"
-		tx.Save(service)
+		if err = tx.Table("region_services").Where("id = ?", service.ID).Updates(map[string]interface{}{
+			"status":        base_const.StatusUpdatingScheduled,
+			"status_reason": "UpdateCompute",
+		}).Error; err != nil {
+			return
+		}
+		return
+	})
+	return
+}
+
+func (api *Api) DeleteRegionServiceCompute(tctx *logger.TraceContext, service *db_model.RegionService) {
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
+		if err = tx.Table("computes").Where("region_service = ?", service.Name).Updates(map[string]interface{}{
+			"status":        resource_model.StatusDeleting,
+			"status_reason": "DeleteCompute",
+		}).Error; err != nil {
+			return
+		}
+
+		if err = tx.Table("region_services").Where("id = ?", service.ID).Updates(map[string]interface{}{
+			"status":        resource_model.StatusDeletingScheduled,
+			"status_reason": "DeleteCompute",
+		}).Error; err != nil {
+			return
+		}
+		return
+	})
+	return
+}
+
+func (api *Api) ConfirmDeletingRegionServiceCompute(tctx *logger.TraceContext,
+	service *db_model.RegionService) {
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
+		var computes []db_model.Compute
+		if err = tx.Table("region_services AS rs").
+			Select("c.status").
+			Joins("INNER JOIN computes as c ON rs.name = c.region_service").
+			Where("rs.name = ? AND rs.project = ?", service.Name, service.Project).Scan(&computes).Error; err != nil {
+			return
+		}
+		if len(computes) != 0 {
+			logger.Infof(tctx, "Waiting to be deleting compute")
+			return
+		}
+
+		if err = tx.Where("id = ?", service.ID).Unscoped().Delete(&db_model.RegionService{}).Error; err != nil {
+			return
+		}
 		return
 	})
 	return
