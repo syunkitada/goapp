@@ -105,36 +105,29 @@ func (api *Api) AssignNetworkV4Port(tctx *logger.TraceContext, tx *gorm.DB,
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
-	// TODO FIXME
-	// 既存portとnpspec *spec.NetworkPolicySpecの変更を考慮してあるべきPortsを返す
-	// var currentPorts []db_model.NetworkV4Port
-	// if err = tx.Where("resource_kind = ? AND resource_name = ?", kind, name).
-	// 	Find(&currentPorts).Error; err != nil {
-	// 	return
-	// }
-
 	netIds := []uint{}
 	netPortMap := map[uint]map[string]bool{}
 	netMacMap := map[uint]map[string]bool{}
 	for _, network := range networks {
 		netIds = append(netIds, network.ID)
 		netPortMap[network.ID] = map[string]bool{}
+		netMacMap[network.ID] = map[string]bool{}
 	}
 
 	var ports []db_model.NetworkV4Port
 	if err = tx.Table("network_v4_ports").
-		Select("network_v4.id, network_v4_ports.ip").
+		Select("network_v4_ports.*").
 		Joins("INNER JOIN network_v4 ON network_v4.id = network_v4_ports.network_v4_id").
 		Where("network_v4.id IN (?)", netIds).Find(&ports).Error; err != nil {
 		return
 	}
 
 	for _, port := range ports {
-		netPortMap[port.ID][port.Ip] = true
-		netMacMap[port.ID][port.Mac] = true
+		netPortMap[port.NetworkV4ID][port.Ip] = true
+		netMacMap[port.NetworkV4ID][port.Mac] = true
 	}
 
-	nets := []resource_model.Network{}
+	nets := []spec.Network{}
 	for _, net := range networks {
 		var network *ip_utils_model.Network
 		if network, err = ip_utils.ParseNetwork(net.Subnet, net.Gateway, net.StartIp, net.EndIp); err != nil {
@@ -153,7 +146,7 @@ func (api *Api) AssignNetworkV4Port(tctx *logger.TraceContext, tx *gorm.DB,
 				break
 			}
 		}
-		nets = append(nets, resource_model.Network{
+		nets = append(nets, spec.Network{
 			Id:           net.ID,
 			Name:         net.Name,
 			Subnet:       net.Subnet,
@@ -162,10 +155,45 @@ func (api *Api) AssignNetworkV4Port(tctx *logger.TraceContext, tx *gorm.DB,
 		})
 	}
 
-	for i := 0; i < npspec.Interfaces; i++ {
+	// 既存portをチェック
+	var currentPorts []db_model.NetworkV4Port
+	if err = tx.Where("resource_kind = ? AND resource_name = ?", kind, name).
+		Find(&currentPorts).Error; err != nil {
+		return
+	}
+
+	for _, port := range currentPorts {
+		for _, net := range nets {
+			if net.Id == port.NetworkV4ID {
+				sports = append(sports, spec.PortSpec{
+					NetworkID: net.Id,
+					Version:   4,
+					Subnet:    net.Subnet,
+					Gateway:   net.Gateway,
+					Ip:        port.Ip,
+					Mac:       port.Mac,
+				})
+			}
+			break
+		}
+	}
+
+	interfaces := npspec.Interfaces - len(currentPorts)
+	for i := 0; i < interfaces; i++ {
 		switch npspec.AssignPolicy {
 		case resource_model.SchedulePolicyAffinity:
-			net := nets[0]
+			var net spec.Network
+			if len(currentPorts) > 0 {
+				for _, n := range nets {
+					if n.Id == currentPorts[0].NetworkV4ID {
+						net = n
+						break
+					}
+				}
+			} else {
+				net = nets[0]
+			}
+
 			ip := net.AvailableIps[i]
 			var mac string
 			macMap, _ := netMacMap[net.Id]

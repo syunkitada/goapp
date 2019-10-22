@@ -55,6 +55,14 @@ type DeleteNetworkV4s struct {
 
 type DeleteNetworkV4sData struct{}
 
+type Network struct {
+	Id           uint
+	Name         string
+	Subnet       string
+	Gateway      string
+	AvailableIps []string
+}
+
 var NetworkV4sTable = index_model.Table{
 	Name:    "NetworkV4s",
 	Route:   "/NetworkV4s",
