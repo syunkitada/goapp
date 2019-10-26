@@ -282,5 +282,7 @@ type Response struct {
 }
 
 type Result struct {
-	Data map[string]interface{}
+	Code  uint8
+	Error string
+	Data  map[string]interface{}
 }

@@ -1,0 +1,11 @@
+{
+  "Kind": "Image",
+  "Spec": {
+    "Kind": "Url",
+    "Name": "ubuntu-18.0.4",
+    "Region": "kanto",
+    "Spec": {
+      "Url": "https://cloud-images.ubuntu.com/bionic/current/bionic-server-cloudimg-amd64.img"
+    }
+  }
+}
