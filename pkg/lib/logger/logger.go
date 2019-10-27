@@ -11,17 +11,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gin-gonic/gin"
 	"github.com/rs/xid"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/peer"
 
-	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_grpc_pb"
-	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_model"
 	"github.com/syunkitada/goapp/pkg/base/base_config"
 	"github.com/syunkitada/goapp/pkg/config"
-	"github.com/syunkitada/goapp/pkg/lib/codes"
-	"github.com/syunkitada/goapp/pkg/lib/error_utils"
 )
 
 var (
@@ -66,15 +61,6 @@ func (tctx *TraceContext) GetTraceId() string {
 	return tctx.TraceId
 }
 
-type ActionTraceContext struct {
-	TraceContext
-	UserName        string
-	RoleName        string
-	ProjectName     string
-	ProjectRoleName string
-	Queries         []authproxy_model.Query
-}
-
 func NewTraceContext(host string, app string) *TraceContext {
 	return &TraceContext{
 		mtx:      new(sync.Mutex),
@@ -114,54 +100,6 @@ func NewCtlTraceContext(app string) *TraceContext {
 	}
 }
 
-func NewActionTraceContext(tctx *TraceContext, projectName string, projectRoleName string,
-	queries []authproxy_model.Query) *ActionTraceContext {
-	return &ActionTraceContext{
-		TraceContext:    *tctx,
-		UserName:        tctx.Host,
-		RoleName:        tctx.App,
-		ProjectName:     projectName,
-		ProjectRoleName: projectRoleName,
-		Queries:         queries,
-	}
-}
-
-func NewAuthproxyActionTraceContext(host string, app string, c *gin.Context) (*ActionTraceContext, error) {
-	traceId, traceIdOk := c.Get("TraceId")
-	username, usernameOk := c.Get("Username")
-	userAuthority, userAuthorityOk := c.Get("UserAuthority")
-	action, actionOk := c.Get("Action")
-
-	if !traceIdOk || !usernameOk || !userAuthorityOk || !actionOk {
-		return nil, error_utils.NewInvalidRequestError(map[string]bool{
-			"TraceId":       traceIdOk,
-			"Username":      usernameOk,
-			"UserAuthority": userAuthorityOk,
-			"Action":        actionOk,
-		})
-	}
-	tmpAuthority := userAuthority.(*authproxy_model.UserAuthority)
-	tmpAction := action.(authproxy_model.ActionRequest)
-
-	fmt.Println("DEBUG Action")
-	fmt.Println(tmpAction.Queries)
-	return &ActionTraceContext{
-		TraceContext: TraceContext{
-			TraceId: traceId.(string),
-			Host:    host,
-			App:     app,
-			Metadata: map[string]string{
-				"AuthUser": username.(string),
-			},
-		},
-		UserName:        username.(string),
-		RoleName:        tmpAuthority.ActionProjectService.RoleName,
-		ProjectName:     tmpAuthority.ActionProjectService.ProjectName,
-		ProjectRoleName: tmpAuthority.ActionProjectService.ProjectRoleName,
-		Queries:         tmpAction.Queries,
-	}, nil
-}
-
 func NewGrpcTraceContext(host string, app string, ctx context.Context) *TraceContext {
 	var client string
 	if pr, ok := peer.FromContext(ctx); ok {
@@ -178,70 +116,6 @@ func NewGrpcTraceContext(host string, app string, ctx context.Context) *TraceCon
 			"Client": client,
 		},
 	}
-}
-
-func NewAuthproxyTraceContext(tctx *TraceContext, atctx *ActionTraceContext) *authproxy_grpc_pb.TraceContext {
-	if tctx != nil {
-		return &authproxy_grpc_pb.TraceContext{
-			TraceId: tctx.TraceId,
-			App:     tctx.App,
-			Host:    tctx.Host,
-		}
-	}
-	if atctx != nil {
-		return &authproxy_grpc_pb.TraceContext{
-			TraceId:         atctx.TraceId,
-			UserName:        atctx.UserName,
-			RoleName:        atctx.RoleName,
-			ProjectName:     atctx.ProjectName,
-			ProjectRoleName: atctx.ProjectRoleName,
-		}
-	}
-	return nil
-}
-
-func NewGrpcAuthproxyTraceContext(host string, app string, ctx context.Context, atctx *authproxy_grpc_pb.TraceContext) *TraceContext {
-	var client string
-	if pr, ok := peer.FromContext(ctx); ok {
-		client = pr.Addr.String()
-	} else {
-		client = ""
-	}
-
-	tctx := &TraceContext{
-		TraceId: atctx.TraceId,
-		Host:    host,
-		App:     app,
-		Metadata: map[string]string{
-			"Client":     client,
-			"ClientHost": atctx.Host,
-			"ClientApp":  atctx.App,
-		},
-	}
-
-	if atctx.ActionName != "" {
-		tctx.Metadata["ActionName"] = atctx.ActionName
-	}
-	if atctx.UserName != "" {
-		tctx.Metadata["UserName"] = atctx.UserName
-		tctx.Metadata["RoleName"] = atctx.RoleName
-		tctx.Metadata["ProjectName"] = atctx.ProjectName
-		tctx.Metadata["ProjectRoleName"] = atctx.ProjectRoleName
-	}
-
-	return tctx
-}
-
-func (tctx *TraceContext) SetError(code uint8, err error) {
-	tctx.mtx.Lock()
-	tctx.code = code
-	tctx.err = err
-	tctx.mtx.Unlock()
-}
-
-func SetErrorTraceContext(tctx *authproxy_grpc_pb.TraceContext, statusCode int64, data interface{}) {
-	tctx.StatusCode = statusCode
-	tctx.Err = codes.GetMsg(statusCode, data)
 }
 
 func Init() {

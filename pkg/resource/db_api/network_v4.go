@@ -7,9 +7,9 @@ import (
 	"github.com/syunkitada/goapp/pkg/lib/ip_utils"
 	"github.com/syunkitada/goapp/pkg/lib/ip_utils/ip_utils_model"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
+	"github.com/syunkitada/goapp/pkg/resource/consts"
 	"github.com/syunkitada/goapp/pkg/resource/db_model"
 	"github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
-	"github.com/syunkitada/goapp/pkg/resource/resource_model"
 )
 
 func (api *Api) GetNetworkV4(tctx *logger.TraceContext, input *spec.GetNetworkV4, user *base_spec.UserAuthority) (data *spec.NetworkV4, err error) {
@@ -181,7 +181,7 @@ func (api *Api) AssignNetworkV4Port(tctx *logger.TraceContext, tx *gorm.DB,
 	interfaces := npspec.Interfaces - len(currentPorts)
 	for i := 0; i < interfaces; i++ {
 		switch npspec.AssignPolicy {
-		case resource_model.SchedulePolicyAffinity:
+		case consts.SchedulePolicyAffinity:
 			var net spec.Network
 			if len(currentPorts) > 0 {
 				for _, n := range nets {
@@ -202,7 +202,7 @@ func (api *Api) AssignNetworkV4Port(tctx *logger.TraceContext, tx *gorm.DB,
 				return
 			}
 
-			port := resource_model.NetworkV4Port{
+			port := db_model.NetworkV4Port{
 				NetworkV4ID:  net.Id,
 				Ip:           ip,
 				Mac:          mac,

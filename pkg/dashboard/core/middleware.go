@@ -5,12 +5,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/dgrijalva/jwt-go"
-
 	"github.com/gin-gonic/gin"
-	"github.com/golang/glog"
-
-	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_model"
 )
 
 // ValidateHeaders validate http headers
@@ -63,49 +58,49 @@ func (dashboard *Dashboard) ValidateHeaders() gin.HandlerFunc {
 	}
 }
 
-func (dashboard *Dashboard) AuthRequired() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		var tokenAuthRequest authproxy_model.TokenAuthRequest
-		if err := c.Bind(&tokenAuthRequest); err != nil {
-			glog.Warning("Invalid AuthRequest: Failed ParseToken")
-			c.JSON(http.StatusUnauthorized, gin.H{
-				"error": "Invalid AuthRequest",
-			})
-			c.Abort()
-		}
+// func (dashboard *Dashboard) AuthRequired() gin.HandlerFunc {
+// 	return func(c *gin.Context) {
+// 		var tokenAuthRequest authproxy_model.TokenAuthRequest
+// 		if err := c.Bind(&tokenAuthRequest); err != nil {
+// 			glog.Warning("Invalid AuthRequest: Failed ParseToken")
+// 			c.JSON(http.StatusUnauthorized, gin.H{
+// 				"error": "Invalid AuthRequest",
+// 			})
+// 			c.Abort()
+// 		}
+//
+// 		claims, err := dashboard.ParseToken(tokenAuthRequest)
+// 		if err != nil {
+// 			glog.Warning("Invalid AuthRequest: Failed ParseToken")
+// 			c.JSON(http.StatusUnauthorized, gin.H{
+// 				"error": "Invalid AuthRequest",
+// 			})
+// 			c.Abort()
+// 		}
+//
+// 		c.Set("UserName", claims["UserName"])
+// 		c.Set("RoleName", claims["RoleName"])
+// 		c.Set("ProjectName", claims["ProjectName"])
+// 		c.Set("ProjectRoleName", claims["ProjectRoleName"])
+// 	}
+// }
 
-		claims, err := dashboard.ParseToken(tokenAuthRequest)
-		if err != nil {
-			glog.Warning("Invalid AuthRequest: Failed ParseToken")
-			c.JSON(http.StatusUnauthorized, gin.H{
-				"error": "Invalid AuthRequest",
-			})
-			c.Abort()
-		}
-
-		c.Set("UserName", claims["UserName"])
-		c.Set("RoleName", claims["RoleName"])
-		c.Set("ProjectName", claims["ProjectName"])
-		c.Set("ProjectRoleName", claims["ProjectRoleName"])
-	}
-}
-
-func (dashboard *Dashboard) ParseToken(request authproxy_model.TokenAuthRequest) (jwt.MapClaims, error) {
-	token, err := jwt.Parse(request.Token, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			msg := fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
-			return nil, msg
-		}
-		return []byte(Conf.Admin.TokenSecret), nil
-	})
-
-	if err != nil {
-		return nil, err
-	}
-
-	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		return claims, nil
-	}
-
-	return nil, nil
-}
+// func (dashboard *Dashboard) ParseToken(request authproxy_model.TokenAuthRequest) (jwt.MapClaims, error) {
+// 	token, err := jwt.Parse(request.Token, func(token *jwt.Token) (interface{}, error) {
+// 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+// 			msg := fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+// 			return nil, msg
+// 		}
+// 		return []byte(Conf.Admin.TokenSecret), nil
+// 	})
+//
+// 	if err != nil {
+// 		return nil, err
+// 	}
+//
+// 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+// 		return claims, nil
+// 	}
+//
+// 	return nil, nil
+// }

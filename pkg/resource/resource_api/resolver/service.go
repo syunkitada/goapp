@@ -104,6 +104,7 @@ func (resolver *Resolver) GetServiceDashboardIndex(tctx *logger.TraceContext,
 			},
 		}
 		code = base_const.CodeOk
+
 	case "ResourcePhysical":
 		var datacenters []spec.Datacenter
 		datacenters, err = resolver.dbApi.GetDatacenters(tctx, &spec.GetDatacenters{}, user)
@@ -153,6 +154,56 @@ func (resolver *Resolver) GetServiceDashboardIndex(tctx *logger.TraceContext,
 			},
 		}
 		code = base_const.CodeOk
+
+	case "ResourceVirtualAdmin":
+		var regions []spec.Region
+		regions, err = resolver.dbApi.GetRegions(tctx, &spec.GetRegions{}, user)
+		if err != nil {
+			return
+		}
+
+		data = &base_spec.GetServiceDashboardIndexData{
+			Data: map[string]interface{}{
+				"Regions": regions,
+			},
+			Index: index_model.DashboardIndex{
+				View: index_model.Panels{
+					Name: "Root",
+					Kind: "RoutePanels",
+					Panels: []interface{}{
+						spec.RegionsTable,
+						index_model.Tabs{
+							Name:             "Resources",
+							Kind:             "RouteTabs",
+							Subname:          "Kind",
+							Route:            "/Regions/:Region/Resources/:Kind",
+							TabParam:         "Kind",
+							GetQueries:       []string{"GetRegionServices", "GetImages"},
+							ExpectedDataKeys: []string{"RegionServices", "Images"},
+							IsSync:           true,
+							Tabs: []interface{}{
+								spec.RegionServicesTable,
+								spec.ImagesTable,
+							},
+						},
+						gin.H{
+							"Name":      "Resource",
+							"Subname":   "Name",
+							"Route":     "/Regions/:Region/Resources/:Kind/Detail/:Name/:Subkind",
+							"Kind":      "RoutePanes",
+							"PaneParam": "Kind",
+							"Panes": []interface{}{
+								spec.ComputesDetail,
+								spec.RegionServicesDetail,
+								spec.ImagesDetail,
+							},
+						},
+					},
+				},
+			},
+		}
+		code = base_const.CodeOk
+
 	case "ResourceVirtual":
 		data = &base_spec.GetServiceDashboardIndexData{
 			Index: index_model.DashboardIndex{
