@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 
-set -xe
+# -x: output commands
+# -e: exit on error
+# -m: enable job controll
+set -xem
 
 function startpre {
     {{- range $i, $port := .Ports }}
@@ -32,7 +35,9 @@ function startpre {
 }
 
 function start {
-    qemu-system-x86_64 -m 2048 -drive file={{ .VmImagePath }},if=virtio -monitor telnet::4444,server,nowait \
+    qemu-system-x86_64 -m 2048 \
+        -drive file={{ .VmImagePath }},if=virtio \
+        -monitor telnet::4444,server,nowait \
         -drive file={{ .VmConfigImagePath }},format=raw,if=none,id=drive-ide0-1-0,readonly=on \
         -device ide-cd,bus=ide.1,unit=0,drive=drive-ide0-1-0,id=ide0-1-0 \
         {{- range $i, $port := .Ports }}
@@ -51,7 +56,8 @@ function start {
     ip netns exec {{ $port.Name }} sysctl -w net.ipv4.conf.{{ $port.Name }}-tap.proxy_arp=1
     {{- end }}
 
-    fg %$pid
+    jobs
+    fg
 }
 
 function stop {

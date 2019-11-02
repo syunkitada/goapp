@@ -4,12 +4,29 @@
 echo 'goapp:x:2000:2000:goapp,,,:/home/goapp:/bin/bash' >> /etc/passwd
 echo 'goapp:goapp' |chpasswd
 
-
 # Create Default Group
 echo "goapp:x:2000:goapp" >> /etc/group
 echo "%goapp  ALL=(ALL:ALL) ALL" >> /etc/sudoers
 
+sed -i 's/^PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config
+sudo systemctl restart sshd
 
+# Disable cloud-*
+for $service in `systemctl list-unit-files -t service | grep cloud- | awk '{print $1}'`
+do
+    systemctl disable cloud-config
+    systemctl disable cloud-final
+    systemctl disable cloud-init-local
+    systemctl disable cloud-init
+done
+
+
+# Create init files
+mkdir -p /opt/goapp
+mkdir -p /opt/goapp/bin/
+
+cat << EOS > /opt/goapp/bin/goapp-init
+#!/bin/sh -x
 # Setup Network
 {{- range $i, $port := .Ports }}
 
@@ -21,14 +38,29 @@ ip link set $dev{{ $i }} up
 
 ip route add {{ .DefaultGateway }} dev $dev0
 ip route add default via {{ .DefaultGateway }}
+EOS
 
 
-# Disable cloud-init
-systemctl disable cloud-init
-systemctl stop cloud-init
+# Create init service
+cat << EOS > /etc/systemd/system/goapp-init.service
+[Unit]
+Description=Initial cloud-init job (metadata service crawler)
+DefaultDependencies=no
+After=cloud-init-local.service
+After=systemd-networkd-wait-online.service
+After=networking.service
+Before=network-online.target
+Before=sshd-keygen.service
+Before=sshd.service
+Before=sysinit.target
+Before=systemd-user-sessions.service
 
+[Service]
+Type=oneshot
+ExecStart=/opt/goapp/bin/goapp-init
+RemainAfterExit=yes
+TimeoutSec=0
 
-# blkid
-# /dev/vda1: LABEL="cirros-rootfs" UUID="e65b9425-9b57-4801-bc6b-a1a34826dca7" TYPE="ext3" PARTUUID="41bc8213-5937-4083-bdc7-ed40d8939e36"
-# /dev/vda15: SEC_TYPE="msdos" UUID="23A0-8FEB" TYPE="vfat" PARTUUID="8d292d7f-06ca-4f62-ab5b-80f5d0fc1542"
-# /dev/sr0: UUID="2019-08-10-12-07-52-00" LABEL="config-2" TYPE="iso9660"
+# Output needs to appear in instance console output
+StandardOutput=journal+console
+EOS

@@ -30,7 +30,6 @@ func (driver *QemuDriver) syncActivatingAssignment(tctx *logger.TraceContext,
 	assignment spec.ComputeAssignmentEx, netnsPorts []compute_models.NetnsPort) error {
 	var err error
 	compute := assignment.Spec
-	fmt.Println("DEBUG QemuDriver syncActivatingAssignment")
 
 	vmDir := filepath.Join(driver.conf.VmsDir, compute.Name)
 	vmImagePath := filepath.Join(vmDir, "img")
@@ -111,6 +110,10 @@ func (driver *QemuDriver) syncActivatingAssignment(tctx *logger.TraceContext,
 		}); err != nil {
 		return err
 	}
+
+	// TODO
+	fmt.Println("DEBUG QemuDriver syncActivatingAssignment", vmServiceFilePath)
+	return err
 
 	tctx.SetTimeout(5)
 	if _, err = exec_utils.Cmdf(tctx, "systemctl daemon-reload"); err != nil {
