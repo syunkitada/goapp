@@ -1,7 +1,6 @@
 package qemu_driver
 
 import (
-	"fmt"
 	"io/ioutil"
 	"path/filepath"
 
@@ -110,10 +109,6 @@ func (driver *QemuDriver) syncActivatingAssignment(tctx *logger.TraceContext,
 		}); err != nil {
 		return err
 	}
-
-	// TODO
-	fmt.Println("DEBUG QemuDriver syncActivatingAssignment", vmServiceFilePath)
-	return err
 
 	tctx.SetTimeout(5)
 	if _, err = exec_utils.Cmdf(tctx, "systemctl daemon-reload"); err != nil {

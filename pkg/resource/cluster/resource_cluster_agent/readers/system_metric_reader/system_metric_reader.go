@@ -1,4 +1,4 @@
-package system_metrics_reader
+package system_metric_reader
 
 import (
 	"bufio"
@@ -10,12 +10,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/syunkitada/goapp/pkg/config"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
-	"github.com/syunkitada/goapp/pkg/resource/resource_model"
+	"github.com/syunkitada/goapp/pkg/resource/config"
+	"github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
 )
 
-type SystemMetricsReader struct {
+type SystemMetricReader struct {
 	name         string
 	enableLogin  bool
 	enableCpu    bool
@@ -24,36 +24,36 @@ type SystemMetricsReader struct {
 	uptimeStats  []UptimeStat
 	loginStats   []LoginStat
 	cpuStats     []CpuStat
-	numaNodes    []resource_model.NumaNodeSpec
+	numaNodes    []spec.NumaNodeSpec
 }
 
-func New(conf *config.ResourceMetricsSystemConfig) *SystemMetricsReader {
+func New(conf *config.ResourceMetricSystemConfig) *SystemMetricReader {
 	// f, _ := os.Open("/sys/devices/system/node/online")
 	// /sys/devices/system/node/node0/meminfo
 	nodeOnline, err := os.Open("/sys/devices/system/node/online")
 	if err != nil {
-		logger.StdoutFatalf("Failed Initialize SystemMetricsReader: %v", err)
+		logger.StdoutFatalf("Failed Initialize SystemMetricReader: %v", err)
 	}
 	defer nodeOnline.Close()
 
 	nodeOnlineBytes, err := ioutil.ReadAll(nodeOnline)
 	if err != nil {
-		logger.StdoutFatalf("Failed Initialize SystemMetricsReader: %v", err)
+		logger.StdoutFatalf("Failed Initialize SystemMetricReader: %v", err)
 	}
 	splitedNodes := strings.Split(strings.TrimRight(string(nodeOnlineBytes), "\n"), ",")
 
-	numaNodes := []resource_model.NumaNodeSpec{}
+	numaNodes := []spec.NumaNodeSpec{}
 	for _, node := range splitedNodes {
 		id, err := strconv.Atoi(node)
 		if err != nil {
-			logger.StdoutFatalf("Failed Initialize SystemMetricsReader: %v", err)
+			logger.StdoutFatalf("Failed Initialize SystemMetricReader: %v", err)
 		}
-		numaNodes = append(numaNodes, resource_model.NumaNodeSpec{
+		numaNodes = append(numaNodes, spec.NumaNodeSpec{
 			Id: id,
 		})
 	}
 
-	return &SystemMetricsReader{
+	return &SystemMetricReader{
 		name:         "system",
 		enableLogin:  conf.EnableLogin,
 		enableCpu:    conf.EnableCpu,
@@ -101,11 +101,11 @@ type CpuStat struct {
 	softirq       int64
 }
 
-func (reader *SystemMetricsReader) GetNumaNodes(tctx *logger.TraceContext) []resource_model.NumaNodeSpec {
+func (reader *SystemMetricReader) GetNumaNodes(tctx *logger.TraceContext) []spec.NumaNodeSpec {
 	return reader.numaNodes
 }
 
-func (reader *SystemMetricsReader) Read(tctx *logger.TraceContext) error {
+func (reader *SystemMetricReader) Read(tctx *logger.TraceContext) error {
 	timestamp := time.Now()
 
 	// Read /proc/uptime
@@ -234,34 +234,34 @@ func (reader *SystemMetricsReader) Read(tctx *logger.TraceContext) error {
 	return nil
 }
 
-func (reader *SystemMetricsReader) GetName() string {
+func (reader *SystemMetricReader) GetName() string {
 	return reader.name
 }
 
-func (reader *SystemMetricsReader) Report() ([]resource_model.Metric, []resource_model.Alert) {
-	metrics := make([]resource_model.Metric, 0, 100)
-	alerts := make([]resource_model.Alert, 0, 100)
+func (reader *SystemMetricReader) Report() ([]spec.ResourceMetric, []spec.ResourceAlert) {
+	metrics := make([]spec.ResourceMetric, 0, 100)
+	alerts := make([]spec.ResourceAlert, 0, 100)
 
 	for _, stat := range reader.uptimeStats {
 		timestamp := strconv.FormatInt(stat.timestamp.UnixNano(), 10)
-		metrics = append(metrics, resource_model.Metric{
+		metrics = append(metrics, spec.ResourceMetric{
 			Name: "system_uptime",
 			Time: timestamp,
 			Tag:  map[string]string{},
-			Metric: map[string]int64{
-				"uptime": stat.uptime,
+			Metric: map[string]float64{
+				"uptime": float64(stat.uptime),
 			},
 		})
 	}
 
 	for _, stat := range reader.loginStats {
 		timestamp := strconv.FormatInt(stat.timestamp.UnixNano(), 10)
-		metrics = append(metrics, resource_model.Metric{
+		metrics = append(metrics, spec.ResourceMetric{
 			Name: "system_login",
 			Time: timestamp,
 			Tag:  map[string]string{},
-			Metric: map[string]int64{
-				"users": int64(len(stat.users)),
+			Metric: map[string]float64{
+				"users": float64(len(stat.users)),
 			},
 		})
 	}
@@ -269,41 +269,41 @@ func (reader *SystemMetricsReader) Report() ([]resource_model.Metric, []resource
 	for _, stat := range reader.cpuStats {
 		timestamp := strconv.FormatInt(stat.timestamp.UnixNano(), 10)
 		for cpuName, cpu := range stat.cpuMap {
-			metrics = append(metrics, resource_model.Metric{
+			metrics = append(metrics, spec.ResourceMetric{
 				Name: "system_cpu",
 				Time: timestamp,
 				Tag: map[string]string{
 					"cpu": cpuName,
 				},
-				Metric: map[string]int64{
-					"user":       cpu[0],
-					"nice":       cpu[1],
-					"system":     cpu[2],
-					"idle":       cpu[3],
-					"iowait":     cpu[4],
-					"irq":        cpu[5],
-					"softirq":    cpu[6],
-					"steal":      cpu[7],
-					"guest":      cpu[8],
-					"guest_nice": cpu[9],
+				Metric: map[string]float64{
+					"user":       float64(cpu[0]),
+					"nice":       float64(cpu[1]),
+					"system":     float64(cpu[2]),
+					"idle":       float64(cpu[3]),
+					"iowait":     float64(cpu[4]),
+					"irq":        float64(cpu[5]),
+					"softirq":    float64(cpu[6]),
+					"steal":      float64(cpu[7]),
+					"guest":      float64(cpu[8]),
+					"guest_nice": float64(cpu[9]),
 				},
 			})
 		}
 
-		metrics = append(metrics, resource_model.Metric{
+		metrics = append(metrics, spec.ResourceMetric{
 			Name: "system_cpu",
 			Time: timestamp,
 			Tag: map[string]string{
 				"cpu": "cpu",
 			},
-			Metric: map[string]int64{
-				"intr":          stat.intr,
-				"ctx":           stat.ctx,
-				"btime":         stat.btime,
-				"processes":     stat.processes,
-				"procs_running": stat.procs_running,
-				"procs_blocked": stat.procs_blocked,
-				"softirq":       stat.softirq,
+			Metric: map[string]float64{
+				"intr":          float64(stat.intr),
+				"ctx":           float64(stat.ctx),
+				"btime":         float64(stat.btime),
+				"processes":     float64(stat.processes),
+				"procs_running": float64(stat.procs_running),
+				"procs_blocked": float64(stat.procs_blocked),
+				"softirq":       float64(stat.softirq),
 			},
 		})
 
@@ -315,7 +315,7 @@ func (reader *SystemMetricsReader) Report() ([]resource_model.Metric, []resource
 	return metrics, alerts
 }
 
-func (reader *SystemMetricsReader) Reported() {
+func (reader *SystemMetricReader) Reported() {
 	for _, stat := range reader.cpuStats {
 		stat.reportStatus = 2
 	}

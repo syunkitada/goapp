@@ -72,3 +72,38 @@ type ReportNodeTask struct {
 
 type ReportNodeTaskData struct {
 }
+
+type ReportResource struct {
+	Warning  string
+	Warnings int
+	Error    string
+	Errors   int
+	Logs     []ResourceLog
+	Metrics  []ResourceMetric
+	Alerts   []ResourceAlert
+}
+
+type ReportResourceData struct {
+}
+
+type ResourceLog struct {
+	Name string
+	Time string
+	Log  map[string]string
+}
+
+type ResourceMetric struct {
+	Name   string
+	Time   string
+	Tag    map[string]string
+	Metric map[string]float64
+}
+
+type ResourceAlert struct {
+	Name    string
+	Time    string
+	Level   string
+	Handler string
+	Msg     string
+	Tag     map[string]string
+}

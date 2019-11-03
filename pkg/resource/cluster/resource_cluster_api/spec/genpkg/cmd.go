@@ -70,11 +70,6 @@ var ResourceVirtualAdminCmdMap = map[string]index_model.Cmd{
 				FlagType: "string",
 				FlagKind: "",
 			},
-			"region,r": index_model.Flag{
-				Required: true,
-				FlagType: "string",
-				FlagKind: "",
-			},
 		},
 		OutputKind:   "",
 		OutputFormat: "",
@@ -127,6 +122,48 @@ var ResourceVirtualAdminCmdMap = map[string]index_model.Cmd{
 		OutputKind:   "",
 		OutputFormat: "",
 	},
+	"report.resource": index_model.Cmd{
+		QueryName: "ReportResource",
+		FlagMap: map[string]index_model.Flag{
+			"warning,w": index_model.Flag{
+				Required: false,
+				FlagType: "string",
+				FlagKind: "",
+			},
+			"warnings,w": index_model.Flag{
+				Required: false,
+				FlagType: "int",
+				FlagKind: "",
+			},
+			"error,e": index_model.Flag{
+				Required: false,
+				FlagType: "string",
+				FlagKind: "",
+			},
+			"errors,e": index_model.Flag{
+				Required: false,
+				FlagType: "int",
+				FlagKind: "",
+			},
+			"logs,l": index_model.Flag{
+				Required: false,
+				FlagType: "[]spec.ResourceLog",
+				FlagKind: "",
+			},
+			"metrics,m": index_model.Flag{
+				Required: false,
+				FlagType: "[]spec.ResourceMetric",
+				FlagKind: "",
+			},
+			"alerts,a": index_model.Flag{
+				Required: false,
+				FlagType: "[]spec.ResourceAlert",
+				FlagKind: "",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
 }
 
 var ApiQueryMap = map[string]map[string]spec_model.QueryModel{
@@ -168,6 +205,10 @@ var ApiQueryMap = map[string]map[string]spec_model.QueryModel{
 			RequiredProject: true,
 		},
 		"ReportNodeTask": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"ReportResource": spec_model.QueryModel{
 			RequiredAuth:    true,
 			RequiredProject: true,
 		},

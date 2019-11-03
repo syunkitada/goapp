@@ -42,6 +42,8 @@ type ResourceClusterApiConfig struct {
 type ResourceClusterAgentConfig struct {
 	base_config.AppConfig
 	Compute ResourceComputeConfig
+	LogMap  map[string]ResourceLogConfig
+	Metric  ResourceMetricConfig
 }
 
 type ResourceComputeConfig struct {
@@ -87,6 +89,32 @@ type ResourceLibvirtConfig struct {
 	DiskType           string // local
 	NetworkType        string // local-linuxbridge
 	NetworkVhostQueues int
+}
+
+type ResourceLogConfig struct {
+	Path               string
+	LogFormat          string
+	MaxInitialReadSize int64
+	AlertMap           map[string]ResourceLogAlertConfig
+}
+
+type ResourceLogAlertConfig struct {
+	Key     string
+	Pattern string
+	Level   string
+	Handler string
+}
+
+type ResourceMetricConfig struct {
+	System ResourceMetricSystemConfig
+}
+
+type ResourceMetricSystemConfig struct {
+	Enable       bool
+	EnableLogin  bool
+	EnableCpu    bool
+	EnableMemory bool
+	CacheLength  int
 }
 
 var BaseConf = base_config.Config{}

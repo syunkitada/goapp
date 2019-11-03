@@ -13,6 +13,7 @@ var RootCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		srv := server.New(&config.BaseConf, &config.MainConf)
 		srv.StartMainLoop()
+		srv.StartSubLoop()
 		srv.Serve()
 	},
 }

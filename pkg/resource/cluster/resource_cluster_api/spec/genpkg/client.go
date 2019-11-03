@@ -121,6 +121,20 @@ type ReportNodeTaskResult struct {
 	Error string
 	Data  spec.ReportNodeTaskData
 }
+type ReportResourceResponse struct {
+	base_model.Response
+	ResultMap ReportResourceResultMap
+}
+
+type ReportResourceResultMap struct {
+	ReportResource ReportResourceResult
+}
+
+type ReportResourceResult struct {
+	Code  uint8
+	Error string
+	Data  spec.ReportResourceData
+}
 type SyncNodeResponse struct {
 	base_model.Response
 	ResultMap SyncNodeResultMap
@@ -277,6 +291,21 @@ func (client *Client) ResourceVirtualAdminReportNodeTask(tctx *logger.TraceConte
 		return
 	}
 	result := res.ResultMap.ReportNodeTask
+	if result.Code >= 100 || result.Error != "" {
+		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
+		return
+	}
+
+	data = &result.Data
+	return
+}
+func (client *Client) ResourceVirtualAdminReportResource(tctx *logger.TraceContext, queries []base_client.Query) (data *spec.ReportResourceData, err error) {
+	var res ReportResourceResponse
+	err = client.Request(tctx, "ResourceVirtualAdmin", queries, &res, true)
+	if err != nil {
+		return
+	}
+	result := res.ResultMap.ReportResource
 	if result.Code >= 100 || result.Error != "" {
 		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
 		return

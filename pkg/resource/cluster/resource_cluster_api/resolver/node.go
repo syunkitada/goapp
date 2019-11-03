@@ -44,3 +44,14 @@ func (resolver *Resolver) ReportNodeTask(tctx *logger.TraceContext, input *api_s
 	data = &api_spec.ReportNodeTaskData{}
 	return
 }
+
+func (resolver *Resolver) ReportResource(tctx *logger.TraceContext, input *api_spec.ReportResource,
+	user *base_spec.UserAuthority) (data *api_spec.ReportResourceData, code uint8, err error) {
+	// if err = resolver.dbApi.ReportResource(tctx, input); err != nil {
+	// 	code = base_const.CodeServerInternalError
+	// 	return
+	// }
+	code = base_const.CodeOk
+	data = &api_spec.ReportResourceData{}
+	return
+}
