@@ -103,6 +103,8 @@ func (srv *Server) Report(tctx *logger.TraceContext) (err error) {
 		base_client.Query{
 			Name: "ReportResource",
 			Data: resource_api_spec.ReportResource{
+				Host:     srv.baseConf.Host,
+				Project:  srv.clusterConf.Agent.ReportProject,
 				Warning:  "",
 				Warnings: 0,
 				Error:    "",

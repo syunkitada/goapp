@@ -226,6 +226,74 @@ func (resolver *Resolver) GetServiceDashboardIndex(tctx *logger.TraceContext,
 			},
 		}
 		code = base_const.CodeOk
+
+	case "ResourceMonitor":
+		var clusters []spec.Cluster
+		clusters, err = resolver.dbApi.GetClusters(tctx, &spec.GetClusters{}, user)
+		if err != nil {
+			return
+		}
+
+		data = &base_spec.GetServiceDashboardIndexData{
+			Data: map[string]interface{}{
+				"Clusters": clusters,
+			},
+			Index: index_model.DashboardIndex{
+				View: index_model.Panels{
+					Name: "Root",
+					Kind: "RoutePanels",
+					Panels: []interface{}{
+						index_model.Table{
+							Name:    "Clusters",
+							Kind:    "Table",
+							Route:   "",
+							DataKey: "Clusters",
+							Columns: []index_model.TableColumn{
+								index_model.TableColumn{
+									Name:           "Name",
+									IsSearch:       true,
+									Link:           "Clusters/:0/Resources/Resources",
+									LinkParam:      "Cluster",
+									LinkSync:       true,
+									LinkGetQueries: []string{"GetNodes"},
+								},
+								index_model.TableColumn{Name: "Cluster", IsSearch: true},
+								index_model.TableColumn{Name: "UpdatedAt", Kind: "Time", Sort: "asc"},
+								index_model.TableColumn{Name: "CreatedAt", Kind: "Time"},
+							},
+						},
+						index_model.Tabs{
+							Name:             "Resources",
+							Kind:             "RouteTabs",
+							Subname:          "Kind",
+							Route:            "/Clusters/:Cluster/Resources/:Kind",
+							TabParam:         "Kind",
+							GetQueries:       []string{"GetNodes"},
+							ExpectedDataKeys: []string{"Nodes"},
+							IsSync:           true,
+							Tabs: []interface{}{
+								spec.RegionServicesTable,
+								spec.ImagesTable,
+							},
+						},
+						gin.H{
+							"Name":      "Resource",
+							"Subname":   "Name",
+							"Route":     "/Clusters/:Cluster/Resources/:Kind/Detail/:Name/:Subkind",
+							"Kind":      "RoutePanes",
+							"PaneParam": "Kind",
+							"Panes": []interface{}{
+								spec.ComputesDetail,
+								spec.RegionServicesDetail,
+								spec.ImagesDetail,
+							},
+						},
+					},
+				},
+			},
+		}
+		code = base_const.CodeOk
+
 	default:
 		code = base_const.CodeClientNotFound
 	}

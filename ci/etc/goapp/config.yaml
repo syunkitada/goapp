@@ -115,8 +115,6 @@ resource:
           - 'goapp:goapppass@http://127.0.0.1:8086@goapp_monitor_logs'
         metricDatabases:
           - 'goapp:goapppass@http://127.0.0.1:8086@goapp_monitor_metrics'
-        percistentDatabases:
-          - 'goapp:goapppass@http://127.0.0.1:8086@goapp_monitor_percistent'
       api:
         listen: '0.0.0.0:13400'
         endpoints: ['https://127.0.0.1:13400']
@@ -182,6 +180,7 @@ resource:
           configDir: '/home/owner/.goapp/etc/resource/compute/'
           varDir: '/home/owner/.goapp/var/compute'
           driver: 'mock'
+        reportProject: 'admin'
         logMap:
           goapp-resource-cluster-agent:
             path: 'goapp-resource-cluster-agent.log'

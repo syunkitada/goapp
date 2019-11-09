@@ -96,7 +96,7 @@ func (driver *InfluxdbDriver) Report(tctx *logger.TraceContext, input *api_spec.
 	for _, client := range driver.alertClients {
 		err := client.Write(alertsData)
 		if err != nil {
-			logger.Warning(tctx, err, "Failed Write")
+			logger.Warning(tctx, err, "Failed Write alerts")
 		}
 	}
 
@@ -128,7 +128,7 @@ func (driver *InfluxdbDriver) Report(tctx *logger.TraceContext, input *api_spec.
 		err := client.Write(metricsData)
 		if err != nil {
 			logger.Warning(tctx, err, "Failed Write")
-			fmt.Println("DEBUG Failed Write", err)
+			fmt.Println("DEBUG Failed Write metrics", err)
 		}
 	}
 
@@ -169,7 +169,7 @@ func (driver *InfluxdbDriver) Report(tctx *logger.TraceContext, input *api_spec.
 	for _, client := range driver.logClients {
 		err := client.Write(logData)
 		if err != nil {
-			logger.Warning(tctx, err, "Failed Write")
+			logger.Warning(tctx, err, "Failed Write log")
 		}
 	}
 
@@ -302,6 +302,8 @@ func (c *Client) Write(data string) error {
 	if resp.StatusCode == 204 {
 		return nil
 	}
+
+	fmt.Println("DEBUG data", data)
 
 	return fmt.Errorf("InvalidStatusCode: %v", resp.StatusCode)
 }

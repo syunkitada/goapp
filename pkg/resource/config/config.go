@@ -42,9 +42,10 @@ type ResourceClusterApiConfig struct {
 
 type ResourceClusterAgentConfig struct {
 	base_config.AppConfig
-	Compute ResourceComputeConfig
-	LogMap  map[string]ResourceLogConfig
-	Metric  ResourceMetricConfig
+	Compute       ResourceComputeConfig
+	ReportProject string
+	LogMap        map[string]ResourceLogConfig
+	Metric        ResourceMetricConfig
 }
 
 type ResourceComputeConfig struct {
