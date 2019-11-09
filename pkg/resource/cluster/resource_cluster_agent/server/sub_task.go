@@ -6,6 +6,7 @@ import (
 
 	"github.com/syunkitada/goapp/pkg/base/base_client"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
+	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_agent/readers/log_reader"
 	resource_api_spec "github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
 )
 
@@ -30,7 +31,54 @@ func (srv *Server) SubLoop() {
 
 func (srv *Server) SubTask(tctx *logger.TraceContext) (err error) {
 	fmt.Println("subTask")
-	// TODO Report metrics, logs
+
+	for metricName, metricReader := range srv.metricReaderMap {
+		err = metricReader.Read(tctx)
+		if err != nil {
+			logger.Warningf(tctx, "Failed metricReader.Read(): %s, err=%v", metricName, err)
+		}
+	}
+
+	// reinitialize logMap
+	if srv.logReaderRefreshCount == 0 {
+		for logName, logConf := range srv.logMap {
+			if _, ok := srv.logReaderMap[logName]; ok {
+				continue
+			}
+
+			reader, err := log_reader.New(srv.baseConf, logName, &logConf)
+			if err != nil {
+				continue
+			}
+			srv.logReaderMap[logName] = reader
+		}
+	}
+
+	if srv.logReaderRefreshCount >= srv.logReaderRefreshSpan {
+		srv.logReaderRefreshCount = 0
+	} else {
+		srv.logReaderRefreshCount++
+	}
+
+	for logName, logReader := range srv.logReaderMap {
+		err = logReader.ReadUntilEOF(tctx)
+		if err != nil {
+			logger.Warningf(tctx, "Failed logReader.ReadUntilEOF(): %s, err=%v", logName, err)
+		}
+	}
+
+	if srv.reportCount == 0 {
+		if err = srv.Report(tctx); err != nil {
+			return err
+		}
+	}
+
+	if srv.reportCount >= srv.reportSpan {
+		srv.reportCount = 0
+	} else {
+		srv.reportCount++
+	}
+
 	return
 }
 
@@ -66,6 +114,15 @@ func (srv *Server) Report(tctx *logger.TraceContext) (err error) {
 		},
 	}
 
-	fmt.Println("DEBUG queries", queries)
+	if _, err = srv.apiClient.ResourceVirtualAdminReportResource(tctx, queries); err != nil {
+		return
+	}
+
+	for _, metricReader := range srv.metricReaderMap {
+		metricReader.Reported()
+	}
+	for _, logReader := range srv.logReaderMap {
+		logReader.Reported()
+	}
 	return
 }

@@ -1,6 +1,8 @@
 package resolver
 
 import (
+	"fmt"
+
 	"github.com/syunkitada/goapp/pkg/base/base_const"
 	"github.com/syunkitada/goapp/pkg/base/base_spec"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
@@ -47,10 +49,14 @@ func (resolver *Resolver) ReportNodeTask(tctx *logger.TraceContext, input *api_s
 
 func (resolver *Resolver) ReportResource(tctx *logger.TraceContext, input *api_spec.ReportResource,
 	user *base_spec.UserAuthority) (data *api_spec.ReportResourceData, code uint8, err error) {
-	// if err = resolver.dbApi.ReportResource(tctx, input); err != nil {
-	// 	code = base_const.CodeServerInternalError
-	// 	return
-	// }
+	fmt.Println("DEBUG reportResource")
+	if err = resolver.tsdbApi.ReportResource(tctx, input); err != nil {
+		code = base_const.CodeServerInternalError
+		fmt.Println("DEBUG error report", err)
+		return
+	}
+	fmt.Println("DEBUG logs:", len(input.Logs))
+	fmt.Println("DEBUG metrics:", len(input.Metrics))
 	code = base_const.CodeOk
 	data = &api_spec.ReportResourceData{}
 	return

@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path"
 	"regexp"
 	"strings"
 
-	"github.com/syunkitada/goapp/pkg/config"
+	"github.com/syunkitada/goapp/pkg/base/base_config"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
+	"github.com/syunkitada/goapp/pkg/resource/config"
 	"github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
 )
 
@@ -36,7 +38,7 @@ type LogReader struct {
 	alerts             []spec.ResourceAlert
 }
 
-func New(conf *config.Config, name string, logConf *config.MonitorLogConfig) (*LogReader, error) {
+func New(baseConf *base_config.Config, name string, logConf *config.ResourceLogConfig) (*LogReader, error) {
 	var logFormat int
 	switch logConf.LogFormat {
 	case "":
@@ -64,7 +66,7 @@ func New(conf *config.Config, name string, logConf *config.MonitorLogConfig) (*L
 
 	reader := &LogReader{
 		name:               name,
-		path:               conf.LogPath(logConf.Path),
+		path:               path.Join(baseConf.LogDir, logConf.Path),
 		logFormat:          logFormat,
 		maxInitialReadSize: logConf.MaxInitialReadSize,
 		alertsMap:          alertsMap,

@@ -74,13 +74,18 @@ type ReportNodeTaskData struct {
 }
 
 type ReportResource struct {
-	Warning  string
-	Warnings int
-	Error    string
-	Errors   int
-	Logs     []ResourceLog
-	Metrics  []ResourceMetric
-	Alerts   []ResourceAlert
+	Project   string
+	Kind      string
+	Host      string
+	Warning   string
+	Warnings  int
+	Error     string
+	Errors    int
+	State     string
+	Timestate time.Time
+	Logs      []ResourceLog
+	Metrics   []ResourceMetric
+	Alerts    []ResourceAlert
 }
 
 type ReportResourceData struct {

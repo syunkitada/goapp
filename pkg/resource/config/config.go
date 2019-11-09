@@ -24,14 +24,15 @@ type ResourceControllerConfig struct {
 }
 
 type ResourceClusterConfig struct {
-	Region       string
-	Datacenter   string
-	Kind         string
-	Weight       int
-	DomainSuffix string
-	Api          base_config.AppConfig
-	Controller   base_config.AppConfig
-	Agent        ResourceClusterAgentConfig
+	Region             string
+	Datacenter         string
+	Kind               string
+	Weight             int
+	DomainSuffix       string
+	TimeSeriesDatabase TimeSeriesDatabaseConfig
+	Api                base_config.AppConfig
+	Controller         base_config.AppConfig
+	Agent              ResourceClusterAgentConfig
 }
 
 type ResourceClusterApiConfig struct {
@@ -115,6 +116,14 @@ type ResourceMetricSystemConfig struct {
 	EnableCpu    bool
 	EnableMemory bool
 	CacheLength  int
+}
+
+type TimeSeriesDatabaseConfig struct {
+	Driver              string
+	AlertDatabases      []string
+	LogDatabases        []string
+	MetricDatabases     []string
+	PercistentDatabases []string
 }
 
 var BaseConf = base_config.Config{}

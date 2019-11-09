@@ -30,8 +30,12 @@ type Server struct {
 	computeConf   config.ResourceComputeExConfig
 	computeDriver compute_drivers.ComputeDriver
 
+	reportCount int
+	reportSpan  int
+
 	metricReaderMap map[string]readers.MetricReader
 
+	logMap                map[string]config.ResourceLogConfig
 	logReaderMap          map[string]*log_reader.LogReader
 	logReaderRefreshSpan  int
 	logReaderRefreshCount int
@@ -72,20 +76,28 @@ func New(baseConf *base_config.Config, mainConf *config.Config) *Server {
 
 	computeDriver := compute_drivers.Load(&computeExConf)
 
+	// init metric readers
 	metricReaderMap := map[string]readers.MetricReader{}
-	metricReaderMap["system"] = system_metric_reader.New(&clusterConf.Agent.Metric.System)
+	if clusterConf.Agent.Metric.System.Enable {
+		metricReaderMap["system"] = system_metric_reader.New(&clusterConf.Agent.Metric.System)
+	}
 
 	srv := &Server{
-		BaseApp:              baseApp,
-		baseConf:             baseConf,
-		clusterConf:          &clusterConf,
-		queryHandler:         queryHandler,
-		apiClient:            apiClient,
-		computeConf:          computeExConf,
-		computeDriver:        computeDriver,
-		metricReaderMap:      metricReaderMap,
-		logReaderMap:         map[string]*log_reader.LogReader{},
-		logReaderRefreshSpan: 10,
+		BaseApp:       baseApp,
+		baseConf:      baseConf,
+		clusterConf:   &clusterConf,
+		queryHandler:  queryHandler,
+		apiClient:     apiClient,
+		computeConf:   computeExConf,
+		computeDriver: computeDriver,
+
+		reportCount:           0,
+		reportSpan:            10,
+		metricReaderMap:       metricReaderMap,
+		logMap:                clusterConf.Agent.LogMap,
+		logReaderMap:          map[string]*log_reader.LogReader{},
+		logReaderRefreshSpan:  10,
+		logReaderRefreshCount: 0,
 	}
 	srv.SetDriver(srv)
 	return srv
