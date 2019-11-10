@@ -67,12 +67,12 @@ func (driver *InfluxdbDriver) Report(tctx *logger.TraceContext, input *api_spec.
 
 	alertsData := ""
 	for _, alert := range input.Alerts {
-		tags := ",Project=" + input.Project + ",Host=" + input.Host
+		tags := ",Project=" + input.Project + ",Node=" + input.Name
 		for key, value := range alert.Tag {
 			switch key {
 			case "Project":
 				continue
-			case "Host":
+			case "Node":
 				continue
 			default:
 				tags += "," + key + "=" + value
@@ -91,13 +91,13 @@ func (driver *InfluxdbDriver) Report(tctx *logger.TraceContext, input *api_spec.
 
 	metricsData := ""
 	for _, metric := range input.Metrics {
-		tags := ",Project=" + input.Project + ",Host=" + input.Host
+		tags := ",Project=" + input.Project + ",Node=" + input.Name
 		values := ""
 		for key, value := range metric.Tag {
 			switch key {
 			case "Project":
 				continue
-			case "Host":
+			case "Node":
 				continue
 			default:
 				tags += "," + key + "=" + value
@@ -123,7 +123,7 @@ func (driver *InfluxdbDriver) Report(tctx *logger.TraceContext, input *api_spec.
 
 	logData := ""
 	for _, log := range input.Logs {
-		tags := ",Project=" + input.Project + ",Host=" + input.Host
+		tags := ",Project=" + input.Project + ",Node=" + input.Name
 		logstr := ""
 		values := ""
 		for key, value := range log.Log {
@@ -131,7 +131,7 @@ func (driver *InfluxdbDriver) Report(tctx *logger.TraceContext, input *api_spec.
 			switch key {
 			case "Project":
 				continue
-			case "Host":
+			case "Node":
 				continue
 			case "App":
 				tags += ",App=" + value

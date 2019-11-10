@@ -10,8 +10,8 @@ type ClusterNodeService struct {
 
 type NodeServiceMeta struct {
 	NodeService   base_db_model.NodeService `gorm:"foreignkey:NodeServiceID;association_foreignkey:Refer;"`
-	NodeServiceID uint               `gorm:"not null;primary_key"`
-	Weight int
+	NodeServiceID uint                      `gorm:"not null;primary_key"`
+	Weight        int
 }
 
 type NodeServiceWithMeta struct {

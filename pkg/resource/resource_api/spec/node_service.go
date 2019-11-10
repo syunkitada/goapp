@@ -75,13 +75,12 @@ type ReportNodeServiceTaskData struct {
 
 type ReportNode struct {
 	Project   string
-	Kind      string
-	Host      string
+	Name      string
+	State     string
 	Warning   string
 	Warnings  int
 	Error     string
 	Errors    int
-	State     string
 	Timestate time.Time
 	Logs      []ResourceLog
 	Metrics   []ResourceMetric

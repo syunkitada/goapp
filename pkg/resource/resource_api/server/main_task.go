@@ -14,5 +14,9 @@ func (srv *Server) MainTask(tctx *logger.TraceContext) (err error) {
 	if err = srv.SyncNodeServiceByDb(tctx, &nodeSpec); err != nil {
 		return
 	}
+
+	if err = srv.dbApi.SyncClusterClient(tctx); err != nil {
+		return
+	}
 	return
 }

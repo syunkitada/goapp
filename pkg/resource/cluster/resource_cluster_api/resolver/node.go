@@ -7,12 +7,17 @@ import (
 	"github.com/syunkitada/goapp/pkg/base/base_spec"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 
+	"github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
 	api_spec "github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
 )
 
 func (resolver *Resolver) ReportNode(tctx *logger.TraceContext, input *api_spec.ReportNode,
 	user *base_spec.UserAuthority) (data *api_spec.ReportNodeData, code uint8, err error) {
-	fmt.Println("DEBUG reportResource")
+	if err = resolver.dbApi.ReportNode(tctx, input); err != nil {
+		code = base_const.CodeServerInternalError
+		return
+	}
+
 	if err = resolver.tsdbApi.ReportNode(tctx, input); err != nil {
 		code = base_const.CodeServerInternalError
 		fmt.Println("DEBUG error report", err)
@@ -22,5 +27,17 @@ func (resolver *Resolver) ReportNode(tctx *logger.TraceContext, input *api_spec.
 	fmt.Println("DEBUG metrics:", len(input.Metrics))
 	code = base_const.CodeOk
 	data = &api_spec.ReportNodeData{}
+	return
+}
+
+func (resolver *Resolver) GetNodes(tctx *logger.TraceContext, input *api_spec.GetNodes,
+	user *base_spec.UserAuthority) (data *api_spec.GetNodesData, code uint8, err error) {
+	var nodes []spec.Node
+	if nodes, err = resolver.dbApi.GetNodes(tctx, input); err != nil {
+		code = base_const.CodeServerInternalError
+		return
+	}
+	code = base_const.CodeOk
+	data = &spec.GetNodesData{Nodes: nodes}
 	return
 }

@@ -7,24 +7,13 @@ import (
 	"github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
 )
 
-func (resolver *Resolver) GetNodeServices(tctx *logger.TraceContext, input *spec.GetNodeServices, user *base_spec.UserAuthority) (data *spec.GetNodeServicesData, code uint8, err error) {
-	var nodes []base_spec.NodeService
-	if nodes, err = resolver.dbApi.GetNodeServices(tctx, &base_spec.GetNodeServices{}, user); err != nil {
+func (resolver *Resolver) GetNodes(tctx *logger.TraceContext, input *spec.GetNodes, user *base_spec.UserAuthority) (data *spec.GetNodesData, code uint8, err error) {
+	var nodes []spec.Node
+	if nodes, err = resolver.dbApi.GetNodes(tctx, input, user); err != nil {
 		code = base_const.CodeServerInternalError
 		return
 	}
 	code = base_const.CodeOk
-	data = &spec.GetNodeServicesData{NodeServices: nodes}
-	return
-}
-
-func (resolver *Resolver) GetNodes(tctx *logger.TraceContext, input *spec.GetNodes, user *base_spec.UserAuthority) (data *spec.GetNodesData, code uint8, err error) {
-	var nodes []spec.Node
-	// if nodes, err = resolver.dbApi.GetNodes(tctx, &base_spec.GetNodes{}, user); err != nil {
-	// 	code = base_const.CodeServerInternalError
-	// 	return
-	// }
-	code = base_const.CodeOk
-	data = &spec.GetNodesData{Node: nodes}
+	data = &spec.GetNodesData{Nodes: nodes}
 	return
 }

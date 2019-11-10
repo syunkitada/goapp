@@ -4,10 +4,9 @@ import "github.com/jinzhu/gorm"
 
 type Node struct {
 	gorm.Model
-	Name    string `gorm:"not null;size:255;"`
-	Kind    string `gorm:"not null;size:25;"`
-	State   string `gorm:"not null;size:25;"`
-	Wanings string `gorm:"not null;size:25;"`
-	Errors  string `gorm:"not null;size:25;"`
-	Labels  string `gorm:"not null;size:500;"`
+	Name     string `gorm:"not null;size:255;"`
+	State    string `gorm:"not null;size:25;"`
+	Warnings int    `gorm:"not null;"`
+	Errors   int    `gorm:"not null;"`
+	Labels   string `gorm:"not null;size:500;"`
 }

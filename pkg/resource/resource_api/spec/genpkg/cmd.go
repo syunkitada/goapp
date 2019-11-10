@@ -745,7 +745,7 @@ var ResourceVirtualAdminCmdMap = map[string]index_model.Cmd{
 		QueryName: "GetNodes",
 		FlagMap: map[string]index_model.Flag{
 			"cluster,c": index_model.Flag{
-				Required: false,
+				Required: true,
 				FlagType: "string",
 				FlagKind: "",
 			},

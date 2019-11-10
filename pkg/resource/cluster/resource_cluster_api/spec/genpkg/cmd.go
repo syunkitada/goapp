@@ -122,6 +122,18 @@ var ResourceVirtualAdminCmdMap = map[string]index_model.Cmd{
 		OutputKind:   "",
 		OutputFormat: "",
 	},
+	"get.nodes": index_model.Cmd{
+		QueryName: "GetNodes",
+		FlagMap: map[string]index_model.Flag{
+			"cluster,c": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+		},
+		OutputKind:   "table",
+		OutputFormat: "Name,Kind,State,Wanings,Errors,Labels",
+	},
 	"report.node": index_model.Cmd{
 		QueryName: "ReportNode",
 		FlagMap: map[string]index_model.Flag{
@@ -130,12 +142,12 @@ var ResourceVirtualAdminCmdMap = map[string]index_model.Cmd{
 				FlagType: "string",
 				FlagKind: "",
 			},
-			"kind,k": index_model.Flag{
+			"name,n": index_model.Flag{
 				Required: false,
 				FlagType: "string",
 				FlagKind: "",
 			},
-			"host,h": index_model.Flag{
+			"state,s": index_model.Flag{
 				Required: false,
 				FlagType: "string",
 				FlagKind: "",
@@ -158,11 +170,6 @@ var ResourceVirtualAdminCmdMap = map[string]index_model.Cmd{
 			"errors,e": index_model.Flag{
 				Required: false,
 				FlagType: "int",
-				FlagKind: "",
-			},
-			"state,s": index_model.Flag{
-				Required: false,
-				FlagType: "string",
 				FlagKind: "",
 			},
 			"timestate,t": index_model.Flag{
@@ -230,6 +237,10 @@ var ApiQueryMap = map[string]map[string]spec_model.QueryModel{
 			RequiredProject: true,
 		},
 		"ReportNodeServiceTask": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"GetNodes": spec_model.QueryModel{
 			RequiredAuth:    true,
 			RequiredProject: true,
 		},

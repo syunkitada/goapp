@@ -131,8 +131,8 @@ func (api *Api) SyncCompute(tctx *logger.TraceContext) (err error) {
 		}
 
 		// TODO filter by resource driver
-		if err = tx.Table("nodes as n").Select("*").
-			Joins("INNER JOIN node_meta as nm ON n.id = nm.node_id").
+		if err = tx.Table("node_services as n").Select("*").
+			Joins("INNER JOIN node_meta as nm ON n.id = nm.node_service_id").
 			Where("n.kind = ?", consts.KindResourceClusterAgent).Scan(&nodes).Error; err != nil {
 			return
 		}
@@ -550,10 +550,10 @@ func (api *Api) AssignCompute(tctx *logger.TraceContext,
 			switch compute.Status {
 			case base_const.StatusCreating:
 				if err = tx.Create(&db_model.ComputeAssignment{
-					ComputeID:    compute.ID,
-					NodeServiceID:       nodeID,
-					Status:       base_const.StatusCreating,
-					StatusReason: "Creating",
+					ComputeID:     compute.ID,
+					NodeServiceID: nodeID,
+					Status:        base_const.StatusCreating,
+					StatusReason:  "Creating",
 				}).Error; err != nil {
 					return
 				}

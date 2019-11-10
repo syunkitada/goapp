@@ -1,18 +1,17 @@
 package spec
 
 type Node struct {
-	Name    string
-	Kind    string
-	State   string
-	Wanings int
-	Errors  int
-	Labels  string
+	Name     string
+	State    string
+	Warnings int
+	Errors   int
+	Labels   string
 }
 
 type GetNodes struct {
-	Cluster string
+	Cluster string `validate:"required"`
 }
 
 type GetNodesData struct {
-	Node []Node
+	Nodes []Node
 }
