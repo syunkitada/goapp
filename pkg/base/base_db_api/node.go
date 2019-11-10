@@ -12,28 +12,28 @@ import (
 	"github.com/syunkitada/goapp/pkg/resource/resource_model"
 )
 
-func (api *Api) GetNode(tctx *logger.TraceContext, input *base_spec.GetNode, user *base_spec.UserAuthority) (data *base_spec.Node, err error) {
-	data = &base_spec.Node{}
+func (api *Api) GetNodeService(tctx *logger.TraceContext, input *base_spec.GetNodeService, user *base_spec.UserAuthority) (data *base_spec.NodeService, err error) {
+	data = &base_spec.NodeService{}
 	err = api.DB.Where("name = ? AND kind = ? AND deleted_at IS NULL", input.Name, input.Kind).
 		First(data).Error
 	return
 }
 
-func (api *Api) GetNodes(tctx *logger.TraceContext, input *base_spec.GetNodes, user *base_spec.UserAuthority) (data []base_spec.Node, err error) {
+func (api *Api) GetNodeServices(tctx *logger.TraceContext, input *base_spec.GetNodeServices, user *base_spec.UserAuthority) (data []base_spec.NodeService, err error) {
 	err = api.DB.Where("deleted_at IS NULL").Find(&data).Error
 	return
 }
 
-func (api *Api) CreateOrUpdateNode(tctx *logger.TraceContext, input *base_spec.UpdateNode) (err error) {
+func (api *Api) CreateOrUpdateNodeService(tctx *logger.TraceContext, input *base_spec.UpdateNodeService) (err error) {
 	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
-		var tmp base_db_model.Node
-		node := input.Node
+		var tmp base_db_model.NodeService
+		node := input.NodeService
 		if err = tx.Where("name = ? and kind = ?", node.Name, node.Kind).First(&tmp).Error; err != nil {
 			if !gorm.IsRecordNotFoundError(err) {
 				return
 			}
 
-			tmp = base_db_model.Node{
+			tmp = base_db_model.NodeService{
 				Name:         node.Name,
 				Kind:         node.Kind,
 				Role:         node.Role,
@@ -57,15 +57,15 @@ func (api *Api) CreateOrUpdateNode(tctx *logger.TraceContext, input *base_spec.U
 	return
 }
 
-func (api *Api) DeleteNode(tctx *logger.TraceContext, input *base_spec.DeleteNode) (err error) {
+func (api *Api) DeleteNodeService(tctx *logger.TraceContext, input *base_spec.DeleteNodeService) (err error) {
 	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
-		err = tx.Where("name = ? AND kind = ?", input.Name, input.Kind).Delete(&base_db_model.Node{}).Error
+		err = tx.Where("name = ? AND kind = ?", input.Name, input.Kind).Delete(&base_db_model.NodeService{}).Error
 		return
 	})
 	return
 }
 
-func (api *Api) DeleteNodes(tctx *logger.TraceContext, input []base_spec.Node) (err error) {
+func (api *Api) DeleteNodeServices(tctx *logger.TraceContext, input []base_spec.NodeService) (err error) {
 	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
 		for _, val := range input {
 			if err = tx.Where("name = ? AND kind = ?", val.Name, val.Kind).
@@ -78,7 +78,7 @@ func (api *Api) DeleteNodes(tctx *logger.TraceContext, input []base_spec.Node) (
 	return
 }
 
-func (api *Api) SyncNodeRole(tctx *logger.TraceContext, kind string) (nodes []base_db_model.Node, err error) {
+func (api *Api) SyncNodeServiceRole(tctx *logger.TraceContext, kind string) (nodes []base_db_model.NodeService, err error) {
 	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
 		if err = tx.Where("kind = ? AND deleted_at IS NULL", kind).Find(&nodes).Error; err != nil {
 			return
@@ -100,7 +100,7 @@ func (api *Api) SyncNodeRole(tctx *logger.TraceContext, kind string) (nodes []ba
 		logger.Info(tctx, "Active Leader is not exists, Leader will be assigned.")
 
 		isReassignLeader := false
-		newNodes := []base_db_model.Node{}
+		newNodeServices := []base_db_model.NodeService{}
 		for _, node := range nodes {
 			if isReassignLeader {
 				node.Role = base_const.RoleMember
@@ -123,17 +123,17 @@ func (api *Api) SyncNodeRole(tctx *logger.TraceContext, kind string) (nodes []ba
 					return
 				}
 			}
-			newNodes = append(newNodes, node)
+			newNodeServices = append(newNodeServices, node)
 		}
-		nodes = newNodes
+		nodes = newNodeServices
 		return
 	})
 	return
 }
 
-func (api *Api) SyncNodeState(tctx *logger.TraceContext) (err error) {
+func (api *Api) SyncNodeServiceState(tctx *logger.TraceContext) (err error) {
 	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
-		var nodes []base_db_model.Node
+		var nodes []base_db_model.NodeService
 		if err = tx.Find(&nodes).Error; err != nil {
 			return
 		}

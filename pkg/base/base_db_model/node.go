@@ -2,7 +2,7 @@ package base_db_model
 
 import "github.com/jinzhu/gorm"
 
-type Node struct {
+type NodeService struct {
 	gorm.Model
 	Name         string `gorm:"not null;size:255;"`
 	Kind         string `gorm:"not null;size:25;"`

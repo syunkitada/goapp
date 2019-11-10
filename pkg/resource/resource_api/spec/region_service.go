@@ -31,12 +31,12 @@ type SchedulePolicySpec struct {
 	Replicas                    int `validate:"required"`
 	ClusterFilters              []string
 	ClusterLabelFilters         []string
-	NodeFilters                 []string
-	NodeLabelFilters            []string
-	NodeLabelHardAffinities     []string
-	NodeLabelHardAntiAffinities []string
-	NodeLabelSoftAffinities     []string
-	NodeLabelSoftAntiAffinities []string
+	NodeServiceFilters                 []string
+	NodeServiceLabelFilters            []string
+	NodeServiceLabelHardAffinities     []string
+	NodeServiceLabelHardAntiAffinities []string
+	NodeServiceLabelSoftAffinities     []string
+	NodeServiceLabelSoftAntiAffinities []string
 }
 
 type NetworkPolicySpec struct {

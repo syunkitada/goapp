@@ -120,11 +120,10 @@ type ResourceMetricSystemConfig struct {
 }
 
 type TimeSeriesDatabaseConfig struct {
-	Driver              string
-	AlertDatabases      []string
-	LogDatabases        []string
-	MetricDatabases     []string
-	PercistentDatabases []string
+	Driver          string
+	AlertDatabases  []string
+	LogDatabases    []string
+	MetricDatabases []string
 }
 
 var BaseConf = base_config.Config{}
@@ -132,8 +131,8 @@ var BaseConf = base_config.Config{}
 var MainConf = Config{
 	Resource: ResourceConfig{
 		Api: base_config.AppConfig{
-			Name:                 "ResourceApi",
-			NodeDownTimeDuration: 60,
+			Name:                        "ResourceApi",
+			NodeServiceDownTimeDuration: 60,
 		},
 		Controller: ResourceControllerConfig{
 			AppConfig: base_config.AppConfig{

@@ -35,7 +35,7 @@ func (api *Api) Bootstrap(tctx *logger.TraceContext, isRecreate bool) (err error
 	if err = api.DB.AutoMigrate(&base_db_model.Service{}).Error; err != nil {
 		return err
 	}
-	if err = api.DB.AutoMigrate(&base_db_model.Node{}).Error; err != nil {
+	if err = api.DB.AutoMigrate(&base_db_model.NodeService{}).Error; err != nil {
 		return err
 	}
 

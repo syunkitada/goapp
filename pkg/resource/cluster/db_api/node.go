@@ -10,16 +10,16 @@ import (
 	"github.com/syunkitada/goapp/pkg/resource/resource_model"
 )
 
-func (api *Api) SyncNode(tctx *logger.TraceContext, input *api_spec.SyncNode) (nodeTask *api_spec.NodeTask, err error) {
-	node := input.Node
+func (api *Api) SyncNodeService(tctx *logger.TraceContext, input *api_spec.SyncNodeService) (nodeTask *api_spec.NodeServiceTask, err error) {
+	node := input.NodeService
 	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
-		var tmpNode base_db_model.Node
+		var tmpNodeService base_db_model.NodeService
 		if err = tx.Table("nodes").Where(
-			"name = ? and kind = ?", node.Name, node.Kind).First(&tmpNode).Error; err != nil {
+			"name = ? and kind = ?", node.Name, node.Kind).First(&tmpNodeService).Error; err != nil {
 			if !gorm.IsRecordNotFoundError(err) {
 				return
 			}
-			tmpNode = base_db_model.Node{
+			tmpNodeService = base_db_model.NodeService{
 				Name:         node.Name,
 				Kind:         node.Kind,
 				Role:         node.Role,
@@ -28,33 +28,33 @@ func (api *Api) SyncNode(tctx *logger.TraceContext, input *api_spec.SyncNode) (n
 				State:        node.State,
 				StateReason:  node.StateReason,
 			}
-			if err = tx.Create(&tmpNode).Error; err != nil {
+			if err = tx.Create(&tmpNodeService).Error; err != nil {
 				return
 			}
 		} else {
-			tmpNode.State = node.State
-			tmpNode.StateReason = node.StateReason
-			if err = tx.Save(&tmpNode).Error; err != nil {
+			tmpNodeService.State = node.State
+			tmpNodeService.StateReason = node.StateReason
+			if err = tx.Save(&tmpNodeService).Error; err != nil {
 				return
 			}
 		}
 
-		var tmpNodeMeta db_model.NodeMeta
+		var tmpNodeServiceMeta db_model.NodeServiceMeta
 		if err = tx.Table("node_meta").Where(
-			"node_id = ?", tmpNode.ID).First(&tmpNodeMeta).Error; err != nil {
+			"node_id = ?", tmpNodeService.ID).First(&tmpNodeServiceMeta).Error; err != nil {
 			if !gorm.IsRecordNotFoundError(err) {
 				return
 			}
-			tmpNodeMeta = db_model.NodeMeta{
-				NodeID: tmpNode.ID,
+			tmpNodeServiceMeta = db_model.NodeServiceMeta{
+				NodeServiceID: tmpNodeService.ID,
 				Weight: 0,
 			}
-			if err = tx.Create(&tmpNodeMeta).Error; err != nil {
+			if err = tx.Create(&tmpNodeServiceMeta).Error; err != nil {
 				return
 			}
 		} else {
-			tmpNodeMeta.Weight = 0
-			if err = tx.Save(&tmpNodeMeta).Error; err != nil {
+			tmpNodeServiceMeta.Weight = 0
+			if err = tx.Save(&tmpNodeServiceMeta).Error; err != nil {
 				return
 			}
 		}
@@ -62,7 +62,7 @@ func (api *Api) SyncNode(tctx *logger.TraceContext, input *api_spec.SyncNode) (n
 	})
 
 	// generate node tasks
-	var computeAssignments []db_model.ComputeAssignmentWithComputeAndNode
+	var computeAssignments []db_model.ComputeAssignmentWithComputeAndNodeService
 	if computeAssignments, err = api.GetComputeAssignments(tctx, api.DB, ""); err != nil {
 		return
 	}
@@ -79,13 +79,13 @@ func (api *Api) SyncNode(tctx *logger.TraceContext, input *api_spec.SyncNode) (n
 			Spec:      rspec,
 		})
 	}
-	nodeTask = &api_spec.NodeTask{
+	nodeTask = &api_spec.NodeServiceTask{
 		ComputeAssignments: computeAssignmentExs,
 	}
 	return
 }
 
-func (api *Api) ReportNodeTask(tctx *logger.TraceContext, input *api_spec.ReportNodeTask) (err error) {
+func (api *Api) ReportNodeServiceTask(tctx *logger.TraceContext, input *api_spec.ReportNodeServiceTask) (err error) {
 	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
 		for _, report := range input.ComputeAssignmentReports {
 			switch report.Status {

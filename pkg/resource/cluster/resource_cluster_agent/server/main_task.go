@@ -13,52 +13,52 @@ import (
 )
 
 func (srv *Server) MainTask(tctx *logger.TraceContext) (err error) {
-	if err = srv.SyncNode(tctx); err != nil {
+	if err = srv.SyncNodeService(tctx); err != nil {
 		return
 	}
 	return
 }
 
-func (srv *Server) SyncNode(tctx *logger.TraceContext) (err error) {
-	nodeSpec := resource_api_spec.NodeSpec{}
+func (srv *Server) SyncNodeService(tctx *logger.TraceContext) (err error) {
+	nodeSpec := resource_api_spec.NodeServiceSpec{}
 	queries := []base_client.Query{
 		base_client.Query{
-			Name: "SyncNode",
-			Data: resource_api_spec.SyncNode{
-				Node: base_spec.Node{
+			Name: "SyncNodeService",
+			Data: resource_api_spec.SyncNodeService{
+				NodeService: base_spec.NodeService{
 					Name:         srv.baseConf.Host,
 					Kind:         srv.clusterConf.Agent.Name,
 					Role:         base_const.RoleMember,
 					Status:       base_const.StatusEnabled,
 					StatusReason: "Default",
 					State:        base_const.StateUp,
-					StateReason:  "SyncNode",
+					StateReason:  "SyncNodeService",
 					Spec:         nodeSpec,
 				},
 			},
 		},
 	}
 
-	var syncNodeData *api_spec.SyncNodeData
-	if syncNodeData, err = srv.apiClient.ResourceVirtualAdminSyncNode(tctx, queries); err != nil {
+	var syncNodeServiceData *api_spec.SyncNodeServiceData
+	if syncNodeServiceData, err = srv.apiClient.ResourceVirtualAdminSyncNodeService(tctx, queries); err != nil {
 		return
 	}
 
 	var computeAssignmentReports []spec.AssignmentReport
-	if computeAssignmentReports, err = srv.SyncComputeAssignments(tctx, syncNodeData.Task.ComputeAssignments); err != nil {
+	if computeAssignmentReports, err = srv.SyncComputeAssignments(tctx, syncNodeServiceData.Task.ComputeAssignments); err != nil {
 		return err
 	}
 	fmt.Println("DEBUG reports", computeAssignmentReports)
 
-	reportNodeTaskQueries := []base_client.Query{
+	reportNodeServiceTaskQueries := []base_client.Query{
 		base_client.Query{
-			Name: "ReportNodeTask",
-			Data: resource_api_spec.ReportNodeTask{
+			Name: "ReportNodeServiceTask",
+			Data: resource_api_spec.ReportNodeServiceTask{
 				ComputeAssignmentReports: computeAssignmentReports,
 			},
 		},
 	}
-	if _, err = srv.apiClient.ResourceVirtualAdminReportNodeTask(tctx, reportNodeTaskQueries); err != nil {
+	if _, err = srv.apiClient.ResourceVirtualAdminReportNodeServiceTask(tctx, reportNodeServiceTaskQueries); err != nil {
 		return
 	}
 	fmt.Println("DEBUG reported")

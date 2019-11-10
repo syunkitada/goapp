@@ -40,7 +40,7 @@ func (srv *Server) SyncComputeAssignments(tctx *logger.TraceContext,
 			base_const.StatusUnknownActivating, base_const.StatusRebalancingUnassigned:
 			activatingAssignmentMap[assignment.ID] = assignment
 
-			// ポートごとにveth, netns名を割り当てる(Nodeないでユニーク)
+			// ポートごとにveth, netns名を割り当てる(NodeServiceないでユニーク)
 			netnsPorts := []compute_models.NetnsPort{}
 			for j, port := range assignment.Spec.Ports {
 				// インターフェイスの最大文字数が15なので、ベース文字数は12とする

@@ -24,7 +24,7 @@ type SystemMetricReader struct {
 	uptimeStats  []UptimeStat
 	loginStats   []LoginStat
 	cpuStats     []CpuStat
-	numaNodes    []spec.NumaNodeSpec
+	numaNodeServices    []spec.NumaNodeServiceSpec
 }
 
 func New(conf *config.ResourceMetricSystemConfig) *SystemMetricReader {
@@ -40,15 +40,15 @@ func New(conf *config.ResourceMetricSystemConfig) *SystemMetricReader {
 	if err != nil {
 		logger.StdoutFatalf("Failed Initialize SystemMetricReader: %v", err)
 	}
-	splitedNodes := strings.Split(strings.TrimRight(string(nodeOnlineBytes), "\n"), ",")
+	splitedNodeServices := strings.Split(strings.TrimRight(string(nodeOnlineBytes), "\n"), ",")
 
-	numaNodes := []spec.NumaNodeSpec{}
-	for _, node := range splitedNodes {
+	numaNodeServices := []spec.NumaNodeServiceSpec{}
+	for _, node := range splitedNodeServices {
 		id, err := strconv.Atoi(node)
 		if err != nil {
 			logger.StdoutFatalf("Failed Initialize SystemMetricReader: %v", err)
 		}
-		numaNodes = append(numaNodes, spec.NumaNodeSpec{
+		numaNodeServices = append(numaNodeServices, spec.NumaNodeServiceSpec{
 			Id: id,
 		})
 	}
@@ -62,7 +62,7 @@ func New(conf *config.ResourceMetricSystemConfig) *SystemMetricReader {
 		uptimeStats:  make([]UptimeStat, 0, conf.CacheLength),
 		loginStats:   make([]LoginStat, 0, conf.CacheLength),
 		cpuStats:     make([]CpuStat, 0, conf.CacheLength),
-		numaNodes:    numaNodes,
+		numaNodeServices:    numaNodeServices,
 	}
 }
 
@@ -101,8 +101,8 @@ type CpuStat struct {
 	softirq       int64
 }
 
-func (reader *SystemMetricReader) GetNumaNodes(tctx *logger.TraceContext) []spec.NumaNodeSpec {
-	return reader.numaNodes
+func (reader *SystemMetricReader) GetNumaNodeServices(tctx *logger.TraceContext) []spec.NumaNodeServiceSpec {
+	return reader.numaNodeServices
 }
 
 func (reader *SystemMetricReader) Read(tctx *logger.TraceContext) error {

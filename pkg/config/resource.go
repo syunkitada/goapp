@@ -6,7 +6,7 @@ type ResourceConfig struct {
 	ControllerApp ControllerAppConfig
 	Database      DatabaseConfig
 	ClusterMap    map[string]ResourceClusterConfig
-	Node          ResourceNodeConfig
+	NodeService          ResourceNodeServiceConfig
 }
 
 type ControllerAppConfig struct {
@@ -21,7 +21,7 @@ type ResourceClusterConfig struct {
 	Database      DatabaseConfig
 }
 
-type ResourceNodeConfig struct {
+type ResourceNodeServiceConfig struct {
 	ClusterName  string
 	Metrics      ResourceMetricsConfig
 	Compute      ResourceComputeConfig

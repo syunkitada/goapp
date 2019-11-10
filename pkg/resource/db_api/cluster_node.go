@@ -15,7 +15,7 @@ import (
 	resource_api_spec "github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
 )
 
-func (api *Api) SyncClusterNode(tctx *logger.TraceContext) (err error) {
+func (api *Api) SyncClusterNodeService(tctx *logger.TraceContext) (err error) {
 	var clusters []db_model.Cluster
 	if err = api.DB.Find(&clusters).Error; err != nil {
 		return
@@ -32,33 +32,33 @@ func (api *Api) SyncClusterNode(tctx *logger.TraceContext) (err error) {
 
 		queries := []base_client.Query{
 			base_client.Query{
-				Name: "GetNodes",
-				Data: resource_api_spec.GetNodes{},
+				Name: "GetNodeServices",
+				Data: resource_api_spec.GetNodeServices{},
 			},
 		}
-		res, tmpErr := client.ResourceVirtualAdminGetNodes(tctx, queries)
+		res, tmpErr := client.ResourceVirtualAdminGetNodeServices(tctx, queries)
 		if tmpErr != nil {
-			logger.Warningf(tctx, "Failed GetNodes: %s", tmpErr.Error())
+			logger.Warningf(tctx, "Failed GetNodeServices: %s", tmpErr.Error())
 			continue
 		}
-		if tmpErr := api.CreateOrUpdateClusterNode(tctx, res.Nodes); tmpErr != nil {
-			logger.Warningf(tctx, "Failed CreateOrUpdateClusterNode: %s", tmpErr.Error())
+		if tmpErr := api.CreateOrUpdateClusterNodeService(tctx, res.NodeServices); tmpErr != nil {
+			logger.Warningf(tctx, "Failed CreateOrUpdateClusterNodeService: %s", tmpErr.Error())
 			continue
 		}
 	}
 	return
 }
 
-func (api *Api) CreateOrUpdateClusterNode(tctx *logger.TraceContext, nodes []base_spec.Node) (err error) {
+func (api *Api) CreateOrUpdateClusterNodeService(tctx *logger.TraceContext, nodes []base_spec.NodeService) (err error) {
 	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
 		for _, node := range nodes {
-			var tmp db_model.ClusterNode
+			var tmp db_model.ClusterNodeService
 			if err = tx.Where("name = ? and kind = ?", node.Name, node.Kind).First(&tmp).Error; err != nil {
 				if !gorm.IsRecordNotFoundError(err) {
 					return
 				}
-				tmp = db_model.ClusterNode{
-					Node: base_db_model.Node{
+				tmp = db_model.ClusterNodeService{
+					NodeService: base_db_model.NodeService{
 						Name:         node.Name,
 						Kind:         node.Kind,
 						Role:         node.Role,

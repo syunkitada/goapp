@@ -8,7 +8,7 @@ import (
 )
 
 type TsdbDriver interface {
-	Report(tctx *logger.TraceContext, input *api_spec.ReportResource) error
+	Report(tctx *logger.TraceContext, input *api_spec.ReportNode) error
 }
 
 func Load(clusterConf *config.ResourceClusterConfig) TsdbDriver {

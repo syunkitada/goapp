@@ -9,13 +9,13 @@ import (
 )
 
 func (srv *Server) MainTask(tctx *logger.TraceContext) (err error) {
-	nodeSpec := spec.NodeSpec{}
-	if err = srv.SyncNodeByDb(tctx, &nodeSpec); err != nil {
+	nodeSpec := spec.NodeServiceSpec{}
+	if err = srv.SyncNodeServiceByDb(tctx, &nodeSpec); err != nil {
 		return
 	}
 
 	var role string
-	if role, err = srv.SyncNodeRole(tctx); err != nil {
+	if role, err = srv.SyncNodeServiceRole(tctx); err != nil {
 		return
 	}
 
@@ -23,7 +23,7 @@ func (srv *Server) MainTask(tctx *logger.TraceContext) (err error) {
 		return
 	}
 
-	if err = srv.SyncNodeState(tctx); err != nil {
+	if err = srv.SyncNodeServiceState(tctx); err != nil {
 		return
 	}
 

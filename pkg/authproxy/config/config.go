@@ -20,7 +20,7 @@ var MainConf = Config{
 	Authproxy: AuthproxyConfig{
 		Api: base_config.AppConfig{
 			Name:                 "AuthproxyApi",
-			NodeDownTimeDuration: 60,
+			NodeServiceDownTimeDuration: 60,
 		},
 	},
 }

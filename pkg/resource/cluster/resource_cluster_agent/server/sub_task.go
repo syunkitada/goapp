@@ -101,8 +101,8 @@ func (srv *Server) Report(tctx *logger.TraceContext) (err error) {
 
 	queries := []base_client.Query{
 		base_client.Query{
-			Name: "ReportResource",
-			Data: resource_api_spec.ReportResource{
+			Name: "ReportNode",
+			Data: resource_api_spec.ReportNode{
 				Host:     srv.baseConf.Host,
 				Project:  srv.clusterConf.Agent.ReportProject,
 				Warning:  "",
@@ -116,7 +116,7 @@ func (srv *Server) Report(tctx *logger.TraceContext) (err error) {
 		},
 	}
 
-	if _, err = srv.apiClient.ResourceVirtualAdminReportResource(tctx, queries); err != nil {
+	if _, err = srv.apiClient.ResourceVirtualAdminReportNode(tctx, queries); err != nil {
 		return
 	}
 

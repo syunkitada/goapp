@@ -751,6 +751,18 @@ var ResourceVirtualAdminCmdMap = map[string]index_model.Cmd{
 			},
 		},
 		OutputKind:   "table",
+		OutputFormat: "Name,Kind,State,Wanings,Errors,Labels",
+	},
+	"get.node.services": index_model.Cmd{
+		QueryName: "GetNodeServices",
+		FlagMap: map[string]index_model.Flag{
+			"cluster,c": index_model.Flag{
+				Required: false,
+				FlagType: "string",
+				FlagKind: "",
+			},
+		},
+		OutputKind:   "table",
 		OutputFormat: "Name,Kind,Role,Status,StatusReason,State,StateReason,Labels,Spec",
 	},
 	"get.network.v4": index_model.Cmd{
@@ -1582,6 +1594,10 @@ var ApiQueryMap = map[string]map[string]spec_model.QueryModel{
 			RequiredProject: true,
 		},
 		"GetNodes": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"GetNodeServices": spec_model.QueryModel{
 			RequiredAuth:    true,
 			RequiredProject: true,
 		},

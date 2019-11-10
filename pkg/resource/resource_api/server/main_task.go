@@ -10,8 +10,8 @@ func (srv *Server) MainTask(tctx *logger.TraceContext) (err error) {
 		return
 	}
 
-	nodeSpec := spec.NodeSpec{}
-	if err = srv.SyncNodeByDb(tctx, &nodeSpec); err != nil {
+	nodeSpec := spec.NodeServiceSpec{}
+	if err = srv.SyncNodeServiceByDb(tctx, &nodeSpec); err != nil {
 		return
 	}
 	return

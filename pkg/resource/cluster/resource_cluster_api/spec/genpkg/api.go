@@ -28,10 +28,10 @@ type QueryResolver interface {
 	DeleteComputes(tctx *logger.TraceContext, input *spec.DeleteComputes, user *base_spec.UserAuthority) (*spec.DeleteComputesData, uint8, error)
 	GetCompute(tctx *logger.TraceContext, input *spec.GetCompute, user *base_spec.UserAuthority) (*spec.GetComputeData, uint8, error)
 	GetComputes(tctx *logger.TraceContext, input *spec.GetComputes, user *base_spec.UserAuthority) (*spec.GetComputesData, uint8, error)
-	GetNodes(tctx *logger.TraceContext, input *spec.GetNodes, user *base_spec.UserAuthority) (*spec.GetNodesData, uint8, error)
-	ReportNodeTask(tctx *logger.TraceContext, input *spec.ReportNodeTask, user *base_spec.UserAuthority) (*spec.ReportNodeTaskData, uint8, error)
-	ReportResource(tctx *logger.TraceContext, input *spec.ReportResource, user *base_spec.UserAuthority) (*spec.ReportResourceData, uint8, error)
-	SyncNode(tctx *logger.TraceContext, input *spec.SyncNode, user *base_spec.UserAuthority) (*spec.SyncNodeData, uint8, error)
+	GetNodeServices(tctx *logger.TraceContext, input *spec.GetNodeServices, user *base_spec.UserAuthority) (*spec.GetNodeServicesData, uint8, error)
+	ReportNode(tctx *logger.TraceContext, input *spec.ReportNode, user *base_spec.UserAuthority) (*spec.ReportNodeData, uint8, error)
+	ReportNodeServiceTask(tctx *logger.TraceContext, input *spec.ReportNodeServiceTask, user *base_spec.UserAuthority) (*spec.ReportNodeServiceTaskData, uint8, error)
+	SyncNodeService(tctx *logger.TraceContext, input *spec.SyncNodeService, user *base_spec.UserAuthority) (*spec.SyncNodeServiceData, uint8, error)
 	UpdateCompute(tctx *logger.TraceContext, input *spec.UpdateCompute, user *base_spec.UserAuthority) (*spec.UpdateComputeData, uint8, error)
 }
 
@@ -293,13 +293,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				Code: code,
 				Data: data,
 			}
-		case "GetNodes":
-			var input spec.GetNodes
+		case "GetNodeServices":
+			var input spec.GetNodeServices
 			err = json.Unmarshal([]byte(query.Data), &input)
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.GetNodes(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.GetNodeServices(tctx, &input, user)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -314,13 +314,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				Code: code,
 				Data: data,
 			}
-		case "ReportNodeTask":
-			var input spec.ReportNodeTask
+		case "ReportNode":
+			var input spec.ReportNode
 			err = json.Unmarshal([]byte(query.Data), &input)
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.ReportNodeTask(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.ReportNode(tctx, &input, user)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -335,13 +335,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				Code: code,
 				Data: data,
 			}
-		case "ReportResource":
-			var input spec.ReportResource
+		case "ReportNodeServiceTask":
+			var input spec.ReportNodeServiceTask
 			err = json.Unmarshal([]byte(query.Data), &input)
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.ReportResource(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.ReportNodeServiceTask(tctx, &input, user)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -356,13 +356,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				Code: code,
 				Data: data,
 			}
-		case "SyncNode":
-			var input spec.SyncNode
+		case "SyncNodeService":
+			var input spec.SyncNodeService
 			err = json.Unmarshal([]byte(query.Data), &input)
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.SyncNode(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.SyncNodeService(tctx, &input, user)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError

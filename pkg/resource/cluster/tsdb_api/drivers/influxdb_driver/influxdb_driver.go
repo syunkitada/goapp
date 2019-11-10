@@ -16,11 +16,10 @@ import (
 )
 
 type InfluxdbDriver struct {
-	clusterConf       *config.ResourceClusterConfig
-	alertClients      []*Client
-	logClients        []*Client
-	metricClients     []*Client
-	percistentClients []*Client
+	clusterConf   *config.ResourceClusterConfig
+	alertClients  []*Client
+	logClients    []*Client
+	metricClients []*Client
 }
 
 func New(clusterConf *config.ResourceClusterConfig) *InfluxdbDriver {
@@ -53,25 +52,15 @@ func New(clusterConf *config.ResourceClusterConfig) *InfluxdbDriver {
 		metricClients = append(metricClients, client)
 	}
 
-	percistentClients := []*Client{}
-	for _, connection := range tsdbConf.PercistentDatabases {
-		client, err := NewClient(connection)
-		if err != nil {
-			logger.StdoutFatalf("Failed init client: %v", err)
-		}
-		percistentClients = append(percistentClients, client)
-	}
-
 	return &InfluxdbDriver{
-		clusterConf:       clusterConf,
-		alertClients:      alertClients,
-		logClients:        logClients,
-		metricClients:     metricClients,
-		percistentClients: percistentClients,
+		clusterConf:   clusterConf,
+		alertClients:  alertClients,
+		logClients:    logClients,
+		metricClients: metricClients,
 	}
 }
 
-func (driver *InfluxdbDriver) Report(tctx *logger.TraceContext, input *api_spec.ReportResource) error {
+func (driver *InfluxdbDriver) Report(tctx *logger.TraceContext, input *api_spec.ReportNode) error {
 	var err error
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()

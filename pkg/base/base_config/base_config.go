@@ -41,7 +41,7 @@ type AppConfig struct {
 	ServerHostOverride       string   `validate:"required"`
 	Targets                  []string `validate:"required"`
 	Labels                   []string `validate:"required"`
-	NodeDownTimeDuration     int      `validate:"required"`
+	NodeServiceDownTimeDuration     int      `validate:"required"`
 	Database                 DatabaseConfig
 	Auth                     AuthConfig
 	RootClient               ClientConfig

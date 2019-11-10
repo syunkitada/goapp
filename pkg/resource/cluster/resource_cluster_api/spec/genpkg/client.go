@@ -93,61 +93,61 @@ type GetComputesResult struct {
 	Error string
 	Data  spec.GetComputesData
 }
-type GetNodesResponse struct {
+type GetNodeServicesResponse struct {
 	base_model.Response
-	ResultMap GetNodesResultMap
+	ResultMap GetNodeServicesResultMap
 }
 
-type GetNodesResultMap struct {
-	GetNodes GetNodesResult
+type GetNodeServicesResultMap struct {
+	GetNodeServices GetNodeServicesResult
 }
 
-type GetNodesResult struct {
+type GetNodeServicesResult struct {
 	Code  uint8
 	Error string
-	Data  spec.GetNodesData
+	Data  spec.GetNodeServicesData
 }
-type ReportNodeTaskResponse struct {
+type ReportNodeResponse struct {
 	base_model.Response
-	ResultMap ReportNodeTaskResultMap
+	ResultMap ReportNodeResultMap
 }
 
-type ReportNodeTaskResultMap struct {
-	ReportNodeTask ReportNodeTaskResult
+type ReportNodeResultMap struct {
+	ReportNode ReportNodeResult
 }
 
-type ReportNodeTaskResult struct {
+type ReportNodeResult struct {
 	Code  uint8
 	Error string
-	Data  spec.ReportNodeTaskData
+	Data  spec.ReportNodeData
 }
-type ReportResourceResponse struct {
+type ReportNodeServiceTaskResponse struct {
 	base_model.Response
-	ResultMap ReportResourceResultMap
+	ResultMap ReportNodeServiceTaskResultMap
 }
 
-type ReportResourceResultMap struct {
-	ReportResource ReportResourceResult
+type ReportNodeServiceTaskResultMap struct {
+	ReportNodeServiceTask ReportNodeServiceTaskResult
 }
 
-type ReportResourceResult struct {
+type ReportNodeServiceTaskResult struct {
 	Code  uint8
 	Error string
-	Data  spec.ReportResourceData
+	Data  spec.ReportNodeServiceTaskData
 }
-type SyncNodeResponse struct {
+type SyncNodeServiceResponse struct {
 	base_model.Response
-	ResultMap SyncNodeResultMap
+	ResultMap SyncNodeServiceResultMap
 }
 
-type SyncNodeResultMap struct {
-	SyncNode SyncNodeResult
+type SyncNodeServiceResultMap struct {
+	SyncNodeService SyncNodeServiceResult
 }
 
-type SyncNodeResult struct {
+type SyncNodeServiceResult struct {
 	Code  uint8
 	Error string
-	Data  spec.SyncNodeData
+	Data  spec.SyncNodeServiceData
 }
 type UpdateComputeResponse struct {
 	base_model.Response
@@ -254,13 +254,13 @@ func (client *Client) ResourceVirtualAdminDeleteComputes(tctx *logger.TraceConte
 	data = &result.Data
 	return
 }
-func (client *Client) ResourceVirtualAdminGetNodes(tctx *logger.TraceContext, queries []base_client.Query) (data *spec.GetNodesData, err error) {
-	var res GetNodesResponse
+func (client *Client) ResourceVirtualAdminGetNodeServices(tctx *logger.TraceContext, queries []base_client.Query) (data *spec.GetNodeServicesData, err error) {
+	var res GetNodeServicesResponse
 	err = client.Request(tctx, "ResourceVirtualAdmin", queries, &res, true)
 	if err != nil {
 		return
 	}
-	result := res.ResultMap.GetNodes
+	result := res.ResultMap.GetNodeServices
 	if result.Code >= 100 || result.Error != "" {
 		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
 		return
@@ -269,13 +269,13 @@ func (client *Client) ResourceVirtualAdminGetNodes(tctx *logger.TraceContext, qu
 	data = &result.Data
 	return
 }
-func (client *Client) ResourceVirtualAdminSyncNode(tctx *logger.TraceContext, queries []base_client.Query) (data *spec.SyncNodeData, err error) {
-	var res SyncNodeResponse
+func (client *Client) ResourceVirtualAdminSyncNodeService(tctx *logger.TraceContext, queries []base_client.Query) (data *spec.SyncNodeServiceData, err error) {
+	var res SyncNodeServiceResponse
 	err = client.Request(tctx, "ResourceVirtualAdmin", queries, &res, true)
 	if err != nil {
 		return
 	}
-	result := res.ResultMap.SyncNode
+	result := res.ResultMap.SyncNodeService
 	if result.Code >= 100 || result.Error != "" {
 		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
 		return
@@ -284,13 +284,13 @@ func (client *Client) ResourceVirtualAdminSyncNode(tctx *logger.TraceContext, qu
 	data = &result.Data
 	return
 }
-func (client *Client) ResourceVirtualAdminReportNodeTask(tctx *logger.TraceContext, queries []base_client.Query) (data *spec.ReportNodeTaskData, err error) {
-	var res ReportNodeTaskResponse
+func (client *Client) ResourceVirtualAdminReportNodeServiceTask(tctx *logger.TraceContext, queries []base_client.Query) (data *spec.ReportNodeServiceTaskData, err error) {
+	var res ReportNodeServiceTaskResponse
 	err = client.Request(tctx, "ResourceVirtualAdmin", queries, &res, true)
 	if err != nil {
 		return
 	}
-	result := res.ResultMap.ReportNodeTask
+	result := res.ResultMap.ReportNodeServiceTask
 	if result.Code >= 100 || result.Error != "" {
 		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
 		return
@@ -299,13 +299,13 @@ func (client *Client) ResourceVirtualAdminReportNodeTask(tctx *logger.TraceConte
 	data = &result.Data
 	return
 }
-func (client *Client) ResourceVirtualAdminReportResource(tctx *logger.TraceContext, queries []base_client.Query) (data *spec.ReportResourceData, err error) {
-	var res ReportResourceResponse
+func (client *Client) ResourceVirtualAdminReportNode(tctx *logger.TraceContext, queries []base_client.Query) (data *spec.ReportNodeData, err error) {
+	var res ReportNodeResponse
 	err = client.Request(tctx, "ResourceVirtualAdmin", queries, &res, true)
 	if err != nil {
 		return
 	}
-	result := res.ResultMap.ReportResource
+	result := res.ResultMap.ReportNode
 	if result.Code >= 100 || result.Error != "" {
 		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
 		return

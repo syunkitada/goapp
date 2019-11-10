@@ -28,6 +28,6 @@ func New(baseConf *base_config.Config, clusterConf *config.ResourceClusterConfig
 	return &api
 }
 
-func (api *Api) ReportResource(tctx *logger.TraceContext, input *api_spec.ReportResource) (err error) {
+func (api *Api) ReportNode(tctx *logger.TraceContext, input *api_spec.ReportNode) (err error) {
 	return api.driver.Report(tctx, input)
 }
