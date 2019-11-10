@@ -18,7 +18,7 @@ import (
 
 func (ctl *Ctl) index(args []string) error {
 	var err error
-	tctx := logger.NewCtlTraceContext(ctl.name)
+	tctx := logger.NewTraceContext(ctl.baseConf.Host, ctl.name)
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 

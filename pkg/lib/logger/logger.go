@@ -12,15 +12,11 @@ import (
 	"time"
 
 	"github.com/rs/xid"
-	"golang.org/x/net/context"
-	"google.golang.org/grpc/peer"
 
 	"github.com/syunkitada/goapp/pkg/base/base_config"
-	"github.com/syunkitada/goapp/pkg/config"
 )
 
 var (
-	conf          *config.Config
 	name          string
 	Logger        *log.Logger
 	stdoutLogger  *log.Logger
@@ -83,73 +79,6 @@ func NewTraceContextWithTraceId(traceId string, host string, app string) *TraceC
 		timeout:  3,
 		code:     0,
 		err:      nil,
-	}
-}
-
-func NewCtlTraceContext(app string) *TraceContext {
-	return &TraceContext{
-		TraceId: xid.New().String(),
-		Host:    config.Conf.Default.Host,
-		App:     app,
-		timeout: 3,
-		Metadata: map[string]string{
-			"Username": config.Conf.Ctl.Username,
-			"Project":  config.Conf.Ctl.Project,
-			"ApiUrl":   config.Conf.Ctl.ApiUrl,
-		},
-	}
-}
-
-func NewGrpcTraceContext(host string, app string, ctx context.Context) *TraceContext {
-	var client string
-	if pr, ok := peer.FromContext(ctx); ok {
-		client = pr.Addr.String()
-	} else {
-		client = ""
-	}
-
-	return &TraceContext{
-		TraceId: xid.New().String(),
-		Host:    host,
-		App:     app,
-		Metadata: map[string]string{
-			"Client": client,
-		},
-	}
-}
-
-func Init() {
-	conf = &config.Conf
-
-	stdoutLogger = log.New(os.Stdout, "", log.Ldate|log.Ltime)
-	LogTimeFormat = conf.Default.LogTimeFormat
-
-	name = os.Getenv("LOG_FILE")
-	if name == "" {
-		for _, arg := range os.Args {
-			option := strings.Index(arg, "-")
-			if option == 0 {
-				continue
-			}
-			slash := strings.LastIndex(arg, "/")
-			if slash > 0 {
-				arg = arg[slash+1:]
-			}
-			name += "-" + arg
-		}
-		name = name[1:]
-	}
-
-	if conf.Default.LogDir == "stdout" {
-		Logger = log.New(os.Stdout, "", 0)
-	} else {
-		logfilePath := filepath.Join(conf.Default.LogDir, name+".log")
-		logfile, err := os.OpenFile(logfilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
-		if err != nil {
-			StdoutFatalf("Failed open logfile: %v", logfile)
-		} else {
-			Logger = log.New(logfile, "", 0)
-		}
 	}
 }
 
