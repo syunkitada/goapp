@@ -92,10 +92,10 @@ var ComputesTable = index_model.Table{
 var ComputesDetail = index_model.Tabs{
 	Name:            "Computes",
 	Kind:            "RouteTabs",
-	RouteParamKey:   "kind",
+	RouteParamKey:   "Kind",
 	RouteParamValue: "Computes",
-	Route:           "/Clusters/:datacenter/Resources/Computes/Detail/:resource/:subkind",
-	TabParam:        "subkind",
+	Route:           "/Clusters/:Cluster/Resources/Computes/Detail/:Name/:Subkind",
+	TabParam:        "Subkind",
 	GetQueries: []string{
 		"GetCompute",
 		"GetComputes", "GetImages"},

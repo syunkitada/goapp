@@ -751,7 +751,7 @@ var ResourceVirtualAdminCmdMap = map[string]index_model.Cmd{
 			},
 		},
 		OutputKind:   "table",
-		OutputFormat: "Name,Kind,State,Wanings,Errors,Labels",
+		OutputFormat: "Name,State,Warnings,Errors,Labels",
 	},
 	"get.node.services": index_model.Cmd{
 		QueryName: "GetNodeServices",
@@ -1350,6 +1350,38 @@ var ResourceVirtualCmdMap = map[string]index_model.Cmd{
 		OutputFormat: "",
 	},
 }
+var ResourceMonitorCmdMap = map[string]index_model.Cmd{
+	"get.clusters": index_model.Cmd{
+		QueryName:    "GetClusters",
+		FlagMap:      map[string]index_model.Flag{},
+		OutputKind:   "table",
+		OutputFormat: "Region,Datacenter,Name,Kind,Description,DomainSuffix,Labels,Weight",
+	},
+	"get.nodes": index_model.Cmd{
+		QueryName: "GetNodes",
+		FlagMap: map[string]index_model.Flag{
+			"cluster,c": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+		},
+		OutputKind:   "table",
+		OutputFormat: "Name,State,Warnings,Errors,Labels",
+	},
+	"get.node": index_model.Cmd{
+		QueryName: "GetNode",
+		FlagMap: map[string]index_model.Flag{
+			"cluster,c": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
+}
 
 var ApiQueryMap = map[string]map[string]spec_model.QueryModel{
 	"Auth": map[string]spec_model.QueryModel{
@@ -1768,6 +1800,20 @@ var ApiQueryMap = map[string]map[string]spec_model.QueryModel{
 			RequiredProject: true,
 		},
 		"DeleteRegionServices": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+	},
+	"ResourceMonitor": map[string]spec_model.QueryModel{
+		"GetClusters": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"GetNodes": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"GetNode": spec_model.QueryModel{
 			RequiredAuth:    true,
 			RequiredProject: true,
 		},

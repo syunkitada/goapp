@@ -583,6 +583,20 @@ type GetNetworkV4sResult struct {
 	Error string
 	Data  spec.GetNetworkV4sData
 }
+type GetNodeResponse struct {
+	base_model.Response
+	ResultMap GetNodeResultMap
+}
+
+type GetNodeResultMap struct {
+	GetNode GetNodeResult
+}
+
+type GetNodeResult struct {
+	Code  uint8
+	Error string
+	Data  spec.GetNodeData
+}
 type GetNodeServicesResponse struct {
 	base_model.Response
 	ResultMap GetNodeServicesResultMap
@@ -2414,6 +2428,51 @@ func (client *Client) ResourceVirtualDeleteRegionServices(tctx *logger.TraceCont
 		return
 	}
 	result := res.ResultMap.DeleteRegionServices
+	if result.Code >= 100 || result.Error != "" {
+		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
+		return
+	}
+
+	data = &result.Data
+	return
+}
+func (client *Client) ResourceMonitorGetClusters(tctx *logger.TraceContext, queries []base_client.Query) (data *spec.GetClustersData, err error) {
+	var res GetClustersResponse
+	err = client.Request(tctx, "ResourceMonitor", queries, &res, true)
+	if err != nil {
+		return
+	}
+	result := res.ResultMap.GetClusters
+	if result.Code >= 100 || result.Error != "" {
+		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
+		return
+	}
+
+	data = &result.Data
+	return
+}
+func (client *Client) ResourceMonitorGetNodes(tctx *logger.TraceContext, queries []base_client.Query) (data *spec.GetNodesData, err error) {
+	var res GetNodesResponse
+	err = client.Request(tctx, "ResourceMonitor", queries, &res, true)
+	if err != nil {
+		return
+	}
+	result := res.ResultMap.GetNodes
+	if result.Code >= 100 || result.Error != "" {
+		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
+		return
+	}
+
+	data = &result.Data
+	return
+}
+func (client *Client) ResourceMonitorGetNode(tctx *logger.TraceContext, queries []base_client.Query) (data *spec.GetNodeData, err error) {
+	var res GetNodeResponse
+	err = client.Request(tctx, "ResourceMonitor", queries, &res, true)
+	if err != nil {
+		return
+	}
+	result := res.ResultMap.GetNode
 	if result.Code >= 100 || result.Error != "" {
 		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
 		return

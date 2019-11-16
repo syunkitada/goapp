@@ -4,7 +4,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/golang/glog"
 	"github.com/spf13/cobra"
 
 	"github.com/syunkitada/goapp/pkg/authproxy/authproxy_api"
@@ -18,7 +17,7 @@ var rootCmd = &cobra.Command{}
 
 func Main() {
 	if err := rootCmd.Execute(); err != nil {
-		glog.Fatal(err)
+		logger.StdoutFatalf("Failed Execute: %v", err)
 	}
 }
 

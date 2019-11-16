@@ -87,6 +87,10 @@ resource:
           scope: 'project'
           projectRoles: ['tenant']
           syncRootCluster: true
+        - name: 'ResourceMonitor'
+          scope: 'project'
+          projectRoles: ['admin', 'tenant']
+          syncRootCluster: true
     rootClient:
       user: 'service'
       password: 'service'

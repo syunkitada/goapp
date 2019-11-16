@@ -32,3 +32,26 @@ func (api *Api) GetNodes(tctx *logger.TraceContext, input *spec.GetNodes, user *
 	data = getNodesData.Nodes
 	return
 }
+
+func (api *Api) GetNode(tctx *logger.TraceContext, input *spec.GetNode, user *base_spec.UserAuthority) (data *spec.Node, err error) {
+	client, ok := api.clusterClientMap[input.Cluster]
+	if !ok {
+		err = error_utils.NewNotFoundError("clusterClient")
+		return
+	}
+
+	queries := []base_client.Query{
+		base_client.Query{
+			Name: "GetNode",
+			Data: *input,
+		},
+	}
+
+	getNodeData, tmpErr := client.ResourceVirtualAdminGetNode(tctx, queries)
+	if tmpErr != nil {
+		err = fmt.Errorf("Failed GetNode: %s", tmpErr.Error())
+		return
+	}
+	data = &getNodeData.Node
+	return
+}

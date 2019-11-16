@@ -132,7 +132,19 @@ var ResourceVirtualAdminCmdMap = map[string]index_model.Cmd{
 			},
 		},
 		OutputKind:   "table",
-		OutputFormat: "Name,Kind,State,Wanings,Errors,Labels",
+		OutputFormat: "Name,State,Warnings,Errors,Labels",
+	},
+	"get.node": index_model.Cmd{
+		QueryName: "GetNode",
+		FlagMap: map[string]index_model.Flag{
+			"cluster,c": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
 	},
 	"report.node": index_model.Cmd{
 		QueryName: "ReportNode",
@@ -241,6 +253,10 @@ var ApiQueryMap = map[string]map[string]spec_model.QueryModel{
 			RequiredProject: true,
 		},
 		"GetNodes": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"GetNode": spec_model.QueryModel{
 			RequiredAuth:    true,
 			RequiredProject: true,
 		},

@@ -41,3 +41,15 @@ func (resolver *Resolver) GetNodes(tctx *logger.TraceContext, input *api_spec.Ge
 	data = &spec.GetNodesData{Nodes: nodes}
 	return
 }
+
+func (resolver *Resolver) GetNode(tctx *logger.TraceContext, input *api_spec.GetNode,
+	user *base_spec.UserAuthority) (data *api_spec.GetNodeData, code uint8, err error) {
+	var node spec.Node
+	if node, err = resolver.dbApi.GetNode(tctx, input); err != nil {
+		code = base_const.CodeServerInternalError
+		return
+	}
+	code = base_const.CodeOk
+	data = &spec.GetNodeData{Node: node}
+	return
+}

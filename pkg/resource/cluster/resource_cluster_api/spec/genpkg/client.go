@@ -93,6 +93,20 @@ type GetComputesResult struct {
 	Error string
 	Data  spec.GetComputesData
 }
+type GetNodeResponse struct {
+	base_model.Response
+	ResultMap GetNodeResultMap
+}
+
+type GetNodeResultMap struct {
+	GetNode GetNodeResult
+}
+
+type GetNodeResult struct {
+	Code  uint8
+	Error string
+	Data  spec.GetNodeData
+}
 type GetNodeServicesResponse struct {
 	base_model.Response
 	ResultMap GetNodeServicesResultMap
@@ -320,6 +334,21 @@ func (client *Client) ResourceVirtualAdminGetNodes(tctx *logger.TraceContext, qu
 		return
 	}
 	result := res.ResultMap.GetNodes
+	if result.Code >= 100 || result.Error != "" {
+		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
+		return
+	}
+
+	data = &result.Data
+	return
+}
+func (client *Client) ResourceVirtualAdminGetNode(tctx *logger.TraceContext, queries []base_client.Query) (data *spec.GetNodeData, err error) {
+	var res GetNodeResponse
+	err = client.Request(tctx, "ResourceVirtualAdmin", queries, &res, true)
+	if err != nil {
+		return
+	}
+	result := res.ResultMap.GetNode
 	if result.Code >= 100 || result.Error != "" {
 		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
 		return

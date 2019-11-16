@@ -159,5 +159,16 @@ var Spec = spec_model.Spec{
 				spec_model.QueryModel{Req: DeleteRegionServices{}, Rep: DeleteRegionServicesData{}},
 			},
 		},
+		spec_model.Api{
+			Name:            "ResourceMonitor",
+			RequiredAuth:    true,
+			RequiredProject: true,
+			QueryModels: []spec_model.QueryModel{
+				spec_model.QueryModel{Req: GetClusters{}, Rep: GetClustersData{}},
+
+				spec_model.QueryModel{Req: GetNodes{}, Rep: GetNodesData{}},
+				spec_model.QueryModel{Req: GetNode{}, Rep: GetNodeData{}},
+			},
+		},
 	},
 }

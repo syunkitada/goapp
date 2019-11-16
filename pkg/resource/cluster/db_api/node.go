@@ -14,6 +14,11 @@ func (api *Api) GetNodes(tctx *logger.TraceContext, input *spec.GetNodes) (data 
 	return
 }
 
+func (api *Api) GetNode(tctx *logger.TraceContext, input *spec.GetNode) (data spec.Node, err error) {
+	// err = api.DB.Find(&data).Error
+	return
+}
+
 func (api *Api) ReportNode(tctx *logger.TraceContext, input *api_spec.ReportNode) (err error) {
 	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
 		var tmpNode db_model.Node

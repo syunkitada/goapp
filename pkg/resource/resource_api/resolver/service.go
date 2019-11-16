@@ -44,6 +44,13 @@ func (resolver *Resolver) GetServiceIndex(tctx *logger.TraceContext, input *base
 			},
 		}
 		code = base_const.CodeOk
+	case "ResourceMonitor":
+		data = &base_spec.GetServiceIndexData{
+			Index: index_model.Index{
+				CmdMap: genpkg.ResourceMonitorCmdMap,
+			},
+		}
+		code = base_const.CodeOk
 	default:
 		code = base_const.CodeClientNotFound
 	}
@@ -252,10 +259,10 @@ func (resolver *Resolver) GetServiceDashboardIndex(tctx *logger.TraceContext,
 								index_model.TableColumn{
 									Name:           "Name",
 									IsSearch:       true,
-									Link:           "Clusters/:0/Resources/Resources",
+									Link:           "Clusters/:0/Resources/Nodes",
 									LinkParam:      "Cluster",
 									LinkSync:       true,
-									LinkGetQueries: []string{"GetNodeServices"},
+									LinkGetQueries: []string{"GetNodes"},
 								},
 								index_model.TableColumn{Name: "Cluster", IsSearch: true},
 								index_model.TableColumn{Name: "UpdatedAt", Kind: "Time", Sort: "asc"},
@@ -268,12 +275,11 @@ func (resolver *Resolver) GetServiceDashboardIndex(tctx *logger.TraceContext,
 							Subname:          "Kind",
 							Route:            "/Clusters/:Cluster/Resources/:Kind",
 							TabParam:         "Kind",
-							GetQueries:       []string{"GetNodeServices"},
-							ExpectedDataKeys: []string{"NodeServices"},
+							GetQueries:       []string{"GetNodes"},
+							ExpectedDataKeys: []string{"Nodes"},
 							IsSync:           true,
 							Tabs: []interface{}{
-								spec.RegionServicesTable,
-								spec.ImagesTable,
+								spec.NodesTable,
 							},
 						},
 						gin.H{
@@ -283,9 +289,7 @@ func (resolver *Resolver) GetServiceDashboardIndex(tctx *logger.TraceContext,
 							"Kind":      "RoutePanes",
 							"PaneParam": "Kind",
 							"Panes": []interface{}{
-								spec.ComputesDetail,
-								spec.RegionServicesDetail,
-								spec.ImagesDetail,
+								spec.NodesDetail,
 							},
 						},
 					},
