@@ -20,6 +20,7 @@ type GetNodesData struct {
 
 type GetNode struct {
 	Cluster string `validate:"required"`
+	Name    string `validate:"required"`
 }
 
 type GetNodeData struct {

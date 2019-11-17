@@ -31,6 +31,16 @@ import red from '@material-ui/core/colors/red';
 
 import logger from '../../../../lib/logger';
 
+import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
+
 interface IBasicView extends WithStyles<typeof styles> {
   targets;
   routes;
@@ -55,6 +65,51 @@ class BasicView extends React.Component<IBasicView> {
 
     const fields = this.renderFields();
 
+    const data = [
+      {
+        amt: 2400,
+        name: 'Page A',
+        pv: 2400,
+        uv: 4000,
+      },
+      {
+        amt: 2210,
+        name: 'Page B',
+        pv: 1398,
+        uv: 3000,
+      },
+      {
+        amt: 2290,
+        name: 'Page C',
+        pv: 9800,
+        uv: 2000,
+      },
+      {
+        amt: 2000,
+        name: 'Page D',
+        pv: 3908,
+        uv: 2780,
+      },
+      {
+        amt: 2181,
+        name: 'Page E',
+        pv: 4800,
+        uv: 1890,
+      },
+      {
+        amt: 2500,
+        name: 'Page F',
+        pv: 3800,
+        uv: 2390,
+      },
+      {
+        amt: 2100,
+        name: 'Page G',
+        pv: 4300,
+        uv: 3490,
+      },
+    ];
+
     return (
       <div className={classes.root}>
         {title && <DialogTitle id="form-dialog-title">{title}</DialogTitle>}
@@ -63,6 +118,58 @@ class BasicView extends React.Component<IBasicView> {
           <Table className={classes.table}>
             <TableBody>{fields}</TableBody>
           </Table>
+          <Grid container={true} spacing={2}>
+            <Grid item={true} xs={6}>
+              <div style={{height: 300}}>
+                <ResponsiveContainer>
+                  <AreaChart
+                    data={data}
+                    margin={{
+                      bottom: 0,
+                      left: 0,
+                      right: 30,
+                      top: 10,
+                    }}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Area
+                      type="monotone"
+                      dataKey="uv"
+                      stroke="#8884d8"
+                      fill="#8884d8"
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </Grid>
+            <Grid item={true} xs={6}>
+              <div style={{height: 300}}>
+                <ResponsiveContainer>
+                  <AreaChart
+                    data={data}
+                    margin={{
+                      bottom: 0,
+                      left: 0,
+                      right: 30,
+                      top: 10,
+                    }}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Area
+                      type="monotone"
+                      dataKey="uv"
+                      stroke="#8884d8"
+                      fill="#8884d8"
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </Grid>
+          </Grid>
         </DialogContent>
         <DialogActions>
           <div className={classes.wrapper} style={{width: '100%'}}>
