@@ -1,4 +1,5 @@
 import * as React from 'react';
+
 import {connect} from 'react-redux';
 
 import {Theme} from '@material-ui/core/styles/createMuiTheme';
@@ -14,6 +15,7 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import Grid from '@material-ui/core/Grid';
+import Typography from '@material-ui/core/Typography';
 
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
@@ -31,15 +33,12 @@ import red from '@material-ui/core/colors/red';
 
 import logger from '../../../../lib/logger';
 
-import {
-  Area,
-  AreaChart,
-  CartesianGrid,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts';
+import LineGraphCard from '../cards/LineGraphCard';
+
+import ExpansionPanel from '@material-ui/core/ExpansionPanel';
+import ExpansionPanelDetails from '@material-ui/core/ExpansionPanelDetails';
+import ExpansionPanelSummary from '@material-ui/core/ExpansionPanelSummary';
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 
 interface IBasicView extends WithStyles<typeof styles> {
   targets;
@@ -52,63 +51,21 @@ interface IBasicView extends WithStyles<typeof styles> {
   title;
   rawData;
   submitQueries;
+  handleChange;
 }
 
 class BasicView extends React.Component<IBasicView> {
   public state = {
+    expanded: '',
     fieldMap: {},
   };
 
   public render() {
     const {classes, index, selected, isSubmitting, title, onClose} = this.props;
+    // const {expanded} = this.state;
     logger.info('BasicView', 'render', index, selected);
 
     const fields = this.renderFields();
-
-    const data = [
-      {
-        amt: 2400,
-        name: 'Page A',
-        pv: 2400,
-        uv: 4000,
-      },
-      {
-        amt: 2210,
-        name: 'Page B',
-        pv: 1398,
-        uv: 3000,
-      },
-      {
-        amt: 2290,
-        name: 'Page C',
-        pv: 9800,
-        uv: 2000,
-      },
-      {
-        amt: 2000,
-        name: 'Page D',
-        pv: 3908,
-        uv: 2780,
-      },
-      {
-        amt: 2181,
-        name: 'Page E',
-        pv: 4800,
-        uv: 1890,
-      },
-      {
-        amt: 2500,
-        name: 'Page F',
-        pv: 3800,
-        uv: 2390,
-      },
-      {
-        amt: 2100,
-        name: 'Page G',
-        pv: 4300,
-        uv: 3490,
-      },
-    ];
 
     return (
       <div className={classes.root}>
@@ -118,58 +75,29 @@ class BasicView extends React.Component<IBasicView> {
           <Table className={classes.table}>
             <TableBody>{fields}</TableBody>
           </Table>
-          <Grid container={true} spacing={2}>
-            <Grid item={true} xs={6}>
-              <div style={{height: 300}}>
-                <ResponsiveContainer>
-                  <AreaChart
-                    data={data}
-                    margin={{
-                      bottom: 0,
-                      left: 0,
-                      right: 30,
-                      top: 10,
-                    }}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip />
-                    <Area
-                      type="monotone"
-                      dataKey="uv"
-                      stroke="#8884d8"
-                      fill="#8884d8"
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-            </Grid>
-            <Grid item={true} xs={6}>
-              <div style={{height: 300}}>
-                <ResponsiveContainer>
-                  <AreaChart
-                    data={data}
-                    margin={{
-                      bottom: 0,
-                      left: 0,
-                      right: 30,
-                      top: 10,
-                    }}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip />
-                    <Area
-                      type="monotone"
-                      dataKey="uv"
-                      stroke="#8884d8"
-                      fill="#8884d8"
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-            </Grid>
-          </Grid>
+
+          <ExpansionPanel
+            expanded={true}
+            onChange={this.handleChange}
+            className={classes.expansionPanel}>
+            <ExpansionPanelSummary
+              expandIcon={<ExpandMoreIcon />}
+              aria-controls="panel1bh-content"
+              id="panel1bh-header"
+              className={classes.expansionPanelSummary}>
+              <Typography variant="subtitle1">System</Typography>
+            </ExpansionPanelSummary>
+            <ExpansionPanelDetails className={classes.expansionPanelDetail}>
+              <Grid container={true} spacing={2}>
+                <Grid item={true} xs={6}>
+                  <LineGraphCard />
+                </Grid>
+                <Grid item={true} xs={6}>
+                  <LineGraphCard />
+                </Grid>
+              </Grid>
+            </ExpansionPanelDetails>
+          </ExpansionPanel>
         </DialogContent>
         <DialogActions>
           <div className={classes.wrapper} style={{width: '100%'}}>
@@ -188,6 +116,10 @@ class BasicView extends React.Component<IBasicView> {
       </div>
     );
   }
+
+  private handleChange = (event, isExpanded) => {
+    console.log('handleChange');
+  };
 
   private renderFields = () => {
     const {selected, index, rawData} = this.props;
@@ -287,6 +219,17 @@ const styles = (theme: Theme): StyleRules =>
         backgroundColor: green[700],
       },
       backgroundColor: green[500],
+    },
+    expansionPanel: {
+      border: '1px solid rgba(0, 0, 0, .125)',
+      boxShadow: 'none',
+    },
+    expansionPanelDetail: {
+      boxShadow: 'none',
+    },
+    expansionPanelSummary: {
+      borderBottom: '1px solid rgba(0, 0, 0, .125)',
+      boxShadow: 'none',
     },
     fabProgress: {
       color: green[500],

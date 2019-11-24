@@ -9,6 +9,7 @@ import EditIcon from '@material-ui/icons/Edit';
 
 import ChatIcon from '@material-ui/icons/Chat';
 import CloudIcon from '@material-ui/icons/Cloud';
+import CloudCircleIcon from '@material-ui/icons/CloudCircle';
 import CloudQueueIcon from '@material-ui/icons/CloudQueue';
 import HelpOutlineIcon from '@material-ui/icons/HelpOutline';
 import HomeIcon from '@material-ui/icons/Home';
@@ -49,6 +50,8 @@ function getServiceIcon(icon) {
       return <CloudIcon key={icon} />;
     case 'ResourceVirtual':
       return <CloudQueueIcon key={icon} />;
+    case 'ResourceMonitor':
+      return <CloudCircleIcon key={icon} />;
     default:
       return <HelpOutlineIcon key={icon} />;
   }
