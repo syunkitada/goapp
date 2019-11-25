@@ -165,6 +165,48 @@ func (driver *InfluxdbDriver) Report(tctx *logger.TraceContext, input *api_spec.
 	return nil
 }
 
+func (driver *InfluxdbDriver) GetNode(tctx *logger.TraceContext, input *api_spec.GetNode) (data []api_spec.MetricsGroup, err error) {
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	fmt.Println("DEBUG GetNode")
+	// query := "show tag values from \"system_cpu\" with key = \"Host\""
+	// query := "select State, Warning, Warnings, Error, Errors, Timestamp from agent where Project = 'admin' group by Host,Kind"
+	query := fmt.Sprintf("select processes as processes from system_cpu where Host = '%s'", input.Name)
+	var metrics []api_spec.Metric
+	for _, client := range driver.metricClients {
+		queryResult, tmpErr := client.Query(query)
+		if tmpErr != nil {
+			logger.Warningf(tctx, "Failed Query: %s", tmpErr.Error())
+			continue
+		}
+		for _, result := range queryResult.Results {
+			for _, series := range result.Series {
+				// fmt.Println("Debug columns", metrics.Columns)
+				// [time Host Node Project btime cpu ctx guest guest_nice idle intr iowait irq nice processes procs_blocked procs_running softirq steal system user]
+				values := []map[string]float64{}
+				for _, value := range series.Values {
+					values = append(values, map[string]float64{
+						"time":      value[0].(float64),
+						"processes": value[1].(float64),
+					})
+				}
+				fmt.Println(series.Name)
+				metrics = append(metrics, api_spec.Metric{
+					Name:   series.Name,
+					Values: values,
+				})
+			}
+		}
+	}
+	data = append(data, api_spec.MetricsGroup{
+		Name:    "system",
+		Metrics: metrics,
+	})
+
+	return
+}
+
 func (driver *InfluxdbDriver) GetHost(tctx *logger.TraceContext, projectName string) error {
 	// hosts
 	// query := "show tag values from \"agent\" with key = \"Host\""
@@ -249,6 +291,7 @@ func (c *Client) Query(data string) (*QueryResult, error) {
 	}
 
 	query := req.URL.Query()
+	query.Add("epoch", "ms")
 	query.Add("q", data)
 	req.URL.RawQuery = query.Encode()
 

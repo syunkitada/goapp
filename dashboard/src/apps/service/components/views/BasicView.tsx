@@ -56,7 +56,6 @@ interface IBasicView extends WithStyles<typeof styles> {
 
 class BasicView extends React.Component<IBasicView> {
   public state = {
-    expanded: '',
     fieldMap: {},
   };
 
@@ -66,6 +65,7 @@ class BasicView extends React.Component<IBasicView> {
     logger.info('BasicView', 'render', index, selected);
 
     const fields = this.renderFields();
+    const panels = this.renderPanels();
 
     return (
       <div className={classes.root}>
@@ -75,29 +75,7 @@ class BasicView extends React.Component<IBasicView> {
           <Table className={classes.table}>
             <TableBody>{fields}</TableBody>
           </Table>
-
-          <ExpansionPanel
-            expanded={true}
-            onChange={this.handleChange}
-            className={classes.expansionPanel}>
-            <ExpansionPanelSummary
-              expandIcon={<ExpandMoreIcon />}
-              aria-controls="panel1bh-content"
-              id="panel1bh-header"
-              className={classes.expansionPanelSummary}>
-              <Typography variant="subtitle1">System</Typography>
-            </ExpansionPanelSummary>
-            <ExpansionPanelDetails className={classes.expansionPanelDetail}>
-              <Grid container={true} spacing={2}>
-                <Grid item={true} xs={6}>
-                  <LineGraphCard />
-                </Grid>
-                <Grid item={true} xs={6}>
-                  <LineGraphCard />
-                </Grid>
-              </Grid>
-            </ExpansionPanelDetails>
-          </ExpansionPanel>
+          {panels}
         </DialogContent>
         <DialogActions>
           <div className={classes.wrapper} style={{width: '100%'}}>
@@ -184,6 +162,65 @@ class BasicView extends React.Component<IBasicView> {
     }
 
     return fields;
+  };
+
+  private renderPanels = () => {
+    const {classes, index, rawData} = this.props;
+    console.log('debug renderpanels', index, rawData);
+    console.log('debug index', index.PanelsGroups);
+
+    const panelsGroups: JSX.Element[] = [];
+    for (let i = 0, len = index.PanelsGroups.length; i < len; i++) {
+      console.log('debug panel');
+      const panelsGroup = index.PanelsGroups[i];
+      const panels: JSX.Element[] = [];
+      if (panelsGroup.DataType === 'MetricsGroups') {
+        console.log('debug data', rawData[panelsGroup.DataKey]);
+        const metricsGroups = rawData[panelsGroup.DataKey];
+        for (let j = 0, jlen = metricsGroups.length; j < jlen; j++) {
+          const metricsGroup = metricsGroups[j];
+          const cards: JSX.Element[] = [];
+          for (let x = 0, xlen = metricsGroup.Metrics.length; x < xlen; x++) {
+            const metric = metricsGroup.Metrics[x];
+            console.log('DEBUG metrics', metric);
+            cards.push(
+              <Grid key={metric.Name} item={true} xs={6}>
+                <LineGraphCard data={metric} />
+              </Grid>,
+            );
+          }
+          panels.push(
+            <ExpansionPanel
+              key={metricsGroup.Name}
+              expanded={true}
+              onChange={this.handleChange}
+              className={classes.expansionPanel}>
+              <ExpansionPanelSummary
+                expandIcon={<ExpandMoreIcon />}
+                aria-controls="panel1bh-content"
+                id="panel1bh-header"
+                className={classes.expansionPanelSummary}>
+                <Typography variant="subtitle1">{metricsGroup.Name}</Typography>
+              </ExpansionPanelSummary>
+              <ExpansionPanelDetails className={classes.expansionPanelDetail}>
+                <Grid container={true} spacing={2}>
+                  {cards}
+                </Grid>
+              </ExpansionPanelDetails>
+            </ExpansionPanel>,
+          );
+        }
+      }
+
+      panelsGroups.push(
+        <div key={panelsGroup.Name}>
+          <Typography variant="subtitle1">{panelsGroup.Name}</Typography>
+          {panels}
+        </div>,
+      );
+    }
+
+    return <div>{panelsGroups}</div>;
   };
 }
 

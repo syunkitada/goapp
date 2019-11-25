@@ -49,7 +49,14 @@ func (resolver *Resolver) GetNode(tctx *logger.TraceContext, input *api_spec.Get
 		code = base_const.CodeServerInternalError
 		return
 	}
+	var metricsGroups []api_spec.MetricsGroup
+	if metricsGroups, err = resolver.tsdbApi.GetNode(tctx, input); err != nil {
+		code = base_const.CodeServerInternalError
+		return
+	}
+
 	code = base_const.CodeOk
+	node.MetricsGroups = metricsGroups
 	data = &spec.GetNodeData{Node: node}
 	return
 }

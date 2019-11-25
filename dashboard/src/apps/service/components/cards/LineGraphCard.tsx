@@ -25,6 +25,8 @@ import {
   YAxis,
 } from 'recharts';
 
+import * as moment from 'moment';
+
 interface IBasicView extends WithStyles<typeof styles> {
   targets;
   routes;
@@ -40,52 +42,7 @@ interface IBasicView extends WithStyles<typeof styles> {
 
 class LineGraphCard extends React.Component<IBasicView> {
   public render() {
-    const {classes} = this.props;
-
-    const data = [
-      {
-        amt: 2400,
-        name: 'Page A',
-        pv: 2400,
-        uv: 4000,
-      },
-      {
-        amt: 2210,
-        name: 'Page B',
-        pv: 1398,
-        uv: 3000,
-      },
-      {
-        amt: 2290,
-        name: 'Page C',
-        pv: 9800,
-        uv: 2000,
-      },
-      {
-        amt: 2000,
-        name: 'Page D',
-        pv: 3908,
-        uv: 2780,
-      },
-      {
-        amt: 2181,
-        name: 'Page E',
-        pv: 4800,
-        uv: 1890,
-      },
-      {
-        amt: 2500,
-        name: 'Page F',
-        pv: 3800,
-        uv: 2390,
-      },
-      {
-        amt: 2100,
-        name: 'Page G',
-        pv: 4300,
-        uv: 3490,
-      },
-    ];
+    const {classes, data} = this.props;
 
     return (
       <Card className={classes.card}>
@@ -98,12 +55,12 @@ class LineGraphCard extends React.Component<IBasicView> {
               borderBottom: '1px solid rgba(0, 0, 0, .125)',
               marginBottom: 10,
             }}>
-            CPU Usage
+            {data.Name}
           </Typography>
           <div style={{height: 300, padding: '0px 0px 60px 0px'}}>
             <ResponsiveContainer>
               <LineChart
-                data={data}
+                data={data.Values}
                 syncId="system"
                 margin={{
                   bottom: 0,
@@ -112,11 +69,22 @@ class LineGraphCard extends React.Component<IBasicView> {
                   top: 10,
                 }}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
+                <XAxis
+                  dataKey="time"
+                  type="number"
+                  allowDataOverflow={true}
+                  // scale="time"
+                  domain={['dataMin', 'dataMax']}
+                  tickFormatter={t => moment(new Date(t)).format('MM/DD hh:mm')}
+                />
                 <YAxis />
-                <Tooltip />
+                <Tooltip
+                  labelFormatter={t =>
+                    moment(new Date(t)).format('YYYY/MM/DD hh:mm')
+                  }
+                />
                 <Legend />
-                <Line type="monotone" dataKey="uv" stroke="#8884d8" />
+                <Line type="monotone" dataKey="processes" stroke="#8884d8" />
               </LineChart>
             </ResponsiveContainer>
           </div>

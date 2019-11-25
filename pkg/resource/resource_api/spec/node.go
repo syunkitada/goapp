@@ -1,13 +1,14 @@
 package spec
 
-import "github.com/syunkitada/goapp/pkg/authproxy/index_model"
+import "github.com/syunkitada/goapp/pkg/base/base_model/index_model"
 
 type Node struct {
-	Name     string
-	State    string
-	Warnings int
-	Errors   int
-	Labels   string
+	Name          string
+	State         string
+	Warnings      int
+	Errors        int
+	Labels        string
+	MetricsGroups []MetricsGroup
 }
 
 type GetNodes struct {
@@ -25,6 +26,16 @@ type GetNode struct {
 
 type GetNodeData struct {
 	Node Node
+}
+
+type MetricsGroup struct {
+	Name    string
+	Metrics []Metric
+}
+
+type Metric struct {
+	Name   string
+	Values []map[string]float64
 }
 
 var NodesTable = index_model.Table{
@@ -76,6 +87,13 @@ var NodesDetail = index_model.Tabs{
 			Fields: []index_model.Field{
 				index_model.Field{Name: "Name", Kind: "text"},
 				index_model.Field{Name: "Kind", Kind: "select"},
+			},
+			PanelsGroups: []interface{}{
+				map[string]string{
+					"Name":     "Metrics",
+					"DataKey":  "MetricsGroups",
+					"DataType": "MetricsGroups",
+				},
 			},
 		},
 	},
