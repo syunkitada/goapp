@@ -16,15 +16,15 @@ import (
 )
 
 type SystemMetricReader struct {
-	name         string
-	enableLogin  bool
-	enableCpu    bool
-	enableMemory bool
-	cacheLength  int
-	uptimeStats  []UptimeStat
-	loginStats   []LoginStat
-	cpuStats     []CpuStat
-	numaNodeServices    []spec.NumaNodeServiceSpec
+	name             string
+	enableLogin      bool
+	enableCpu        bool
+	enableMemory     bool
+	cacheLength      int
+	uptimeStats      []UptimeStat
+	loginStats       []LoginStat
+	cpuStats         []CpuStat
+	numaNodeServices []spec.NumaNodeServiceSpec
 }
 
 func New(conf *config.ResourceMetricSystemConfig) *SystemMetricReader {
@@ -54,15 +54,15 @@ func New(conf *config.ResourceMetricSystemConfig) *SystemMetricReader {
 	}
 
 	return &SystemMetricReader{
-		name:         "system",
-		enableLogin:  conf.EnableLogin,
-		enableCpu:    conf.EnableCpu,
-		enableMemory: conf.EnableMemory,
-		cacheLength:  conf.CacheLength,
-		uptimeStats:  make([]UptimeStat, 0, conf.CacheLength),
-		loginStats:   make([]LoginStat, 0, conf.CacheLength),
-		cpuStats:     make([]CpuStat, 0, conf.CacheLength),
-		numaNodeServices:    numaNodeServices,
+		name:             "system",
+		enableLogin:      conf.EnableLogin,
+		enableCpu:        conf.EnableCpu,
+		enableMemory:     conf.EnableMemory,
+		cacheLength:      conf.CacheLength,
+		uptimeStats:      make([]UptimeStat, 0, conf.CacheLength),
+		loginStats:       make([]LoginStat, 0, conf.CacheLength),
+		cpuStats:         make([]CpuStat, 0, conf.CacheLength),
+		numaNodeServices: numaNodeServices,
 	}
 }
 
@@ -189,7 +189,7 @@ func (reader *SystemMetricReader) Read(tctx *logger.TraceContext) error {
 
 		var cpu []string
 		cpuMap := map[string][]int64{}
-		lastIndex := 1
+		lastIndex := 13 // TODO FIXME len(cpus) + 1
 		for i := 0; i < lastIndex; i++ {
 			cpu = strings.Split(lines[i], " ")
 			v := make([]int64, len(cpu)-1)
@@ -206,6 +206,7 @@ func (reader *SystemMetricReader) Read(tctx *logger.TraceContext) error {
 		procs_running, _ := strconv.ParseInt(strings.Split(lines[lastIndex+4], " ")[1], 10, 64)
 		procs_blocked, _ := strconv.ParseInt(strings.Split(lines[lastIndex+5], " ")[1], 10, 64)
 		softirq, _ := strconv.ParseInt(strings.Split(lines[lastIndex+6], " ")[1], 10, 64)
+		fmt.Println("procs_running", procs_running)
 		stat := CpuStat{
 			reportStatus:  0,
 			timestamp:     timestamp,
@@ -248,8 +249,8 @@ func (reader *SystemMetricReader) Report() ([]spec.ResourceMetric, []spec.Resour
 			Name: "system_uptime",
 			Time: timestamp,
 			Tag:  map[string]string{},
-			Metric: map[string]float64{
-				"uptime": float64(stat.uptime),
+			Metric: map[string]interface{}{
+				"uptime": stat.uptime,
 			},
 		})
 	}
@@ -260,8 +261,8 @@ func (reader *SystemMetricReader) Report() ([]spec.ResourceMetric, []spec.Resour
 			Name: "system_login",
 			Time: timestamp,
 			Tag:  map[string]string{},
-			Metric: map[string]float64{
-				"users": float64(len(stat.users)),
+			Metric: map[string]interface{}{
+				"users": len(stat.users),
 			},
 		})
 	}
@@ -275,17 +276,17 @@ func (reader *SystemMetricReader) Report() ([]spec.ResourceMetric, []spec.Resour
 				Tag: map[string]string{
 					"cpu": cpuName,
 				},
-				Metric: map[string]float64{
-					"user":       float64(cpu[0]),
-					"nice":       float64(cpu[1]),
-					"system":     float64(cpu[2]),
-					"idle":       float64(cpu[3]),
-					"iowait":     float64(cpu[4]),
-					"irq":        float64(cpu[5]),
-					"softirq":    float64(cpu[6]),
-					"steal":      float64(cpu[7]),
-					"guest":      float64(cpu[8]),
-					"guest_nice": float64(cpu[9]),
+				Metric: map[string]interface{}{
+					"user":       cpu[0],
+					"nice":       cpu[1],
+					"system":     cpu[2],
+					"idle":       cpu[3],
+					"iowait":     cpu[4],
+					"irq":        cpu[5],
+					"softirq":    cpu[6],
+					"steal":      cpu[7],
+					"guest":      cpu[8],
+					"guest_nice": cpu[9],
 				},
 			})
 		}
@@ -296,14 +297,14 @@ func (reader *SystemMetricReader) Report() ([]spec.ResourceMetric, []spec.Resour
 			Tag: map[string]string{
 				"cpu": "cpu",
 			},
-			Metric: map[string]float64{
-				"intr":          float64(stat.intr),
-				"ctx":           float64(stat.ctx),
-				"btime":         float64(stat.btime),
-				"processes":     float64(stat.processes),
-				"procs_running": float64(stat.procs_running),
-				"procs_blocked": float64(stat.procs_blocked),
-				"softirq":       float64(stat.softirq),
+			Metric: map[string]interface{}{
+				"intr":          stat.intr,
+				"ctx":           stat.ctx,
+				"btime":         stat.btime,
+				"processes":     stat.processes,
+				"procs_running": stat.procs_running,
+				"procs_blocked": stat.procs_blocked,
+				"softirq":       stat.softirq,
 			},
 		})
 

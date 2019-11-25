@@ -100,7 +100,7 @@ type ResourceMetric struct {
 	Name   string
 	Time   string
 	Tag    map[string]string
-	Metric map[string]float64
+	Metric map[string]interface{}
 }
 
 type ResourceAlert struct {

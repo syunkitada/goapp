@@ -105,7 +105,7 @@ func (driver *InfluxdbDriver) Report(tctx *logger.TraceContext, input *api_spec.
 		}
 
 		for key, value := range metric.Metric {
-			values += "," + key + "=" + strconv.FormatFloat(value, 'g', 1, 64) + ""
+			values += "," + key + "=" + fmt.Sprint(value) + ""
 		}
 		values = values[1:]
 		metricsData += metric.Name + tags + " " + values + " " + metric.Time + "\n"
@@ -172,8 +172,29 @@ func (driver *InfluxdbDriver) GetNode(tctx *logger.TraceContext, input *api_spec
 	fmt.Println("DEBUG GetNode")
 	// query := "show tag values from \"system_cpu\" with key = \"Host\""
 	// query := "select State, Warning, Warnings, Error, Errors, Timestamp from agent where Project = 'admin' group by Host,Kind"
-	query := fmt.Sprintf("select processes as processes from system_cpu where Host = '%s'", input.Name)
-	var metrics []api_spec.Metric
+	var systemMetrics []api_spec.Metric
+
+	driver.GetMetrics(tctx,
+		&systemMetrics,
+		"ProcsRunning",
+		fmt.Sprintf("select procs_running, procs_blocked from system_cpu where Node = '%s'", input.Name),
+		[]string{"procs_running", "procs_blocked"})
+
+	driver.GetMetrics(tctx,
+		&systemMetrics,
+		"Processes",
+		fmt.Sprintf("select processes from system_cpu where Node = '%s'", input.Name),
+		[]string{"processes"})
+
+	data = append(data, api_spec.MetricsGroup{
+		Name:    "system",
+		Metrics: systemMetrics,
+	})
+
+	return
+}
+
+func (driver *InfluxdbDriver) GetMetrics(tctx *logger.TraceContext, metrics *[]api_spec.Metric, name string, query string, keys []string) {
 	for _, client := range driver.metricClients {
 		queryResult, tmpErr := client.Query(query)
 		if tmpErr != nil {
@@ -182,29 +203,24 @@ func (driver *InfluxdbDriver) GetNode(tctx *logger.TraceContext, input *api_spec
 		}
 		for _, result := range queryResult.Results {
 			for _, series := range result.Series {
-				// fmt.Println("Debug columns", metrics.Columns)
-				// [time Host Node Project btime cpu ctx guest guest_nice idle intr iowait irq nice processes procs_blocked procs_running softirq steal system user]
-				values := []map[string]float64{}
+				values := []map[string]interface{}{}
 				for _, value := range series.Values {
-					values = append(values, map[string]float64{
-						"time":      value[0].(float64),
-						"processes": value[1].(float64),
-					})
+					v := map[string]interface{}{
+						"time": value[0],
+					}
+					for i, key := range keys {
+						v[key] = value[i+1]
+					}
+					values = append(values, v)
 				}
-				fmt.Println(series.Name)
-				metrics = append(metrics, api_spec.Metric{
-					Name:   series.Name,
+				*metrics = append(*metrics, api_spec.Metric{
+					Name:   name,
 					Values: values,
+					Keys:   keys,
 				})
 			}
 		}
 	}
-	data = append(data, api_spec.MetricsGroup{
-		Name:    "system",
-		Metrics: metrics,
-	})
-
-	return
 }
 
 func (driver *InfluxdbDriver) GetHost(tctx *logger.TraceContext, projectName string) error {

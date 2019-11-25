@@ -214,6 +214,7 @@ class BasicView extends React.Component<IBasicView> {
 
       panelsGroups.push(
         <div key={panelsGroup.Name}>
+          <hr />
           <Typography variant="subtitle1">{panelsGroup.Name}</Typography>
           {panels}
         </div>,

@@ -35,7 +35,8 @@ type MetricsGroup struct {
 
 type Metric struct {
 	Name   string
-	Values []map[string]float64
+	Keys   []string
+	Values []map[string]interface{}
 }
 
 var NodesTable = index_model.Table{

@@ -43,6 +43,14 @@ interface IBasicView extends WithStyles<typeof styles> {
 class LineGraphCard extends React.Component<IBasicView> {
   public render() {
     const {classes, data} = this.props;
+    const colorPaletts = [
+      '#8884d8',
+      '#82ca9d',
+      '#82ca9d',
+      '#82ca9d',
+      '#82ca9d',
+      '#82ca9d',
+    ];
 
     return (
       <Card className={classes.card}>
@@ -72,19 +80,35 @@ class LineGraphCard extends React.Component<IBasicView> {
                 <XAxis
                   dataKey="time"
                   type="number"
-                  allowDataOverflow={true}
-                  // scale="time"
                   domain={['dataMin', 'dataMax']}
                   tickFormatter={t => moment(new Date(t)).format('MM/DD hh:mm')}
                 />
-                <YAxis />
+                <YAxis
+                  tickFormatter={y => {
+                    if (y >= 1000000000) {
+                      return y / 1000000000 + 'G';
+                    } else if (y >= 1000000) {
+                      return y / 1000000 + 'M';
+                    } else if (y >= 1000) {
+                      return y / 1000 + 'K';
+                    }
+                    return y;
+                  }}
+                />
                 <Tooltip
                   labelFormatter={t =>
                     moment(new Date(t)).format('YYYY/MM/DD hh:mm')
                   }
                 />
                 <Legend />
-                <Line type="monotone" dataKey="processes" stroke="#8884d8" />
+                {data.Keys.map((key, index) => (
+                  <Line
+                    key={key}
+                    type="monotone"
+                    dataKey={key}
+                    stroke={colorPaletts[index]}
+                  />
+                ))}
               </LineChart>
             </ResponsiveContainer>
           </div>
