@@ -168,6 +168,11 @@ var Spec = spec_model.Spec{
 
 				spec_model.QueryModel{Req: GetNodes{}, Rep: GetNodesData{}},
 				spec_model.QueryModel{Req: GetNode{}, Rep: GetNodeData{}},
+				spec_model.QueryModel{Req: GetAlerts{}, Rep: GetAlertsData{}},
+				spec_model.QueryModel{Req: GetAlertRules{}, Rep: GetAlertRulesData{}},
+				spec_model.QueryModel{Req: GetStatistics{}, Rep: GetStatisticsData{}},
+				spec_model.QueryModel{Req: GetLogs{}, Rep: GetLogsData{}},
+				spec_model.QueryModel{Req: GetTrace{}, Rep: GetTraceData{}},
 			},
 		},
 	},

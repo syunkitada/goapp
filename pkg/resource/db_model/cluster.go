@@ -17,3 +17,10 @@ type Cluster struct {
 	Endpoints    string `gorm:"not null;"`
 	Token        string `gorm:"not null;"`
 }
+
+type ClusterStatistic struct {
+	Warnings  int `gorm:"not null;"`
+	Criticals int `gorm:"not null;"`
+	Nodes     int `gorm:"not null;"`
+	Instances int `gorm:"not null;"`
+}

@@ -143,7 +143,7 @@ class IndexTable extends React.Component<IIndexTable> {
     for (let i = 0, l = columns.length; i < l; i++) {
       columns[i].id = i;
     }
-    columns[0].disablePadding = true;
+    columns[0].disablePadding = false;
 
     const columnActions: any[] = [];
     if (index.ColumnActions != null) {
@@ -226,6 +226,7 @@ class IndexTable extends React.Component<IIndexTable> {
           onChangePage={this.handleChangePage}
           onChangeRowsPerPage={this.handleChangeRowsPerPage}
           onChangeSearchInput={this.handleChangeSearchInput}
+          onChangeFilter={this.handleChangeFilter}
           onActionClick={this.handleActionClick}
         />
         <div className={classes.tableWrapper}>
@@ -290,7 +291,6 @@ class IndexTable extends React.Component<IIndexTable> {
                           key={i}
                           component="th"
                           scope="row"
-                          padding="none"
                           style={{cursor: 'pointer'}}
                           onClick={e => {
                             this.handleLinkClick(e, link, n[i], columns[i]);
@@ -436,6 +436,12 @@ class IndexTable extends React.Component<IIndexTable> {
     params[column.LinkParam] = value;
     this.props.getQueries(column.LinkGetQueries, column.LinkSync, params);
     route.history.push(link);
+  };
+
+  private handleChangeFilter = (event, id) => {
+    console.log('DEBUG Change');
+    // setAge(event.target.value);
+    // this.setState({searchRegExp});
   };
 }
 

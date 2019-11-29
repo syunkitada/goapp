@@ -20,6 +20,10 @@ import InputAdornment from '@material-ui/core/InputAdornment';
 import Toolbar from '@material-ui/core/Toolbar';
 import Tooltip from '@material-ui/core/Tooltip';
 
+import InputLabel from '@material-ui/core/InputLabel';
+import MenuItem from '@material-ui/core/MenuItem';
+import Select from '@material-ui/core/Select';
+
 import SearchIcon from '@material-ui/icons/Search';
 
 import icon_utils from '../../../../modules/icon_utils';
@@ -91,6 +95,7 @@ const styles = (theme: Theme): StyleRules =>
 interface ITableToolbar extends WithStyles<typeof styles> {
   index;
   onChangeSearchInput;
+  onChangeFilter;
   count;
   numSelected;
   rowsPerPage;
@@ -112,6 +117,7 @@ class TableToolbar extends React.Component<ITableToolbar> {
       page,
       onChangePage,
       onChangeRowsPerPage,
+      onChangeFilter,
       onActionClick,
     } = this.props;
 
@@ -171,6 +177,19 @@ class TableToolbar extends React.Component<ITableToolbar> {
                     </InputAdornment>
                   }
                 />
+              </FormControl>
+
+              <FormControl className={classes.formControl}>
+                <InputLabel id="demo-simple-select-label">Age</InputLabel>
+                <Select
+                  labelId="demo-simple-select-label"
+                  id={'demo-simple-select'}
+                  value={''}
+                  onChange={onChangeFilter}>
+                  <MenuItem value={10}>Ten</MenuItem>
+                  <MenuItem value={20}>Twenty</MenuItem>
+                  <MenuItem value={30}>Thirty</MenuItem>
+                </Select>
               </FormControl>
             </div>
           </Grid>

@@ -1,6 +1,10 @@
 package spec
 
-import "github.com/syunkitada/goapp/pkg/authproxy/index_model"
+import (
+	"time"
+
+	"github.com/syunkitada/goapp/pkg/authproxy/index_model"
+)
 
 type Cluster struct {
 	Region       string `validate:"required"`
@@ -10,7 +14,13 @@ type Cluster struct {
 	Description  string
 	DomainSuffix string `validate:"required"`
 	Labels       string
+	Warnings     int
+	Criticals    int
+	Nodes        int
+	Instances    int
 	Weight       int
+	UpdatedAt    time.Time
+	CreatedAt    time.Time
 }
 
 type GetCluster struct {

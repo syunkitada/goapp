@@ -20,6 +20,8 @@ type TableColumn struct {
 	LinkParam      string
 	LinkSync       bool
 	LinkGetQueries []string
+	RowColoringMap map[string]string
+	FilterValues   []map[string]string
 	Sort           string
 }
 

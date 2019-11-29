@@ -572,3 +572,50 @@ internet --- gateway-router --- floor-spine-router --- floor-leaf-router --- rac
       - tokyo2 でサービスを作り直して GlobalService に紐づけ、tokyo1 のサービスを GlobalService から外して削除する
       - 作り直しが難しい場合は、GlobalService から tokyo1 のサービスを外して停止し、tokyo2 へコールドマイグレーションしてサービスを再開して GlobalService に紐づける
     - GlobalService に紐図かないサービス(バッチなど)の場合は、停止を許容して tokyo1 のサービスを停止し tokyo2 へ移行する
+
+## TimeSeriesData
+
+- TimeSeriesData の種別と用途
+  - 解析用
+    - 大容量、短期(2 週間程度)保存
+    - 用途
+      - CPU、メモリ、ディスクなどのデータによる異常解析
+      - リソースアサイン時の重みづけ
+      - 短期的なリソースの利用率・稼働率の表示
+  - 統計用
+    - (短期的にみると)小容量、長期(数年)保存
+    - 用途
+      - 年ごと、月ごとのリソースの利用率・稼働率の表示
+      - 月ごと、日ごとのエラーレートの遷移
+
+## LogData
+
+- LogData の種別と用途
+  - 解析用
+    - 大容量、短期(2 週間程度)保存
+    - データは欠ける、重複する可能性がある
+    - 用途
+      - Error レート、Warning レートの表示
+        - Error の一覧、Warning の一覧、その詳細表示
+      - App、Host に絞ってのログ一覧表示
+        - TraceId ごとにログを集約する(Error 数、Warning 数)を出し、展開できるようにする
+      - TraceId によるトレース検索
+  - 監査用
+    - (短期的にみると)小容量、長期(数年)保存
+    - データは消えてはならない、確実に記録されなければならない
+    - リクエスト処理上のトランザクション上でログを記録する
+    - MySQL などのデータベースを利用する
+    - アプリケーション側で担保すべきなのでサポートしない
+
+## AlertData
+
+- AlertData の種別
+  - Critical
+    - 即時に対応が必要
+  - Warning
+    - 即時に対応は必要はない、アプリケーション側で自動復旧する可能性がある
+- IgnoreAlerts と IssuedAlerts と Occurences の設定によりアラートをフィルタし、アラートは配信される
+  - 配信したアラートは IssuedAlerts に自動追加され、設定した時間まではアラートがフィルタされるようになる
+    - 一定時間(ReissueDuration)を超過してもアラートを検知した場合は再度配信され、時間が更新される
+    - 一定時間(SuccessDuration)を経過しても続くアラートを検知しなかった場合は、Success とみなし、Success メッセージを配信する
+      - ただし、Alert の Host が Active の場合にかぎる

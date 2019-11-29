@@ -132,12 +132,17 @@ var ResourceVirtualAdminCmdMap = map[string]index_model.Cmd{
 			},
 		},
 		OutputKind:   "table",
-		OutputFormat: "Name,State,Warnings,Errors,Labels",
+		OutputFormat: "Name,State,Warnings,Errors,Labels,MetricsGroups",
 	},
 	"get.node": index_model.Cmd{
 		QueryName: "GetNode",
 		FlagMap: map[string]index_model.Flag{
 			"cluster,c": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+			"name,n": index_model.Flag{
 				Required: true,
 				FlagType: "string",
 				FlagKind: "",

@@ -3,6 +3,7 @@ package spec
 import (
 	"time"
 
+	"github.com/syunkitada/goapp/pkg/base/base_model/index_model"
 	"github.com/syunkitada/goapp/pkg/base/base_spec"
 )
 
@@ -110,4 +111,174 @@ type ResourceAlert struct {
 	Handler string
 	Msg     string
 	Tag     map[string]string
+}
+
+type GetAlerts struct {
+	Cluster string `validate:"required"`
+}
+
+type GetAlertsData struct {
+	Alerts []ResourceAlert
+}
+
+type GetAlertRules struct {
+	Cluster string `validate:"required"`
+}
+
+type GetAlertRulesData struct {
+}
+
+type GetStatistics struct {
+	Cluster string `validate:"required"`
+}
+
+type GetStatisticsData struct {
+}
+
+type GetLogs struct {
+	Cluster string `validate:"required"`
+}
+
+type GetLogsData struct {
+}
+
+type GetTrace struct {
+	Cluster string `validate:"required"`
+	TraceId string `validate:"required"`
+}
+
+type GetTraceData struct {
+}
+
+var LogsTable = index_model.Table{
+	Name:    "Logs",
+	Route:   "/Logs",
+	Kind:    "Table",
+	DataKey: "Logs",
+	SelectActions: []index_model.Action{
+		index_model.Action{
+			Name:      "Delete",
+			Icon:      "Delete",
+			Kind:      "Form",
+			DataKind:  "Node",
+			SelectKey: "Name",
+		},
+	},
+	Columns: []index_model.TableColumn{
+		index_model.TableColumn{
+			Name: "Name", IsSearch: true,
+		},
+		index_model.TableColumn{Name: "Kind"},
+		index_model.TableColumn{Name: "UpdatedAt", Kind: "Time"},
+		index_model.TableColumn{Name: "CreatedAt", Kind: "Time"},
+	},
+}
+
+var AlertsTable = index_model.Table{
+	Name:    "Alerts",
+	Route:   "/Alerts",
+	Kind:    "Table",
+	DataKey: "Alerts",
+	SelectActions: []index_model.Action{
+		index_model.Action{
+			Name:      "Delete",
+			Icon:      "Delete",
+			Kind:      "Form",
+			DataKind:  "Node",
+			SelectKey: "Name",
+		},
+	},
+	Columns: []index_model.TableColumn{
+		index_model.TableColumn{
+			Name: "Name", IsSearch: true,
+		},
+		index_model.TableColumn{
+			Name:           "Level",
+			RowColoringMap: map[string]string{"Warning": "Orange", "Critical": "Red"},
+			FilterValues: []map[string]string{
+				map[string]string{
+					"Icon":  "",
+					"Value": "Warning",
+				},
+				map[string]string{
+					"Icon":  "",
+					"Value": "Critical",
+				},
+			},
+		},
+		index_model.TableColumn{Name: "Msg"},
+		index_model.TableColumn{Name: "Time", Kind: "Time"},
+	},
+}
+
+var AlertRulesTable = index_model.Table{
+	Name:    "AlertRules",
+	Route:   "/AlertRules",
+	Kind:    "Table",
+	DataKey: "AlertRules",
+	SelectActions: []index_model.Action{
+		index_model.Action{
+			Name:      "Delete",
+			Icon:      "Delete",
+			Kind:      "Form",
+			DataKind:  "Node",
+			SelectKey: "Name",
+		},
+	},
+	Columns: []index_model.TableColumn{
+		index_model.TableColumn{
+			Name: "Name", IsSearch: true,
+		},
+		index_model.TableColumn{Name: "Kind"},
+		index_model.TableColumn{Name: "UpdatedAt", Kind: "Time"},
+		index_model.TableColumn{Name: "CreatedAt", Kind: "Time"},
+	},
+}
+
+var StatisticsTable = index_model.Table{
+	Name:    "Statistics",
+	Route:   "/Statistics",
+	Kind:    "Table",
+	DataKey: "Statistics",
+	SelectActions: []index_model.Action{
+		index_model.Action{
+			Name:      "Delete",
+			Icon:      "Delete",
+			Kind:      "Form",
+			DataKind:  "Node",
+			SelectKey: "Name",
+		},
+	},
+	Columns: []index_model.TableColumn{
+		index_model.TableColumn{
+			Name: "Name", IsSearch: true,
+		},
+		index_model.TableColumn{Name: "Kind"},
+		index_model.TableColumn{Name: "UpdatedAt", Kind: "Time"},
+		index_model.TableColumn{Name: "CreatedAt", Kind: "Time"},
+	},
+}
+
+var TracesTable = index_model.Table{
+	Name:    "Traces",
+	Route:   "/Traces",
+	Kind:    "Table",
+	DataKey: "Traces",
+	SelectActions: []index_model.Action{
+		index_model.Action{
+			Name:      "Delete",
+			Icon:      "Delete",
+			Kind:      "Form",
+			DataKind:  "Node",
+			SelectKey: "Name",
+		},
+	},
+	Columns: []index_model.TableColumn{
+		index_model.TableColumn{
+			Name: "Name", IsSearch: true,
+		},
+		index_model.TableColumn{Name: "Kind"},
+		index_model.TableColumn{Name: "UpdatedAt", Kind: "Time"},
+		index_model.TableColumn{Name: "CreatedAt", Kind: "Time"},
+	},
 }

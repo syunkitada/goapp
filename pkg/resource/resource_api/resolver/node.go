@@ -28,3 +28,51 @@ func (resolver *Resolver) GetNode(tctx *logger.TraceContext, input *spec.GetNode
 	data = &spec.GetNodeData{Node: *node}
 	return
 }
+
+func (resolver *Resolver) GetAlerts(tctx *logger.TraceContext, input *spec.GetAlerts, user *base_spec.UserAuthority) (data *spec.GetAlertsData, code uint8, err error) {
+	var alerts = []spec.ResourceAlert{
+		spec.ResourceAlert{
+			Name:    "hoge",
+			Time:    "timestamp",
+			Level:   "Critical",
+			Handler: "handlerhoge",
+			Msg:     "critical on host",
+			Tag:     map[string]string{},
+		},
+		spec.ResourceAlert{
+			Name:    "piyo",
+			Time:    "timestamp",
+			Level:   "Warning",
+			Handler: "handlerhoge",
+			Msg:     "critical on host",
+			Tag:     map[string]string{},
+		},
+	}
+	code = base_const.CodeOk
+	data = &spec.GetAlertsData{
+		Alerts: alerts,
+	}
+	return
+}
+func (resolver *Resolver) GetAlertRules(tctx *logger.TraceContext, input *spec.GetAlertRules, user *base_spec.UserAuthority) (data *spec.GetAlertRulesData, code uint8, err error) {
+	code = base_const.CodeOk
+	data = &spec.GetAlertRulesData{}
+	return
+}
+func (resolver *Resolver) GetStatistics(tctx *logger.TraceContext, input *spec.GetStatistics, user *base_spec.UserAuthority) (data *spec.GetStatisticsData, code uint8, err error) {
+	code = base_const.CodeOk
+	data = &spec.GetStatisticsData{}
+	return
+}
+
+func (resolver *Resolver) GetLogs(tctx *logger.TraceContext, input *spec.GetLogs, user *base_spec.UserAuthority) (data *spec.GetLogsData, code uint8, err error) {
+	code = base_const.CodeOk
+	data = &spec.GetLogsData{}
+	return
+}
+
+func (resolver *Resolver) GetTrace(tctx *logger.TraceContext, input *spec.GetTrace, user *base_spec.UserAuthority) (data *spec.GetTraceData, code uint8, err error) {
+	code = base_const.CodeOk
+	data = &spec.GetTraceData{}
+	return
+}
