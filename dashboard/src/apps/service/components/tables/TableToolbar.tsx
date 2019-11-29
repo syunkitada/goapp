@@ -183,9 +183,10 @@ class TableToolbar extends React.Component<ITableToolbar> {
                 <InputLabel id="demo-simple-select-label">Age</InputLabel>
                 <Select
                   labelId="demo-simple-select-label"
-                  id={'demo-simple-select'}
+                  id="demo-simple-select"
                   value={''}
                   onChange={onChangeFilter}>
+                  <MenuItem value={0} />
                   <MenuItem value={10}>Ten</MenuItem>
                   <MenuItem value={20}>Twenty</MenuItem>
                   <MenuItem value={30}>Thirty</MenuItem>
