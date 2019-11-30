@@ -314,7 +314,7 @@ class IndexTable extends React.Component<IIndexTable> {
                       );
                     } else {
                       cells.push(
-                        <TableCell key={i} align="right">
+                        <TableCell key={i} align={i === 0 ? 'left' : 'right'}>
                           {n[i]}
                         </TableCell>,
                       );

@@ -20,9 +20,9 @@ import InputAdornment from '@material-ui/core/InputAdornment';
 import Toolbar from '@material-ui/core/Toolbar';
 import Tooltip from '@material-ui/core/Tooltip';
 
-import InputLabel from '@material-ui/core/InputLabel';
-import MenuItem from '@material-ui/core/MenuItem';
-import Select from '@material-ui/core/Select';
+import Badge from '@material-ui/core/Badge';
+import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline';
+import HighlightOffOutlinedIcon from '@material-ui/icons/HighlightOffOutlined';
 
 import SearchIcon from '@material-ui/icons/Search';
 
@@ -48,6 +48,9 @@ const styles = (theme: Theme): StyleRules =>
             backgroundColor: theme.palette.secondary.dark,
             color: theme.palette.text.primary,
           },
+    leftButton: {
+      marginTop: theme.spacing(1),
+    },
     margin: {
       margin: theme.spacing(2),
     },
@@ -120,6 +123,7 @@ class TableToolbar extends React.Component<ITableToolbar> {
       onChangeFilter,
       onActionClick,
     } = this.props;
+    console.log(onChangeFilter);
 
     const actionButtons: any[] = [];
     if (numSelected > 0) {
@@ -179,19 +183,22 @@ class TableToolbar extends React.Component<ITableToolbar> {
                 />
               </FormControl>
 
-              <FormControl className={classes.formControl}>
-                <InputLabel id="demo-simple-select-label">Age</InputLabel>
-                <Select
-                  labelId="demo-simple-select-label"
-                  id="demo-simple-select"
-                  value={''}
-                  onChange={onChangeFilter}>
-                  <MenuItem value={0} />
-                  <MenuItem value={10}>Ten</MenuItem>
-                  <MenuItem value={20}>Twenty</MenuItem>
-                  <MenuItem value={30}>Thirty</MenuItem>
-                </Select>
-              </FormControl>
+              <IconButton
+                value="bold"
+                aria-label="bold"
+                className={classes.leftButton}>
+                <Badge badgeContent={4} color="secondary">
+                  <ErrorOutlineIcon />
+                </Badge>
+              </IconButton>
+              <IconButton
+                value="bold"
+                aria-label="bold"
+                className={classes.leftButton}>
+                <Badge badgeContent={4} color="secondary">
+                  <HighlightOffOutlinedIcon />
+                </Badge>
+              </IconButton>
             </div>
           </Grid>
           <Grid item={true}>{actionButtons}</Grid>
