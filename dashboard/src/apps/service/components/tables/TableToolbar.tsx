@@ -20,10 +20,6 @@ import InputAdornment from '@material-ui/core/InputAdornment';
 import Toolbar from '@material-ui/core/Toolbar';
 import Tooltip from '@material-ui/core/Tooltip';
 
-import Badge from '@material-ui/core/Badge';
-import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline';
-import HighlightOffOutlinedIcon from '@material-ui/icons/HighlightOffOutlined';
-
 import SearchIcon from '@material-ui/icons/Search';
 
 import icon_utils from '../../../../modules/icon_utils';
@@ -48,9 +44,6 @@ const styles = (theme: Theme): StyleRules =>
             backgroundColor: theme.palette.secondary.dark,
             color: theme.palette.text.primary,
           },
-    leftButton: {
-      marginTop: theme.spacing(1),
-    },
     margin: {
       margin: theme.spacing(2),
     },
@@ -98,11 +91,11 @@ const styles = (theme: Theme): StyleRules =>
 interface ITableToolbar extends WithStyles<typeof styles> {
   index;
   onChangeSearchInput;
-  onChangeFilter;
   count;
   numSelected;
   rowsPerPage;
   page;
+  exButtons;
   onChangePage;
   onChangeRowsPerPage;
   onActionClick;
@@ -118,12 +111,11 @@ class TableToolbar extends React.Component<ITableToolbar> {
       numSelected,
       rowsPerPage,
       page,
+      exButtons,
       onChangePage,
       onChangeRowsPerPage,
-      onChangeFilter,
       onActionClick,
     } = this.props;
-    console.log(onChangeFilter);
 
     const actionButtons: any[] = [];
     if (numSelected > 0) {
@@ -183,22 +175,7 @@ class TableToolbar extends React.Component<ITableToolbar> {
                 />
               </FormControl>
 
-              <IconButton
-                value="bold"
-                aria-label="bold"
-                className={classes.leftButton}>
-                <Badge badgeContent={4} color="secondary">
-                  <ErrorOutlineIcon />
-                </Badge>
-              </IconButton>
-              <IconButton
-                value="bold"
-                aria-label="bold"
-                className={classes.leftButton}>
-                <Badge badgeContent={4} color="secondary">
-                  <HighlightOffOutlinedIcon />
-                </Badge>
-              </IconButton>
+              {exButtons}
             </div>
           </Grid>
           <Grid item={true}>{actionButtons}</Grid>

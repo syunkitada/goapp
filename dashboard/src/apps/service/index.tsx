@@ -4,8 +4,11 @@ import {connect} from 'react-redux';
 import Dashboard from '../../components/Dashboard';
 import Index from './components/Index';
 
+import {MuiThemeProvider} from '@material-ui/core/styles';
+
 import actions from '../../actions';
 import logger from '../../lib/logger';
+import theme_utils from '../../lib/theme_utils';
 
 interface IService {
   auth;
@@ -32,9 +35,11 @@ class Service extends React.Component<IService> {
     }
 
     return (
-      <Dashboard match={match} history={history}>
-        <Index match={match} history={history} />
-      </Dashboard>
+      <MuiThemeProvider theme={theme_utils.getTheme(auth.theme)}>
+        <Dashboard match={match} history={history}>
+          <Index match={match} history={history} />
+        </Dashboard>
+      </MuiThemeProvider>
     );
   }
 }

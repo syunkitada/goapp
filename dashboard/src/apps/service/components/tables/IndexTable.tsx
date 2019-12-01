@@ -25,12 +25,20 @@ import FormDialog from '../dialogs/FormDialog';
 import IndexTableHead from './IndexTableHead';
 import TableToolbar from './TableToolbar';
 
+import Badge from '@material-ui/core/Badge';
+import IconButton from '@material-ui/core/IconButton';
+
 import actions from '../../../../actions';
 import logger from '../../../../lib/logger';
+import theme_utils from '../../../../lib/theme_utils';
 import icon_utils from '../../../../modules/icon_utils';
 import sort_utils from '../../../../modules/sort_utils';
 
+import Tooltip from '@material-ui/core/Tooltip';
+import Icon from '../../../../components/icons/Icon';
+
 interface IIndexTable extends WithStyles<typeof styles> {
+  auth;
   routes;
   index;
   data;
@@ -63,7 +71,7 @@ class IndexTable extends React.Component<IIndexTable> {
   };
 
   public render() {
-    const {routes, classes, index, data} = this.props;
+    const {auth, routes, classes, index, data} = this.props;
     const {
       selected,
       anchorEl,
@@ -75,6 +83,8 @@ class IndexTable extends React.Component<IIndexTable> {
     logger.info('IndexTable', 'render', actionName, routes);
     console.log('DEBUG Table', index.DataKey, index.Columns, data);
 
+    console.log(auth);
+    const exButtons: any[] = [];
     const columns = index.Columns;
     let rawData = data[index.DataKey];
 
@@ -93,6 +103,7 @@ class IndexTable extends React.Component<IIndexTable> {
     const searchColumns: any[] = [];
     let order = 'asc';
     let orderBy = 0;
+    const filterCounterMap = {};
     for (let i = 0, len = columns.length; i < len; i++) {
       const column = columns[i];
       if (column.IsSearch) {
@@ -101,6 +112,12 @@ class IndexTable extends React.Component<IIndexTable> {
       if (column.Sort) {
         order = column.Sort;
         orderBy = i;
+      }
+      if (column.FilterValues) {
+        for (let j = 0, lenj = column.FilterValues.length; j < lenj; j++) {
+          const filterValue = column.FilterValues[j];
+          filterCounterMap[filterValue.Value] = 0;
+        }
       }
     }
 
@@ -136,9 +153,20 @@ class IndexTable extends React.Component<IIndexTable> {
         } else {
           row.push(c);
         }
+
+        if (column.FilterValues) {
+          for (let j = 0, lenj = column.FilterValues.length; j < lenj; j++) {
+            const filterValue = column.FilterValues[j];
+            if (filterValue.Value === c) {
+              filterCounterMap[filterValue.Value] += 1;
+            }
+          }
+        }
       }
+
       tableData.push(row);
     }
+    console.log('DEBUG counterMap', filterCounterMap);
 
     for (let i = 0, l = columns.length; i < l; i++) {
       columns[i].id = i;
@@ -211,6 +239,41 @@ class IndexTable extends React.Component<IIndexTable> {
       }
     }
 
+    for (let i = 0, len = columns.length; i < len; i++) {
+      const column = columns[i];
+      if (column.FilterValues) {
+        for (let j = 0, lenj = column.FilterValues.length; j < lenj; j++) {
+          const filterValue = column.FilterValues[j];
+          exButtons.push(
+            <Tooltip key={j} title={filterValue.Value}>
+              <IconButton
+                aria-label={column.Name}
+                className={classes.toolbarExButton}
+                onClick={() =>
+                  this.handleFilterClick(column.Name, filterValue.Value)
+                }
+                value={filterValue.Value}>
+                <Badge
+                  badgeContent={filterCounterMap[filterValue.Value]}
+                  color="primary">
+                  <Icon
+                    name={filterValue.Icon}
+                    style={{
+                      color: theme_utils.getFgColor(
+                        auth.theme,
+                        filterValue.Icon,
+                      ),
+                    }}
+                    marginDirection="left"
+                  />
+                </Badge>
+              </IconButton>
+            </Tooltip>,
+          );
+        }
+      }
+    }
+
     const indexLength = tableData.length;
     const emptyRows =
       rowsPerPage - Math.min(rowsPerPage, indexLength - page * rowsPerPage);
@@ -226,8 +289,8 @@ class IndexTable extends React.Component<IIndexTable> {
           onChangePage={this.handleChangePage}
           onChangeRowsPerPage={this.handleChangeRowsPerPage}
           onChangeSearchInput={this.handleChangeSearchInput}
-          onChangeFilter={this.handleChangeFilter}
           onActionClick={this.handleActionClick}
+          exButtons={exButtons}
         />
         <div className={classes.tableWrapper}>
           <Table className={classes.table} aria-labelledby="tableTitle">
@@ -312,6 +375,41 @@ class IndexTable extends React.Component<IIndexTable> {
                           </Button>
                         </TableCell>,
                       );
+                    } else if (columns[i].FilterValues) {
+                      let filterButton: any = null;
+                      if (columns[i].FilterValues) {
+                        for (
+                          let j = 0, lenj = columns[i].FilterValues.length;
+                          j < lenj;
+                          j++
+                        ) {
+                          const filterValue = columns[i].FilterValues[j];
+                          if (filterValue.Value === n[i]) {
+                            filterButton = (
+                              <Button>
+                                <Icon
+                                  key={j}
+                                  name={filterValue.Icon}
+                                  style={{
+                                    color: theme_utils.getFgColor(
+                                      auth.theme,
+                                      filterValue.Icon,
+                                    ),
+                                  }}
+                                  marginDirection="left"
+                                />
+                                {n[i]}
+                              </Button>
+                            );
+                            break;
+                          }
+                        }
+                      }
+                      cells.push(
+                        <TableCell key={i} align={i === 0 ? 'left' : 'right'}>
+                          {filterButton}
+                        </TableCell>,
+                      );
                     } else {
                       cells.push(
                         <TableCell key={i} align={i === 0 ? 'left' : 'right'}>
@@ -320,6 +418,7 @@ class IndexTable extends React.Component<IIndexTable> {
                       );
                     }
                   }
+
                   return (
                     <TableRow hover={true} tabIndex={-1} key={key}>
                       {cells}
@@ -438,8 +537,8 @@ class IndexTable extends React.Component<IIndexTable> {
     route.history.push(link);
   };
 
-  private handleChangeFilter = (event, id) => {
-    console.log('DEBUG Change');
+  private handleFilterClick = (name, value) => {
+    console.log('DEBUG handle Filter Click', name, value);
     // setAge(event.target.value);
     // this.setState({searchRegExp});
   };
@@ -465,6 +564,9 @@ const styles = (theme: Theme): StyleRules =>
     },
     title: {
       flex: '0 0 auto',
+    },
+    toolbarExButton: {
+      marginTop: theme.spacing(1),
     },
   });
 

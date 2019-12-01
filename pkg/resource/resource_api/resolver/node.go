@@ -1,6 +1,8 @@
 package resolver
 
 import (
+	"time"
+
 	"github.com/syunkitada/goapp/pkg/base/base_const"
 	"github.com/syunkitada/goapp/pkg/base/base_spec"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
@@ -47,6 +49,14 @@ func (resolver *Resolver) GetAlerts(tctx *logger.TraceContext, input *spec.GetAl
 			Msg:     "critical on host",
 			Tag:     map[string]string{},
 		},
+		spec.ResourceAlert{
+			Name:    "piyo2",
+			Time:    "timestamp",
+			Level:   "Warning",
+			Handler: "handlerhoge",
+			Msg:     "critical on host",
+			Tag:     map[string]string{},
+		},
 	}
 	code = base_const.CodeOk
 	data = &spec.GetAlertsData{
@@ -56,7 +66,24 @@ func (resolver *Resolver) GetAlerts(tctx *logger.TraceContext, input *spec.GetAl
 }
 func (resolver *Resolver) GetAlertRules(tctx *logger.TraceContext, input *spec.GetAlertRules, user *base_spec.UserAuthority) (data *spec.GetAlertRulesData, code uint8, err error) {
 	code = base_const.CodeOk
-	data = &spec.GetAlertRulesData{}
+	var alertRules = []spec.AlertRule{
+		spec.AlertRule{
+			Name:  "hoge",
+			Host:  ".*",
+			Kind:  "Filter",
+			Until: time.Now(),
+		},
+		spec.AlertRule{
+			Name:  ".*",
+			Host:  "hoge.com",
+			Kind:  "Filter",
+			Until: time.Now(),
+		},
+	}
+
+	data = &spec.GetAlertRulesData{
+		AlertRules: alertRules,
+	}
 	return
 }
 func (resolver *Resolver) GetStatistics(tctx *logger.TraceContext, input *spec.GetStatistics, user *base_spec.UserAuthority) (data *spec.GetStatisticsData, code uint8, err error) {

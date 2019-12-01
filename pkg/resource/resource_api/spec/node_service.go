@@ -125,7 +125,15 @@ type GetAlertRules struct {
 	Cluster string `validate:"required"`
 }
 
+type AlertRule struct {
+	Host  string
+	Name  string
+	Kind  string
+	Until time.Time
+}
+
 type GetAlertRulesData struct {
+	AlertRules []AlertRule
 }
 
 type GetStatistics struct {
@@ -194,14 +202,14 @@ var AlertsTable = index_model.Table{
 		},
 		index_model.TableColumn{
 			Name:           "Level",
-			RowColoringMap: map[string]string{"Warning": "Orange", "Critical": "Red"},
+			RowColoringMap: map[string]string{"Warning": "Warning", "Critical": "Critical"},
 			FilterValues: []map[string]string{
 				map[string]string{
-					"Icon":  "",
+					"Icon":  "Warning",
 					"Value": "Warning",
 				},
 				map[string]string{
-					"Icon":  "",
+					"Icon":  "Critical",
 					"Value": "Critical",
 				},
 			},
@@ -229,9 +237,9 @@ var AlertRulesTable = index_model.Table{
 		index_model.TableColumn{
 			Name: "Name", IsSearch: true,
 		},
+		index_model.TableColumn{Name: "Host"},
 		index_model.TableColumn{Name: "Kind"},
-		index_model.TableColumn{Name: "UpdatedAt", Kind: "Time"},
-		index_model.TableColumn{Name: "CreatedAt", Kind: "Time"},
+		index_model.TableColumn{Name: "Until", Kind: "Time"},
 	},
 }
 
