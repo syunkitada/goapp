@@ -289,7 +289,6 @@ func (resolver *Resolver) GetServiceDashboardIndex(tctx *logger.TraceContext,
 								spec.NodesTable,
 								spec.StatisticsTable,
 								spec.LogsTable,
-								spec.TracesTable,
 							},
 						},
 						gin.H{

@@ -27,6 +27,7 @@ import TableToolbar from './TableToolbar';
 
 import Badge from '@material-ui/core/Badge';
 import IconButton from '@material-ui/core/IconButton';
+import TextField from '@material-ui/core/TextField';
 
 import actions from '../../../../actions';
 import logger from '../../../../lib/logger';
@@ -36,6 +37,8 @@ import sort_utils from '../../../../modules/sort_utils';
 
 import Tooltip from '@material-ui/core/Tooltip';
 import Icon from '../../../../components/icons/Icon';
+
+import Autocomplete from '@material-ui/lab/Autocomplete';
 
 interface IIndexTable extends WithStyles<typeof styles> {
   auth;
@@ -85,6 +88,7 @@ class IndexTable extends React.Component<IIndexTable> {
 
     console.log(auth);
     const exButtons: any[] = [];
+    const exInputs: any[] = [];
     const columns = index.Columns;
     let rawData = data[index.DataKey];
 
@@ -274,6 +278,38 @@ class IndexTable extends React.Component<IIndexTable> {
       }
     }
 
+    const selectorProps = {
+      getOptionLabel: option => option.title,
+      options: [
+        {title: 'The Shawshank Redemption', year: 1994},
+        {title: 'The Godfather', year: 1972},
+        {title: 'The Godfather: Part II', year: 1974},
+      ],
+    };
+
+    if (index.Selectors) {
+      for (let i = 0, len = index.Selectors.length; i < len; i++) {
+        const selector = index.Selectors[i];
+        exInputs.push(
+          <Autocomplete
+            {...selectorProps}
+            multiple={true}
+            key={selector.Name}
+            disableCloseOnSelect={true}
+            renderInput={params => (
+              <TextField {...params} label={selector.Name} variant="outlined" />
+            )}
+          />,
+        );
+      }
+    }
+    if (index.InputFields) {
+      for (let i = 0, len = index.InputFields.length; i < len; i++) {
+        const inputField = index.InputFields[i];
+        exInputs.push(<TextField label={inputField.Name} variant="outlined" />);
+      }
+    }
+
     const indexLength = tableData.length;
     const emptyRows =
       rowsPerPage - Math.min(rowsPerPage, indexLength - page * rowsPerPage);
@@ -291,6 +327,7 @@ class IndexTable extends React.Component<IIndexTable> {
           onChangeSearchInput={this.handleChangeSearchInput}
           onActionClick={this.handleActionClick}
           exButtons={exButtons}
+          exInputs={exInputs}
         />
         <div className={classes.tableWrapper}>
           <Table className={classes.table} aria-labelledby="tableTitle">
@@ -542,6 +579,12 @@ class IndexTable extends React.Component<IIndexTable> {
     // setAge(event.target.value);
     // this.setState({searchRegExp});
   };
+
+  // private handleSelectorChange = (name, value) => {
+  //   console.log('DEBUG handle Selector Change', name, value);
+  //   // setAge(event.target.value);
+  //   // this.setState({searchRegExp});
+  // };
 }
 
 const styles = (theme: Theme): StyleRules =>

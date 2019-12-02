@@ -172,12 +172,27 @@ var LogsTable = index_model.Table{
 			SelectKey: "Name",
 		},
 	},
+	Selectors: []index_model.TableSelector{
+		index_model.TableSelector{
+			Name:    "App",
+			DataKey: "LogApps",
+		},
+		index_model.TableSelector{
+			Name:    "Host",
+			DataKey: "LogHosts",
+		},
+	},
+	InputFields: []index_model.TableInputField{
+		index_model.TableInputField{
+			Name: "TraceId",
+		},
+	},
 	Columns: []index_model.TableColumn{
 		index_model.TableColumn{
 			Name: "Name", IsSearch: true,
 		},
-		index_model.TableColumn{Name: "Kind"},
-		index_model.TableColumn{Name: "UpdatedAt", Kind: "Time"},
+		index_model.TableColumn{Name: "App"},
+		index_model.TableColumn{Name: "Host"},
 		index_model.TableColumn{Name: "CreatedAt", Kind: "Time"},
 	},
 }
@@ -248,30 +263,6 @@ var StatisticsTable = index_model.Table{
 	Route:   "/Statistics",
 	Kind:    "Table",
 	DataKey: "Statistics",
-	SelectActions: []index_model.Action{
-		index_model.Action{
-			Name:      "Delete",
-			Icon:      "Delete",
-			Kind:      "Form",
-			DataKind:  "Node",
-			SelectKey: "Name",
-		},
-	},
-	Columns: []index_model.TableColumn{
-		index_model.TableColumn{
-			Name: "Name", IsSearch: true,
-		},
-		index_model.TableColumn{Name: "Kind"},
-		index_model.TableColumn{Name: "UpdatedAt", Kind: "Time"},
-		index_model.TableColumn{Name: "CreatedAt", Kind: "Time"},
-	},
-}
-
-var TracesTable = index_model.Table{
-	Name:    "Traces",
-	Route:   "/Traces",
-	Kind:    "Table",
-	DataKey: "Traces",
 	SelectActions: []index_model.Action{
 		index_model.Action{
 			Name:      "Delete",
