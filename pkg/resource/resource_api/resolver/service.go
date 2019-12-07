@@ -280,7 +280,7 @@ func (resolver *Resolver) GetServiceDashboardIndex(tctx *logger.TraceContext,
 							Subname:          "Kind",
 							Route:            "/Clusters/:Cluster/Resources/:Kind",
 							TabParam:         "Kind",
-							GetQueries:       []string{"GetAlerts", "GetAlertRules", "GetNodes"},
+							GetQueries:       []string{"GetAlerts", "GetAlertRules", "GetNodes", "GetLogParams"},
 							ExpectedDataKeys: []string{"Alerts", "AlertIgnoreRules", "Nodes"},
 							IsSync:           true,
 							Tabs: []interface{}{

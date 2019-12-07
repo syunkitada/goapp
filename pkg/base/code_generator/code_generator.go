@@ -142,14 +142,20 @@ func convertApi(api *spec_model.Api) {
 			switch f.Type.Kind() {
 			case reflect.Slice:
 				elem := f.Type.Elem()
-				lenFields := elem.NumField()
-				outputKind = "table"
-				columns := []string{}
-				for j := 0; j < lenFields; j++ {
-					c := elem.Field(j)
-					columns = append(columns, c.Name)
+				switch elem.Kind() {
+				case reflect.String:
+					outputKind = "string"
+					outputFormat = "string"
+				case reflect.Struct:
+					lenFields := elem.NumField()
+					outputKind = "table"
+					columns := []string{}
+					for j := 0; j < lenFields; j++ {
+						c := elem.Field(j)
+						columns = append(columns, c.Name)
+					}
+					outputFormat = strings.Join(columns, ",")
 				}
-				outputFormat = strings.Join(columns, ",")
 			}
 		}
 

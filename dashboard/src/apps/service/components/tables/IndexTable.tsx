@@ -278,18 +278,22 @@ class IndexTable extends React.Component<IIndexTable> {
       }
     }
 
-    const selectorProps = {
-      getOptionLabel: option => option.title,
-      options: [
-        {title: 'The Shawshank Redemption', year: 1994},
-        {title: 'The Godfather', year: 1972},
-        {title: 'The Godfather: Part II', year: 1974},
-      ],
-    };
-
     if (index.Selectors) {
       for (let i = 0, len = index.Selectors.length; i < len; i++) {
         const selector = index.Selectors[i];
+        const selectorData = data[selector.DataKey];
+        const options: any = [];
+        if (!selectorData) {
+          continue;
+        }
+        for (let j = 0, lenj = selectorData.length; j < lenj; j++) {
+          options.push({title: selectorData[j]});
+        }
+
+        const selectorProps = {
+          getOptionLabel: option => option.title,
+          options,
+        };
         exInputs.push(
           <Autocomplete
             {...selectorProps}

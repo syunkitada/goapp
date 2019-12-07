@@ -651,7 +651,7 @@ var ResourceVirtualAdminCmdMap = map[string]index_model.Cmd{
 		QueryName:    "GetClusters",
 		FlagMap:      map[string]index_model.Flag{},
 		OutputKind:   "table",
-		OutputFormat: "Region,Datacenter,Name,Kind,Description,DomainSuffix,Labels,Warnings,Criticals,Nodes,Instances,Weight",
+		OutputFormat: "Region,Datacenter,Name,Kind,Description,DomainSuffix,Labels,Warnings,Criticals,Nodes,Instances,Weight,UpdatedAt,CreatedAt",
 	},
 	"create.cluster": index_model.Cmd{
 		QueryName: "CreateCluster",
@@ -1095,7 +1095,7 @@ var ResourceVirtualCmdMap = map[string]index_model.Cmd{
 		QueryName:    "GetClusters",
 		FlagMap:      map[string]index_model.Flag{},
 		OutputKind:   "table",
-		OutputFormat: "Region,Datacenter,Name,Kind,Description,DomainSuffix,Labels,Warnings,Criticals,Nodes,Instances,Weight",
+		OutputFormat: "Region,Datacenter,Name,Kind,Description,DomainSuffix,Labels,Warnings,Criticals,Nodes,Instances,Weight,UpdatedAt,CreatedAt",
 	},
 	"create.cluster": index_model.Cmd{
 		QueryName: "CreateCluster",
@@ -1355,7 +1355,7 @@ var ResourceMonitorCmdMap = map[string]index_model.Cmd{
 		QueryName:    "GetClusters",
 		FlagMap:      map[string]index_model.Flag{},
 		OutputKind:   "table",
-		OutputFormat: "Region,Datacenter,Name,Kind,Description,DomainSuffix,Labels,Warnings,Criticals,Nodes,Instances,Weight",
+		OutputFormat: "Region,Datacenter,Name,Kind,Description,DomainSuffix,Labels,Warnings,Criticals,Nodes,Instances,Weight,UpdatedAt,CreatedAt",
 	},
 	"get.nodes": index_model.Cmd{
 		QueryName: "GetNodes",
@@ -1407,8 +1407,8 @@ var ResourceMonitorCmdMap = map[string]index_model.Cmd{
 				FlagKind: "",
 			},
 		},
-		OutputKind:   "",
-		OutputFormat: "",
+		OutputKind:   "table",
+		OutputFormat: "Node,Name,Kind,Until",
 	},
 	"get.statistics": index_model.Cmd{
 		QueryName: "GetStatistics",
@@ -1421,6 +1421,18 @@ var ResourceMonitorCmdMap = map[string]index_model.Cmd{
 		},
 		OutputKind:   "",
 		OutputFormat: "",
+	},
+	"get.log.params": index_model.Cmd{
+		QueryName: "GetLogParams",
+		FlagMap: map[string]index_model.Flag{
+			"cluster,c": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+		},
+		OutputKind:   "string",
+		OutputFormat: "string",
 	},
 	"get.logs": index_model.Cmd{
 		QueryName: "GetLogs",
@@ -1896,6 +1908,10 @@ var ApiQueryMap = map[string]map[string]spec_model.QueryModel{
 			RequiredProject: true,
 		},
 		"GetStatistics": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"GetLogParams": spec_model.QueryModel{
 			RequiredAuth:    true,
 			RequiredProject: true,
 		},

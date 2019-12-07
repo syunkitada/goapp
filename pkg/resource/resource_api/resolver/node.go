@@ -69,13 +69,13 @@ func (resolver *Resolver) GetAlertRules(tctx *logger.TraceContext, input *spec.G
 	var alertRules = []spec.AlertRule{
 		spec.AlertRule{
 			Name:  "hoge",
-			Host:  ".*",
+			Node:  ".*",
 			Kind:  "Filter",
 			Until: time.Now(),
 		},
 		spec.AlertRule{
 			Name:  ".*",
-			Host:  "hoge.com",
+			Node:  "hoge.com",
 			Kind:  "Filter",
 			Until: time.Now(),
 		},
@@ -95,6 +95,15 @@ func (resolver *Resolver) GetStatistics(tctx *logger.TraceContext, input *spec.G
 func (resolver *Resolver) GetLogs(tctx *logger.TraceContext, input *spec.GetLogs, user *base_spec.UserAuthority) (data *spec.GetLogsData, code uint8, err error) {
 	code = base_const.CodeOk
 	data = &spec.GetLogsData{}
+	return
+}
+
+func (resolver *Resolver) GetLogParams(tctx *logger.TraceContext, input *spec.GetLogParams, user *base_spec.UserAuthority) (data *spec.GetLogParamsData, code uint8, err error) {
+	code = base_const.CodeOk
+	data = &spec.GetLogParamsData{
+		LogNodes: []string{"hoge", "piyo"},
+		LogApps:  []string{"hogeapp", "piyoapp"},
+	}
 	return
 }
 

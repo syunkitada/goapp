@@ -583,6 +583,20 @@ type GetImagesResult struct {
 	Error string
 	Data  spec.GetImagesData
 }
+type GetLogParamsResponse struct {
+	base_model.Response
+	ResultMap GetLogParamsResultMap
+}
+
+type GetLogParamsResultMap struct {
+	GetLogParams GetLogParamsResult
+}
+
+type GetLogParamsResult struct {
+	Code  uint8
+	Error string
+	Data  spec.GetLogParamsData
+}
 type GetLogsResponse struct {
 	base_model.Response
 	ResultMap GetLogsResultMap
@@ -2588,6 +2602,21 @@ func (client *Client) ResourceMonitorGetStatistics(tctx *logger.TraceContext, qu
 		return
 	}
 	result := res.ResultMap.GetStatistics
+	if result.Code >= 100 || result.Error != "" {
+		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
+		return
+	}
+
+	data = &result.Data
+	return
+}
+func (client *Client) ResourceMonitorGetLogParams(tctx *logger.TraceContext, queries []base_client.Query) (data *spec.GetLogParamsData, err error) {
+	var res GetLogParamsResponse
+	err = client.Request(tctx, "ResourceMonitor", queries, &res, true)
+	if err != nil {
+		return
+	}
+	result := res.ResultMap.GetLogParams
 	if result.Code >= 100 || result.Error != "" {
 		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
 		return

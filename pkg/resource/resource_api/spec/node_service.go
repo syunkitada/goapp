@@ -126,7 +126,7 @@ type GetAlertRules struct {
 }
 
 type AlertRule struct {
-	Host  string
+	Node  string
 	Name  string
 	Kind  string
 	Until time.Time
@@ -141,6 +141,15 @@ type GetStatistics struct {
 }
 
 type GetStatisticsData struct {
+}
+
+type GetLogParams struct {
+	Cluster string `validate:"required"`
+}
+
+type GetLogParamsData struct {
+	LogNodes []string
+	LogApps  []string
 }
 
 type GetLogs struct {
@@ -178,8 +187,8 @@ var LogsTable = index_model.Table{
 			DataKey: "LogApps",
 		},
 		index_model.TableSelector{
-			Name:    "Host",
-			DataKey: "LogHosts",
+			Name:    "Node",
+			DataKey: "LogNodes",
 		},
 	},
 	InputFields: []index_model.TableInputField{
