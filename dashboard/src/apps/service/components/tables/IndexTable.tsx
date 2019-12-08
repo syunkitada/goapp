@@ -310,7 +310,13 @@ class IndexTable extends React.Component<IIndexTable> {
     if (index.InputFields) {
       for (let i = 0, len = index.InputFields.length; i < len; i++) {
         const inputField = index.InputFields[i];
-        exInputs.push(<TextField label={inputField.Name} variant="outlined" />);
+        exInputs.push(
+          <TextField
+            key={inputField.Name}
+            label={inputField.Name}
+            variant="outlined"
+          />,
+        );
       }
     }
 

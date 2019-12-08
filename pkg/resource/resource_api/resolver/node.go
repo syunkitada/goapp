@@ -99,11 +99,11 @@ func (resolver *Resolver) GetLogs(tctx *logger.TraceContext, input *spec.GetLogs
 }
 
 func (resolver *Resolver) GetLogParams(tctx *logger.TraceContext, input *spec.GetLogParams, user *base_spec.UserAuthority) (data *spec.GetLogParamsData, code uint8, err error) {
-	code = base_const.CodeOk
-	data = &spec.GetLogParamsData{
-		LogNodes: []string{"hoge", "piyo"},
-		LogApps:  []string{"hogeapp", "piyoapp"},
+	if data, err = resolver.dbApi.GetLogParams(tctx, input, user); err != nil {
+		code = base_const.CodeServerInternalError
+		return
 	}
+	code = base_const.CodeOk
 	return
 }
 

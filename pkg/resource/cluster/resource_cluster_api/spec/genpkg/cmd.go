@@ -213,6 +213,30 @@ var ResourceVirtualAdminCmdMap = map[string]index_model.Cmd{
 		OutputKind:   "",
 		OutputFormat: "",
 	},
+	"get.logs": index_model.Cmd{
+		QueryName: "GetLogs",
+		FlagMap: map[string]index_model.Flag{
+			"cluster,c": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
+	"get.log.params": index_model.Cmd{
+		QueryName: "GetLogParams",
+		FlagMap: map[string]index_model.Flag{
+			"cluster,c": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+		},
+		OutputKind:   "string",
+		OutputFormat: "string",
+	},
 }
 
 var ApiQueryMap = map[string]map[string]spec_model.QueryModel{
@@ -266,6 +290,14 @@ var ApiQueryMap = map[string]map[string]spec_model.QueryModel{
 			RequiredProject: true,
 		},
 		"ReportNode": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"GetLogs": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"GetLogParams": spec_model.QueryModel{
 			RequiredAuth:    true,
 			RequiredProject: true,
 		},

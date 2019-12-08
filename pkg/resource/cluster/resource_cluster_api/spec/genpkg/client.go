@@ -93,6 +93,34 @@ type GetComputesResult struct {
 	Error string
 	Data  spec.GetComputesData
 }
+type GetLogParamsResponse struct {
+	base_model.Response
+	ResultMap GetLogParamsResultMap
+}
+
+type GetLogParamsResultMap struct {
+	GetLogParams GetLogParamsResult
+}
+
+type GetLogParamsResult struct {
+	Code  uint8
+	Error string
+	Data  spec.GetLogParamsData
+}
+type GetLogsResponse struct {
+	base_model.Response
+	ResultMap GetLogsResultMap
+}
+
+type GetLogsResultMap struct {
+	GetLogs GetLogsResult
+}
+
+type GetLogsResult struct {
+	Code  uint8
+	Error string
+	Data  spec.GetLogsData
+}
 type GetNodeResponse struct {
 	base_model.Response
 	ResultMap GetNodeResultMap
@@ -364,6 +392,36 @@ func (client *Client) ResourceVirtualAdminReportNode(tctx *logger.TraceContext, 
 		return
 	}
 	result := res.ResultMap.ReportNode
+	if result.Code >= 100 || result.Error != "" {
+		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
+		return
+	}
+
+	data = &result.Data
+	return
+}
+func (client *Client) ResourceVirtualAdminGetLogs(tctx *logger.TraceContext, queries []base_client.Query) (data *spec.GetLogsData, err error) {
+	var res GetLogsResponse
+	err = client.Request(tctx, "ResourceVirtualAdmin", queries, &res, true)
+	if err != nil {
+		return
+	}
+	result := res.ResultMap.GetLogs
+	if result.Code >= 100 || result.Error != "" {
+		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
+		return
+	}
+
+	data = &result.Data
+	return
+}
+func (client *Client) ResourceVirtualAdminGetLogParams(tctx *logger.TraceContext, queries []base_client.Query) (data *spec.GetLogParamsData, err error) {
+	var res GetLogParamsResponse
+	err = client.Request(tctx, "ResourceVirtualAdmin", queries, &res, true)
+	if err != nil {
+		return
+	}
+	result := res.ResultMap.GetLogParams
 	if result.Code >= 100 || result.Error != "" {
 		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
 		return

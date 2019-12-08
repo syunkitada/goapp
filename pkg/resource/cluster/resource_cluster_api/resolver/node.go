@@ -60,3 +60,18 @@ func (resolver *Resolver) GetNode(tctx *logger.TraceContext, input *api_spec.Get
 	data = &spec.GetNodeData{Node: node}
 	return
 }
+
+func (resolver *Resolver) GetLogs(tctx *logger.TraceContext, input *api_spec.GetLogs, user *base_spec.UserAuthority) (data *api_spec.GetLogsData, code uint8, err error) {
+	code = base_const.CodeOk
+	data = &api_spec.GetLogsData{}
+	return
+}
+
+func (resolver *Resolver) GetLogParams(tctx *logger.TraceContext, input *api_spec.GetLogParams, user *base_spec.UserAuthority) (data *api_spec.GetLogParamsData, code uint8, err error) {
+	code = base_const.CodeOk
+	data = &api_spec.GetLogParamsData{
+		LogNodes: []string{"piyohoge", "piyo"},
+		LogApps:  []string{"hogeapp", "piyoapp"},
+	}
+	return
+}
