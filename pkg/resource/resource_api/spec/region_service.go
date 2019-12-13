@@ -31,12 +31,12 @@ type SchedulePolicySpec struct {
 	Replicas                    int `validate:"required"`
 	ClusterFilters              []string
 	ClusterLabelFilters         []string
-	NodeFilters                 []string
-	NodeLabelFilters            []string
-	NodeLabelHardAffinities     []string
-	NodeLabelHardAntiAffinities []string
-	NodeLabelSoftAffinities     []string
-	NodeLabelSoftAntiAffinities []string
+	NodeServiceFilters                 []string
+	NodeServiceLabelFilters            []string
+	NodeServiceLabelHardAffinities     []string
+	NodeServiceLabelHardAntiAffinities []string
+	NodeServiceLabelSoftAffinities     []string
+	NodeServiceLabelSoftAntiAffinities []string
 }
 
 type NetworkPolicySpec struct {
@@ -122,5 +122,50 @@ var RegionServicesTable = index_model.Table{
 		index_model.TableColumn{Name: "Kind"},
 		index_model.TableColumn{Name: "UpdatedAt", Kind: "Time"},
 		index_model.TableColumn{Name: "CreatedAt", Kind: "Time"},
+	},
+}
+
+var RegionServicesDetail = index_model.Tabs{
+	Name:            "RegionServices",
+	Kind:            "RouteTabs",
+	RouteParamKey:   "kind",
+	RouteParamValue: "RegionServices",
+	Route:           "/Regions/:Region/Resources/RegionServices/Detail/:Name/:Subkind",
+	TabParam:        "Subkind",
+	GetQueries: []string{
+		"GetRegionService",
+		"GetRegionServices", "GetImages"},
+	ExpectedDataKeys: []string{"RegionService"},
+	IsSync:           true,
+	Tabs: []interface{}{
+		index_model.View{
+			Name:    "View",
+			Route:   "/View",
+			Kind:    "View",
+			DataKey: "RegionService",
+			Fields: []index_model.Field{
+				index_model.Field{Name: "Name", Kind: "text"},
+				index_model.Field{Name: "Kind", Kind: "select"},
+			},
+		},
+		index_model.Form{
+			Name:         "Edit",
+			Route:        "/Edit",
+			Kind:         "Form",
+			DataKey:      "RegionService",
+			SubmitAction: "update image",
+			Icon:         "Update",
+			Fields: []index_model.Field{
+				index_model.Field{Name: "Name", Kind: "text", Require: true,
+					Updatable: false,
+					Min:       5, Max: 200, RegExp: "^[0-9a-zA-Z]+$",
+					RegExpMsg: "Please enter alphanumeric characters."},
+				index_model.Field{Name: "Kind", Kind: "select", Require: true,
+					Updatable: true,
+					Options: []string{
+						"Compute",
+					}},
+			},
+		},
 	},
 }

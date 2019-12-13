@@ -16,7 +16,11 @@ func (api *Api) BootstrapResource(tctx *logger.TraceContext, isRecreate bool) (e
 		return
 	}
 
-	if err = api.DB.AutoMigrate(&db_model.NodeMeta{}).Error; err != nil {
+	if err = api.DB.AutoMigrate(&db_model.Node{}).Error; err != nil {
+		return
+	}
+
+	if err = api.DB.AutoMigrate(&db_model.NodeServiceMeta{}).Error; err != nil {
 		return
 	}
 

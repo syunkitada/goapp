@@ -7,6 +7,7 @@ const defaultState = {
   isFetching: false,
   isSyncState: false,
   redirectToReferrer: false,
+  theme: 'light',
   user: null,
 };
 

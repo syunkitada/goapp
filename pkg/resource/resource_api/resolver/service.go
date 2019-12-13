@@ -44,6 +44,13 @@ func (resolver *Resolver) GetServiceIndex(tctx *logger.TraceContext, input *base
 			},
 		}
 		code = base_const.CodeOk
+	case "ResourceMonitor":
+		data = &base_spec.GetServiceIndexData{
+			Index: index_model.Index{
+				CmdMap: genpkg.ResourceMonitorCmdMap,
+			},
+		}
+		code = base_const.CodeOk
 	default:
 		code = base_const.CodeClientNotFound
 	}
@@ -104,6 +111,7 @@ func (resolver *Resolver) GetServiceDashboardIndex(tctx *logger.TraceContext,
 			},
 		}
 		code = base_const.CodeOk
+
 	case "ResourcePhysical":
 		var datacenters []spec.Datacenter
 		datacenters, err = resolver.dbApi.GetDatacenters(tctx, &spec.GetDatacenters{}, user)
@@ -153,6 +161,56 @@ func (resolver *Resolver) GetServiceDashboardIndex(tctx *logger.TraceContext,
 			},
 		}
 		code = base_const.CodeOk
+
+	case "ResourceVirtualAdmin":
+		var regions []spec.Region
+		regions, err = resolver.dbApi.GetRegions(tctx, &spec.GetRegions{}, user)
+		if err != nil {
+			return
+		}
+
+		data = &base_spec.GetServiceDashboardIndexData{
+			Data: map[string]interface{}{
+				"Regions": regions,
+			},
+			Index: index_model.DashboardIndex{
+				View: index_model.Panels{
+					Name: "Root",
+					Kind: "RoutePanels",
+					Panels: []interface{}{
+						spec.RegionsTable,
+						index_model.Tabs{
+							Name:             "Resources",
+							Kind:             "RouteTabs",
+							Subname:          "Kind",
+							Route:            "/Regions/:Region/Resources/:Kind",
+							TabParam:         "Kind",
+							GetQueries:       []string{"GetRegionServices", "GetImages"},
+							ExpectedDataKeys: []string{"RegionServices", "Images"},
+							IsSync:           true,
+							Tabs: []interface{}{
+								spec.RegionServicesTable,
+								spec.ImagesTable,
+							},
+						},
+						gin.H{
+							"Name":      "Resource",
+							"Subname":   "Name",
+							"Route":     "/Regions/:Region/Resources/:Kind/Detail/:Name/:Subkind",
+							"Kind":      "RoutePanes",
+							"PaneParam": "Kind",
+							"Panes": []interface{}{
+								spec.ComputesDetail,
+								spec.RegionServicesDetail,
+								spec.ImagesDetail,
+							},
+						},
+					},
+				},
+			},
+		}
+		code = base_const.CodeOk
+
 	case "ResourceVirtual":
 		data = &base_spec.GetServiceDashboardIndexData{
 			Index: index_model.DashboardIndex{
@@ -175,6 +233,80 @@ func (resolver *Resolver) GetServiceDashboardIndex(tctx *logger.TraceContext,
 			},
 		}
 		code = base_const.CodeOk
+
+	case "ResourceMonitor":
+		var clusters []spec.Cluster
+		clusters, err = resolver.dbApi.GetClusters(tctx, &spec.GetClusters{}, user)
+		if err != nil {
+			return
+		}
+
+		data = &base_spec.GetServiceDashboardIndexData{
+			Data: map[string]interface{}{
+				"Clusters": clusters,
+			},
+			Index: index_model.DashboardIndex{
+				View: index_model.Panels{
+					Name: "Root",
+					Kind: "RoutePanels",
+					Panels: []interface{}{
+						index_model.Table{
+							Name:    "Clusters",
+							Kind:    "Table",
+							Route:   "",
+							DataKey: "Clusters",
+							Columns: []index_model.TableColumn{
+								index_model.TableColumn{
+									Name:           "Name",
+									IsSearch:       true,
+									Link:           "Clusters/:0/Resources/Nodes",
+									LinkParam:      "Cluster",
+									LinkSync:       true,
+									LinkGetQueries: []string{"GetNodes"},
+								},
+								index_model.TableColumn{Name: "Region", IsSearch: true},
+								index_model.TableColumn{Name: "Datacenter", IsSearch: true},
+								index_model.TableColumn{Name: "Criticals"},
+								index_model.TableColumn{Name: "Warnings"},
+								index_model.TableColumn{Name: "Nodes"},
+								index_model.TableColumn{Name: "Instances"},
+								index_model.TableColumn{Name: "UpdatedAt", Kind: "Time", Sort: "asc"},
+								index_model.TableColumn{Name: "CreatedAt", Kind: "Time"},
+							},
+						},
+						index_model.Tabs{
+							Name:             "Resources",
+							Kind:             "RouteTabs",
+							Subname:          "Kind",
+							Route:            "/Clusters/:Cluster/Resources/:Kind",
+							TabParam:         "Kind",
+							GetQueries:       []string{"GetAlerts", "GetAlertRules", "GetNodes", "GetLogParams"},
+							ExpectedDataKeys: []string{"Alerts", "AlertIgnoreRules", "Nodes"},
+							IsSync:           true,
+							Tabs: []interface{}{
+								spec.AlertsTable,
+								spec.AlertRulesTable,
+								spec.NodesTable,
+								spec.StatisticsTable,
+								spec.LogsTable,
+							},
+						},
+						gin.H{
+							"Name":      "Resource",
+							"Subname":   "Name",
+							"Route":     "/Clusters/:Cluster/Resources/:Kind/Detail/:Name/:Subkind",
+							"Kind":      "RoutePanes",
+							"PaneParam": "Kind",
+							"Panes": []interface{}{
+								spec.NodesDetail,
+							},
+						},
+					},
+				},
+			},
+		}
+		code = base_const.CodeOk
+
 	default:
 		code = base_const.CodeClientNotFound
 	}

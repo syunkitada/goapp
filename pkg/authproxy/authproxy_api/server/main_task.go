@@ -11,25 +11,25 @@ func (srv *Server) MainTask(tctx *logger.TraceContext) (err error) {
 		return
 	}
 
-	if err = srv.UpdateNodeTask(tctx); err != nil {
+	if err = srv.UpdateNodeServiceTask(tctx); err != nil {
 		return
 	}
 
 	return nil
 }
 
-func (srv *Server) UpdateNodeTask(tctx *logger.TraceContext) error {
-	fmt.Println("DEBUG UpdateNodeTask")
+func (srv *Server) UpdateNodeServiceTask(tctx *logger.TraceContext) error {
+	fmt.Println("DEBUG UpdateNodeServiceTask")
 	return nil
-	// nodes := []resource_model.NodeSpec{
-	// 	resource_model.NodeSpec{
+	// nodes := []resource_model.NodeServiceSpec{
+	// 	resource_model.NodeServiceSpec{
 	// 		Name:         srv.conf.Default.Host,
 	// 		Kind:         resource_model.KindResourceApi,
 	// 		Role:         resource_model.RoleMember,
 	// 		Status:       resource_model.StatusEnabled,
 	// 		StatusReason: "Default",
 	// 		State:        resource_model.StateUp,
-	// 		StateReason:  "UpdateNode",
+	// 		StateReason:  "UpdateNodeService",
 	// 	},
 	// }
 	// specs, err := json_utils.Marshal(nodes)

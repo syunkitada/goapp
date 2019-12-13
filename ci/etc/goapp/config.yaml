@@ -87,6 +87,10 @@ resource:
           scope: 'project'
           projectRoles: ['tenant']
           syncRootCluster: true
+        - name: 'ResourceMonitor'
+          scope: 'project'
+          projectRoles: ['admin', 'tenant']
+          syncRootCluster: true
     rootClient:
       user: 'service'
       password: 'service'
@@ -107,6 +111,14 @@ resource:
       datacenter: 'tokyo'
       kind: 'public'
       domainSuffix: 'tokyo1.example.com'
+      timeSeriesDatabase:
+        driver: 'influxdb'
+        alertDatabases:
+          - 'goapp:goapppass@http://127.0.0.1:8086@goapp_monitor_alerts'
+        logDatabases:
+          - 'goapp:goapppass@http://127.0.0.1:8086@goapp_monitor_logs'
+        metricDatabases:
+          - 'goapp:goapppass@http://127.0.0.1:8086@goapp_monitor_metrics'
       api:
         listen: '0.0.0.0:13400'
         endpoints: ['https://127.0.0.1:13400']
@@ -172,3 +184,21 @@ resource:
           configDir: '/home/owner/.goapp/etc/resource/compute/'
           varDir: '/home/owner/.goapp/var/compute'
           driver: 'mock'
+        reportProject: 'admin'
+        logMap:
+          goapp-resource-cluster-agent:
+            path: 'goapp-resource-cluster-agent.log'
+            maxInitialReadSize: 1000
+            alertMap:
+              errorOccurd:
+                key: 'Level'
+                pattern: 'E'
+                level: 'E'
+                handler: 'Mail'
+        metric:
+          system:
+            enable: true
+            enableLogin: true
+            enableCpu: true
+            enableMemory: true
+            cacheLength: 10

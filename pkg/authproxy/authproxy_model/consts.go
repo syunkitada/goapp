@@ -1,1 +1,0 @@
-package authproxy_model

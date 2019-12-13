@@ -24,14 +24,15 @@ type ResourceControllerConfig struct {
 }
 
 type ResourceClusterConfig struct {
-	Region       string
-	Datacenter   string
-	Kind         string
-	Weight       int
-	DomainSuffix string
-	Api          base_config.AppConfig
-	Controller   base_config.AppConfig
-	Agent        ResourceClusterAgentConfig
+	Region             string
+	Datacenter         string
+	Kind               string
+	Weight             int
+	DomainSuffix       string
+	TimeSeriesDatabase TimeSeriesDatabaseConfig
+	Api                base_config.AppConfig
+	Controller         base_config.AppConfig
+	Agent              ResourceClusterAgentConfig
 }
 
 type ResourceClusterApiConfig struct {
@@ -41,7 +42,10 @@ type ResourceClusterApiConfig struct {
 
 type ResourceClusterAgentConfig struct {
 	base_config.AppConfig
-	Compute ResourceComputeConfig
+	Compute       ResourceComputeConfig
+	ReportProject string
+	LogMap        map[string]ResourceLogConfig
+	Metric        ResourceMetricConfig
 }
 
 type ResourceComputeConfig struct {
@@ -89,13 +93,46 @@ type ResourceLibvirtConfig struct {
 	NetworkVhostQueues int
 }
 
+type ResourceLogConfig struct {
+	Path               string
+	LogFormat          string
+	MaxInitialReadSize int64
+	AlertMap           map[string]ResourceLogAlertConfig
+}
+
+type ResourceLogAlertConfig struct {
+	Key     string
+	Pattern string
+	Level   string
+	Handler string
+}
+
+type ResourceMetricConfig struct {
+	System ResourceMetricSystemConfig
+}
+
+type ResourceMetricSystemConfig struct {
+	Enable       bool
+	EnableLogin  bool
+	EnableCpu    bool
+	EnableMemory bool
+	CacheLength  int
+}
+
+type TimeSeriesDatabaseConfig struct {
+	Driver          string
+	AlertDatabases  []string
+	LogDatabases    []string
+	MetricDatabases []string
+}
+
 var BaseConf = base_config.Config{}
 
 var MainConf = Config{
 	Resource: ResourceConfig{
 		Api: base_config.AppConfig{
-			Name:                 "ResourceApi",
-			NodeDownTimeDuration: 60,
+			Name:                        "ResourceApi",
+			NodeServiceDownTimeDuration: 60,
 		},
 		Controller: ResourceControllerConfig{
 			AppConfig: base_config.AppConfig{

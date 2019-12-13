@@ -9,36 +9,36 @@ import (
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
 
-func (app *BaseApp) SyncNodeByDb(tctx *logger.TraceContext, spec interface{}) (err error) {
-	data := &base_spec.UpdateNode{
-		Node: base_spec.Node{
+func (app *BaseApp) SyncNodeServiceByDb(tctx *logger.TraceContext, spec interface{}) (err error) {
+	data := &base_spec.UpdateNodeService{
+		NodeService: base_spec.NodeService{
 			Name:         app.conf.Host,
 			Kind:         app.appConf.Name,
 			Role:         base_const.RoleMember,
 			Status:       base_const.StatusEnabled,
 			StatusReason: "Default",
 			State:        base_const.StateUp,
-			StateReason:  "SyncNode",
+			StateReason:  "SyncNodeService",
 			Spec:         spec,
 		},
 	}
 
-	err = app.dbApi.CreateOrUpdateNode(tctx, data)
+	err = app.dbApi.CreateOrUpdateNodeService(tctx, data)
 	return
 }
 
-func (app *BaseApp) SyncNodeRole(tctx *logger.TraceContext) (role string, err error) {
-	var nodes []base_db_model.Node
-	nodes, err = app.dbApi.SyncNodeRole(tctx, app.appConf.Name)
+func (app *BaseApp) SyncNodeServiceRole(tctx *logger.TraceContext) (role string, err error) {
+	var nodes []base_db_model.NodeService
+	nodes, err = app.dbApi.SyncNodeServiceRole(tctx, app.appConf.Name)
 
-	existsSelfNode := false
+	existsSelfNodeService := false
 	existsActiveLeader := false
 	for _, node := range nodes {
 		if node.Kind != app.appConf.Name {
 			continue
 		}
 		if node.Name == app.conf.Host && node.Status == base_const.StatusEnabled && node.State == base_const.StateUp {
-			existsSelfNode = true
+			existsSelfNodeService = true
 			role = node.Role
 		}
 		if node.Status == base_const.StatusEnabled && node.State == base_const.StateUp {
@@ -48,19 +48,19 @@ func (app *BaseApp) SyncNodeRole(tctx *logger.TraceContext) (role string, err er
 		}
 	}
 
-	if !existsSelfNode {
+	if !existsSelfNodeService {
 		err = fmt.Errorf("This node is not activated")
 		return
 	}
 
 	if !existsActiveLeader {
-		err = fmt.Errorf("Active Leader is not exists, after ReassignNode")
+		err = fmt.Errorf("Active Leader is not exists, after ReassignNodeService")
 		return
 	}
 	return
 }
 
-func (app *BaseApp) SyncNodeState(tctx *logger.TraceContext) (err error) {
-	err = app.dbApi.SyncNodeState(tctx)
+func (app *BaseApp) SyncNodeServiceState(tctx *logger.TraceContext) (err error) {
+	err = app.dbApi.SyncNodeServiceState(tctx)
 	return
 }

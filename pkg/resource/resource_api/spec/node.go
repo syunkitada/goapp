@@ -1,74 +1,101 @@
 package spec
 
-import (
-	"time"
+import "github.com/syunkitada/goapp/pkg/base/base_model/index_model"
 
-	"github.com/syunkitada/goapp/pkg/base/base_spec"
-)
-
-type NodeSpec struct {
-	NumaNodes []NumaNodeSpec
-	Storages  []StorageSpec
-}
-
-type NumaNodeSpec struct {
-	Id              int
-	AvailableCpus   int
-	UsedCpus        int
-	AvailableMemory int
-	UsedMemory      int
-}
-
-type StorageSpec struct {
-	Kind               string
-	Path               string
-	AvailableGb        int
-	UsedGb             int
-	AvailableNumaNodes []int
+type Node struct {
+	Name          string
+	State         string
+	Warnings      int
+	Errors        int
+	Labels        string
+	MetricsGroups []MetricsGroup
 }
 
 type GetNodes struct {
-	Cluster string
+	Cluster string `validate:"required"`
 }
 
 type GetNodesData struct {
-	Nodes []base_spec.Node
+	Nodes []Node
 }
 
-type SyncNode struct {
-	Node base_spec.Node
+type GetNode struct {
+	Cluster string `validate:"required"`
+	Name    string `validate:"required"`
 }
 
-type SyncNodeData struct {
-	Task NodeTask
+type GetNodeData struct {
+	Node Node
 }
 
-type NodeTask struct {
-	ComputeAssignments []ComputeAssignmentEx
+type MetricsGroup struct {
+	Name    string
+	Metrics []Metric
 }
 
-type ComputeAssignmentEx struct {
-	ID        uint
-	Status    string
-	Spec      RegionServiceComputeSpec
-	UpdatedAt time.Time
-}
-type AssignmentReports struct {
-	ComputeAssignmentReports []AssignmentReport
+type Metric struct {
+	Name   string
+	Keys   []string
+	Values []map[string]interface{}
 }
 
-type AssignmentReport struct {
-	ID           uint
-	Status       string
-	StatusReason string
-	State        string
-	StateReason  string
-	UpdatedAt    time.Time
+var NodesTable = index_model.Table{
+	Name:    "Nodes",
+	Route:   "/Nodes",
+	Kind:    "Table",
+	DataKey: "Nodes",
+	SelectActions: []index_model.Action{
+		index_model.Action{
+			Name:      "Delete",
+			Icon:      "Delete",
+			Kind:      "Form",
+			DataKind:  "Node",
+			SelectKey: "Name",
+		},
+	},
+	Columns: []index_model.TableColumn{
+		index_model.TableColumn{
+			Name: "Name", IsSearch: true,
+			Link:           "Clusters/:Cluster/Resources/Nodes/Detail/:0/View",
+			LinkParam:      "Name",
+			LinkSync:       false,
+			LinkGetQueries: []string{"GetNode"},
+		},
+		index_model.TableColumn{Name: "Kind"},
+		index_model.TableColumn{Name: "UpdatedAt", Kind: "Time"},
+		index_model.TableColumn{Name: "CreatedAt", Kind: "Time"},
+	},
 }
 
-type ReportNodeTask struct {
-	ComputeAssignmentReports []AssignmentReport
-}
-
-type ReportNodeTaskData struct {
+var NodesDetail = index_model.Tabs{
+	Name:            "Nodes",
+	Kind:            "RouteTabs",
+	RouteParamKey:   "Kind",
+	RouteParamValue: "Nodes",
+	Route:           "/Clusters/:Cluster/Resources/Nodes/Detail/:Name/:Subkind",
+	TabParam:        "Subkind",
+	GetQueries: []string{
+		"GetNode",
+	},
+	ExpectedDataKeys: []string{"Node"},
+	IsSync:           true,
+	Tabs: []interface{}{
+		index_model.View{
+			Name:    "View",
+			Route:   "/View",
+			Kind:    "View",
+			DataKey: "Node",
+			Fields: []index_model.Field{
+				index_model.Field{Name: "Name", Kind: "text"},
+				index_model.Field{Name: "Kind", Kind: "select"},
+			},
+			PanelsGroups: []interface{}{
+				map[string]string{
+					"Name":     "Metrics",
+					"DataKey":  "MetricsGroups",
+					"DataType": "MetricsGroups",
+				},
+			},
+		},
+	},
 }

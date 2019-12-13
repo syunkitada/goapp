@@ -1,0 +1,26 @@
+{
+  "Kind": "RegionService",
+  "Spec": {
+    "Name": "service01",
+    "Kind": "Compute",
+    "Region": "kanto",
+    "ExpireDate": -1,
+    "Spec": {
+      "SchedulePolicy": {
+        "Replicas": 1
+      },
+      "NetworkPolicy": {
+        "Version": 4,
+        "Interfaces": 1,
+        "AssignPolicy": "Affinity",
+        "StaticNetworks": []
+      },
+      "Kind": "Qemu",
+      "Restart": "Always",
+      "Vcpus": 1,
+      "Memory": 1024,
+      "Disk": 2,
+      "Image": "ubuntu-18.0.4"
+    }
+  }
+}

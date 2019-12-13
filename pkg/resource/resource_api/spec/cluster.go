@@ -1,5 +1,11 @@
 package spec
 
+import (
+	"time"
+
+	"github.com/syunkitada/goapp/pkg/authproxy/index_model"
+)
+
 type Cluster struct {
 	Region       string `validate:"required"`
 	Datacenter   string `validate:"required"`
@@ -8,7 +14,13 @@ type Cluster struct {
 	Description  string
 	DomainSuffix string `validate:"required"`
 	Labels       string
+	Warnings     int
+	Criticals    int
+	Nodes        int
+	Instances    int
 	Weight       int
+	UpdatedAt    time.Time
+	CreatedAt    time.Time
 }
 
 type GetCluster struct {
@@ -56,3 +68,25 @@ type DeleteClusters struct {
 }
 
 type DeleteClustersData struct{}
+
+var ClustersTable = index_model.Table{
+	Name:    "Clusters",
+	Kind:    "Table",
+	Route:   "",
+	Subname: "cluster",
+	DataKey: "Clusters",
+	Columns: []index_model.TableColumn{
+		index_model.TableColumn{
+			Name:      "Name",
+			IsSearch:  true,
+			Link:      "Clusters/:0/Resources/Computes",
+			LinkParam: "cluster",
+			LinkSync:  true,
+			LinkGetQueries: []string{
+				"GetPhysicalResources", "GetRacks", "GetFloors", "GetPhysicalModels"},
+		},
+		index_model.TableColumn{Name: "Datacenter", IsSearch: true},
+		index_model.TableColumn{Name: "UpdatedAt", Kind: "Time", Sort: "asc"},
+		index_model.TableColumn{Name: "CreatedAt", Kind: "Time"},
+	},
+}

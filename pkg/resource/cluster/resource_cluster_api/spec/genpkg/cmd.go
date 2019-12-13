@@ -70,11 +70,6 @@ var ResourceVirtualAdminCmdMap = map[string]index_model.Cmd{
 				FlagType: "string",
 				FlagKind: "",
 			},
-			"region,r": index_model.Flag{
-				Required: true,
-				FlagType: "string",
-				FlagKind: "",
-			},
 		},
 		OutputKind:   "",
 		OutputFormat: "",
@@ -91,8 +86,8 @@ var ResourceVirtualAdminCmdMap = map[string]index_model.Cmd{
 		OutputKind:   "",
 		OutputFormat: "",
 	},
-	"get.nodes": index_model.Cmd{
-		QueryName: "GetNodes",
+	"get.node.services": index_model.Cmd{
+		QueryName: "GetNodeServices",
 		FlagMap: map[string]index_model.Flag{
 			"cluster,c": index_model.Flag{
 				Required: false,
@@ -103,20 +98,20 @@ var ResourceVirtualAdminCmdMap = map[string]index_model.Cmd{
 		OutputKind:   "table",
 		OutputFormat: "Name,Kind,Role,Status,StatusReason,State,StateReason,Labels,Spec",
 	},
-	"sync.node": index_model.Cmd{
-		QueryName: "SyncNode",
+	"sync.node.service": index_model.Cmd{
+		QueryName: "SyncNodeService",
 		FlagMap: map[string]index_model.Flag{
-			"node,n": index_model.Flag{
+			"node.service,n": index_model.Flag{
 				Required: false,
-				FlagType: "base_spec.Node",
+				FlagType: "base_spec.NodeService",
 				FlagKind: "",
 			},
 		},
 		OutputKind:   "",
 		OutputFormat: "",
 	},
-	"report.node.task": index_model.Cmd{
-		QueryName: "ReportNodeTask",
+	"report.node.service.task": index_model.Cmd{
+		QueryName: "ReportNodeServiceTask",
 		FlagMap: map[string]index_model.Flag{
 			"compute.assignment.reports,c": index_model.Flag{
 				Required: false,
@@ -126,6 +121,121 @@ var ResourceVirtualAdminCmdMap = map[string]index_model.Cmd{
 		},
 		OutputKind:   "",
 		OutputFormat: "",
+	},
+	"get.nodes": index_model.Cmd{
+		QueryName: "GetNodes",
+		FlagMap: map[string]index_model.Flag{
+			"cluster,c": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+		},
+		OutputKind:   "table",
+		OutputFormat: "Name,State,Warnings,Errors,Labels,MetricsGroups",
+	},
+	"get.node": index_model.Cmd{
+		QueryName: "GetNode",
+		FlagMap: map[string]index_model.Flag{
+			"cluster,c": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+			"name,n": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
+	"report.node": index_model.Cmd{
+		QueryName: "ReportNode",
+		FlagMap: map[string]index_model.Flag{
+			"project,p": index_model.Flag{
+				Required: false,
+				FlagType: "string",
+				FlagKind: "",
+			},
+			"name,n": index_model.Flag{
+				Required: false,
+				FlagType: "string",
+				FlagKind: "",
+			},
+			"state,s": index_model.Flag{
+				Required: false,
+				FlagType: "string",
+				FlagKind: "",
+			},
+			"warning,w": index_model.Flag{
+				Required: false,
+				FlagType: "string",
+				FlagKind: "",
+			},
+			"warnings,w": index_model.Flag{
+				Required: false,
+				FlagType: "int",
+				FlagKind: "",
+			},
+			"error,e": index_model.Flag{
+				Required: false,
+				FlagType: "string",
+				FlagKind: "",
+			},
+			"errors,e": index_model.Flag{
+				Required: false,
+				FlagType: "int",
+				FlagKind: "",
+			},
+			"timestate,t": index_model.Flag{
+				Required: false,
+				FlagType: "time.Time",
+				FlagKind: "",
+			},
+			"logs,l": index_model.Flag{
+				Required: false,
+				FlagType: "[]spec.ResourceLog",
+				FlagKind: "",
+			},
+			"metrics,m": index_model.Flag{
+				Required: false,
+				FlagType: "[]spec.ResourceMetric",
+				FlagKind: "",
+			},
+			"alerts,a": index_model.Flag{
+				Required: false,
+				FlagType: "[]spec.ResourceAlert",
+				FlagKind: "",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
+	"get.logs": index_model.Cmd{
+		QueryName: "GetLogs",
+		FlagMap: map[string]index_model.Flag{
+			"cluster,c": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
+	"get.log.params": index_model.Cmd{
+		QueryName: "GetLogParams",
+		FlagMap: map[string]index_model.Flag{
+			"cluster,c": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+		},
+		OutputKind:   "string",
+		OutputFormat: "string",
 	},
 }
 
@@ -159,15 +269,35 @@ var ApiQueryMap = map[string]map[string]spec_model.QueryModel{
 			RequiredAuth:    true,
 			RequiredProject: true,
 		},
+		"GetNodeServices": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"SyncNodeService": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"ReportNodeServiceTask": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
 		"GetNodes": spec_model.QueryModel{
 			RequiredAuth:    true,
 			RequiredProject: true,
 		},
-		"SyncNode": spec_model.QueryModel{
+		"GetNode": spec_model.QueryModel{
 			RequiredAuth:    true,
 			RequiredProject: true,
 		},
-		"ReportNodeTask": spec_model.QueryModel{
+		"ReportNode": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"GetLogs": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"GetLogParams": spec_model.QueryModel{
 			RequiredAuth:    true,
 			RequiredProject: true,
 		},

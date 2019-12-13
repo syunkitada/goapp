@@ -9,13 +9,13 @@ import (
 )
 
 func (srv *Server) MainTask(tctx *logger.TraceContext) (err error) {
-	nodeSpec := spec.NodeSpec{}
-	if err = srv.SyncNodeByDb(tctx, &nodeSpec); err != nil {
+	nodeSpec := spec.NodeServiceSpec{}
+	if err = srv.SyncNodeServiceByDb(tctx, &nodeSpec); err != nil {
 		return
 	}
 
 	var role string
-	if role, err = srv.SyncNodeRole(tctx); err != nil {
+	if role, err = srv.SyncNodeServiceRole(tctx); err != nil {
 		return
 	}
 
@@ -23,7 +23,7 @@ func (srv *Server) MainTask(tctx *logger.TraceContext) (err error) {
 		return
 	}
 
-	if err = srv.SyncNodeState(tctx); err != nil {
+	if err = srv.SyncNodeServiceState(tctx); err != nil {
 		return
 	}
 
@@ -32,14 +32,14 @@ func (srv *Server) MainTask(tctx *logger.TraceContext) (err error) {
 	}
 
 	wg := sync.WaitGroup{}
-	go srv.SyncClusterNode(tctx, &wg)
+	go srv.SyncClusterNodeService(tctx, &wg)
 	go srv.SyncRegionService(tctx, &wg)
 	wg.Wait()
 
 	return
 }
 
-func (srv *Server) SyncClusterNode(tctx *logger.TraceContext, wg *sync.WaitGroup) {
+func (srv *Server) SyncClusterNodeService(tctx *logger.TraceContext, wg *sync.WaitGroup) {
 	wg.Add(1)
 	var err error
 	startTime := logger.StartTrace(tctx)
@@ -47,7 +47,7 @@ func (srv *Server) SyncClusterNode(tctx *logger.TraceContext, wg *sync.WaitGroup
 		logger.EndTrace(tctx, startTime, err, 1)
 		wg.Done()
 	}()
-	err = srv.dbApi.SyncClusterNode(tctx)
+	err = srv.dbApi.SyncClusterNodeService(tctx)
 }
 
 func (srv *Server) SyncRegionService(tctx *logger.TraceContext, wg *sync.WaitGroup) {

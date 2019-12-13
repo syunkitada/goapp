@@ -95,6 +95,8 @@ interface ITableToolbar extends WithStyles<typeof styles> {
   numSelected;
   rowsPerPage;
   page;
+  exForm;
+  exButtons;
   onChangePage;
   onChangeRowsPerPage;
   onActionClick;
@@ -110,6 +112,8 @@ class TableToolbar extends React.Component<ITableToolbar> {
       numSelected,
       rowsPerPage,
       page,
+      exForm,
+      exButtons,
       onChangePage,
       onChangeRowsPerPage,
       onActionClick,
@@ -159,20 +163,19 @@ class TableToolbar extends React.Component<ITableToolbar> {
       <Toolbar>
         <Grid container={true} justify="space-between" spacing={1}>
           <Grid item={true}>
-            <div>
-              <FormControl className={classes.margin}>
-                <Input
-                  id="input-with-icon-adornment"
-                  placeholder="Search"
-                  onChange={onChangeSearchInput}
-                  startAdornment={
-                    <InputAdornment position="start">
-                      <SearchIcon />
-                    </InputAdornment>
-                  }
-                />
-              </FormControl>
-            </div>
+            <FormControl className={classes.margin}>
+              <Input
+                id="input-with-icon-adornment"
+                placeholder="Search"
+                onChange={onChangeSearchInput}
+                startAdornment={
+                  <InputAdornment position="start">
+                    <SearchIcon />
+                  </InputAdornment>
+                }
+              />
+            </FormControl>
+            {exButtons}
           </Grid>
           <Grid item={true}>{actionButtons}</Grid>
 
@@ -185,6 +188,8 @@ class TableToolbar extends React.Component<ITableToolbar> {
               onChangeRowsPerPage={onChangeRowsPerPage}
             />
           </Grid>
+
+          {exForm}
         </Grid>
       </Toolbar>
     );

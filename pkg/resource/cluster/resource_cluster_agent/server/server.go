@@ -10,6 +10,9 @@ import (
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/lib/os_utils"
 	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_agent/compute_drivers"
+	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_agent/readers"
+	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_agent/readers/log_reader"
+	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_agent/readers/system_metric_reader"
 	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_agent/resolver"
 	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_agent/spec/genpkg"
 	resource_cluster_api "github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_api/spec/genpkg"
@@ -19,12 +22,23 @@ import (
 
 type Server struct {
 	base_app.BaseApp
-	baseConf      *base_config.Config
-	clusterConf   *config.ResourceClusterConfig
-	queryHandler  *genpkg.QueryHandler
-	apiClient     *resource_cluster_api.Client
+	baseConf     *base_config.Config
+	clusterConf  *config.ResourceClusterConfig
+	queryHandler *genpkg.QueryHandler
+	apiClient    *resource_cluster_api.Client
+
 	computeConf   config.ResourceComputeExConfig
 	computeDriver compute_drivers.ComputeDriver
+
+	reportCount int
+	reportSpan  int
+
+	metricReaderMap map[string]readers.MetricReader
+
+	logMap                map[string]config.ResourceLogConfig
+	logReaderMap          map[string]*log_reader.LogReader
+	logReaderRefreshSpan  int
+	logReaderRefreshCount int
 }
 
 func New(baseConf *base_config.Config, mainConf *config.Config) *Server {
@@ -62,8 +76,11 @@ func New(baseConf *base_config.Config, mainConf *config.Config) *Server {
 
 	computeDriver := compute_drivers.Load(&computeExConf)
 
-	// metricsReaderMap := map[string]metrics_plugins.MetricsReader{}
-	// metricsReaderMap["system"] = system_metrics_reader.New(&conf.Resource.Node.Metrics.System)
+	// init metric readers
+	metricReaderMap := map[string]readers.MetricReader{}
+	if clusterConf.Agent.Metric.System.Enable {
+		metricReaderMap["system"] = system_metric_reader.New(&clusterConf.Agent.Metric.System)
+	}
 
 	srv := &Server{
 		BaseApp:       baseApp,
@@ -73,6 +90,14 @@ func New(baseConf *base_config.Config, mainConf *config.Config) *Server {
 		apiClient:     apiClient,
 		computeConf:   computeExConf,
 		computeDriver: computeDriver,
+
+		reportCount:           0,
+		reportSpan:            10,
+		metricReaderMap:       metricReaderMap,
+		logMap:                clusterConf.Agent.LogMap,
+		logReaderMap:          map[string]*log_reader.LogReader{},
+		logReaderRefreshSpan:  10,
+		logReaderRefreshCount: 0,
 	}
 	srv.SetDriver(srv)
 	return srv

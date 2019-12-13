@@ -651,7 +651,7 @@ var ResourceVirtualAdminCmdMap = map[string]index_model.Cmd{
 		QueryName:    "GetClusters",
 		FlagMap:      map[string]index_model.Flag{},
 		OutputKind:   "table",
-		OutputFormat: "Region,Datacenter,Name,Kind,Description,DomainSuffix,Labels,Weight",
+		OutputFormat: "Region,Datacenter,Name,Kind,Description,DomainSuffix,Labels,Warnings,Criticals,Nodes,Instances,Weight,UpdatedAt,CreatedAt",
 	},
 	"create.cluster": index_model.Cmd{
 		QueryName: "CreateCluster",
@@ -743,6 +743,18 @@ var ResourceVirtualAdminCmdMap = map[string]index_model.Cmd{
 	},
 	"get.nodes": index_model.Cmd{
 		QueryName: "GetNodes",
+		FlagMap: map[string]index_model.Flag{
+			"cluster,c": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+		},
+		OutputKind:   "table",
+		OutputFormat: "Name,State,Warnings,Errors,Labels,MetricsGroups",
+	},
+	"get.node.services": index_model.Cmd{
+		QueryName: "GetNodeServices",
 		FlagMap: map[string]index_model.Flag{
 			"cluster,c": index_model.Flag{
 				Required: false,
@@ -1083,7 +1095,7 @@ var ResourceVirtualCmdMap = map[string]index_model.Cmd{
 		QueryName:    "GetClusters",
 		FlagMap:      map[string]index_model.Flag{},
 		OutputKind:   "table",
-		OutputFormat: "Region,Datacenter,Name,Kind,Description,DomainSuffix,Labels,Weight",
+		OutputFormat: "Region,Datacenter,Name,Kind,Description,DomainSuffix,Labels,Warnings,Criticals,Nodes,Instances,Weight,UpdatedAt,CreatedAt",
 	},
 	"create.cluster": index_model.Cmd{
 		QueryName: "CreateCluster",
@@ -1338,6 +1350,120 @@ var ResourceVirtualCmdMap = map[string]index_model.Cmd{
 		OutputFormat: "",
 	},
 }
+var ResourceMonitorCmdMap = map[string]index_model.Cmd{
+	"get.clusters": index_model.Cmd{
+		QueryName:    "GetClusters",
+		FlagMap:      map[string]index_model.Flag{},
+		OutputKind:   "table",
+		OutputFormat: "Region,Datacenter,Name,Kind,Description,DomainSuffix,Labels,Warnings,Criticals,Nodes,Instances,Weight,UpdatedAt,CreatedAt",
+	},
+	"get.nodes": index_model.Cmd{
+		QueryName: "GetNodes",
+		FlagMap: map[string]index_model.Flag{
+			"cluster,c": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+		},
+		OutputKind:   "table",
+		OutputFormat: "Name,State,Warnings,Errors,Labels,MetricsGroups",
+	},
+	"get.node": index_model.Cmd{
+		QueryName: "GetNode",
+		FlagMap: map[string]index_model.Flag{
+			"cluster,c": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+			"name,n": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
+	"get.alerts": index_model.Cmd{
+		QueryName: "GetAlerts",
+		FlagMap: map[string]index_model.Flag{
+			"cluster,c": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+		},
+		OutputKind:   "table",
+		OutputFormat: "Name,Time,Level,Handler,Msg,Tag",
+	},
+	"get.alert.rules": index_model.Cmd{
+		QueryName: "GetAlertRules",
+		FlagMap: map[string]index_model.Flag{
+			"cluster,c": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+		},
+		OutputKind:   "table",
+		OutputFormat: "Node,Name,Kind,Until",
+	},
+	"get.statistics": index_model.Cmd{
+		QueryName: "GetStatistics",
+		FlagMap: map[string]index_model.Flag{
+			"cluster,c": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
+	"get.log.params": index_model.Cmd{
+		QueryName: "GetLogParams",
+		FlagMap: map[string]index_model.Flag{
+			"cluster,c": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+		},
+		OutputKind:   "string",
+		OutputFormat: "string",
+	},
+	"get.logs": index_model.Cmd{
+		QueryName: "GetLogs",
+		FlagMap: map[string]index_model.Flag{
+			"cluster,c": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
+	"get.trace": index_model.Cmd{
+		QueryName: "GetTrace",
+		FlagMap: map[string]index_model.Flag{
+			"cluster,c": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+			"trace.id,t": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
+}
 
 var ApiQueryMap = map[string]map[string]spec_model.QueryModel{
 	"Auth": map[string]spec_model.QueryModel{
@@ -1585,6 +1711,10 @@ var ApiQueryMap = map[string]map[string]spec_model.QueryModel{
 			RequiredAuth:    true,
 			RequiredProject: true,
 		},
+		"GetNodeServices": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
 		"GetNetworkV4": spec_model.QueryModel{
 			RequiredAuth:    true,
 			RequiredProject: true,
@@ -1752,6 +1882,44 @@ var ApiQueryMap = map[string]map[string]spec_model.QueryModel{
 			RequiredProject: true,
 		},
 		"DeleteRegionServices": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+	},
+	"ResourceMonitor": map[string]spec_model.QueryModel{
+		"GetClusters": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"GetNodes": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"GetNode": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"GetAlerts": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"GetAlertRules": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"GetStatistics": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"GetLogParams": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"GetLogs": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"GetTrace": spec_model.QueryModel{
 			RequiredAuth:    true,
 			RequiredProject: true,
 		},

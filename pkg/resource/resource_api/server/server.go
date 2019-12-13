@@ -14,6 +14,7 @@ type Server struct {
 	baseConf     *base_config.Config
 	mainConf     *config.Config
 	queryHandler *genpkg.QueryHandler
+	dbApi        *db_api.Api
 }
 
 func New(baseConf *base_config.Config, mainConf *config.Config) *Server {
@@ -27,6 +28,7 @@ func New(baseConf *base_config.Config, mainConf *config.Config) *Server {
 		baseConf:     baseConf,
 		mainConf:     mainConf,
 		queryHandler: queryHandler,
+		dbApi:        dbApi,
 	}
 	srv.SetDriver(srv)
 	return srv

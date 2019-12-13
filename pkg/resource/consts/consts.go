@@ -9,3 +9,8 @@ const (
 const (
 	KindCompute = "Compute"
 )
+
+const (
+	SchedulePolicyAffinity     = "Affinity"
+	SchedulePolicyAntiAffinity = "AntiAffinity"
+)

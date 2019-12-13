@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 
-set -xe
+# -x: output commands
+# -e: exit on error
+# -m: enable job controll
+set -xem
 
 function startpre {
     {{- range $i, $port := .Ports }}
@@ -32,12 +35,21 @@ function startpre {
 }
 
 function start {
-    qemu-system-x86_64 -m 2048 -drive file={{ .VmImagePath }},if=virtio -monitor telnet::4444,server,nowait \
+    qemu-system-x86_64 \
+        -enable-kvm -machine q35,accel=kvm \
+        -cpu host \
+        -smp cores={{ .Compute.Vcpus }} \
+        -m slots=64,maxmem=1024G \
+        -object memory-backend-file,id=mem1,size={{ .Compute.Memory }}M,mem-path=/dev/hugepages \
+        -device pc-dimm,id=dimm1,memdev=mem1 \
+        -drive file={{ .VmImagePath }},if=virtio \
         -drive file={{ .VmConfigImagePath }},format=raw,if=none,id=drive-ide0-1-0,readonly=on \
+        -device amd-iommu \
         -device ide-cd,bus=ide.1,unit=0,drive=drive-ide0-1-0,id=ide0-1-0 \
         {{- range $i, $port := .Ports }}
         -nic tap,ifname={{ $port.Name }}-tap,model=virtio-net-pci,mac={{ $port.VmMac }},script=no,script=no,downscript=no \
         {{- end }}
+        -monitor telnet::4444,server,nowait \
         -nographic -serial telnet:localhost:4321,server,nowait &
     pid=$!
 
@@ -51,7 +63,8 @@ function start {
     ip netns exec {{ $port.Name }} sysctl -w net.ipv4.conf.{{ $port.Name }}-tap.proxy_arp=1
     {{- end }}
 
-    fg %$pid
+    jobs
+    fg
 }
 
 function stop {

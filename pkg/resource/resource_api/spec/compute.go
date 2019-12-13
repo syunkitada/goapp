@@ -88,3 +88,49 @@ var ComputesTable = index_model.Table{
 		index_model.TableColumn{Name: "CreatedAt", Kind: "Time"},
 	},
 }
+
+var ComputesDetail = index_model.Tabs{
+	Name:            "Computes",
+	Kind:            "RouteTabs",
+	RouteParamKey:   "Kind",
+	RouteParamValue: "Computes",
+	Route:           "/Clusters/:Cluster/Resources/Computes/Detail/:Name/:Subkind",
+	TabParam:        "Subkind",
+	GetQueries: []string{
+		"GetCompute",
+		"GetComputes", "GetImages"},
+	ExpectedDataKeys: []string{"Compute"},
+	IsSync:           true,
+	Tabs: []interface{}{
+		index_model.View{
+			Name:    "View",
+			Route:   "/View",
+			Kind:    "View",
+			DataKey: "Compute",
+			Fields: []index_model.Field{
+				index_model.Field{Name: "Name", Kind: "text"},
+				index_model.Field{Name: "Kind", Kind: "select"},
+			},
+		},
+		index_model.Form{
+			Name:         "Edit",
+			Route:        "/Edit",
+			Kind:         "Form",
+			DataKey:      "Compute",
+			SubmitAction: "update compute",
+			Icon:         "Update",
+			Fields: []index_model.Field{
+				index_model.Field{Name: "Name", Kind: "text", Require: true,
+					Updatable: false,
+					Min:       5, Max: 200, RegExp: "^[0-9a-zA-Z]+$",
+					RegExpMsg: "Please enter alphanumeric characters."},
+				index_model.Field{Name: "Kind", Kind: "select", Require: true,
+					Updatable: true,
+					Options: []string{
+						"Server", "Pdu", "RackSpineRouter",
+						"FloorLeafRouter", "FloorSpineRouter", "GatewayRouter",
+					}},
+			},
+		},
+	},
+}

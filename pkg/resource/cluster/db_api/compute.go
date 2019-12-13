@@ -123,16 +123,16 @@ func (api *Api) SyncCompute(tctx *logger.TraceContext) (err error) {
 	fmt.Println("SyncCompute")
 
 	var computes []db_model.Compute
-	var nodes []db_model.NodeWithMeta
-	var computeAssignments []db_model.ComputeAssignmentWithComputeAndNode
+	var nodes []db_model.NodeServiceWithMeta
+	var computeAssignments []db_model.ComputeAssignmentWithComputeAndNodeService
 	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
 		if err = tx.Find(&computes).Error; err != nil {
 			return
 		}
 
 		// TODO filter by resource driver
-		if err = tx.Table("nodes as n").Select("*").
-			Joins("INNER JOIN node_meta as nm ON n.id = nm.node_id").
+		if err = tx.Table("node_services as n").Select("*").
+			Joins("INNER JOIN node_meta as nm ON n.id = nm.node_service_id").
 			Where("n.kind = ?", consts.KindResourceClusterAgent).Scan(&nodes).Error; err != nil {
 			return
 		}
@@ -143,25 +143,25 @@ func (api *Api) SyncCompute(tctx *logger.TraceContext) (err error) {
 		return
 	})
 
-	nodeMap := map[uint]*db_model.NodeWithMeta{}
-	nodeAssignmentsMap := map[uint][]db_model.ComputeAssignmentWithComputeAndNode{}
+	nodeMap := map[uint]*db_model.NodeServiceWithMeta{}
+	nodeAssignmentsMap := map[uint][]db_model.ComputeAssignmentWithComputeAndNodeService{}
 	for _, node := range nodes {
-		nodeAssignmentsMap[node.ID] = []db_model.ComputeAssignmentWithComputeAndNode{}
+		nodeAssignmentsMap[node.ID] = []db_model.ComputeAssignmentWithComputeAndNodeService{}
 		nodeMap[node.ID] = &node
 	}
 
-	computeAssignmentsMap := map[string][]db_model.ComputeAssignmentWithComputeAndNode{}
+	computeAssignmentsMap := map[string][]db_model.ComputeAssignmentWithComputeAndNodeService{}
 	for _, assignment := range computeAssignments {
 		assignments, ok := computeAssignmentsMap[assignment.ComputeName]
 		if !ok {
-			assignments = []db_model.ComputeAssignmentWithComputeAndNode{}
+			assignments = []db_model.ComputeAssignmentWithComputeAndNodeService{}
 		}
 		assignments = append(assignments, assignment)
 		computeAssignmentsMap[assignment.ComputeName] = assignments
 
-		nodeAssignments := nodeAssignmentsMap[assignment.NodeID]
+		nodeAssignments := nodeAssignmentsMap[assignment.NodeServiceID]
 		nodeAssignments = append(nodeAssignments, assignment)
-		nodeAssignmentsMap[assignment.NodeID] = nodeAssignments
+		nodeAssignmentsMap[assignment.NodeServiceID] = nodeAssignments
 	}
 
 	for _, compute := range computes {
@@ -185,7 +185,7 @@ func (api *Api) SyncCompute(tctx *logger.TraceContext) (err error) {
 }
 
 func (api *Api) GetComputeAssignments(tctx *logger.TraceContext, db *gorm.DB,
-	nodeName string) (assignments []db_model.ComputeAssignmentWithComputeAndNode, err error) {
+	nodeName string) (assignments []db_model.ComputeAssignmentWithComputeAndNodeService, err error) {
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
@@ -202,9 +202,9 @@ func (api *Api) GetComputeAssignments(tctx *logger.TraceContext, db *gorm.DB,
 }
 
 func (api *Api) AssignCompute(tctx *logger.TraceContext,
-	compute *db_model.Compute, nodeMap map[uint]*db_model.NodeWithMeta,
-	nodeAssignmentsMap map[uint][]db_model.ComputeAssignmentWithComputeAndNode,
-	assignmentsMap map[string][]db_model.ComputeAssignmentWithComputeAndNode,
+	compute *db_model.Compute, nodeMap map[uint]*db_model.NodeServiceWithMeta,
+	nodeAssignmentsMap map[uint][]db_model.ComputeAssignmentWithComputeAndNodeService,
+	assignmentsMap map[string][]db_model.ComputeAssignmentWithComputeAndNodeService,
 	isReschedule bool) {
 	var err error
 	startTime := logger.StartTrace(tctx)
@@ -216,55 +216,55 @@ func (api *Api) AssignCompute(tctx *logger.TraceContext,
 	}
 
 	policy := rspec.SchedulePolicy
-	assignNodes := []uint{}
-	updateNodes := []uint{}
+	assignNodeServices := []uint{}
+	updateNodeServices := []uint{}
 	updateAssignments := []uint{}
-	unassignNodes := []uint{}
+	unassignNodeServices := []uint{}
 
 	currentAssignments, ok := assignmentsMap[compute.Name]
 	if ok {
 		infoMsg := []string{}
 		for _, currentAssignment := range currentAssignments {
-			infoMsg = append(infoMsg, currentAssignment.NodeName)
+			infoMsg = append(infoMsg, currentAssignment.NodeServiceName)
 		}
 		logger.Infof(tctx, "currentAssignments: %v", infoMsg)
 	}
 
 	// filtering node
-	enableNodeFilters := false
-	if len(policy.NodeFilters) > 0 {
-		enableNodeFilters = true
+	enableNodeServiceFilters := false
+	if len(policy.NodeServiceFilters) > 0 {
+		enableNodeServiceFilters = true
 	}
 	enableLabelFilters := false
-	if len(policy.NodeLabelFilters) > 0 {
+	if len(policy.NodeServiceLabelFilters) > 0 {
 		enableLabelFilters = true
 	}
 	enableHardAffinites := false
-	if len(policy.NodeLabelHardAffinities) > 0 {
+	if len(policy.NodeServiceLabelHardAffinities) > 0 {
 		enableHardAffinites = true
 	}
 	enableHardAntiAffinites := false
-	if len(policy.NodeLabelHardAntiAffinities) > 0 {
+	if len(policy.NodeServiceLabelHardAntiAffinities) > 0 {
 		enableHardAntiAffinites = true
 	}
 	enableSoftAffinites := false
-	if len(policy.NodeLabelSoftAffinities) > 0 {
+	if len(policy.NodeServiceLabelSoftAffinities) > 0 {
 		enableSoftAffinites = true
 	}
 	enableSoftAntiAffinites := false
-	if len(policy.NodeLabelSoftAntiAffinities) > 0 {
+	if len(policy.NodeServiceLabelSoftAntiAffinities) > 0 {
 		enableSoftAntiAffinites = true
 	}
 
-	labelFilterNodeMap := map[uint]*db_model.NodeWithMeta{}
-	filteredNodes := []*db_model.NodeWithMeta{}
-	labelNodesMap := map[string][]*db_model.NodeWithMeta{} // LabelごとのNode候補
+	labelFilterNodeServiceMap := map[uint]*db_model.NodeServiceWithMeta{}
+	filteredNodeServices := []*db_model.NodeServiceWithMeta{}
+	labelNodeServicesMap := map[string][]*db_model.NodeServiceWithMeta{} // LabelごとのNodeService候補
 	for _, node := range nodeMap {
 		labels := []string{}
 		ok := true
-		if enableNodeFilters {
+		if enableNodeServiceFilters {
 			ok = false
-			for _, nodeName := range policy.NodeFilters {
+			for _, nodeName := range policy.NodeServiceFilters {
 				if node.Name == nodeName {
 					ok = true
 					break
@@ -277,7 +277,7 @@ func (api *Api) AssignCompute(tctx *logger.TraceContext,
 
 		if enableLabelFilters {
 			ok = false
-			for _, label := range policy.NodeLabelFilters {
+			for _, label := range policy.NodeServiceLabelFilters {
 				if strings.Index(node.Labels, label) >= 0 {
 					ok = true
 					break
@@ -290,7 +290,7 @@ func (api *Api) AssignCompute(tctx *logger.TraceContext,
 
 		if enableHardAffinites {
 			ok = false
-			for _, label := range policy.NodeLabelHardAffinities {
+			for _, label := range policy.NodeServiceLabelHardAffinities {
 				if strings.Index(node.Labels, label) >= 0 {
 					ok = true
 					labels = append(labels, label)
@@ -304,7 +304,7 @@ func (api *Api) AssignCompute(tctx *logger.TraceContext,
 
 		if enableHardAntiAffinites {
 			ok = false
-			for _, label := range policy.NodeLabelHardAntiAffinities {
+			for _, label := range policy.NodeServiceLabelHardAntiAffinities {
 				if strings.Index(node.Labels, label) >= 0 {
 					ok = true
 					labels = append(labels, label)
@@ -318,7 +318,7 @@ func (api *Api) AssignCompute(tctx *logger.TraceContext,
 
 		if enableSoftAffinites {
 			ok = false
-			for _, label := range policy.NodeLabelSoftAffinities {
+			for _, label := range policy.NodeServiceLabelSoftAffinities {
 				if strings.Index(node.Labels, label) >= 0 {
 					ok = true
 					labels = append(labels, label)
@@ -332,7 +332,7 @@ func (api *Api) AssignCompute(tctx *logger.TraceContext,
 
 		if enableSoftAntiAffinites {
 			ok = false
-			for _, label := range policy.NodeLabelSoftAntiAffinities {
+			for _, label := range policy.NodeServiceLabelSoftAntiAffinities {
 				if strings.Index(node.Labels, label) >= 0 {
 					ok = true
 					labels = append(labels, label)
@@ -344,8 +344,8 @@ func (api *Api) AssignCompute(tctx *logger.TraceContext,
 			}
 		}
 
-		// labelFilterNodeMapには、LabelのみによるNodeのフィルタリング結果を格納する
-		labelFilterNodeMap[node.ID] = node
+		// labelFilterNodeServiceMapには、LabelのみによるNodeServiceのフィルタリング結果を格納する
+		labelFilterNodeServiceMap[node.ID] = node
 
 		// Filter node by status, state
 		if node.Status != base_const.StatusEnabled {
@@ -359,58 +359,58 @@ func (api *Api) AssignCompute(tctx *logger.TraceContext,
 		// TODO
 		// Filter node by cpu, memory, disk
 
-		filteredNodes = append(filteredNodes, node)
+		filteredNodeServices = append(filteredNodeServices, node)
 
 		for _, label := range labels {
-			nodes, lok := labelNodesMap[label]
+			nodes, lok := labelNodeServicesMap[label]
 			if !lok {
-				nodes = []*db_model.NodeWithMeta{}
+				nodes = []*db_model.NodeServiceWithMeta{}
 			}
 			nodes = append(nodes, node)
-			labelNodesMap[label] = nodes
+			labelNodeServicesMap[label] = nodes
 		}
 	}
 
 	replicas := policy.Replicas
 	if !isReschedule {
 		for _, assignment := range currentAssignments {
-			// labelFilterNodeMapには、LabelのみによるNodeのフィルタリング結果が格納されている
-			// label変更されてNodeが候補から外された場合は、unassignNodesに追加する
-			_, ok := labelFilterNodeMap[assignment.NodeID]
+			// labelFilterNodeServiceMapには、LabelのみによるNodeServiceのフィルタリング結果が格納されている
+			// label変更されてNodeServiceが候補から外された場合は、unassignNodeServicesに追加する
+			_, ok := labelFilterNodeServiceMap[assignment.NodeServiceID]
 			if ok {
-				updateNodes = append(updateNodes, assignment.NodeID)
+				updateNodeServices = append(updateNodeServices, assignment.NodeServiceID)
 				updateAssignments = append(updateAssignments, assignment.ID)
 			} else {
-				unassignNodes = append(unassignNodes, assignment.NodeID)
+				unassignNodeServices = append(unassignNodeServices, assignment.NodeServiceID)
 			}
 		}
-		replicas = replicas - len(currentAssignments) + len(unassignNodes)
+		replicas = replicas - len(currentAssignments) + len(unassignNodeServices)
 	}
 
 	if replicas != 0 {
 		for i := 0; i < replicas; i++ {
-			candidates := []*db_model.NodeWithMeta{}
-			for _, label := range policy.NodeLabelHardAntiAffinities {
-				tmpCandidates := []*db_model.NodeWithMeta{}
-				nodes := labelNodesMap[label]
+			candidates := []*db_model.NodeServiceWithMeta{}
+			for _, label := range policy.NodeServiceLabelHardAntiAffinities {
+				tmpCandidates := []*db_model.NodeServiceWithMeta{}
+				nodes := labelNodeServicesMap[label]
 				for _, node := range nodes {
-					existsNode := false
-					for _, n := range assignNodes {
+					existsNodeService := false
+					for _, n := range assignNodeServices {
 						if node.ID == n {
-							existsNode = true
+							existsNodeService = true
 							break
 						}
 					}
-					if existsNode {
+					if existsNodeService {
 						continue
 					}
-					for _, n := range updateNodes {
+					for _, n := range updateNodeServices {
 						if node.ID == n {
-							existsNode = true
+							existsNodeService = true
 							break
 						}
 					}
-					if existsNode {
+					if existsNodeService {
 						continue
 					}
 					tmpCandidates = append(candidates, node)
@@ -418,7 +418,7 @@ func (api *Api) AssignCompute(tctx *logger.TraceContext,
 				if len(candidates) == 0 {
 					candidates = tmpCandidates
 				} else {
-					newCandidates := []*db_model.NodeWithMeta{}
+					newCandidates := []*db_model.NodeServiceWithMeta{}
 					for _, c := range candidates {
 						for _, tc := range tmpCandidates {
 							if c == tc {
@@ -431,29 +431,29 @@ func (api *Api) AssignCompute(tctx *logger.TraceContext,
 				}
 			}
 
-			for _, label := range policy.NodeLabelHardAffinities {
-				tmpCandidates := []*db_model.NodeWithMeta{}
-				nodes := labelNodesMap[label]
-				if len(candidates) == 0 && len(assignNodes) == 0 && len(updateNodes) == 0 {
+			for _, label := range policy.NodeServiceLabelHardAffinities {
+				tmpCandidates := []*db_model.NodeServiceWithMeta{}
+				nodes := labelNodeServicesMap[label]
+				if len(candidates) == 0 && len(assignNodeServices) == 0 && len(updateNodeServices) == 0 {
 					for _, node := range nodes {
 						tmpCandidates = append(tmpCandidates, node)
 					}
 					candidates = tmpCandidates
 					break
-				} else if len(assignNodes) > 0 {
+				} else if len(assignNodeServices) > 0 {
 					for _, node := range nodes {
-						for _, assignNodeID := range assignNodes {
-							if node.ID == assignNodeID {
+						for _, assignNodeServiceID := range assignNodeServices {
+							if node.ID == assignNodeServiceID {
 								candidates = append(candidates, node)
 								break
 							}
 						}
 					}
 					break
-				} else if len(updateNodes) > 0 {
+				} else if len(updateNodeServices) > 0 {
 					for _, node := range nodes {
-						for _, updateNodeID := range updateNodes {
-							if node.ID == updateNodeID {
+						for _, updateNodeServiceID := range updateNodeServices {
+							if node.ID == updateNodeServiceID {
 								candidates = append(candidates, node)
 								break
 							}
@@ -463,26 +463,26 @@ func (api *Api) AssignCompute(tctx *logger.TraceContext,
 				}
 			}
 
-			if !enableNodeFilters && !enableLabelFilters && !enableHardAffinites && !enableHardAntiAffinites {
+			if !enableNodeServiceFilters && !enableLabelFilters && !enableHardAffinites && !enableHardAntiAffinites {
 				if len(candidates) == 0 {
-					for _, node := range filteredNodes {
+					for _, node := range filteredNodeServices {
 						candidates = append(candidates, node)
 					}
 				}
 			}
 
 			// candidatesのweightを調整する
-			for _, label := range policy.NodeLabelSoftAffinities {
-				nodes := labelNodesMap[label]
+			for _, label := range policy.NodeServiceLabelSoftAffinities {
+				nodes := labelNodeServicesMap[label]
 				for _, node := range nodes {
-					for _, assignNodeId := range assignNodes {
-						if node.ID == assignNodeId {
+					for _, assignNodeServiceId := range assignNodeServices {
+						if node.ID == assignNodeServiceId {
 							node.Weight += 1000
 							break
 						}
 					}
-					for _, updateNodeId := range updateNodes {
-						if node.ID == updateNodeId {
+					for _, updateNodeServiceId := range updateNodeServices {
+						if node.ID == updateNodeServiceId {
 							node.Weight += 1000
 							break
 						}
@@ -490,17 +490,17 @@ func (api *Api) AssignCompute(tctx *logger.TraceContext,
 				}
 			}
 
-			for _, label := range policy.NodeLabelSoftAntiAffinities {
-				nodes := labelNodesMap[label]
+			for _, label := range policy.NodeServiceLabelSoftAntiAffinities {
+				nodes := labelNodeServicesMap[label]
 				for _, node := range nodes {
-					for _, assignNodeId := range assignNodes {
-						if node.ID == assignNodeId {
+					for _, assignNodeServiceId := range assignNodeServices {
+						if node.ID == assignNodeServiceId {
 							node.Weight -= 1000
 							break
 						}
 					}
-					for _, updateNodeId := range updateNodes {
-						if node.ID == updateNodeId {
+					for _, updateNodeServiceId := range updateNodeServices {
+						if node.ID == updateNodeServiceId {
 							node.Weight -= 1000
 							break
 						}
@@ -524,11 +524,11 @@ func (api *Api) AssignCompute(tctx *logger.TraceContext,
 
 			// TODO Sort candidates by weight
 
-			assignNodes = append(assignNodes, candidates[0].ID)
+			assignNodeServices = append(assignNodeServices, candidates[0].ID)
 		}
 	}
 
-	if policy.Replicas != len(assignNodes)+len(updateNodes)-len(unassignNodes) {
+	if policy.Replicas != len(assignNodeServices)+len(updateNodeServices)-len(unassignNodeServices) {
 		logger.Warningf(tctx, "Failed assign: compute=%v", compute.Name)
 		return
 	}
@@ -546,14 +546,14 @@ func (api *Api) AssignCompute(tctx *logger.TraceContext,
 			}
 		}
 
-		for _, nodeID := range assignNodes {
+		for _, nodeID := range assignNodeServices {
 			switch compute.Status {
 			case base_const.StatusCreating:
 				if err = tx.Create(&db_model.ComputeAssignment{
-					ComputeID:    compute.ID,
-					NodeID:       nodeID,
-					Status:       base_const.StatusCreating,
-					StatusReason: "Creating",
+					ComputeID:     compute.ID,
+					NodeServiceID: nodeID,
+					Status:        base_const.StatusCreating,
+					StatusReason:  "Creating",
 				}).Error; err != nil {
 					return
 				}
@@ -578,7 +578,7 @@ func (api *Api) AssignCompute(tctx *logger.TraceContext,
 
 func (api *Api) ConfirmCreatingOrUpdatingScheduledCompute(tctx *logger.TraceContext,
 	compute *db_model.Compute,
-	assignmentsMap map[string][]db_model.ComputeAssignmentWithComputeAndNode) {
+	assignmentsMap map[string][]db_model.ComputeAssignmentWithComputeAndNodeService) {
 	var err error
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
@@ -630,7 +630,7 @@ func (api *Api) DeleteComputeAssignments(tctx *logger.TraceContext, compute *db_
 
 func (api *Api) ConfirmDeletingScheduledCompute(tctx *logger.TraceContext,
 	compute *db_model.Compute,
-	assignmentsMap map[string][]db_model.ComputeAssignmentWithComputeAndNode) {
+	assignmentsMap map[string][]db_model.ComputeAssignmentWithComputeAndNodeService) {
 	var err error
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()

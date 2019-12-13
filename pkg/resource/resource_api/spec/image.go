@@ -86,3 +86,48 @@ var ImagesTable = index_model.Table{
 		index_model.TableColumn{Name: "CreatedAt", Kind: "Time"},
 	},
 }
+
+var ImagesDetail = index_model.Tabs{
+	Name:            "Images",
+	Kind:            "RouteTabs",
+	RouteParamKey:   "kind",
+	RouteParamValue: "Images",
+	Route:           "/Regions/:Region/Resources/Images/Detail/:Name/:Subkind",
+	TabParam:        "Subkind",
+	GetQueries: []string{
+		"GetImage",
+		"GetRegionServices", "GetImages"},
+	ExpectedDataKeys: []string{"Image"},
+	IsSync:           true,
+	Tabs: []interface{}{
+		index_model.View{
+			Name:    "View",
+			Route:   "/View",
+			Kind:    "View",
+			DataKey: "Image",
+			Fields: []index_model.Field{
+				index_model.Field{Name: "Name", Kind: "text"},
+				index_model.Field{Name: "Kind", Kind: "select"},
+			},
+		},
+		index_model.Form{
+			Name:         "Edit",
+			Route:        "/Edit",
+			Kind:         "Form",
+			DataKey:      "Image",
+			SubmitAction: "update image",
+			Icon:         "Update",
+			Fields: []index_model.Field{
+				index_model.Field{Name: "Name", Kind: "text", Require: true,
+					Updatable: false,
+					Min:       5, Max: 200, RegExp: "^[0-9a-zA-Z]+$",
+					RegExpMsg: "Please enter alphanumeric characters."},
+				index_model.Field{Name: "Kind", Kind: "select", Require: true,
+					Updatable: true,
+					Options: []string{
+						"Url",
+					}},
+			},
+		},
+	},
+}

@@ -1,6 +1,6 @@
 package base_spec
 
-type Node struct {
+type NodeService struct {
 	Name         string
 	Kind         string
 	Role         string
@@ -12,42 +12,42 @@ type Node struct {
 	Spec         interface{}
 }
 
-type GetNode struct {
+type GetNodeService struct {
 	Name string `validate:"required"`
 	Kind string `validate:"required"`
 }
 
-type GetNodeData struct {
-	Node Node
+type GetNodeServiceData struct {
+	NodeService NodeService
 }
 
-type GetNodes struct{}
+type GetNodeServices struct{}
 
-type GetNodesData struct {
-	Nodes []Node
+type GetNodeServicesData struct {
+	NodeServices []NodeService
 }
 
-type CreateNode struct {
+type CreateNodeService struct {
 	Spec string `validate:"required" flagKind:"file"`
 }
 
-type CreateNodeData struct{}
+type CreateNodeServiceData struct{}
 
-type UpdateNode struct {
-	Node
+type UpdateNodeService struct {
+	NodeService
 }
 
-type UpdateNodeData struct{}
+type UpdateNodeServiceData struct{}
 
-type DeleteNode struct {
+type DeleteNodeService struct {
 	Name string `validate:"required"`
 	Kind string `validate:"required"`
 }
 
-type DeleteNodeData struct{}
+type DeleteNodeServiceData struct{}
 
-type DeleteNodes struct {
+type DeleteNodeServices struct {
 	Spec string `validate:"required" flagKind:"file"`
 }
 
-type DeleteNodesData struct{}
+type DeleteNodeServicesData struct{}

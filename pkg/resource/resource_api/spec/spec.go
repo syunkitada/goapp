@@ -101,6 +101,7 @@ var Spec = spec_model.Spec{
 				spec_model.QueryModel{Req: DeleteClusters{}, Rep: DeleteClustersData{}},
 
 				spec_model.QueryModel{Req: GetNodes{}, Rep: GetNodesData{}},
+				spec_model.QueryModel{Req: GetNodeServices{}, Rep: GetNodeServicesData{}},
 
 				spec_model.QueryModel{Req: GetNetworkV4{}, Rep: GetNetworkV4Data{}},
 				spec_model.QueryModel{Req: GetNetworkV4s{}, Rep: GetNetworkV4sData{}},
@@ -156,6 +157,23 @@ var Spec = spec_model.Spec{
 				spec_model.QueryModel{Req: UpdateRegionService{}, Rep: UpdateRegionServiceData{}},
 				spec_model.QueryModel{Req: DeleteRegionService{}, Rep: DeleteRegionServiceData{}},
 				spec_model.QueryModel{Req: DeleteRegionServices{}, Rep: DeleteRegionServicesData{}},
+			},
+		},
+		spec_model.Api{
+			Name:            "ResourceMonitor",
+			RequiredAuth:    true,
+			RequiredProject: true,
+			QueryModels: []spec_model.QueryModel{
+				spec_model.QueryModel{Req: GetClusters{}, Rep: GetClustersData{}},
+
+				spec_model.QueryModel{Req: GetNodes{}, Rep: GetNodesData{}},
+				spec_model.QueryModel{Req: GetNode{}, Rep: GetNodeData{}},
+				spec_model.QueryModel{Req: GetAlerts{}, Rep: GetAlertsData{}},
+				spec_model.QueryModel{Req: GetAlertRules{}, Rep: GetAlertRulesData{}},
+				spec_model.QueryModel{Req: GetStatistics{}, Rep: GetStatisticsData{}},
+				spec_model.QueryModel{Req: GetLogParams{}, Rep: GetLogParamsData{}},
+				spec_model.QueryModel{Req: GetLogs{}, Rep: GetLogsData{}},
+				spec_model.QueryModel{Req: GetTrace{}, Rep: GetTraceData{}},
 			},
 		},
 	},

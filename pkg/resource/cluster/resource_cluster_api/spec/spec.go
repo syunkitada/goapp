@@ -26,9 +26,15 @@ var Spec = spec_model.Spec{
 				spec_model.QueryModel{Req: api_spec.DeleteCompute{}, Rep: api_spec.DeleteComputeData{}},
 				spec_model.QueryModel{Req: api_spec.DeleteComputes{}, Rep: api_spec.DeleteComputesData{}},
 
+				spec_model.QueryModel{Req: api_spec.GetNodeServices{}, Rep: api_spec.GetNodeServicesData{}},
+				spec_model.QueryModel{Req: api_spec.SyncNodeService{}, Rep: api_spec.SyncNodeServiceData{}},
+				spec_model.QueryModel{Req: api_spec.ReportNodeServiceTask{}, Rep: api_spec.ReportNodeServiceTaskData{}},
+
 				spec_model.QueryModel{Req: api_spec.GetNodes{}, Rep: api_spec.GetNodesData{}},
-				spec_model.QueryModel{Req: api_spec.SyncNode{}, Rep: api_spec.SyncNodeData{}},
-				spec_model.QueryModel{Req: api_spec.ReportNodeTask{}, Rep: api_spec.ReportNodeTaskData{}},
+				spec_model.QueryModel{Req: api_spec.GetNode{}, Rep: api_spec.GetNodeData{}},
+				spec_model.QueryModel{Req: api_spec.ReportNode{}, Rep: api_spec.ReportNodeData{}},
+				spec_model.QueryModel{Req: api_spec.GetLogs{}, Rep: api_spec.GetLogsData{}},
+				spec_model.QueryModel{Req: api_spec.GetLogParams{}, Rep: api_spec.GetLogParamsData{}},
 			},
 		},
 	},

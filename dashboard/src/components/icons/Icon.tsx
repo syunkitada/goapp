@@ -11,6 +11,9 @@ import AddBoxIcon from '@material-ui/icons/AddBox';
 import DeleteIcon from '@material-ui/icons/Delete';
 import DetailsIcon from '@material-ui/icons/Details';
 import EditIcon from '@material-ui/icons/Edit';
+import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline';
+import HelpOutlineIcon from '@material-ui/icons/HelpOutline';
+import HighlightOffOutlinedIcon from '@material-ui/icons/HighlightOffOutlined';
 
 const styles = (theme: Theme): StyleRules =>
   createStyles({
@@ -26,13 +29,15 @@ const styles = (theme: Theme): StyleRules =>
   });
 
 interface IIcon extends WithStyles<typeof styles> {
-  kind;
+  name;
   marginDirection;
+  key?;
+  style?;
 }
 
 class Icon extends React.Component<IIcon> {
   public render() {
-    const {classes, kind, marginDirection} = this.props;
+    const {classes, name, marginDirection, ...props} = this.props;
 
     let className = '';
     switch (marginDirection) {
@@ -44,17 +49,23 @@ class Icon extends React.Component<IIcon> {
         break;
     }
 
-    switch (kind) {
+    switch (name) {
       case 'Detail':
-        return <DetailsIcon className={classes[className]} />;
+        return <DetailsIcon className={classes[className]} {...props} />;
       case 'Update':
-        return <EditIcon className={classes[className]} />;
+        return <EditIcon className={classes[className]} {...props} />;
       case 'Create':
-        return <AddBoxIcon className={classes[className]} />;
+        return <AddBoxIcon className={classes[className]} {...props} />;
       case 'Delete':
-        return <DeleteIcon className={classes[className]} />;
+        return <DeleteIcon className={classes[className]} {...props} />;
+      case 'Warning':
+        return <ErrorOutlineIcon className={classes[className]} {...props} />;
+      case 'Critical':
+        return (
+          <HighlightOffOutlinedIcon className={classes[className]} {...props} />
+        );
       default:
-        return <span>IconNotFound</span>;
+        return <HelpOutlineIcon className={classes[className]} {...props} />;
     }
   }
 }

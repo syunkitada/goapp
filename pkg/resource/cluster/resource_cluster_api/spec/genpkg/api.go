@@ -28,9 +28,14 @@ type QueryResolver interface {
 	DeleteComputes(tctx *logger.TraceContext, input *spec.DeleteComputes, user *base_spec.UserAuthority) (*spec.DeleteComputesData, uint8, error)
 	GetCompute(tctx *logger.TraceContext, input *spec.GetCompute, user *base_spec.UserAuthority) (*spec.GetComputeData, uint8, error)
 	GetComputes(tctx *logger.TraceContext, input *spec.GetComputes, user *base_spec.UserAuthority) (*spec.GetComputesData, uint8, error)
+	GetLogParams(tctx *logger.TraceContext, input *spec.GetLogParams, user *base_spec.UserAuthority) (*spec.GetLogParamsData, uint8, error)
+	GetLogs(tctx *logger.TraceContext, input *spec.GetLogs, user *base_spec.UserAuthority) (*spec.GetLogsData, uint8, error)
+	GetNode(tctx *logger.TraceContext, input *spec.GetNode, user *base_spec.UserAuthority) (*spec.GetNodeData, uint8, error)
+	GetNodeServices(tctx *logger.TraceContext, input *spec.GetNodeServices, user *base_spec.UserAuthority) (*spec.GetNodeServicesData, uint8, error)
 	GetNodes(tctx *logger.TraceContext, input *spec.GetNodes, user *base_spec.UserAuthority) (*spec.GetNodesData, uint8, error)
-	ReportNodeTask(tctx *logger.TraceContext, input *spec.ReportNodeTask, user *base_spec.UserAuthority) (*spec.ReportNodeTaskData, uint8, error)
-	SyncNode(tctx *logger.TraceContext, input *spec.SyncNode, user *base_spec.UserAuthority) (*spec.SyncNodeData, uint8, error)
+	ReportNode(tctx *logger.TraceContext, input *spec.ReportNode, user *base_spec.UserAuthority) (*spec.ReportNodeData, uint8, error)
+	ReportNodeServiceTask(tctx *logger.TraceContext, input *spec.ReportNodeServiceTask, user *base_spec.UserAuthority) (*spec.ReportNodeServiceTaskData, uint8, error)
+	SyncNodeService(tctx *logger.TraceContext, input *spec.SyncNodeService, user *base_spec.UserAuthority) (*spec.SyncNodeServiceData, uint8, error)
 	UpdateCompute(tctx *logger.TraceContext, input *spec.UpdateCompute, user *base_spec.UserAuthority) (*spec.UpdateComputeData, uint8, error)
 }
 
@@ -292,6 +297,90 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				Code: code,
 				Data: data,
 			}
+		case "GetLogParams":
+			var input spec.GetLogParams
+			err = json.Unmarshal([]byte(query.Data), &input)
+			if err != nil {
+				return err
+			}
+			data, code, tmpErr := handler.resolver.GetLogParams(tctx, &input, user)
+			if tmpErr != nil {
+				if code == 0 {
+					code = base_const.CodeServerInternalError
+				}
+				rep.ResultMap[query.Name] = base_model.Result{
+					Code:  code,
+					Error: tmpErr.Error(),
+				}
+				break
+			}
+			rep.ResultMap[query.Name] = base_model.Result{
+				Code: code,
+				Data: data,
+			}
+		case "GetLogs":
+			var input spec.GetLogs
+			err = json.Unmarshal([]byte(query.Data), &input)
+			if err != nil {
+				return err
+			}
+			data, code, tmpErr := handler.resolver.GetLogs(tctx, &input, user)
+			if tmpErr != nil {
+				if code == 0 {
+					code = base_const.CodeServerInternalError
+				}
+				rep.ResultMap[query.Name] = base_model.Result{
+					Code:  code,
+					Error: tmpErr.Error(),
+				}
+				break
+			}
+			rep.ResultMap[query.Name] = base_model.Result{
+				Code: code,
+				Data: data,
+			}
+		case "GetNode":
+			var input spec.GetNode
+			err = json.Unmarshal([]byte(query.Data), &input)
+			if err != nil {
+				return err
+			}
+			data, code, tmpErr := handler.resolver.GetNode(tctx, &input, user)
+			if tmpErr != nil {
+				if code == 0 {
+					code = base_const.CodeServerInternalError
+				}
+				rep.ResultMap[query.Name] = base_model.Result{
+					Code:  code,
+					Error: tmpErr.Error(),
+				}
+				break
+			}
+			rep.ResultMap[query.Name] = base_model.Result{
+				Code: code,
+				Data: data,
+			}
+		case "GetNodeServices":
+			var input spec.GetNodeServices
+			err = json.Unmarshal([]byte(query.Data), &input)
+			if err != nil {
+				return err
+			}
+			data, code, tmpErr := handler.resolver.GetNodeServices(tctx, &input, user)
+			if tmpErr != nil {
+				if code == 0 {
+					code = base_const.CodeServerInternalError
+				}
+				rep.ResultMap[query.Name] = base_model.Result{
+					Code:  code,
+					Error: tmpErr.Error(),
+				}
+				break
+			}
+			rep.ResultMap[query.Name] = base_model.Result{
+				Code: code,
+				Data: data,
+			}
 		case "GetNodes":
 			var input spec.GetNodes
 			err = json.Unmarshal([]byte(query.Data), &input)
@@ -313,13 +402,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				Code: code,
 				Data: data,
 			}
-		case "ReportNodeTask":
-			var input spec.ReportNodeTask
+		case "ReportNode":
+			var input spec.ReportNode
 			err = json.Unmarshal([]byte(query.Data), &input)
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.ReportNodeTask(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.ReportNode(tctx, &input, user)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -334,13 +423,34 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				Code: code,
 				Data: data,
 			}
-		case "SyncNode":
-			var input spec.SyncNode
+		case "ReportNodeServiceTask":
+			var input spec.ReportNodeServiceTask
 			err = json.Unmarshal([]byte(query.Data), &input)
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.SyncNode(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.ReportNodeServiceTask(tctx, &input, user)
+			if tmpErr != nil {
+				if code == 0 {
+					code = base_const.CodeServerInternalError
+				}
+				rep.ResultMap[query.Name] = base_model.Result{
+					Code:  code,
+					Error: tmpErr.Error(),
+				}
+				break
+			}
+			rep.ResultMap[query.Name] = base_model.Result{
+				Code: code,
+				Data: data,
+			}
+		case "SyncNodeService":
+			var input spec.SyncNodeService
+			err = json.Unmarshal([]byte(query.Data), &input)
+			if err != nil {
+				return err
+			}
+			data, code, tmpErr := handler.resolver.SyncNodeService(tctx, &input, user)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError

@@ -20,9 +20,9 @@ type IApi interface {
 	GetUserAuthority(tctx *logger.TraceContext, username string) (data *base_spec.UserAuthority, err error)
 	CreateOrUpdateService(tctx *logger.TraceContext, input *base_spec.UpdateService) (err error)
 	GetServices(tctx *logger.TraceContext, input *base_spec.GetServices) (data *base_spec.GetServicesData, err error)
-	CreateOrUpdateNode(tctx *logger.TraceContext, input *base_spec.UpdateNode) (err error)
-	SyncNodeRole(tctx *logger.TraceContext, kind string) (nodes []base_db_model.Node, err error)
-	SyncNodeState(tctx *logger.TraceContext) (err error)
+	CreateOrUpdateNodeService(tctx *logger.TraceContext, input *base_spec.UpdateNodeService) (err error)
+	SyncNodeServiceRole(tctx *logger.TraceContext, kind string) (nodes []base_db_model.NodeService, err error)
+	SyncNodeServiceState(tctx *logger.TraceContext) (err error)
 	LoginWithToken(tctx *logger.TraceContext, token string) (data *base_spec.UserAuthority, err error)
 	IssueToken(userName string) (token string, err error)
 }
@@ -41,7 +41,7 @@ func New(baseConf *base_config.Config, appConf *base_config.AppConfig, apiQueryM
 	api := Api{
 		baseConf:             baseConf,
 		appConf:              appConf,
-		nodeDownTimeDuration: time.Duration(appConf.NodeDownTimeDuration) * time.Second,
+		nodeDownTimeDuration: time.Duration(appConf.NodeServiceDownTimeDuration) * time.Second,
 		databaseConf:         appConf.Database,
 		secrets:              appConf.Auth.Secrets,
 		apiQueryMap:          apiQueryMap,

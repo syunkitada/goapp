@@ -7,10 +7,10 @@ import (
 )
 
 type PhysicalResource struct {
-	Kind          string `validate:"required"`
-	Name          string `validate:"required"`
+	Kind          string `validate:"required"` // Server, Pdu, L2Switch, L3Switch, RootSwitch
+	Name          string `validate:"required"` // Datacenter内でユニーク
 	Datacenter    string `validate:"required"`
-	Cluster       string
+	Cluster       string // 仮想リソースを扱う場合はClusterに紐図かせる
 	Rack          string
 	PhysicalModel string
 	RackPosition  uint8

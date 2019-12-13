@@ -443,6 +443,34 @@ type DeleteRegionsResult struct {
 	Error string
 	Data  spec.DeleteRegionsData
 }
+type GetAlertRulesResponse struct {
+	base_model.Response
+	ResultMap GetAlertRulesResultMap
+}
+
+type GetAlertRulesResultMap struct {
+	GetAlertRules GetAlertRulesResult
+}
+
+type GetAlertRulesResult struct {
+	Code  uint8
+	Error string
+	Data  spec.GetAlertRulesData
+}
+type GetAlertsResponse struct {
+	base_model.Response
+	ResultMap GetAlertsResultMap
+}
+
+type GetAlertsResultMap struct {
+	GetAlerts GetAlertsResult
+}
+
+type GetAlertsResult struct {
+	Code  uint8
+	Error string
+	Data  spec.GetAlertsData
+}
 type GetClusterResponse struct {
 	base_model.Response
 	ResultMap GetClusterResultMap
@@ -555,6 +583,34 @@ type GetImagesResult struct {
 	Error string
 	Data  spec.GetImagesData
 }
+type GetLogParamsResponse struct {
+	base_model.Response
+	ResultMap GetLogParamsResultMap
+}
+
+type GetLogParamsResultMap struct {
+	GetLogParams GetLogParamsResult
+}
+
+type GetLogParamsResult struct {
+	Code  uint8
+	Error string
+	Data  spec.GetLogParamsData
+}
+type GetLogsResponse struct {
+	base_model.Response
+	ResultMap GetLogsResultMap
+}
+
+type GetLogsResultMap struct {
+	GetLogs GetLogsResult
+}
+
+type GetLogsResult struct {
+	Code  uint8
+	Error string
+	Data  spec.GetLogsData
+}
 type GetNetworkV4Response struct {
 	base_model.Response
 	ResultMap GetNetworkV4ResultMap
@@ -582,6 +638,34 @@ type GetNetworkV4sResult struct {
 	Code  uint8
 	Error string
 	Data  spec.GetNetworkV4sData
+}
+type GetNodeResponse struct {
+	base_model.Response
+	ResultMap GetNodeResultMap
+}
+
+type GetNodeResultMap struct {
+	GetNode GetNodeResult
+}
+
+type GetNodeResult struct {
+	Code  uint8
+	Error string
+	Data  spec.GetNodeData
+}
+type GetNodeServicesResponse struct {
+	base_model.Response
+	ResultMap GetNodeServicesResultMap
+}
+
+type GetNodeServicesResultMap struct {
+	GetNodeServices GetNodeServicesResult
+}
+
+type GetNodeServicesResult struct {
+	Code  uint8
+	Error string
+	Data  spec.GetNodeServicesData
 }
 type GetNodesResponse struct {
 	base_model.Response
@@ -736,6 +820,34 @@ type GetRegionsResult struct {
 	Code  uint8
 	Error string
 	Data  spec.GetRegionsData
+}
+type GetStatisticsResponse struct {
+	base_model.Response
+	ResultMap GetStatisticsResultMap
+}
+
+type GetStatisticsResultMap struct {
+	GetStatistics GetStatisticsResult
+}
+
+type GetStatisticsResult struct {
+	Code  uint8
+	Error string
+	Data  spec.GetStatisticsData
+}
+type GetTraceResponse struct {
+	base_model.Response
+	ResultMap GetTraceResultMap
+}
+
+type GetTraceResultMap struct {
+	GetTrace GetTraceResult
+}
+
+type GetTraceResult struct {
+	Code  uint8
+	Error string
+	Data  spec.GetTraceData
 }
 type UpdateClusterResponse struct {
 	base_model.Response
@@ -1763,6 +1875,21 @@ func (client *Client) ResourceVirtualAdminGetNodes(tctx *logger.TraceContext, qu
 	data = &result.Data
 	return
 }
+func (client *Client) ResourceVirtualAdminGetNodeServices(tctx *logger.TraceContext, queries []base_client.Query) (data *spec.GetNodeServicesData, err error) {
+	var res GetNodeServicesResponse
+	err = client.Request(tctx, "ResourceVirtualAdmin", queries, &res, true)
+	if err != nil {
+		return
+	}
+	result := res.ResultMap.GetNodeServices
+	if result.Code >= 100 || result.Error != "" {
+		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
+		return
+	}
+
+	data = &result.Data
+	return
+}
 func (client *Client) ResourceVirtualAdminGetNetworkV4(tctx *logger.TraceContext, queries []base_client.Query) (data *spec.GetNetworkV4Data, err error) {
 	var res GetNetworkV4Response
 	err = client.Request(tctx, "ResourceVirtualAdmin", queries, &res, true)
@@ -2385,6 +2512,141 @@ func (client *Client) ResourceVirtualDeleteRegionServices(tctx *logger.TraceCont
 		return
 	}
 	result := res.ResultMap.DeleteRegionServices
+	if result.Code >= 100 || result.Error != "" {
+		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
+		return
+	}
+
+	data = &result.Data
+	return
+}
+func (client *Client) ResourceMonitorGetClusters(tctx *logger.TraceContext, queries []base_client.Query) (data *spec.GetClustersData, err error) {
+	var res GetClustersResponse
+	err = client.Request(tctx, "ResourceMonitor", queries, &res, true)
+	if err != nil {
+		return
+	}
+	result := res.ResultMap.GetClusters
+	if result.Code >= 100 || result.Error != "" {
+		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
+		return
+	}
+
+	data = &result.Data
+	return
+}
+func (client *Client) ResourceMonitorGetNodes(tctx *logger.TraceContext, queries []base_client.Query) (data *spec.GetNodesData, err error) {
+	var res GetNodesResponse
+	err = client.Request(tctx, "ResourceMonitor", queries, &res, true)
+	if err != nil {
+		return
+	}
+	result := res.ResultMap.GetNodes
+	if result.Code >= 100 || result.Error != "" {
+		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
+		return
+	}
+
+	data = &result.Data
+	return
+}
+func (client *Client) ResourceMonitorGetNode(tctx *logger.TraceContext, queries []base_client.Query) (data *spec.GetNodeData, err error) {
+	var res GetNodeResponse
+	err = client.Request(tctx, "ResourceMonitor", queries, &res, true)
+	if err != nil {
+		return
+	}
+	result := res.ResultMap.GetNode
+	if result.Code >= 100 || result.Error != "" {
+		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
+		return
+	}
+
+	data = &result.Data
+	return
+}
+func (client *Client) ResourceMonitorGetAlerts(tctx *logger.TraceContext, queries []base_client.Query) (data *spec.GetAlertsData, err error) {
+	var res GetAlertsResponse
+	err = client.Request(tctx, "ResourceMonitor", queries, &res, true)
+	if err != nil {
+		return
+	}
+	result := res.ResultMap.GetAlerts
+	if result.Code >= 100 || result.Error != "" {
+		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
+		return
+	}
+
+	data = &result.Data
+	return
+}
+func (client *Client) ResourceMonitorGetAlertRules(tctx *logger.TraceContext, queries []base_client.Query) (data *spec.GetAlertRulesData, err error) {
+	var res GetAlertRulesResponse
+	err = client.Request(tctx, "ResourceMonitor", queries, &res, true)
+	if err != nil {
+		return
+	}
+	result := res.ResultMap.GetAlertRules
+	if result.Code >= 100 || result.Error != "" {
+		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
+		return
+	}
+
+	data = &result.Data
+	return
+}
+func (client *Client) ResourceMonitorGetStatistics(tctx *logger.TraceContext, queries []base_client.Query) (data *spec.GetStatisticsData, err error) {
+	var res GetStatisticsResponse
+	err = client.Request(tctx, "ResourceMonitor", queries, &res, true)
+	if err != nil {
+		return
+	}
+	result := res.ResultMap.GetStatistics
+	if result.Code >= 100 || result.Error != "" {
+		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
+		return
+	}
+
+	data = &result.Data
+	return
+}
+func (client *Client) ResourceMonitorGetLogParams(tctx *logger.TraceContext, queries []base_client.Query) (data *spec.GetLogParamsData, err error) {
+	var res GetLogParamsResponse
+	err = client.Request(tctx, "ResourceMonitor", queries, &res, true)
+	if err != nil {
+		return
+	}
+	result := res.ResultMap.GetLogParams
+	if result.Code >= 100 || result.Error != "" {
+		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
+		return
+	}
+
+	data = &result.Data
+	return
+}
+func (client *Client) ResourceMonitorGetLogs(tctx *logger.TraceContext, queries []base_client.Query) (data *spec.GetLogsData, err error) {
+	var res GetLogsResponse
+	err = client.Request(tctx, "ResourceMonitor", queries, &res, true)
+	if err != nil {
+		return
+	}
+	result := res.ResultMap.GetLogs
+	if result.Code >= 100 || result.Error != "" {
+		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
+		return
+	}
+
+	data = &result.Data
+	return
+}
+func (client *Client) ResourceMonitorGetTrace(tctx *logger.TraceContext, queries []base_client.Query) (data *spec.GetTraceData, err error) {
+	var res GetTraceResponse
+	err = client.Request(tctx, "ResourceMonitor", queries, &res, true)
+	if err != nil {
+		return
+	}
+	result := res.ResultMap.GetTrace
 	if result.Code >= 100 || result.Error != "" {
 		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
 		return
