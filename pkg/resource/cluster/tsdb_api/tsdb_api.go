@@ -35,3 +35,7 @@ func (api *Api) ReportNode(tctx *logger.TraceContext, input *api_spec.ReportNode
 func (api *Api) GetNode(tctx *logger.TraceContext, input *api_spec.GetNode) ([]api_spec.MetricsGroup, error) {
 	return api.driver.GetNode(tctx, input)
 }
+
+func (api *Api) GetLogParams(tctx *logger.TraceContext, input *api_spec.GetLogParams) (*api_spec.GetLogParamsData, error) {
+	return api.driver.GetLogParams(tctx, input)
+}

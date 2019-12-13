@@ -10,6 +10,7 @@ import withStyles, {
 
 import Button from '@material-ui/core/Button';
 import Checkbox from '@material-ui/core/Checkbox';
+import Grid from '@material-ui/core/Grid';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import Menu from '@material-ui/core/Menu';
@@ -38,6 +39,8 @@ import sort_utils from '../../../../modules/sort_utils';
 import Tooltip from '@material-ui/core/Tooltip';
 import Icon from '../../../../components/icons/Icon';
 
+import SearchIcon from '@material-ui/icons/Search';
+
 import Autocomplete from '@material-ui/lab/Autocomplete';
 
 interface IIndexTable extends WithStyles<typeof styles> {
@@ -53,6 +56,7 @@ interface IState {
   orderBy;
   selected: any[];
   data: any[];
+  inputMap: any;
   page;
   rowsPerPage;
   searchRegExp: any;
@@ -65,6 +69,7 @@ class IndexTable extends React.Component<IIndexTable> {
     actionName: null,
     anchorEl: null,
     data: [],
+    inputMap: {},
     order: 'asc',
     orderBy: 0,
     page: 0,
@@ -72,6 +77,22 @@ class IndexTable extends React.Component<IIndexTable> {
     searchRegExp: null,
     selected: [],
   };
+
+  public componentWillMount() {
+    const {routes} = this.props;
+    const route = routes[routes.length - 1];
+    const location = route.location;
+    const queryStr = decodeURIComponent(location.search);
+    try {
+      const value = queryStr.match(new RegExp('[?&]query=({.*?})(&|$|#)'));
+      if (value) {
+        const inputMap = JSON.parse(value[1]);
+        this.setState({inputMap});
+      }
+    } catch (e) {
+      console.log('Ignored failed parse', queryStr);
+    }
+  }
 
   public render() {
     const {auth, routes, classes, index, data} = this.props;
@@ -82,6 +103,7 @@ class IndexTable extends React.Component<IIndexTable> {
       page,
       searchRegExp,
       actionName,
+      inputMap,
     } = this.state;
     logger.info('IndexTable', 'render', actionName, routes);
     console.log('DEBUG Table', index.DataKey, index.Columns, data);
@@ -287,19 +309,24 @@ class IndexTable extends React.Component<IIndexTable> {
           continue;
         }
         for (let j = 0, lenj = selectorData.length; j < lenj; j++) {
-          options.push({title: selectorData[j]});
+          options.push(selectorData[j]);
         }
 
         const selectorProps = {
-          getOptionLabel: option => option.title,
+          getOptionLabel: option => option,
           options,
         };
+
         exInputs.push(
           <Autocomplete
             {...selectorProps}
             multiple={true}
             key={selector.Name}
             disableCloseOnSelect={true}
+            defaultValue={inputMap[selector.Name]}
+            onChange={(event, values) =>
+              this.handleSelectorChange(event, selector.Name, values)
+            }
             renderInput={params => (
               <TextField {...params} label={selector.Name} variant="outlined" />
             )}
@@ -319,6 +346,22 @@ class IndexTable extends React.Component<IIndexTable> {
         );
       }
     }
+    let exForm: any = null;
+    if (exInputs.length > 0) {
+      exForm = (
+        <form onSubmit={this.handleInputSubmit} style={{width: '100%'}}>
+          <Grid container={true} direction="row">
+            {exInputs}
+            <Button
+              variant="contained"
+              type="submit"
+              startIcon={<SearchIcon />}>
+              Submit
+            </Button>
+          </Grid>
+        </form>
+      );
+    }
 
     const indexLength = tableData.length;
     const emptyRows =
@@ -337,7 +380,7 @@ class IndexTable extends React.Component<IIndexTable> {
           onChangeSearchInput={this.handleChangeSearchInput}
           onActionClick={this.handleActionClick}
           exButtons={exButtons}
-          exInputs={exInputs}
+          exForm={exForm}
         />
         <div className={classes.tableWrapper}>
           <Table className={classes.table} aria-labelledby="tableTitle">
@@ -590,11 +633,26 @@ class IndexTable extends React.Component<IIndexTable> {
     // this.setState({searchRegExp});
   };
 
-  // private handleSelectorChange = (name, value) => {
-  //   console.log('DEBUG handle Selector Change', name, value);
-  //   // setAge(event.target.value);
-  //   // this.setState({searchRegExp});
-  // };
+  private handleSelectorChange = (event, name, values) => {
+    const {inputMap} = this.state;
+    inputMap[name] = values;
+    this.setState({inputMap});
+  };
+
+  private handleInputSubmit = event => {
+    const {routes} = this.props;
+    const {inputMap} = this.state;
+    const route = routes[routes.length - 1];
+    const location = route.location;
+    console.log('debug handle submit sub');
+    console.log('DEBUG location', location);
+    console.log('DEBUG submit', inputMap);
+    event.preventDefault();
+    // route.history.push(link);
+    const queryStr = encodeURIComponent(JSON.stringify(inputMap));
+    location.search = 'query=' + queryStr;
+    route.history.push(location);
+  };
 }
 
 const styles = (theme: Theme): StyleRules =>

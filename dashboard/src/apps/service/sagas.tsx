@@ -112,6 +112,7 @@ function* post(action) {
   } else {
     yield put(actions.service.servicePostSuccess({action, payload, result}));
   }
+  return {};
 }
 
 function* sync(action) {

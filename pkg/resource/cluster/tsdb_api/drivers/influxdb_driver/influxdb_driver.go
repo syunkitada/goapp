@@ -223,6 +223,44 @@ func (driver *InfluxdbDriver) GetMetrics(tctx *logger.TraceContext, metrics *[]a
 	}
 }
 
+func (driver *InfluxdbDriver) GetLogParams(tctx *logger.TraceContext, input *api_spec.GetLogParams) (data *api_spec.GetLogParamsData, err error) {
+	nodesQuery := "show tag values from \"goapp-resource-cluster-agent\" with key = \"Node\""
+	nodes := []string{}
+	for _, client := range driver.logClients {
+		result, tmpErr := client.Query(nodesQuery)
+		if err != nil {
+			logger.Warningf(tctx, "Failed Query: %s", tmpErr.Error())
+			continue
+		}
+		for _, s := range result.Results[0].Series {
+			for _, v := range s.Values {
+				nodes = append(nodes, v[1].(string))
+			}
+		}
+	}
+
+	appsQuery := "show tag values from \"goapp-resource-cluster-agent\" with key = \"App\""
+	apps := []string{}
+	for _, client := range driver.logClients {
+		result, tmpErr := client.Query(appsQuery)
+		if err != nil {
+			logger.Warningf(tctx, "Failed Query: %s", tmpErr.Error())
+			continue
+		}
+		for _, s := range result.Results[0].Series {
+			for _, v := range s.Values {
+				apps = append(apps, v[1].(string))
+			}
+		}
+	}
+
+	data = &api_spec.GetLogParamsData{
+		LogNodes: nodes,
+		LogApps:  apps,
+	}
+	return
+}
+
 func (driver *InfluxdbDriver) GetHost(tctx *logger.TraceContext, projectName string) error {
 	// hosts
 	// query := "show tag values from \"agent\" with key = \"Host\""
