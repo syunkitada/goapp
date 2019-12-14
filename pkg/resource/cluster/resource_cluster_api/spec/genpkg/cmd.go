@@ -221,6 +221,26 @@ var ResourceVirtualAdminCmdMap = map[string]index_model.Cmd{
 				FlagType: "string",
 				FlagKind: "",
 			},
+			"project,p": index_model.Flag{
+				Required: false,
+				FlagType: "string",
+				FlagKind: "",
+			},
+			"apps,a": index_model.Flag{
+				Required: false,
+				FlagType: "[]string",
+				FlagKind: "",
+			},
+			"nodes,n": index_model.Flag{
+				Required: false,
+				FlagType: "[]string",
+				FlagKind: "",
+			},
+			"trace.id,t": index_model.Flag{
+				Required: false,
+				FlagType: "string",
+				FlagKind: "",
+			},
 		},
 		OutputKind:   "",
 		OutputFormat: "",

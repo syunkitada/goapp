@@ -261,6 +261,61 @@ func (driver *InfluxdbDriver) GetLogParams(tctx *logger.TraceContext, input *api
 	return
 }
 
+func (driver *InfluxdbDriver) GetLogs(tctx *logger.TraceContext, input *api_spec.GetLogs) (data *api_spec.GetLogsData, err error) {
+	fmt.Println("DEBUG GetLogs", input.Apps, input.Nodes, input.TraceId)
+
+	logs := []map[string]interface{}{}
+
+	query := "SELECT App, Func, Level, Node, Project, TraceId, Msg FROM \"goapp-resource-cluster-agent\" WHERE"
+	whereApps := []string{}
+	if len(input.Apps) > 0 {
+		for _, app := range input.Apps {
+			whereApps = append(whereApps, fmt.Sprintf("App = '%s'", app))
+		}
+		whereAppsStr := strings.Join(whereApps, " OR ")
+		query += " (" + whereAppsStr + ")"
+	}
+
+	if len(input.Nodes) > 0 {
+		whereNodes := []string{}
+		for _, node := range input.Nodes {
+			whereNodes = append(whereNodes, fmt.Sprintf("Node = '%s'", node))
+		}
+		whereNodesStr := strings.Join(whereNodes, " OR ")
+		if len(whereApps) > 0 {
+			query += " AND"
+		}
+		query += " (" + whereNodesStr + ")"
+	}
+
+	query += " AND time > now() - 20d"
+	query += " limit 10000"
+	keys := []string{"App", "Func", "Level", "Node", "Project", "TraceId", "Msg"}
+	for _, client := range driver.logClients {
+		queryResult, tmpErr := client.Query(query)
+		if tmpErr != nil {
+			logger.Warningf(tctx, "Failed Query: %s", tmpErr.Error())
+			continue
+		}
+		for _, result := range queryResult.Results {
+			for _, series := range result.Series {
+				for _, value := range series.Values {
+					v := map[string]interface{}{
+						"Time": value[0],
+					}
+					for i, key := range keys {
+						v[key] = value[i+1]
+					}
+					logs = append(logs, v)
+				}
+			}
+		}
+	}
+
+	data = &api_spec.GetLogsData{Logs: logs}
+	return
+}
+
 func (driver *InfluxdbDriver) GetHost(tctx *logger.TraceContext, projectName string) error {
 	// hosts
 	// query := "show tag values from \"agent\" with key = \"Host\""

@@ -19,6 +19,7 @@ function* post(action) {
   const {
     params,
     queries,
+    searchQueries,
     isSync,
     queryKind,
     dataKind,
@@ -27,6 +28,8 @@ function* post(action) {
   } = action.payload;
 
   let payload: any = null;
+
+  console.log('DEBUG searchQueries', searchQueries);
 
   switch (action.type) {
     case 'SERVICE_GET_INDEX':
@@ -45,8 +48,10 @@ function* post(action) {
 
     case 'SERVICE_GET_QUERIES':
       const syncQueryMap: any[] = [];
+      const queryData = Object.assign({}, params, searchQueries);
+      console.log('DEBUG QUERY data', queryData);
       for (let i = 0, len = queries.length; i < len; i++) {
-        dataQueries.push({Name: queries[i], Data: JSON.stringify(params)});
+        dataQueries.push({Name: queries[i], Data: JSON.stringify(queryData)});
         if (isSync) {
           syncQueryMap[queries[i]] = {
             Data: JSON.stringify(params),

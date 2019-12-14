@@ -6,21 +6,20 @@ type Table struct {
 	Route         string
 	Subname       string
 	DataKey       string
-	Selectors     []TableSelector
-	InputFields   []TableInputField
+	ExInputs      []TableInputField
 	Columns       []TableColumn
 	Actions       []Action
 	SelectActions []Action
 	ColumnActions []Action
 }
 
-type TableSelector struct {
-	Name    string
-	DataKey string
-}
-
 type TableInputField struct {
-	Name string
+	Name     string
+	Type     string
+	Multiple bool
+	DataKey  string
+	Data     interface{}
+	Default  interface{}
 }
 
 type TableColumn struct {

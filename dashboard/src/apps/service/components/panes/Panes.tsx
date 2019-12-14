@@ -42,6 +42,18 @@ class Panes extends React.Component<IPanes> {
     const beforeRoute = routes.slice(-2)[0];
     console.log('DEBUG: Panes.componentWillMount');
 
+    const location = route.location;
+    const queryStr = decodeURIComponent(location.search);
+    let searchQueries = {};
+    try {
+      const value = queryStr.match(new RegExp('[?&]q=({.*?})(&|$|#)'));
+      if (value) {
+        searchQueries = JSON.parse(value[1]);
+      }
+    } catch (e) {
+      console.log('Ignored failed parse', queryStr);
+    }
+
     for (let i = 0, len = index.Panes.length; i < len; i++) {
       const pane = index.Panes[i];
       console.log('DEBUG pane', pane);
@@ -76,6 +88,7 @@ class Panes extends React.Component<IPanes> {
             pane.GetQueries,
             pane.IsSync,
             route.match.params,
+            searchQueries,
           );
         }
         break;
@@ -100,6 +113,7 @@ class Panes extends React.Component<IPanes> {
             pane.GetQueries,
             pane.IsSync,
             route.match.params,
+            searchQueries,
           );
         }
         break;
@@ -134,12 +148,13 @@ function mapStateToProps(state, ownProps) {
 
 function mapDispatchToProps(dispatch, ownProps) {
   return {
-    getQueries: (queries, isSync, params) => {
+    getQueries: (queries, searchQueries, isSync, params) => {
       dispatch(
         actions.service.serviceGetQueries({
           isSync,
           params,
           queries,
+          searchQueries,
         }),
       );
     },

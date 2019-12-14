@@ -154,9 +154,14 @@ type GetLogParamsData struct {
 
 type GetLogs struct {
 	Cluster string `validate:"required"`
+	Project string
+	Apps    []string
+	Nodes   []string
+	TraceId string
 }
 
 type GetLogsData struct {
+	Logs []map[string]interface{}
 }
 
 type GetTrace struct {
@@ -181,28 +186,50 @@ var LogsTable = index_model.Table{
 			SelectKey: "Name",
 		},
 	},
-	Selectors: []index_model.TableSelector{
-		index_model.TableSelector{
-			Name:    "App",
-			DataKey: "LogApps",
+	ExInputs: []index_model.TableInputField{
+		index_model.TableInputField{
+			Name:     "Apps",
+			Type:     "Selector",
+			DataKey:  "LogApps",
+			Multiple: true,
 		},
-		index_model.TableSelector{
-			Name:    "Node",
-			DataKey: "LogNodes",
+		index_model.TableInputField{
+			Name:     "Nodes",
+			Type:     "Selector",
+			DataKey:  "LogNodes",
+			Multiple: true,
 		},
-	},
-	InputFields: []index_model.TableInputField{
 		index_model.TableInputField{
 			Name: "TraceId",
+			Type: "Text",
+		},
+		index_model.TableInputField{
+			Name:     "Limit",
+			Type:     "Selector",
+			Data:     []int{5000, 10000, 20000, 30000, 40000, 50000},
+			Default:  10000,
+			Multiple: false,
+		},
+		index_model.TableInputField{
+			Name:     "FromTime",
+			Type:     "Selector",
+			Data:     []string{"-6h", "-1d", "-3d"},
+			Default:  "-6h",
+			Multiple: false,
+		},
+		index_model.TableInputField{
+			Name: "UntilTime",
+			Type: "DateTime",
 		},
 	},
 	Columns: []index_model.TableColumn{
-		index_model.TableColumn{
-			Name: "Name", IsSearch: true,
-		},
 		index_model.TableColumn{Name: "App"},
-		index_model.TableColumn{Name: "Host"},
-		index_model.TableColumn{Name: "CreatedAt", Kind: "Time"},
+		index_model.TableColumn{Name: "Node"},
+		index_model.TableColumn{Name: "Msg", IsSearch: true},
+		index_model.TableColumn{Name: "Func"},
+		index_model.TableColumn{Name: "Level"},
+		index_model.TableColumn{Name: "TraceId"},
+		index_model.TableColumn{Name: "Time", Kind: "Time"},
 	},
 }
 

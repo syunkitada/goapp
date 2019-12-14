@@ -38,6 +38,18 @@ class ExpansionPanels extends React.Component<IExpansionPanels> {
     const beforeRoute = routes.slice(-2)[0];
     console.log('DEBUG: ExpansionPanels.componentWillMount');
 
+    const location = route.location;
+    const queryStr = decodeURIComponent(location.search);
+    let searchQueries = {};
+    try {
+      const value = queryStr.match(new RegExp('[?&]q=({.*?})(&|$|#)'));
+      if (value) {
+        searchQueries = JSON.parse(value[1]);
+      }
+    } catch (e) {
+      console.log('Ignored failed parse', queryStr);
+    }
+
     for (let i = 0, len = index.Panels.length; i < len; i++) {
       const panel = index.Panels[i];
       if (
@@ -59,6 +71,7 @@ class ExpansionPanels extends React.Component<IExpansionPanels> {
         if (isInit && panel.GetQueries) {
           this.props.getQueries(
             panel.GetQueries,
+            searchQueries,
             panel.IsSync,
             route.match.params,
           );
@@ -145,12 +158,13 @@ function mapStateToProps(state, ownProps) {
 
 function mapDispatchToProps(dispatch, ownProps) {
   return {
-    getQueries: (queries, isSync, params) => {
+    getQueries: (queries, searchQueries, isSync, params) => {
       dispatch(
         actions.service.serviceGetQueries({
           isSync,
           params,
           queries,
+          searchQueries,
         }),
       );
     },

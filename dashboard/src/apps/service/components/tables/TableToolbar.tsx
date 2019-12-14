@@ -95,7 +95,7 @@ interface ITableToolbar extends WithStyles<typeof styles> {
   numSelected;
   rowsPerPage;
   page;
-  exForm;
+  exInputsForm;
   exButtons;
   onChangePage;
   onChangeRowsPerPage;
@@ -112,7 +112,7 @@ class TableToolbar extends React.Component<ITableToolbar> {
       numSelected,
       rowsPerPage,
       page,
-      exForm,
+      exInputsForm,
       exButtons,
       onChangePage,
       onChangeRowsPerPage,
@@ -189,7 +189,7 @@ class TableToolbar extends React.Component<ITableToolbar> {
             />
           </Grid>
 
-          {exForm}
+          {exInputsForm}
         </Grid>
       </Toolbar>
     );

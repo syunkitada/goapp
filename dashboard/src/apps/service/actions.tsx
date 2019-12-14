@@ -13,6 +13,7 @@ export const serviceStopBackgroundSync = actionCreator(
 );
 export const serviceGetQueries = actionCreator<{
   queries: any;
+  searchQueries: any;
   isSync: any;
   params: any;
 }>('SERVICE_GET_QUERIES');

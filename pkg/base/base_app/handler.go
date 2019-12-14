@@ -27,7 +27,7 @@ func (app *BaseApp) ExecQuery(w http.ResponseWriter, r *http.Request, isProxy bo
 			w.WriteHeader(http.StatusInternalServerError)
 			err = error_utils.NewRecoveredError(p)
 			logger.Errorf(tctx, err, "Panic occured")
-			fmt.Println("panic occured")
+			fmt.Println("panic occured", err)
 		}
 	}()
 

@@ -78,3 +78,30 @@ func (api *Api) GetLogParams(tctx *logger.TraceContext, input *spec.GetLogParams
 	data = getLogParamsData
 	return
 }
+
+func (api *Api) GetLogs(tctx *logger.TraceContext, input *spec.GetLogs, user *base_spec.UserAuthority) (data *spec.GetLogsData, err error) {
+	if len(input.Apps) == 0 && len(input.Nodes) == 0 && (input.TraceId) == "" {
+		return
+	}
+
+	client, ok := api.clusterClientMap[input.Cluster]
+	if !ok {
+		err = error_utils.NewNotFoundError("clusterClient")
+		return
+	}
+
+	queries := []base_client.Query{
+		base_client.Query{
+			Name: "GetLogs",
+			Data: *input,
+		},
+	}
+
+	getLogsData, tmpErr := client.ResourceVirtualAdminGetLogs(tctx, queries)
+	if tmpErr != nil {
+		err = fmt.Errorf("Failed GetLogs: %s", tmpErr.Error())
+		return
+	}
+	data = getLogsData
+	return
+}

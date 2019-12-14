@@ -43,6 +43,11 @@ import SearchIcon from '@material-ui/icons/Search';
 
 import Autocomplete from '@material-ui/lab/Autocomplete';
 
+import {DateTimePicker} from '@material-ui/pickers';
+import {MuiPickersUtilsProvider} from '@material-ui/pickers';
+
+import DateFnsUtils from '@date-io/date-fns';
+
 interface IIndexTable extends WithStyles<typeof styles> {
   auth;
   routes;
@@ -56,9 +61,9 @@ interface IState {
   orderBy;
   selected: any[];
   data: any[];
-  inputMap: any;
   page;
   rowsPerPage;
+  searchQueries: any;
   searchRegExp: any;
   anchorEl: any;
   actionName: any;
@@ -69,11 +74,11 @@ class IndexTable extends React.Component<IIndexTable> {
     actionName: null,
     anchorEl: null,
     data: [],
-    inputMap: {},
     order: 'asc',
     orderBy: 0,
     page: 0,
     rowsPerPage: 5,
+    searchQueries: {},
     searchRegExp: null,
     selected: [],
   };
@@ -84,10 +89,10 @@ class IndexTable extends React.Component<IIndexTable> {
     const location = route.location;
     const queryStr = decodeURIComponent(location.search);
     try {
-      const value = queryStr.match(new RegExp('[?&]query=({.*?})(&|$|#)'));
+      const value = queryStr.match(new RegExp('[?&]q=({.*?})(&|$|#)'));
       if (value) {
-        const inputMap = JSON.parse(value[1]);
-        this.setState({inputMap});
+        const searchQueries = JSON.parse(value[1]);
+        this.setState({searchQueries});
       }
     } catch (e) {
       console.log('Ignored failed parse', queryStr);
@@ -103,7 +108,7 @@ class IndexTable extends React.Component<IIndexTable> {
       page,
       searchRegExp,
       actionName,
-      inputMap,
+      searchQueries,
     } = this.state;
     logger.info('IndexTable', 'render', actionName, routes);
     console.log('DEBUG Table', index.DataKey, index.Columns, data);
@@ -300,61 +305,86 @@ class IndexTable extends React.Component<IIndexTable> {
       }
     }
 
-    if (index.Selectors) {
-      for (let i = 0, len = index.Selectors.length; i < len; i++) {
-        const selector = index.Selectors[i];
-        const selectorData = data[selector.DataKey];
-        const options: any = [];
-        if (!selectorData) {
-          continue;
-        }
-        for (let j = 0, lenj = selectorData.length; j < lenj; j++) {
-          options.push(selectorData[j]);
-        }
-
-        const selectorProps = {
-          getOptionLabel: option => option,
-          options,
-        };
-
-        exInputs.push(
-          <Autocomplete
-            {...selectorProps}
-            multiple={true}
-            key={selector.Name}
-            disableCloseOnSelect={true}
-            defaultValue={inputMap[selector.Name]}
-            onChange={(event, values) =>
-              this.handleSelectorChange(event, selector.Name, values)
+    let exInputsForm: any = null;
+    if (index.ExInputs) {
+      for (let i = 0, len = index.ExInputs.length; i < len; i++) {
+        const input = index.ExInputs[i];
+        switch (input.Type) {
+          case 'Selector':
+            let selectorData: any;
+            if (input.DataKey) {
+              selectorData = data[input.DataKey];
+            } else if (input.Data) {
+              selectorData = input.Data;
             }
-            renderInput={params => (
-              <TextField {...params} label={selector.Name} variant="outlined" />
-            )}
-          />,
-        );
+            const options: any = [];
+            if (!selectorData) {
+              continue;
+            }
+            for (let j = 0, lenj = selectorData.length; j < lenj; j++) {
+              options.push(selectorData[j]);
+            }
+
+            const selectorProps = {
+              getOptionLabel: option => option,
+              options,
+            };
+
+            exInputs.push(
+              <Autocomplete
+                {...selectorProps}
+                multiple={input.Multiple}
+                key={input.Name}
+                disableCloseOnSelect={true}
+                defaultValue={searchQueries[input.Name]}
+                onChange={(event, values) =>
+                  this.handleSelectorChange(event, input.Name, values)
+                }
+                renderInput={params => (
+                  <TextField
+                    {...params}
+                    size="small"
+                    label={input.Name}
+                    variant="outlined"
+                  />
+                )}
+              />,
+            );
+            break;
+          case 'Text':
+            exInputs.push(
+              <TextField
+                key={input.Name}
+                label={input.Name}
+                variant="outlined"
+                size="small"
+              />,
+            );
+            break;
+          case 'DateTime':
+            exInputs.push(
+              <MuiPickersUtilsProvider utils={DateFnsUtils}>
+                <DateTimePicker
+                  label="DateTimePicker"
+                  inputVariant="outlined"
+                  value={null}
+                  onChange={this.handleDateChange}
+                />
+                ,
+              </MuiPickersUtilsProvider>,
+            );
+            break;
+        }
       }
-    }
-    if (index.InputFields) {
-      for (let i = 0, len = index.InputFields.length; i < len; i++) {
-        const inputField = index.InputFields[i];
-        exInputs.push(
-          <TextField
-            key={inputField.Name}
-            label={inputField.Name}
-            variant="outlined"
-          />,
-        );
-      }
-    }
-    let exForm: any = null;
-    if (exInputs.length > 0) {
-      exForm = (
-        <form onSubmit={this.handleInputSubmit} style={{width: '100%'}}>
-          <Grid container={true} direction="row">
+
+      exInputsForm = (
+        <form onSubmit={this.handleInputSubmit}>
+          <Grid container={true} direction="row" spacing={3}>
             {exInputs}
             <Button
               variant="contained"
               type="submit"
+              className={classes.exInputsButton}
               startIcon={<SearchIcon />}>
               Submit
             </Button>
@@ -380,7 +410,7 @@ class IndexTable extends React.Component<IIndexTable> {
           onChangeSearchInput={this.handleChangeSearchInput}
           onActionClick={this.handleActionClick}
           exButtons={exButtons}
-          exForm={exForm}
+          exInputsForm={exInputsForm}
         />
         <div className={classes.tableWrapper}>
           <Table className={classes.table} aria-labelledby="tableTitle">
@@ -398,7 +428,7 @@ class IndexTable extends React.Component<IIndexTable> {
               {sort_utils
                 .stableSort(tableData, sort_utils.getSorting(order, orderBy))
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map(n => {
+                .map((n, rowIndex) => {
                   const cells: any = [];
                   const key = n[0];
                   const isSelected = this.isSelected(key);
@@ -510,7 +540,7 @@ class IndexTable extends React.Component<IIndexTable> {
                   }
 
                   return (
-                    <TableRow hover={true} tabIndex={-1} key={key}>
+                    <TableRow hover={true} tabIndex={-1} key={rowIndex}>
                       {cells}
                     </TableRow>
                   );
@@ -620,10 +650,16 @@ class IndexTable extends React.Component<IIndexTable> {
 
   private handleLinkClick = (event, link, value, column) => {
     const {routes} = this.props;
+    const {searchQueries} = this.state;
     const route = routes[routes.length - 1];
     const params = route.match.params;
     params[column.LinkParam] = value;
-    this.props.getQueries(column.LinkGetQueries, column.LinkSync, params);
+    this.props.getQueries(
+      column.LinkGetQueries,
+      searchQueries,
+      column.LinkSync,
+      params,
+    );
     route.history.push(link);
   };
 
@@ -634,24 +670,31 @@ class IndexTable extends React.Component<IIndexTable> {
   };
 
   private handleSelectorChange = (event, name, values) => {
-    const {inputMap} = this.state;
-    inputMap[name] = values;
-    this.setState({inputMap});
+    const {searchQueries} = this.state;
+    searchQueries[name] = values;
+    this.setState({searchQueries});
   };
 
   private handleInputSubmit = event => {
     const {routes} = this.props;
-    const {inputMap} = this.state;
+    const {searchQueries} = this.state;
     const route = routes[routes.length - 1];
     const location = route.location;
     console.log('debug handle submit sub');
     console.log('DEBUG location', location);
-    console.log('DEBUG submit', inputMap);
+    console.log('DEBUG submit', searchQueries);
     event.preventDefault();
     // route.history.push(link);
-    const queryStr = encodeURIComponent(JSON.stringify(inputMap));
-    location.search = 'query=' + queryStr;
+    const queryStr = encodeURIComponent(JSON.stringify(searchQueries));
+    location.search = 'q=' + queryStr;
     route.history.push(location);
+  };
+
+  private handleDateChange = (date: Date | null) => {
+    console.log('DEBUG date', date);
+    // const {searchQueries} = this.state;
+    // searchQueries[name] = date;
+    // this.setState({searchQueries});
   };
 }
 
@@ -691,12 +734,13 @@ function mapStateToProps(state, ownProps) {
 
 function mapDispatchToProps(dispatch, ownProps) {
   return {
-    getQueries: (queries, isSync, params) => {
+    getQueries: (queries, searchQueries, isSync, params) => {
       dispatch(
         actions.service.serviceGetQueries({
           isSync,
           params,
           queries,
+          searchQueries,
         }),
       );
     },

@@ -93,8 +93,12 @@ func (resolver *Resolver) GetStatistics(tctx *logger.TraceContext, input *spec.G
 }
 
 func (resolver *Resolver) GetLogs(tctx *logger.TraceContext, input *spec.GetLogs, user *base_spec.UserAuthority) (data *spec.GetLogsData, code uint8, err error) {
-	code = base_const.CodeOk
 	data = &spec.GetLogsData{}
+	if data, err = resolver.dbApi.GetLogs(tctx, input, user); err != nil {
+		code = base_const.CodeServerInternalError
+		return
+	}
+	code = base_const.CodeOk
 	return
 }
 
