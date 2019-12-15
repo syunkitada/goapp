@@ -153,11 +153,14 @@ type GetLogParamsData struct {
 }
 
 type GetLogs struct {
-	Cluster string `validate:"required"`
-	Project string
-	Apps    []string
-	Nodes   []string
-	TraceId string
+	Cluster   string `validate:"required"`
+	Project   string
+	LimitLogs string
+	FromTime  string
+	UntilTime time.Time
+	Apps      []string
+	Nodes     []string
+	TraceId   string
 }
 
 type GetLogsData struct {
@@ -204,10 +207,10 @@ var LogsTable = index_model.Table{
 			Type: "Text",
 		},
 		index_model.TableInputField{
-			Name:     "Limit",
+			Name:     "LimitLogs",
 			Type:     "Selector",
-			Data:     []int{5000, 10000, 20000, 30000, 40000, 50000},
-			Default:  10000,
+			Data:     []string{"5k", "10k", "20k", "30k", "40k", "50k"},
+			Default:  "10k",
 			Multiple: false,
 		},
 		index_model.TableInputField{
