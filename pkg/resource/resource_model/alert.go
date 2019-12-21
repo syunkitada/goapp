@@ -1,6 +1,6 @@
 package resource_model
 
-type Alert struct {
+type Event struct {
 	Name    string
 	Time    string
 	Level   string

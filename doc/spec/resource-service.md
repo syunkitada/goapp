@@ -16,12 +16,6 @@
   - MonitorLoop
     - Node 群の監視をする
     - 各 Node は一定間隔ごとに Api に自身のステータスを更新している
-- ResourceMonitor
-  - Node 群の監視をする Agent
-  - 各 Node は一定間隔ごとに Api に自身のステータスを更新している
-  - Monitor は、一定時間更新のない Node があった場合
-    - その Node の Status API をたたき、その Node のステータスを更新する
-  - その Node のステータス API をたたいて
 - ResourceClusterApi
   - Cluster の Api
 - ResourceClusterController
@@ -36,7 +30,7 @@
 - ResourceClusterProxyAgent
   - 各 Node 内で稼働する Agent
   - マネジメントセグでリッスンする
-- ResourceClusterComputeAgent
+- ResourceComputeClusterAgent
   - 各 ComputeVM 内で稼働する Agent
   - 各 ComputeVM は GRPC で ResourceClusterProxyAgent に、ログ、メトリクスを転送し、自身の Orchestration 情報を取得し、タスクを実行する
     - ResourceClusterProxyAgent はそのホスト上の VM のログ、メトリクスをまとめて ResourceClusterApi へ転送し、Orchestration 情報をまとめて取得する
@@ -51,10 +45,11 @@
     - ユーザ、グループ、SSH 公開鍵などの設定
     - ローリングアップデート
     - L3DSR の設定
-  - EtoE TLS のサポート
+  - EtoE TLS
     - VM 単位でローカルに TLS プロキシサーバを立てて TLS 終端をする
       - 各 VM 上のサービスは 必ずこのプロキシサーバを経由してアクセスさせる
       - 共有の L7 プロキシを立てて裏は HTTP みたいなことはやらない
+      - L7 プロキシを立てる場合は、L7 プロキシと TLS プロキシ間で別途 TLS 接続する
     - 証明書の自動更新をサポートする
     - トレーシングをサポートする
 
@@ -311,12 +306,23 @@
 - サービスの冗長性管理
   - サービスの SLA に応じて、Datacenter、Power、Rack、Network の観点で冗長を考慮する必要がある
   - GlobalService
-    - GSLB の設定管理に利用
-      - GSLB を有効にしなくてもよい
-    - RegionServie を GSLB のメンバとして設定する
+    - 拠点間冗長を提供するためのもの
+    - 有効にしなくてもよい
+    - 複数拠点での冗長手段
+      - GSLB
+        - DNS ベースの負荷分散
+        - ヘルスチェックの結果により、レコードを操作することで拠点間冗長する
+        - メンバの VIP が落ちた場合、ヘルスチェックにより検知してレコードから VIP を削除する
+        - あくまで DNS なので TTL が経過してキャッシュから消えるまでは VIP にアクセスされる可能性がある
+      - 単一エニーキャスト IP によるバランシング
+        - 複数拠点の各 L4 ロードバランサから同一の VIP を広報し、ルータに L4 ロードバランサへの経路を複数持たせる
+        - 特定 IP への経路が複数ある場合はコストの低いほうが優先され、 同一コストの場合は ECMP によりバランシングされる
+        - L4 ロードバランサは、TCP セッションは持たずにステートレスであるとする
+          - L4 ロードバランサがダウンしても TCP セッションは破棄されない
+        - L4 ロードバランサの配下に L7 ロードバランサを配置し、ドメイン名やパスによってサービスを特定してロードバランスする
   - RegionService
     - GlobalService に紐ずく
-      - GSLB を利用しない場合は紐図けなくてもよい
+      - 拠点間冗長をしない場合は紐図けなくてもよい
     - Region に紐ずく
       - 作成時に指定する
     - VIP の管理に利用
@@ -349,8 +355,13 @@
       - ClusterFilters, ClusterLabelFilters によりクラスタはフィルタリングされる
       - Cluster に設定された Weight によってソート(数値の大きいほうが優先)される
       - Weight が同じ Cluster が複数ある場合は、Cluster 内のリソース空き容量によりソートされる
+      - Cluster をまたいだスケジューリングはしない
+        - PowerAvailabilityZone などが被る可能性がある
     - Cluster 内でのスケジューリング
       - ResourceClusterController がスケジューリングを担当
+    - ユーザが意識する AZ
+      - 論理 AZ を 3 つ以上用意し、デフォルトで AZ 分散する
+      - リソース間の通信レイテンシ意識する場合は、AZ を指定しての起動もできるようにする
 
 ## 各種リソースの管理
 
@@ -607,15 +618,51 @@ internet --- gateway-router --- floor-spine-router --- floor-leaf-router --- rac
     - MySQL などのデータベースを利用する
     - アプリケーション側で担保すべきなのでサポートしない
 
-## AlertData
+## EventData
 
-- AlertData の種別
+- Event は、障害の発生や、障害の復旧を通知するためのものである
+- EventData の種別
+  - Success
+    - 正常
   - Critical
     - 即時に対応が必要
   - Warning
-    - 即時に対応は必要はない、アプリケーション側で自動復旧する可能性がある
-- IgnoreAlerts と IssuedAlerts と Occurences の設定によりアラートをフィルタし、アラートは配信される
-  - 配信したアラートは IssuedAlerts に自動追加され、設定した時間まではアラートがフィルタされるようになる
-    - 一定時間(ReissueDuration)を超過してもアラートを検知した場合は再度配信され、時間が更新される
-    - 一定時間(SuccessDuration)を経過しても続くアラートを検知しなかった場合は、Success とみなし、Success メッセージを配信する
-      - ただし、Alert の Host が Active の場合にかぎる
+    - 即時に対応は必要はない、システム側で自動復旧する可能性もある
+- Event の発生と保存
+  - Event は Node が計算し発生させる(ReportNode)
+  - Event は TimeSeriesData, LogData, プラグインから、計算して発生される
+    - プラグインは、Nagios や Sensu などと同様に、スクリプトの実行結果から Event を発生させる
+  - ReportNode によって報告された Event は、ClusterApi により EventDatabase に保存される
+- Event の抑制と配信
+  - ClusterController は、Event を EventDatabase から取得して、抑制してから配信する
+  - Event の配信は、Event に設定されたハンドラによって行われる
+  - IgnoreEvents と IssuedEvents と Occurences の設定により Event の配信は抑制される
+    - 配信した Event は IssuedEvents に自動追加され、設定した時間までは Event の配信が抑制されるようになる
+      - 一定時間(ReissueDuration)を超過しても Event を検知した場合は再度配信され、時間が更新される
+
+## AlertData
+
+- AlertData の種別
+  - Fatal
+    - 即時に対応が必要
+    - ユーザーサービスに影響が出ている
+    - ユーザも閲覧できるもの
+  - Critical
+    - 即時に対応が必要
+  - Warning
+    - 対応は必要だが、即時の対応は必要ない
+- Alert の発行
+  - Event のハンドラにより Alert を発行することができる
+    - 同一 Event による Alert の重複発行は抑制する(時間のみ更新)
+  - Alert は運用者が必ずクローズする必要がある
+  - 特定の Log Event は、Alert ベースでの対応が必要となる
+    - Log の Event の場合、一定時間で Log が追えなくなるため同一 Log が発生しないと Success となってしまう
+
+## MaintenanceData
+
+- MaintenanceData の発行
+  - 基本的には運用者がメンテナンス時に発行し、閉じるもの
+    - システムが自動でメンテナンスをする場合もある
+- メンテナンスは影響がでないと思われるものでも、想定外のことがあれば影響が出ることもある
+  - 影響が出た場合に、それを把握できるよう本番環境で誰が何をしているかを把握するためのもの
+- オンメンテができない場合、ユーザに通知してメンテ時に影響が出ないよう対応してもらう必要がある

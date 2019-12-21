@@ -443,33 +443,33 @@ type DeleteRegionsResult struct {
 	Error string
 	Data  spec.DeleteRegionsData
 }
-type GetAlertRulesResponse struct {
+type GetEventRulesResponse struct {
 	base_model.Response
-	ResultMap GetAlertRulesResultMap
+	ResultMap GetEventRulesResultMap
 }
 
-type GetAlertRulesResultMap struct {
-	GetAlertRules GetAlertRulesResult
+type GetEventRulesResultMap struct {
+	GetEventRules GetEventRulesResult
 }
 
-type GetAlertRulesResult struct {
+type GetEventRulesResult struct {
 	Code  uint8
 	Error string
-	Data  spec.GetAlertRulesData
+	Data  spec.GetEventRulesData
 }
-type GetAlertsResponse struct {
+type GetEventsResponse struct {
 	base_model.Response
-	ResultMap GetAlertsResultMap
+	ResultMap GetEventsResultMap
 }
 
-type GetAlertsResultMap struct {
-	GetAlerts GetAlertsResult
+type GetEventsResultMap struct {
+	GetEvents GetEventsResult
 }
 
-type GetAlertsResult struct {
+type GetEventsResult struct {
 	Code  uint8
 	Error string
-	Data  spec.GetAlertsData
+	Data  spec.GetEventsData
 }
 type GetClusterResponse struct {
 	base_model.Response
@@ -2565,13 +2565,13 @@ func (client *Client) ResourceMonitorGetNode(tctx *logger.TraceContext, queries 
 	data = &result.Data
 	return
 }
-func (client *Client) ResourceMonitorGetAlerts(tctx *logger.TraceContext, queries []base_client.Query) (data *spec.GetAlertsData, err error) {
-	var res GetAlertsResponse
+func (client *Client) ResourceMonitorGetEvents(tctx *logger.TraceContext, queries []base_client.Query) (data *spec.GetEventsData, err error) {
+	var res GetEventsResponse
 	err = client.Request(tctx, "ResourceMonitor", queries, &res, true)
 	if err != nil {
 		return
 	}
-	result := res.ResultMap.GetAlerts
+	result := res.ResultMap.GetEvents
 	if result.Code >= 100 || result.Error != "" {
 		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
 		return
@@ -2580,13 +2580,13 @@ func (client *Client) ResourceMonitorGetAlerts(tctx *logger.TraceContext, querie
 	data = &result.Data
 	return
 }
-func (client *Client) ResourceMonitorGetAlertRules(tctx *logger.TraceContext, queries []base_client.Query) (data *spec.GetAlertRulesData, err error) {
-	var res GetAlertRulesResponse
+func (client *Client) ResourceMonitorGetEventRules(tctx *logger.TraceContext, queries []base_client.Query) (data *spec.GetEventRulesData, err error) {
+	var res GetEventRulesResponse
 	err = client.Request(tctx, "ResourceMonitor", queries, &res, true)
 	if err != nil {
 		return
 	}
-	result := res.ResultMap.GetAlertRules
+	result := res.ResultMap.GetEventRules
 	if result.Code >= 100 || result.Error != "" {
 		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
 		return

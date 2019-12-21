@@ -53,8 +53,8 @@ type QueryResolver interface {
 	DeleteRegionService(tctx *logger.TraceContext, input *spec.DeleteRegionService, user *base_spec.UserAuthority) (*spec.DeleteRegionServiceData, uint8, error)
 	DeleteRegionServices(tctx *logger.TraceContext, input *spec.DeleteRegionServices, user *base_spec.UserAuthority) (*spec.DeleteRegionServicesData, uint8, error)
 	DeleteRegions(tctx *logger.TraceContext, input *spec.DeleteRegions, user *base_spec.UserAuthority) (*spec.DeleteRegionsData, uint8, error)
-	GetAlertRules(tctx *logger.TraceContext, input *spec.GetAlertRules, user *base_spec.UserAuthority) (*spec.GetAlertRulesData, uint8, error)
-	GetAlerts(tctx *logger.TraceContext, input *spec.GetAlerts, user *base_spec.UserAuthority) (*spec.GetAlertsData, uint8, error)
+	GetEventRules(tctx *logger.TraceContext, input *spec.GetEventRules, user *base_spec.UserAuthority) (*spec.GetEventRulesData, uint8, error)
+	GetEvents(tctx *logger.TraceContext, input *spec.GetEvents, user *base_spec.UserAuthority) (*spec.GetEventsData, uint8, error)
 	GetCluster(tctx *logger.TraceContext, input *spec.GetCluster, user *base_spec.UserAuthority) (*spec.GetClusterData, uint8, error)
 	GetClusters(tctx *logger.TraceContext, input *spec.GetClusters, user *base_spec.UserAuthority) (*spec.GetClustersData, uint8, error)
 	GetDatacenter(tctx *logger.TraceContext, input *spec.GetDatacenter, user *base_spec.UserAuthority) (*spec.GetDatacenterData, uint8, error)
@@ -877,13 +877,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				Code: code,
 				Data: data,
 			}
-		case "GetAlertRules":
-			var input spec.GetAlertRules
+		case "GetEventRules":
+			var input spec.GetEventRules
 			err = json.Unmarshal([]byte(query.Data), &input)
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.GetAlertRules(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.GetEventRules(tctx, &input, user)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -898,13 +898,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				Code: code,
 				Data: data,
 			}
-		case "GetAlerts":
-			var input spec.GetAlerts
+		case "GetEvents":
+			var input spec.GetEvents
 			err = json.Unmarshal([]byte(query.Data), &input)
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.GetAlerts(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.GetEvents(tctx, &input, user)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError

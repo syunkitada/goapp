@@ -204,9 +204,9 @@ var ResourceVirtualAdminCmdMap = map[string]index_model.Cmd{
 				FlagType: "[]spec.ResourceMetric",
 				FlagKind: "",
 			},
-			"alerts,a": index_model.Flag{
+			"events,a": index_model.Flag{
 				Required: false,
-				FlagType: "[]spec.ResourceAlert",
+				FlagType: "[]spec.ResourceEvent",
 				FlagKind: "",
 			},
 		},

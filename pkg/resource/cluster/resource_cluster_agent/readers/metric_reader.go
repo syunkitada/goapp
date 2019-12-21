@@ -8,6 +8,6 @@ import (
 type MetricReader interface {
 	GetName() string
 	Read(tctx *logger.TraceContext) error
-	Report() ([]spec.ResourceMetric, []spec.ResourceAlert)
+	Report() ([]spec.ResourceMetric, []spec.ResourceEvent)
 	Reported()
 }

@@ -113,8 +113,8 @@ resource:
       domainSuffix: 'tokyo1.example.com'
       timeSeriesDatabase:
         driver: 'influxdb'
-        alertDatabases:
-          - 'goapp:goapppass@http://127.0.0.1:8086@goapp_monitor_alerts'
+        eventDatabases:
+          - 'goapp:goapppass@http://127.0.0.1:8086@goapp_monitor_events'
         logDatabases:
           - 'goapp:goapppass@http://127.0.0.1:8086@goapp_monitor_logs'
         metricDatabases:
@@ -189,8 +189,9 @@ resource:
           goapp-resource-cluster-agent:
             path: 'goapp-resource-cluster-agent.log'
             maxInitialReadSize: 1000
-            alertMap:
-              errorOccurd:
+            checkPrefix: 'log-'
+            checkMap:
+              noerror:
                 key: 'Level'
                 pattern: 'E'
                 level: 'E'

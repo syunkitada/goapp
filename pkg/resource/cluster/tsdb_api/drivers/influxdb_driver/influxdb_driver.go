@@ -17,7 +17,7 @@ import (
 
 type InfluxdbDriver struct {
 	clusterConf   *config.ResourceClusterConfig
-	alertClients  []*Client
+	eventClients  []*Client
 	logClients    []*Client
 	metricClients []*Client
 }
@@ -25,13 +25,13 @@ type InfluxdbDriver struct {
 func New(clusterConf *config.ResourceClusterConfig) *InfluxdbDriver {
 	tsdbConf := clusterConf.TimeSeriesDatabase
 
-	alertClients := []*Client{}
-	for _, connection := range tsdbConf.AlertDatabases {
+	eventClients := []*Client{}
+	for _, connection := range tsdbConf.EventDatabases {
 		client, err := NewClient(connection)
 		if err != nil {
 			logger.StdoutFatalf("Failed init client: %v", err)
 		}
-		alertClients = append(alertClients, client)
+		eventClients = append(eventClients, client)
 	}
 
 	logClients := []*Client{}
@@ -54,7 +54,7 @@ func New(clusterConf *config.ResourceClusterConfig) *InfluxdbDriver {
 
 	return &InfluxdbDriver{
 		clusterConf:   clusterConf,
-		alertClients:  alertClients,
+		eventClients:  eventClients,
 		logClients:    logClients,
 		metricClients: metricClients,
 	}
@@ -65,10 +65,10 @@ func (driver *InfluxdbDriver) Report(tctx *logger.TraceContext, input *api_spec.
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
-	alertsData := ""
-	for _, alert := range input.Alerts {
+	eventsData := ""
+	for _, event := range input.Events {
 		tags := ",Project=" + input.Project + ",Node=" + input.Name
-		for key, value := range alert.Tag {
+		for key, value := range event.Tag {
 			switch key {
 			case "Project":
 				continue
@@ -79,13 +79,13 @@ func (driver *InfluxdbDriver) Report(tctx *logger.TraceContext, input *api_spec.
 			}
 		}
 
-		alertsData += alert.Name + tags + " Msg=\"" + alert.Msg + "\" " + alert.Time + "\n"
+		eventsData += event.Name + tags + " Msg=\"" + event.Msg + "\" " + event.Time + "\n"
 	}
 
-	for _, client := range driver.alertClients {
-		err := client.Write(alertsData)
+	for _, client := range driver.eventClients {
+		err := client.Write(eventsData)
 		if err != nil {
-			logger.Warning(tctx, err, "Failed Write alerts")
+			logger.Warning(tctx, err, "Failed Write events")
 		}
 	}
 
@@ -111,13 +111,10 @@ func (driver *InfluxdbDriver) Report(tctx *logger.TraceContext, input *api_spec.
 		metricsData += metric.Name + tags + " " + values + " " + metric.Time + "\n"
 	}
 
-	fmt.Println("debug metrics", metricsData)
-
 	for _, client := range driver.metricClients {
 		err := client.Write(metricsData)
 		if err != nil {
 			logger.Warning(tctx, err, "Failed Write")
-			fmt.Println("DEBUG Failed Write metrics", err)
 		}
 	}
 
@@ -169,7 +166,6 @@ func (driver *InfluxdbDriver) GetNode(tctx *logger.TraceContext, input *api_spec
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
-	fmt.Println("DEBUG GetNode")
 	// query := "show tag values from \"system_cpu\" with key = \"Host\""
 	// query := "select State, Warning, Warnings, Error, Errors, Timestamp from agent where Project = 'admin' group by Host,Kind"
 	var systemMetrics []api_spec.Metric
@@ -262,8 +258,6 @@ func (driver *InfluxdbDriver) GetLogParams(tctx *logger.TraceContext, input *api
 }
 
 func (driver *InfluxdbDriver) GetLogs(tctx *logger.TraceContext, input *api_spec.GetLogs) (data *api_spec.GetLogsData, err error) {
-	fmt.Println("DEBUG GetLogs", input.Apps, input.Nodes, input.TraceId)
-
 	logs := []map[string]interface{}{}
 
 	query := "SELECT App, Func, Level, Node, Project, TraceId, Msg FROM \"goapp-resource-cluster-agent\" WHERE"
@@ -316,36 +310,36 @@ func (driver *InfluxdbDriver) GetLogs(tctx *logger.TraceContext, input *api_spec
 	return
 }
 
-func (driver *InfluxdbDriver) GetHost(tctx *logger.TraceContext, projectName string) error {
-	// hosts
-	// query := "show tag values from \"agent\" with key = \"Host\""
-	// query := "select State, Warning, Warnings, Error, Errors, Timestamp from agent where Project = 'admin' group by Host,Kind"
-	// for _, client := range indexer.percistentClients {
-	// 	result, err := client.Query(query)
-	// 	if err != nil {
-	// 		logger.Warning(tctx, err, "Failed Query")
-	// 		continue
-	// 	}
+func (driver *InfluxdbDriver) GetEvents(tctx *logger.TraceContext, input *api_spec.GetEvents) (data *api_spec.GetEventsData, err error) {
+	events := []map[string]interface{}{}
 
-	// 	for _, s := range result.Results[0].Series {
-	// 		fmt.Println(s.Values)
-	// 		hostMap[s.Tags["Host"]] = &monitor_api_grpc_pb.Host{
-	// 			Index:     indexer.index,
-	// 			Name:      s.Tags["Host"],
-	// 			Kind:      s.Tags["Kind"],
-	// 			State:     s.Values[0][1].(float64),
-	// 			Warning:   s.Values[0][2].(string),
-	// 			Warnings:  s.Values[0][3].(float64),
-	// 			Error:     s.Values[0][4].(string),
-	// 			Errors:    s.Values[0][5].(float64),
-	// 			Timestamp: s.Values[0][6].(float64),
-	// 		}
-	// 	}
-	// }
+	query := "SELECT Node, Project, Msg FROM \"goapp-resource-cluster-agent\" WHERE"
+	query += " time > now() - 20d"
+	query += " limit 10000"
+	keys := []string{"App", "Func", "Level", "Node", "Project", "TraceId", "Msg"}
+	for _, client := range driver.logClients {
+		queryResult, tmpErr := client.Query(query)
+		if tmpErr != nil {
+			logger.Warningf(tctx, "Failed Query: %s", tmpErr.Error())
+			continue
+		}
+		for _, result := range queryResult.Results {
+			for _, series := range result.Series {
+				for _, value := range series.Values {
+					v := map[string]interface{}{
+						"Time": value[0],
+					}
+					for i, key := range keys {
+						v[key] = value[i+1]
+					}
+					events = append(events, v)
+				}
+			}
+		}
+	}
 
-	// fmt.Println(hostMap)
-
-	return nil
+	data = &api_spec.GetEventsData{Events: events}
+	return
 }
 
 type Client struct {

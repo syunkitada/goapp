@@ -1386,8 +1386,8 @@ var ResourceMonitorCmdMap = map[string]index_model.Cmd{
 		OutputKind:   "",
 		OutputFormat: "",
 	},
-	"get.alerts": index_model.Cmd{
-		QueryName: "GetAlerts",
+	"get.events": index_model.Cmd{
+		QueryName: "GetEvents",
 		FlagMap: map[string]index_model.Flag{
 			"cluster,c": index_model.Flag{
 				Required: true,
@@ -1398,8 +1398,8 @@ var ResourceMonitorCmdMap = map[string]index_model.Cmd{
 		OutputKind:   "table",
 		OutputFormat: "Name,Time,Level,Handler,Msg,Tag",
 	},
-	"get.alert.rules": index_model.Cmd{
-		QueryName: "GetAlertRules",
+	"get.event.rules": index_model.Cmd{
+		QueryName: "GetEventRules",
 		FlagMap: map[string]index_model.Flag{
 			"cluster,c": index_model.Flag{
 				Required: true,
@@ -1919,11 +1919,11 @@ var ApiQueryMap = map[string]map[string]spec_model.QueryModel{
 			RequiredAuth:    true,
 			RequiredProject: true,
 		},
-		"GetAlerts": spec_model.QueryModel{
+		"GetEvents": spec_model.QueryModel{
 			RequiredAuth:    true,
 			RequiredProject: true,
 		},
-		"GetAlertRules": spec_model.QueryModel{
+		"GetEventRules": spec_model.QueryModel{
 			RequiredAuth:    true,
 			RequiredProject: true,
 		},

@@ -97,10 +97,11 @@ type ResourceLogConfig struct {
 	Path               string
 	LogFormat          string
 	MaxInitialReadSize int64
-	AlertMap           map[string]ResourceLogAlertConfig
+	CheckPrefix        string
+	CheckMap           map[string]ResourceLogCheckConfig
 }
 
-type ResourceLogAlertConfig struct {
+type ResourceLogCheckConfig struct {
 	Key     string
 	Pattern string
 	Level   string
@@ -121,7 +122,7 @@ type ResourceMetricSystemConfig struct {
 
 type TimeSeriesDatabaseConfig struct {
 	Driver          string
-	AlertDatabases  []string
+	EventDatabases  []string
 	LogDatabases    []string
 	MetricDatabases []string
 }

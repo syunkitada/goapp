@@ -7,7 +7,9 @@ import (
 	"os"
 	"path"
 	"regexp"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/syunkitada/goapp/pkg/base/base_config"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
@@ -20,7 +22,7 @@ const (
 	LogFormatTcpDump = 1
 )
 
-type LogAlert struct {
+type LogEvent struct {
 	name    string
 	handler string
 	level   string
@@ -33,9 +35,9 @@ type LogReader struct {
 	logFormat          int
 	maxInitialReadSize int64
 	offset             int64
-	alertsMap          map[string][]LogAlert
+	eventsMap          map[string][]LogEvent
 	logs               []spec.ResourceLog
-	alerts             []spec.ResourceAlert
+	events             []spec.ResourceEvent
 }
 
 func New(baseConf *base_config.Config, name string, logConf *config.ResourceLogConfig) (*LogReader, error) {
@@ -47,20 +49,20 @@ func New(baseConf *base_config.Config, name string, logConf *config.ResourceLogC
 		return nil, fmt.Errorf("Invalid LogFormat: %v", logConf.LogFormat)
 	}
 
-	alertsMap := map[string][]LogAlert{}
-	for alertName, alert := range logConf.AlertMap {
-		logAlert := LogAlert{
-			name:    alertName,
-			handler: alert.Handler,
-			level:   alert.Level,
-			pattern: regexp.MustCompile(alert.Pattern),
+	eventsMap := map[string][]LogEvent{}
+	for checkName, check := range logConf.CheckMap {
+		logEvent := LogEvent{
+			name:    logConf.CheckPrefix + checkName,
+			handler: check.Handler,
+			level:   check.Level,
+			pattern: regexp.MustCompile(check.Pattern),
 		}
-		if alerts, ok := alertsMap[alert.Key]; ok {
-			alerts = append(alerts, logAlert)
-			alertsMap[alert.Key] = alerts
+		if events, ok := eventsMap[check.Key]; ok {
+			events = append(events, logEvent)
+			eventsMap[check.Key] = events
 		} else {
-			alerts = []LogAlert{logAlert}
-			alertsMap[alert.Key] = alerts
+			events = []LogEvent{logEvent}
+			eventsMap[check.Key] = events
 		}
 	}
 
@@ -69,7 +71,7 @@ func New(baseConf *base_config.Config, name string, logConf *config.ResourceLogC
 		path:               path.Join(baseConf.LogDir, logConf.Path),
 		logFormat:          logFormat,
 		maxInitialReadSize: logConf.MaxInitialReadSize,
-		alertsMap:          alertsMap,
+		eventsMap:          eventsMap,
 	}
 	// regexp.MustCompile(`golang`)
 	err := reader.Init()
@@ -120,8 +122,8 @@ func (reader *LogReader) Init() error {
 	return nil
 }
 
-func (reader *LogReader) Report() ([]spec.ResourceLog, []spec.ResourceAlert) {
-	return reader.logs, reader.alerts
+func (reader *LogReader) Report() ([]spec.ResourceLog, []spec.ResourceEvent) {
+	return reader.logs, reader.events
 }
 
 func (reader *LogReader) Reported() {
@@ -146,6 +148,8 @@ func (reader *LogReader) ReadUntilEOF(tctx *logger.TraceContext) error {
 		}
 	}()
 
+	fmt.Println("DEBUG ReadUntil", reader.path)
+
 	// Open file each time, because of the file may be deleted or replaced
 	file, err = os.Open(reader.path)
 	defer file.Close()
@@ -153,7 +157,7 @@ func (reader *LogReader) ReadUntilEOF(tctx *logger.TraceContext) error {
 		return err
 	}
 
-	ioreader = bufio.NewReaderSize(file, 1024)
+	ioreader = bufio.NewReaderSize(file, 10240)
 
 	endOffset, err := file.Seek(0, os.SEEK_END)
 	if err != nil {
@@ -170,6 +174,7 @@ func (reader *LogReader) ReadUntilEOF(tctx *logger.TraceContext) error {
 		return err
 	}
 
+	timeFormat := "2019-12-21T21:37:12Z09:00"
 	var line string
 	for {
 		line, err = ioreader.ReadString('\n')
@@ -202,17 +207,18 @@ func (reader *LogReader) ReadUntilEOF(tctx *logger.TraceContext) error {
 							foundLog = true
 							foundEqual = false
 							strIndex = i + 2
-							if alerts, ok := reader.alertsMap[keyStr]; ok {
-								for _, alert := range alerts {
-									if alert.pattern.MatchString(valueStr) {
-										if time, ok := logMap["Time"]; ok {
-											logMap["Alert"+alert.name] = alert.handler
-											reader.alerts = append(reader.alerts, spec.ResourceAlert{
-												Name:    alert.name,
-												Time:    time,
-												Level:   alert.level,
-												Handler: alert.handler,
-												Msg:     "",
+							if events, ok := reader.eventsMap[keyStr]; ok {
+								for _, event := range events {
+									if event.pattern.MatchString(valueStr) {
+										if timeStr, ok := logMap["Time"]; ok {
+											t, _ := time.Parse(timeFormat, timeStr)
+											tstr := strconv.FormatInt(t.UnixNano(), 10)
+											reader.events = append(reader.events, spec.ResourceEvent{
+												Name:    event.name,
+												Time:    tstr,
+												Level:   event.level,
+												Handler: event.handler,
+												Msg:     valueStr,
 											})
 										}
 									}

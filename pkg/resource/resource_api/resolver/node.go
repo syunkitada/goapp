@@ -31,49 +31,47 @@ func (resolver *Resolver) GetNode(tctx *logger.TraceContext, input *spec.GetNode
 	return
 }
 
-func (resolver *Resolver) GetAlerts(tctx *logger.TraceContext, input *spec.GetAlerts, user *base_spec.UserAuthority) (data *spec.GetAlertsData, code uint8, err error) {
-	var alerts = []spec.ResourceAlert{
-		spec.ResourceAlert{
-			Name:    "hoge",
-			Time:    "timestamp",
-			Level:   "Critical",
-			Handler: "handlerhoge",
-			Msg:     "critical on host",
-			Tag:     map[string]string{},
-		},
-		spec.ResourceAlert{
-			Name:    "piyo",
-			Time:    "timestamp",
-			Level:   "Warning",
-			Handler: "handlerhoge",
-			Msg:     "critical on host",
-			Tag:     map[string]string{},
-		},
-		spec.ResourceAlert{
-			Name:    "piyo2",
-			Time:    "timestamp",
-			Level:   "Warning",
-			Handler: "handlerhoge",
-			Msg:     "critical on host",
-			Tag:     map[string]string{},
-		},
-	}
+func (resolver *Resolver) GetEvents(tctx *logger.TraceContext, input *spec.GetEvents, user *base_spec.UserAuthority) (data *spec.GetEventsData, code uint8, err error) {
+	// var events = []spec.ResourceEvent{
+	// 	spec.ResourceEvent{
+	// 		Name:    "hoge",
+	// 		Time:    "timestamp",
+	// 		Level:   "Critical",
+	// 		Handler: "handlerhoge",
+	// 		Msg:     "critical on host",
+	// 		Tag:     map[string]string{},
+	// 	},
+	// 	spec.ResourceEvent{
+	// 		Name:    "piyo",
+	// 		Time:    "timestamp",
+	// 		Level:   "Warning",
+	// 		Handler: "handlerhoge",
+	// 		Msg:     "critical on host",
+	// 		Tag:     map[string]string{},
+	// 	},
+	// 	spec.ResourceEvent{
+	// 		Name:    "piyo2",
+	// 		Time:    "timestamp",
+	// 		Level:   "Warning",
+	// 		Handler: "handlerhoge",
+	// 		Msg:     "critical on host",
+	// 		Tag:     map[string]string{},
+	// 	},
+	// }
 	code = base_const.CodeOk
-	data = &spec.GetAlertsData{
-		Alerts: alerts,
-	}
+	data = &spec.GetEventsData{}
 	return
 }
-func (resolver *Resolver) GetAlertRules(tctx *logger.TraceContext, input *spec.GetAlertRules, user *base_spec.UserAuthority) (data *spec.GetAlertRulesData, code uint8, err error) {
+func (resolver *Resolver) GetEventRules(tctx *logger.TraceContext, input *spec.GetEventRules, user *base_spec.UserAuthority) (data *spec.GetEventRulesData, code uint8, err error) {
 	code = base_const.CodeOk
-	var alertRules = []spec.AlertRule{
-		spec.AlertRule{
+	var eventRules = []spec.EventRule{
+		spec.EventRule{
 			Name:  "hoge",
 			Node:  ".*",
 			Kind:  "Filter",
 			Until: time.Now(),
 		},
-		spec.AlertRule{
+		spec.EventRule{
 			Name:  ".*",
 			Node:  "hoge.com",
 			Kind:  "Filter",
@@ -81,8 +79,8 @@ func (resolver *Resolver) GetAlertRules(tctx *logger.TraceContext, input *spec.G
 		},
 	}
 
-	data = &spec.GetAlertRulesData{
-		AlertRules: alertRules,
+	data = &spec.GetEventRulesData{
+		EventRules: eventRules,
 	}
 	return
 }
