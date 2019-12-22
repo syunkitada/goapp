@@ -102,10 +102,11 @@ type ResourceLogConfig struct {
 }
 
 type ResourceLogCheckConfig struct {
-	Key     string
-	Pattern string
-	Level   string
-	Handler string
+	Key             string
+	Pattern         string
+	Level           string
+	Handler         string
+	ReissueDuration int
 }
 
 type ResourceMetricConfig struct {

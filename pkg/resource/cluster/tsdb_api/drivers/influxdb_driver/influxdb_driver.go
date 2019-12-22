@@ -12,6 +12,7 @@ import (
 
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/resource/config"
+	"github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
 	api_spec "github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
 )
 
@@ -67,7 +68,7 @@ func (driver *InfluxdbDriver) Report(tctx *logger.TraceContext, input *api_spec.
 
 	eventsData := ""
 	for _, event := range input.Events {
-		tags := ",Project=" + input.Project + ",Node=" + input.Name
+		tags := ",Check=" + event.Name + ",Handler=" + event.Handler + ",Level=" + event.Level + ",Project=" + input.Project + ",Node=" + input.Name
 		for key, value := range event.Tag {
 			switch key {
 			case "Project":
@@ -79,7 +80,7 @@ func (driver *InfluxdbDriver) Report(tctx *logger.TraceContext, input *api_spec.
 			}
 		}
 
-		eventsData += event.Name + tags + " Msg=\"" + event.Msg + "\" " + event.Time + "\n"
+		eventsData += "events" + tags + " ReissueDuration=" + strconv.Itoa(event.ReissueDuration) + ",Msg=\"" + event.Msg + "\" " + event.Time + "\n"
 	}
 
 	for _, client := range driver.eventClients {
@@ -311,13 +312,12 @@ func (driver *InfluxdbDriver) GetLogs(tctx *logger.TraceContext, input *api_spec
 }
 
 func (driver *InfluxdbDriver) GetEvents(tctx *logger.TraceContext, input *api_spec.GetEvents) (data *api_spec.GetEventsData, err error) {
-	events := []map[string]interface{}{}
+	events := []spec.Event{}
 
-	query := "SELECT Node, Project, Msg FROM \"goapp-resource-cluster-agent\" WHERE"
-	query += " time > now() - 20d"
-	query += " limit 10000"
-	keys := []string{"App", "Func", "Level", "Node", "Project", "TraceId", "Msg"}
-	for _, client := range driver.logClients {
+	query := "SELECT Check, Handler, Level, ReissueDuration, Node, Project, last(Msg) FROM \"events\" WHERE"
+	query += " time > now() - 1d"
+	query += " group by Node,Check"
+	for _, client := range driver.eventClients {
 		queryResult, tmpErr := client.Query(query)
 		if tmpErr != nil {
 			logger.Warningf(tctx, "Failed Query: %s", tmpErr.Error())
@@ -326,11 +326,16 @@ func (driver *InfluxdbDriver) GetEvents(tctx *logger.TraceContext, input *api_sp
 		for _, result := range queryResult.Results {
 			for _, series := range result.Series {
 				for _, value := range series.Values {
-					v := map[string]interface{}{
-						"Time": value[0],
-					}
-					for i, key := range keys {
-						v[key] = value[i+1]
+					sec := int64(value[0].(float64) / 1000)
+					v := spec.Event{
+						Time:            time.Unix(sec, 0),
+						Check:           value[1].(string),
+						Handler:         value[2].(string),
+						Level:           value[3].(string),
+						ReissueDuration: int(value[4].(float64)),
+						Node:            value[5].(string),
+						Project:         value[6].(string),
+						Msg:             value[7].(string),
 					}
 					events = append(events, v)
 				}
@@ -339,6 +344,61 @@ func (driver *InfluxdbDriver) GetEvents(tctx *logger.TraceContext, input *api_sp
 	}
 
 	data = &api_spec.GetEventsData{Events: events}
+	return
+}
+
+func (driver *InfluxdbDriver) IssueEvent(tctx *logger.TraceContext, input *api_spec.IssueEvent) (err error) {
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	eventsData := ""
+
+	event := input.Event
+	tags := ",Check=" + event.Check + ",Handler=" + event.Handler + ",Level=" + event.Level + ",Project=" + event.Project + ",Node=" + event.Node
+	eventsData += "issued_events" + tags + " Msg=\"" + event.Msg + "\" " + strconv.FormatInt(event.Time.UnixNano(), 10) + "\n"
+	fmt.Println("DEBUG IssueEvent", eventsData)
+
+	for _, client := range driver.eventClients {
+		tmpErr := client.Write(eventsData)
+		if tmpErr != nil {
+			logger.Warning(tctx, tmpErr, "Failed Write events")
+		}
+	}
+	return
+}
+
+func (driver *InfluxdbDriver) GetIssuedEvents(tctx *logger.TraceContext, input *api_spec.GetIssuedEvents) (data *api_spec.GetIssuedEventsData, err error) {
+	events := []spec.Event{}
+
+	query := "SELECT Check, Handler, Level, Node, Project, last(Msg) FROM \"issued_events\" WHERE"
+	query += " time > now() - 1d"
+	query += " group by Node,Check"
+	for _, client := range driver.eventClients {
+		queryResult, tmpErr := client.Query(query)
+		if tmpErr != nil {
+			logger.Warningf(tctx, "Failed Query: %s", tmpErr.Error())
+			continue
+		}
+		for _, result := range queryResult.Results {
+			for _, series := range result.Series {
+				for _, value := range series.Values {
+					sec := int64(value[0].(float64) / 1000)
+					v := spec.Event{
+						Time:    time.Unix(sec, 0),
+						Check:   value[1].(string),
+						Handler: value[2].(string),
+						Level:   value[3].(string),
+						Node:    value[4].(string),
+						Project: value[5].(string),
+						Msg:     value[6].(string),
+					}
+					events = append(events, v)
+				}
+			}
+		}
+	}
+
+	data = &api_spec.GetIssuedEventsData{Events: events}
 	return
 }
 
@@ -408,8 +468,6 @@ func (c *Client) Query(data string) (*QueryResult, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("DEBUG")
-	fmt.Println(string(body))
 
 	var result *QueryResult
 	if err := json.Unmarshal(body, &result); err != nil {
@@ -437,8 +495,6 @@ func (c *Client) Write(data string) error {
 	if resp.StatusCode == 204 {
 		return nil
 	}
-
-	fmt.Println("DEBUG data", data)
 
 	return fmt.Errorf("InvalidStatusCode: %v", resp.StatusCode)
 }

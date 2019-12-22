@@ -43,3 +43,15 @@ func (api *Api) GetLogParams(tctx *logger.TraceContext, input *api_spec.GetLogPa
 func (api *Api) GetLogs(tctx *logger.TraceContext, input *api_spec.GetLogs) (*api_spec.GetLogsData, error) {
 	return api.driver.GetLogs(tctx, input)
 }
+
+func (api *Api) GetEvents(tctx *logger.TraceContext, input *api_spec.GetEvents) (data *api_spec.GetEventsData, err error) {
+	return api.driver.GetEvents(tctx, input)
+}
+
+func (api *Api) IssueEvent(tctx *logger.TraceContext, input *api_spec.IssueEvent) (err error) {
+	return api.driver.IssueEvent(tctx, input)
+}
+
+func (api *Api) GetIssuedEvents(tctx *logger.TraceContext, input *api_spec.GetIssuedEvents) (data *api_spec.GetIssuedEventsData, err error) {
+	return api.driver.GetIssuedEvents(tctx, input)
+}

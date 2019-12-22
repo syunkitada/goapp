@@ -620,7 +620,7 @@ internet --- gateway-router --- floor-spine-router --- floor-leaf-router --- rac
 
 ## EventData
 
-- Event は、障害の発生や、障害の復旧を通知するためのものである
+- Event は、障害の発生や、障害の復旧を通知するためのもの
 - EventData の種別
   - Success
     - 正常
@@ -629,16 +629,20 @@ internet --- gateway-router --- floor-spine-router --- floor-leaf-router --- rac
   - Warning
     - 即時に対応は必要はない、システム側で自動復旧する可能性もある
 - Event の発生と保存
-  - Event は Node が計算し発生させる(ReportNode)
+  - Event は Node の Check によって発生する(ReportNode)
   - Event は TimeSeriesData, LogData, プラグインから、計算して発生される
     - プラグインは、Nagios や Sensu などと同様に、スクリプトの実行結果から Event を発生させる
+  - Check の Occurences 設定により Event の発生は抑制される
+    - ReissueDuration も Event に埋め込む
   - ReportNode によって報告された Event は、ClusterApi により EventDatabase に保存される
 - Event の抑制と配信
   - ClusterController は、Event を EventDatabase から取得して、抑制してから配信する
+  - Event 配信の抑制は IgnoreEvents と IssuedEvents によって行われる
+    - 配信した Event は IssuedEvents に追加され、一定時間までは Event の配信が抑制されるようになる
+      - 一定時間(ReissueDuration)を超過しても Event を検知した場合は再度配信する
   - Event の配信は、Event に設定されたハンドラによって行われる
-  - IgnoreEvents と IssuedEvents と Occurences の設定により Event の配信は抑制される
-    - 配信した Event は IssuedEvents に自動追加され、設定した時間までは Event の配信が抑制されるようになる
-      - 一定時間(ReissueDuration)を超過しても Event を検知した場合は再度配信され、時間が更新される
+- Aggregation
+  - Check の Aggregation ルールによって Event は Aggregate されて配信される
 
 ## AlertData
 

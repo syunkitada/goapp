@@ -23,10 +23,11 @@ const (
 )
 
 type LogEvent struct {
-	name    string
-	handler string
-	level   string
-	pattern *regexp.Regexp
+	name            string
+	handler         string
+	level           string
+	pattern         *regexp.Regexp
+	reissueDuration int
 }
 
 type LogReader struct {
@@ -52,10 +53,11 @@ func New(baseConf *base_config.Config, name string, logConf *config.ResourceLogC
 	eventsMap := map[string][]LogEvent{}
 	for checkName, check := range logConf.CheckMap {
 		logEvent := LogEvent{
-			name:    logConf.CheckPrefix + checkName,
-			handler: check.Handler,
-			level:   check.Level,
-			pattern: regexp.MustCompile(check.Pattern),
+			name:            logConf.CheckPrefix + checkName,
+			handler:         check.Handler,
+			level:           check.Level,
+			pattern:         regexp.MustCompile(check.Pattern),
+			reissueDuration: check.ReissueDuration,
 		}
 		if events, ok := eventsMap[check.Key]; ok {
 			events = append(events, logEvent)
@@ -174,7 +176,6 @@ func (reader *LogReader) ReadUntilEOF(tctx *logger.TraceContext) error {
 		return err
 	}
 
-	timeFormat := "2019-12-21T21:37:12Z09:00"
 	var line string
 	for {
 		line, err = ioreader.ReadString('\n')
@@ -211,14 +212,18 @@ func (reader *LogReader) ReadUntilEOF(tctx *logger.TraceContext) error {
 								for _, event := range events {
 									if event.pattern.MatchString(valueStr) {
 										if timeStr, ok := logMap["Time"]; ok {
-											t, _ := time.Parse(timeFormat, timeStr)
+											t, err := time.Parse(time.RFC3339, timeStr)
+											if err != nil {
+												t = time.Now()
+											}
 											tstr := strconv.FormatInt(t.UnixNano(), 10)
 											reader.events = append(reader.events, spec.ResourceEvent{
-												Name:    event.name,
-												Time:    tstr,
-												Level:   event.level,
-												Handler: event.handler,
-												Msg:     valueStr,
+												Name:            event.name,
+												Time:            tstr,
+												Level:           event.level,
+												Handler:         event.handler,
+												Msg:             line,
+												ReissueDuration: event.reissueDuration,
 											})
 										}
 									}

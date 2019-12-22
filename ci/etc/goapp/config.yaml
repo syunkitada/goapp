@@ -196,6 +196,7 @@ resource:
                 pattern: 'E'
                 level: 'E'
                 handler: 'Mail'
+                reissueDuration: 600
         metric:
           system:
             enable: true
