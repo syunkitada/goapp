@@ -51,6 +51,20 @@ type CreateDatacenterResult struct {
 	Error string
 	Data  spec.CreateDatacenterData
 }
+type CreateEventRulesResponse struct {
+	base_model.Response
+	ResultMap CreateEventRulesResultMap
+}
+
+type CreateEventRulesResultMap struct {
+	CreateEventRules CreateEventRulesResult
+}
+
+type CreateEventRulesResult struct {
+	Code  uint8
+	Error string
+	Data  spec.CreateEventRulesData
+}
 type CreateFloorResponse struct {
 	base_model.Response
 	ResultMap CreateFloorResultMap
@@ -218,6 +232,20 @@ type DeleteDatacentersResult struct {
 	Code  uint8
 	Error string
 	Data  spec.DeleteDatacentersData
+}
+type DeleteEventRulesResponse struct {
+	base_model.Response
+	ResultMap DeleteEventRulesResultMap
+}
+
+type DeleteEventRulesResultMap struct {
+	DeleteEventRules DeleteEventRulesResult
+}
+
+type DeleteEventRulesResult struct {
+	Code  uint8
+	Error string
+	Data  spec.DeleteEventRulesData
 }
 type DeleteFloorResponse struct {
 	base_model.Response
@@ -443,34 +471,6 @@ type DeleteRegionsResult struct {
 	Error string
 	Data  spec.DeleteRegionsData
 }
-type GetEventRulesResponse struct {
-	base_model.Response
-	ResultMap GetEventRulesResultMap
-}
-
-type GetEventRulesResultMap struct {
-	GetEventRules GetEventRulesResult
-}
-
-type GetEventRulesResult struct {
-	Code  uint8
-	Error string
-	Data  spec.GetEventRulesData
-}
-type GetEventsResponse struct {
-	base_model.Response
-	ResultMap GetEventsResultMap
-}
-
-type GetEventsResultMap struct {
-	GetEvents GetEventsResult
-}
-
-type GetEventsResult struct {
-	Code  uint8
-	Error string
-	Data  spec.GetEventsData
-}
 type GetClusterResponse struct {
 	base_model.Response
 	ResultMap GetClusterResultMap
@@ -526,6 +526,34 @@ type GetDatacentersResult struct {
 	Code  uint8
 	Error string
 	Data  spec.GetDatacentersData
+}
+type GetEventRulesResponse struct {
+	base_model.Response
+	ResultMap GetEventRulesResultMap
+}
+
+type GetEventRulesResultMap struct {
+	GetEventRules GetEventRulesResult
+}
+
+type GetEventRulesResult struct {
+	Code  uint8
+	Error string
+	Data  spec.GetEventRulesData
+}
+type GetEventsResponse struct {
+	base_model.Response
+	ResultMap GetEventsResultMap
+}
+
+type GetEventsResultMap struct {
+	GetEvents GetEventsResult
+}
+
+type GetEventsResult struct {
+	Code  uint8
+	Error string
+	Data  spec.GetEventsData
 }
 type GetFloorResponse struct {
 	base_model.Response
@@ -876,6 +904,20 @@ type UpdateDatacenterResult struct {
 	Code  uint8
 	Error string
 	Data  spec.UpdateDatacenterData
+}
+type UpdateEventRulesResponse struct {
+	base_model.Response
+	ResultMap UpdateEventRulesResultMap
+}
+
+type UpdateEventRulesResultMap struct {
+	UpdateEventRules UpdateEventRulesResult
+}
+
+type UpdateEventRulesResult struct {
+	Code  uint8
+	Error string
+	Data  spec.UpdateEventRulesData
 }
 type UpdateFloorResponse struct {
 	base_model.Response
@@ -2565,36 +2607,6 @@ func (client *Client) ResourceMonitorGetNode(tctx *logger.TraceContext, queries 
 	data = &result.Data
 	return
 }
-func (client *Client) ResourceMonitorGetEvents(tctx *logger.TraceContext, queries []base_client.Query) (data *spec.GetEventsData, err error) {
-	var res GetEventsResponse
-	err = client.Request(tctx, "ResourceMonitor", queries, &res, true)
-	if err != nil {
-		return
-	}
-	result := res.ResultMap.GetEvents
-	if result.Code >= 100 || result.Error != "" {
-		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
-		return
-	}
-
-	data = &result.Data
-	return
-}
-func (client *Client) ResourceMonitorGetEventRules(tctx *logger.TraceContext, queries []base_client.Query) (data *spec.GetEventRulesData, err error) {
-	var res GetEventRulesResponse
-	err = client.Request(tctx, "ResourceMonitor", queries, &res, true)
-	if err != nil {
-		return
-	}
-	result := res.ResultMap.GetEventRules
-	if result.Code >= 100 || result.Error != "" {
-		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
-		return
-	}
-
-	data = &result.Data
-	return
-}
 func (client *Client) ResourceMonitorGetStatistics(tctx *logger.TraceContext, queries []base_client.Query) (data *spec.GetStatisticsData, err error) {
 	var res GetStatisticsResponse
 	err = client.Request(tctx, "ResourceMonitor", queries, &res, true)
@@ -2647,6 +2659,81 @@ func (client *Client) ResourceMonitorGetTrace(tctx *logger.TraceContext, queries
 		return
 	}
 	result := res.ResultMap.GetTrace
+	if result.Code >= 100 || result.Error != "" {
+		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
+		return
+	}
+
+	data = &result.Data
+	return
+}
+func (client *Client) ResourceMonitorGetEvents(tctx *logger.TraceContext, queries []base_client.Query) (data *spec.GetEventsData, err error) {
+	var res GetEventsResponse
+	err = client.Request(tctx, "ResourceMonitor", queries, &res, true)
+	if err != nil {
+		return
+	}
+	result := res.ResultMap.GetEvents
+	if result.Code >= 100 || result.Error != "" {
+		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
+		return
+	}
+
+	data = &result.Data
+	return
+}
+func (client *Client) ResourceMonitorGetEventRules(tctx *logger.TraceContext, queries []base_client.Query) (data *spec.GetEventRulesData, err error) {
+	var res GetEventRulesResponse
+	err = client.Request(tctx, "ResourceMonitor", queries, &res, true)
+	if err != nil {
+		return
+	}
+	result := res.ResultMap.GetEventRules
+	if result.Code >= 100 || result.Error != "" {
+		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
+		return
+	}
+
+	data = &result.Data
+	return
+}
+func (client *Client) ResourceMonitorCreateEventRules(tctx *logger.TraceContext, queries []base_client.Query) (data *spec.CreateEventRulesData, err error) {
+	var res CreateEventRulesResponse
+	err = client.Request(tctx, "ResourceMonitor", queries, &res, true)
+	if err != nil {
+		return
+	}
+	result := res.ResultMap.CreateEventRules
+	if result.Code >= 100 || result.Error != "" {
+		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
+		return
+	}
+
+	data = &result.Data
+	return
+}
+func (client *Client) ResourceMonitorUpdateEventRules(tctx *logger.TraceContext, queries []base_client.Query) (data *spec.UpdateEventRulesData, err error) {
+	var res UpdateEventRulesResponse
+	err = client.Request(tctx, "ResourceMonitor", queries, &res, true)
+	if err != nil {
+		return
+	}
+	result := res.ResultMap.UpdateEventRules
+	if result.Code >= 100 || result.Error != "" {
+		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
+		return
+	}
+
+	data = &result.Data
+	return
+}
+func (client *Client) ResourceMonitorDeleteEventRules(tctx *logger.TraceContext, queries []base_client.Query) (data *spec.DeleteEventRulesData, err error) {
+	var res DeleteEventRulesResponse
+	err = client.Request(tctx, "ResourceMonitor", queries, &res, true)
+	if err != nil {
+		return
+	}
+	result := res.ResultMap.DeleteEventRules
 	if result.Code >= 100 || result.Error != "" {
 		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
 		return

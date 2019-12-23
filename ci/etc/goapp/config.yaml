@@ -194,8 +194,7 @@ resource:
               noerror:
                 key: 'Level'
                 pattern: 'E'
-                level: 'E'
-                handler: 'Mail'
+                level: 'Critical'
                 reissueDuration: 600
         metric:
           system:

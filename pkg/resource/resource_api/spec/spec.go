@@ -168,12 +168,16 @@ var Spec = spec_model.Spec{
 
 				spec_model.QueryModel{Req: GetNodes{}, Rep: GetNodesData{}},
 				spec_model.QueryModel{Req: GetNode{}, Rep: GetNodeData{}},
-				spec_model.QueryModel{Req: GetEvents{}, Rep: GetEventsData{}},
-				spec_model.QueryModel{Req: GetEventRules{}, Rep: GetEventRulesData{}},
 				spec_model.QueryModel{Req: GetStatistics{}, Rep: GetStatisticsData{}},
 				spec_model.QueryModel{Req: GetLogParams{}, Rep: GetLogParamsData{}},
 				spec_model.QueryModel{Req: GetLogs{}, Rep: GetLogsData{}},
 				spec_model.QueryModel{Req: GetTrace{}, Rep: GetTraceData{}},
+
+				spec_model.QueryModel{Req: GetEvents{}, Rep: GetEventsData{}},
+				spec_model.QueryModel{Req: GetEventRules{}, Rep: GetEventRulesData{}},
+				spec_model.QueryModel{Req: CreateEventRules{}, Rep: CreateEventRulesData{}},
+				spec_model.QueryModel{Req: UpdateEventRules{}, Rep: UpdateEventRulesData{}},
+				spec_model.QueryModel{Req: DeleteEventRules{}, Rep: DeleteEventRulesData{}},
 			},
 		},
 	},

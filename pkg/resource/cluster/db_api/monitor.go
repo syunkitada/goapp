@@ -28,7 +28,7 @@ func (api *Api) MonitorEvents(tctx *logger.TraceContext) (err error) {
 		issuedEventMap[key] = event
 	}
 
-	// TODO Filter Ignore Events
+	// TODO Ignore Events
 
 	for _, event := range getEventsData.Events {
 		key := event.Node + "@" + event.Check
@@ -40,12 +40,6 @@ func (api *Api) MonitorEvents(tctx *logger.TraceContext) (err error) {
 					continue
 				}
 			}
-		}
-		switch event.Handler {
-		case "Mail":
-			fmt.Println("TODO Add Event To SendMail Queue")
-		case "Alert":
-			fmt.Println("TODO Add Event To Alert Queue")
 		}
 		if tmpErr := api.tsdbApi.IssueEvent(tctx, &api_spec.IssueEvent{Event: event}); tmpErr != nil {
 			logger.Warningf(tctx, "Failed IssueEvent: %s", tmpErr.Error())

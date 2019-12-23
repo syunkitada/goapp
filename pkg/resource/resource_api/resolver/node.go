@@ -32,36 +32,41 @@ func (resolver *Resolver) GetNode(tctx *logger.TraceContext, input *spec.GetNode
 }
 
 func (resolver *Resolver) GetEvents(tctx *logger.TraceContext, input *spec.GetEvents, user *base_spec.UserAuthority) (data *spec.GetEventsData, code uint8, err error) {
-	// var events = []spec.ResourceEvent{
-	// 	spec.ResourceEvent{
-	// 		Name:    "hoge",
-	// 		Time:    "timestamp",
-	// 		Level:   "Critical",
-	// 		Handler: "handlerhoge",
-	// 		Msg:     "critical on host",
-	// 		Tag:     map[string]string{},
-	// 	},
-	// 	spec.ResourceEvent{
-	// 		Name:    "piyo",
-	// 		Time:    "timestamp",
-	// 		Level:   "Warning",
-	// 		Handler: "handlerhoge",
-	// 		Msg:     "critical on host",
-	// 		Tag:     map[string]string{},
-	// 	},
-	// 	spec.ResourceEvent{
-	// 		Name:    "piyo2",
-	// 		Time:    "timestamp",
-	// 		Level:   "Warning",
-	// 		Handler: "handlerhoge",
-	// 		Msg:     "critical on host",
-	// 		Tag:     map[string]string{},
-	// 	},
-	// }
+	if data, err = resolver.dbApi.GetEvents(tctx, input, user); err != nil {
+		code = base_const.CodeServerInternalError
+		return
+	}
 	code = base_const.CodeOk
-	data = &spec.GetEventsData{}
 	return
 }
+
+func (resolver *Resolver) CreateEventRules(tctx *logger.TraceContext, input *spec.CreateEventRules, user *base_spec.UserAuthority) (data *spec.CreateEventRulesData, code uint8, err error) {
+	// if data, err = resolver.dbApi.CreateEventRules(tctx, input, user); err != nil {
+	// 	code = base_const.CodeServerInternalError
+	// 	return
+	// }
+	code = base_const.CodeOk
+	return
+}
+
+func (resolver *Resolver) UpdateEventRules(tctx *logger.TraceContext, input *spec.UpdateEventRules, user *base_spec.UserAuthority) (data *spec.UpdateEventRulesData, code uint8, err error) {
+	// if data, err = resolver.dbApi.UpdateEventRules(tctx, input, user); err != nil {
+	// 	code = base_const.CodeServerInternalError
+	// 	return
+	// }
+	code = base_const.CodeOk
+	return
+}
+
+func (resolver *Resolver) DeleteEventRules(tctx *logger.TraceContext, input *spec.DeleteEventRules, user *base_spec.UserAuthority) (data *spec.DeleteEventRulesData, code uint8, err error) {
+	// if data, err = resolver.dbApi.DeleteEventRules(tctx, input, user); err != nil {
+	// 	code = base_const.CodeServerInternalError
+	// 	return
+	// }
+	code = base_const.CodeOk
+	return
+}
+
 func (resolver *Resolver) GetEventRules(tctx *logger.TraceContext, input *spec.GetEventRules, user *base_spec.UserAuthority) (data *spec.GetEventRulesData, code uint8, err error) {
 	code = base_const.CodeOk
 	var eventRules = []spec.EventRule{

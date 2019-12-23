@@ -24,7 +24,6 @@ const (
 
 type LogEvent struct {
 	name            string
-	handler         string
 	level           string
 	pattern         *regexp.Regexp
 	reissueDuration int
@@ -54,7 +53,6 @@ func New(baseConf *base_config.Config, name string, logConf *config.ResourceLogC
 	for checkName, check := range logConf.CheckMap {
 		logEvent := LogEvent{
 			name:            logConf.CheckPrefix + checkName,
-			handler:         check.Handler,
 			level:           check.Level,
 			pattern:         regexp.MustCompile(check.Pattern),
 			reissueDuration: check.ReissueDuration,
@@ -221,7 +219,6 @@ func (reader *LogReader) ReadUntilEOF(tctx *logger.TraceContext) error {
 												Name:            event.name,
 												Time:            tstr,
 												Level:           event.level,
-												Handler:         event.handler,
 												Msg:             line,
 												ReissueDuration: event.reissueDuration,
 											})

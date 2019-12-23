@@ -19,21 +19,6 @@ type ResourceMetric struct {
 	Metric map[string]interface{}
 }
 
-type GetEventRules struct {
-	Cluster string `validate:"required"`
-}
-
-type EventRule struct {
-	Node  string
-	Name  string
-	Kind  string
-	Until time.Time
-}
-
-type GetEventRulesData struct {
-	EventRules []EventRule
-}
-
 type GetStatistics struct {
 	Cluster string `validate:"required"`
 }
@@ -131,67 +116,6 @@ var LogsTable = index_model.Table{
 		index_model.TableColumn{Name: "Level"},
 		index_model.TableColumn{Name: "TraceId"},
 		index_model.TableColumn{Name: "Time", Kind: "Time"},
-	},
-}
-
-var EventsTable = index_model.Table{
-	Name:    "Events",
-	Route:   "/Events",
-	Kind:    "Table",
-	DataKey: "Events",
-	SelectActions: []index_model.Action{
-		index_model.Action{
-			Name:      "Delete",
-			Icon:      "Delete",
-			Kind:      "Form",
-			DataKind:  "Node",
-			SelectKey: "Name",
-		},
-	},
-	Columns: []index_model.TableColumn{
-		index_model.TableColumn{
-			Name: "Name", IsSearch: true,
-		},
-		index_model.TableColumn{
-			Name:           "Level",
-			RowColoringMap: map[string]string{"Warning": "Warning", "Critical": "Critical"},
-			FilterValues: []map[string]string{
-				map[string]string{
-					"Icon":  "Warning",
-					"Value": "Warning",
-				},
-				map[string]string{
-					"Icon":  "Critical",
-					"Value": "Critical",
-				},
-			},
-		},
-		index_model.TableColumn{Name: "Msg"},
-		index_model.TableColumn{Name: "Time", Kind: "Time"},
-	},
-}
-
-var EventRulesTable = index_model.Table{
-	Name:    "EventRules",
-	Route:   "/EventRules",
-	Kind:    "Table",
-	DataKey: "EventRules",
-	SelectActions: []index_model.Action{
-		index_model.Action{
-			Name:      "Delete",
-			Icon:      "Delete",
-			Kind:      "Form",
-			DataKind:  "Node",
-			SelectKey: "Name",
-		},
-	},
-	Columns: []index_model.TableColumn{
-		index_model.TableColumn{
-			Name: "Name", IsSearch: true,
-		},
-		index_model.TableColumn{Name: "Host"},
-		index_model.TableColumn{Name: "Kind"},
-		index_model.TableColumn{Name: "Until", Kind: "Time"},
 	},
 }
 

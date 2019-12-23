@@ -24,10 +24,14 @@ type QueryResolver interface {
 	GetServiceIndex(tctx *logger.TraceContext, input *base_spec.GetServiceIndex, user *base_spec.UserAuthority) (*base_spec.GetServiceIndexData, uint8, error)
 	GetServiceDashboardIndex(tctx *logger.TraceContext, input *base_spec.GetServiceDashboardIndex, user *base_spec.UserAuthority) (*base_spec.GetServiceDashboardIndexData, uint8, error)
 	CreateCompute(tctx *logger.TraceContext, input *spec.CreateCompute, user *base_spec.UserAuthority) (*spec.CreateComputeData, uint8, error)
+	CreateEventRules(tctx *logger.TraceContext, input *spec.CreateEventRules, user *base_spec.UserAuthority) (*spec.CreateEventRulesData, uint8, error)
 	DeleteCompute(tctx *logger.TraceContext, input *spec.DeleteCompute, user *base_spec.UserAuthority) (*spec.DeleteComputeData, uint8, error)
 	DeleteComputes(tctx *logger.TraceContext, input *spec.DeleteComputes, user *base_spec.UserAuthority) (*spec.DeleteComputesData, uint8, error)
+	DeleteEventRules(tctx *logger.TraceContext, input *spec.DeleteEventRules, user *base_spec.UserAuthority) (*spec.DeleteEventRulesData, uint8, error)
 	GetCompute(tctx *logger.TraceContext, input *spec.GetCompute, user *base_spec.UserAuthority) (*spec.GetComputeData, uint8, error)
 	GetComputes(tctx *logger.TraceContext, input *spec.GetComputes, user *base_spec.UserAuthority) (*spec.GetComputesData, uint8, error)
+	GetEventRules(tctx *logger.TraceContext, input *spec.GetEventRules, user *base_spec.UserAuthority) (*spec.GetEventRulesData, uint8, error)
+	GetEvents(tctx *logger.TraceContext, input *spec.GetEvents, user *base_spec.UserAuthority) (*spec.GetEventsData, uint8, error)
 	GetLogParams(tctx *logger.TraceContext, input *spec.GetLogParams, user *base_spec.UserAuthority) (*spec.GetLogParamsData, uint8, error)
 	GetLogs(tctx *logger.TraceContext, input *spec.GetLogs, user *base_spec.UserAuthority) (*spec.GetLogsData, uint8, error)
 	GetNode(tctx *logger.TraceContext, input *spec.GetNode, user *base_spec.UserAuthority) (*spec.GetNodeData, uint8, error)
@@ -37,6 +41,7 @@ type QueryResolver interface {
 	ReportNodeServiceTask(tctx *logger.TraceContext, input *spec.ReportNodeServiceTask, user *base_spec.UserAuthority) (*spec.ReportNodeServiceTaskData, uint8, error)
 	SyncNodeService(tctx *logger.TraceContext, input *spec.SyncNodeService, user *base_spec.UserAuthority) (*spec.SyncNodeServiceData, uint8, error)
 	UpdateCompute(tctx *logger.TraceContext, input *spec.UpdateCompute, user *base_spec.UserAuthority) (*spec.UpdateComputeData, uint8, error)
+	UpdateEventRules(tctx *logger.TraceContext, input *spec.UpdateEventRules, user *base_spec.UserAuthority) (*spec.UpdateEventRulesData, uint8, error)
 }
 
 type QueryHandler struct {
@@ -213,6 +218,27 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				Code: code,
 				Data: data,
 			}
+		case "CreateEventRules":
+			var input spec.CreateEventRules
+			err = json.Unmarshal([]byte(query.Data), &input)
+			if err != nil {
+				return err
+			}
+			data, code, tmpErr := handler.resolver.CreateEventRules(tctx, &input, user)
+			if tmpErr != nil {
+				if code == 0 {
+					code = base_const.CodeServerInternalError
+				}
+				rep.ResultMap[query.Name] = base_model.Result{
+					Code:  code,
+					Error: tmpErr.Error(),
+				}
+				break
+			}
+			rep.ResultMap[query.Name] = base_model.Result{
+				Code: code,
+				Data: data,
+			}
 		case "DeleteCompute":
 			var input spec.DeleteCompute
 			err = json.Unmarshal([]byte(query.Data), &input)
@@ -255,6 +281,27 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				Code: code,
 				Data: data,
 			}
+		case "DeleteEventRules":
+			var input spec.DeleteEventRules
+			err = json.Unmarshal([]byte(query.Data), &input)
+			if err != nil {
+				return err
+			}
+			data, code, tmpErr := handler.resolver.DeleteEventRules(tctx, &input, user)
+			if tmpErr != nil {
+				if code == 0 {
+					code = base_const.CodeServerInternalError
+				}
+				rep.ResultMap[query.Name] = base_model.Result{
+					Code:  code,
+					Error: tmpErr.Error(),
+				}
+				break
+			}
+			rep.ResultMap[query.Name] = base_model.Result{
+				Code: code,
+				Data: data,
+			}
 		case "GetCompute":
 			var input spec.GetCompute
 			err = json.Unmarshal([]byte(query.Data), &input)
@@ -283,6 +330,48 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				return err
 			}
 			data, code, tmpErr := handler.resolver.GetComputes(tctx, &input, user)
+			if tmpErr != nil {
+				if code == 0 {
+					code = base_const.CodeServerInternalError
+				}
+				rep.ResultMap[query.Name] = base_model.Result{
+					Code:  code,
+					Error: tmpErr.Error(),
+				}
+				break
+			}
+			rep.ResultMap[query.Name] = base_model.Result{
+				Code: code,
+				Data: data,
+			}
+		case "GetEventRules":
+			var input spec.GetEventRules
+			err = json.Unmarshal([]byte(query.Data), &input)
+			if err != nil {
+				return err
+			}
+			data, code, tmpErr := handler.resolver.GetEventRules(tctx, &input, user)
+			if tmpErr != nil {
+				if code == 0 {
+					code = base_const.CodeServerInternalError
+				}
+				rep.ResultMap[query.Name] = base_model.Result{
+					Code:  code,
+					Error: tmpErr.Error(),
+				}
+				break
+			}
+			rep.ResultMap[query.Name] = base_model.Result{
+				Code: code,
+				Data: data,
+			}
+		case "GetEvents":
+			var input spec.GetEvents
+			err = json.Unmarshal([]byte(query.Data), &input)
+			if err != nil {
+				return err
+			}
+			data, code, tmpErr := handler.resolver.GetEvents(tctx, &input, user)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -472,6 +561,27 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				return err
 			}
 			data, code, tmpErr := handler.resolver.UpdateCompute(tctx, &input, user)
+			if tmpErr != nil {
+				if code == 0 {
+					code = base_const.CodeServerInternalError
+				}
+				rep.ResultMap[query.Name] = base_model.Result{
+					Code:  code,
+					Error: tmpErr.Error(),
+				}
+				break
+			}
+			rep.ResultMap[query.Name] = base_model.Result{
+				Code: code,
+				Data: data,
+			}
+		case "UpdateEventRules":
+			var input spec.UpdateEventRules
+			err = json.Unmarshal([]byte(query.Data), &input)
+			if err != nil {
+				return err
+			}
+			data, code, tmpErr := handler.resolver.UpdateEventRules(tctx, &input, user)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError

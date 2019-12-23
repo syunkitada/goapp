@@ -37,12 +37,12 @@ type TraceContext struct {
 	mtx      *sync.Mutex
 	code     uint8
 	err      error
-	Host     string
-	App      string
-	Func     string
-	TraceId  string
+	host     string
+	app      string
+	function string
+	traceId  string
 	timeout  int
-	Metadata map[string]string
+	metadata map[string]string
 }
 
 func (tctx *TraceContext) SetTimeout(timeout int) {
@@ -54,16 +54,30 @@ func (tctx *TraceContext) GetTimeout() int {
 }
 
 func (tctx *TraceContext) GetTraceId() string {
-	return tctx.TraceId
+	return tctx.traceId
+}
+
+func (tctx *TraceContext) SetMetadata(data map[string]string) {
+	tctx.mtx.Lock()
+	for k, v := range data {
+		tctx.metadata[k] = v
+	}
+	tctx.mtx.Unlock()
+}
+
+func (tctx *TraceContext) ResetMetadata() {
+	tctx.mtx.Lock()
+	tctx.metadata = map[string]string{}
+	tctx.mtx.Unlock()
 }
 
 func NewTraceContext(host string, app string) *TraceContext {
 	return &TraceContext{
 		mtx:      new(sync.Mutex),
-		TraceId:  xid.New().String(),
-		Host:     host,
-		App:      app,
-		Metadata: map[string]string{},
+		traceId:  xid.New().String(),
+		host:     host,
+		app:      app,
+		metadata: map[string]string{},
 		timeout:  3,
 		code:     0,
 		err:      nil,
@@ -72,10 +86,10 @@ func NewTraceContext(host string, app string) *TraceContext {
 
 func NewTraceContextWithTraceId(traceId string, host string, app string) *TraceContext {
 	return &TraceContext{
-		TraceId:  traceId,
-		Host:     host,
-		App:      app,
-		Metadata: map[string]string{},
+		traceId:  traceId,
+		host:     host,
+		app:      app,
+		metadata: map[string]string{},
 		timeout:  3,
 		code:     0,
 		err:      nil,
@@ -120,8 +134,8 @@ func timePrefix() string {
 }
 
 func convertTags(tctx *TraceContext) string {
-	tags := " TraceId=\"" + tctx.TraceId + "\" Host=\"" + tctx.Host + "\" App=\"" + tctx.App + "\" Func=\"" + tctx.Func + "\""
-	for k, v := range tctx.Metadata {
+	tags := " TraceId=\"" + tctx.traceId + "\" Host=\"" + tctx.host + "\" App=\"" + tctx.app + "\" Func=\"" + tctx.function + "\""
+	for k, v := range tctx.metadata {
 		tags += " " + k + "=\"" + v + "\""
 	}
 	return tags
@@ -170,66 +184,70 @@ func StdoutFatalf(format string, args ...interface{}) {
 }
 
 func Fatal(tctx *TraceContext, args ...interface{}) {
-	tctx.Func = getFunc(0)
+	tctx.function = getFunc(0)
 	Logger.Print(timePrefix() + " Level=\"" + fatalLog +
 		"\" Msg=\"" + fmt.Sprint(args...) + "\"" + convertTags(tctx))
 	os.Exit(1)
 }
 
 func Fatalf(tctx *TraceContext, format string, args ...interface{}) {
-	tctx.Func = getFunc(0)
+	tctx.function = getFunc(0)
 	Logger.Print(timePrefix() + " Level=\"" + fatalLog +
 		"\" Msg=\"" + fmt.Sprintf(format, args...) + "\"" + convertTags(tctx))
 	os.Exit(1)
 }
 
 func Info(tctx *TraceContext, args ...interface{}) {
-	tctx.Func = getFunc(0)
+	tctx.function = getFunc(0)
 	Logger.Print(timePrefix() + " Level=\"" + infoLog +
 		"\" Msg=\"" + fmt.Sprint(args...) + "\"" + convertTags(tctx))
 }
 
 func Infof(tctx *TraceContext, format string, args ...interface{}) {
-	tctx.Func = getFunc(0)
+	tctx.function = getFunc(0)
 	Logger.Print(timePrefix() + " Level=\"" + infoLog +
 		"\" Msg=\"" + fmt.Sprintf(format, args...) + "\"" + convertTags(tctx))
 }
 
 func Warning(tctx *TraceContext, args ...interface{}) {
-	tctx.Func = getFunc(0)
+	tctx.function = getFunc(0)
 	Logger.Print(timePrefix() + " Level=\"" + warningLog +
 		"\" Msg=\"" + fmt.Sprint(args...) + "\"" + convertTags(tctx))
 }
 
 func Warningf(tctx *TraceContext, format string, args ...interface{}) {
-	tctx.Func = getFunc(0)
+	tctx.function = getFunc(0)
 	Logger.Print(timePrefix() + " Level=\"" + warningLog +
 		"\" Msg=\"" + fmt.Sprintf(format, args...) + "\"" + convertTags(tctx))
 }
 
 func Error(tctx *TraceContext, err error, args ...interface{}) {
-	tctx.Func = getFunc(0)
+	tctx.function = getFunc(0)
 	Logger.Print(timePrefix() + " Level=\"" + errorLog +
 		"\" Err=\"" + err.Error() + "\" Msg=\"" + fmt.Sprint(args...) + "\"" + convertTags(tctx))
 }
 
 func Errorf(tctx *TraceContext, err error, format string, args ...interface{}) {
-	tctx.Func = getFunc(0)
+	tctx.function = getFunc(0)
 	Logger.Print(timePrefix() + " Level=\"" + errorLog +
 		"\" Err=\"" + err.Error() + "\" Msg=\"" + fmt.Sprintf(format, args...) + "\"" + convertTags(tctx))
 }
 
 func StartTrace(tctx *TraceContext) time.Time {
 	startTime := time.Now()
-	tctx.Func = getFunc(0)
+	tctx.mtx.Lock()
+	tctx.function = getFunc(0)
+	tctx.mtx.Unlock()
 	Info(tctx, "StartTrace")
 	Logger.Print(timePrefix() + " Level=\"" + infoLog + "\" Msg=\"StartTrace\"" + convertTags(tctx))
 	return startTime
 }
 
 func EndTrace(tctx *TraceContext, startTime time.Time, err error, depth int) {
-	tctx.Func = getFunc(depth)
-	tctx.Metadata["Latency"] = strconv.FormatInt(time.Now().Sub(startTime).Nanoseconds()/1000000, 10)
+	tctx.mtx.Lock()
+	tctx.function = getFunc(depth)
+	tctx.metadata["Latency"] = strconv.FormatInt(time.Now().Sub(startTime).Nanoseconds()/1000000, 10)
+	tctx.mtx.Unlock()
 	if err != nil {
 		Logger.Print(timePrefix() + " Level=\"" + errorLog + "\" Msg=\"EndTrace\" Err=\"" + err.Error() + "\"" + convertTags(tctx))
 	} else {
@@ -238,9 +256,11 @@ func EndTrace(tctx *TraceContext, startTime time.Time, err error, depth int) {
 }
 
 func EndGrpcTrace(tctx *TraceContext, startTime time.Time, statusCode int64, err string) {
-	tctx.Func = getFunc(0)
-	tctx.Metadata["Latency"] = strconv.FormatInt(time.Now().Sub(startTime).Nanoseconds()/1000000, 10)
-	tctx.Metadata["StatusCode"] = strconv.FormatInt(statusCode, 10)
+	tctx.mtx.Lock()
+	tctx.function = getFunc(0)
+	tctx.metadata["Latency"] = strconv.FormatInt(time.Now().Sub(startTime).Nanoseconds()/1000000, 10)
+	tctx.metadata["StatusCode"] = strconv.FormatInt(statusCode, 10)
+	tctx.mtx.Unlock()
 	if err != "" {
 		Logger.Print(timePrefix() + " Level=\"" + errorLog + "\" Msg=\"EndTrace\"" + convertTags(tctx))
 	} else {

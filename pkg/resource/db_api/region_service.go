@@ -197,7 +197,7 @@ func (api *Api) SyncRegionService(tctx *logger.TraceContext) (err error) {
 				api.ConfirmDeletingRegionServiceCompute(tctx, &service)
 			}
 		}
-		tctx.Metadata = map[string]string{}
+		tctx.ResetMetadata()
 	}
 
 	clusterComputeMap := map[string]map[string]spec.Compute{}
@@ -233,7 +233,7 @@ func (api *Api) SyncRegionService(tctx *logger.TraceContext) (err error) {
 	}
 
 	for _, compute := range computes {
-		tctx.Metadata["ComputeId"] = strconv.FormatUint(uint64(compute.ID), 10)
+		tctx.SetMetadata(map[string]string{"ComputeId": strconv.FormatUint(uint64(compute.ID), 10)})
 		switch compute.Status {
 		case db_model.StatusCreating:
 			api.CreateClusterCompute(tctx, &compute, clusterComputeMap)
@@ -248,7 +248,7 @@ func (api *Api) SyncRegionService(tctx *logger.TraceContext) (err error) {
 		case db_model.StatusDeletingScheduled:
 			api.ConfirmDeletingScheduledCompute(tctx, &compute, clusterComputeMap)
 		}
-		tctx.Metadata = map[string]string{}
+		tctx.ResetMetadata()
 	}
 
 	return

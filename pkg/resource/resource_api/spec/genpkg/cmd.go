@@ -1386,30 +1386,6 @@ var ResourceMonitorCmdMap = map[string]index_model.Cmd{
 		OutputKind:   "",
 		OutputFormat: "",
 	},
-	"get.events": index_model.Cmd{
-		QueryName: "GetEvents",
-		FlagMap: map[string]index_model.Flag{
-			"cluster,c": index_model.Flag{
-				Required: true,
-				FlagType: "string",
-				FlagKind: "",
-			},
-		},
-		OutputKind:   "table",
-		OutputFormat: "Name,Time,Level,Handler,Msg,Tag",
-	},
-	"get.event.rules": index_model.Cmd{
-		QueryName: "GetEventRules",
-		FlagMap: map[string]index_model.Flag{
-			"cluster,c": index_model.Flag{
-				Required: true,
-				FlagType: "string",
-				FlagKind: "",
-			},
-		},
-		OutputKind:   "table",
-		OutputFormat: "Node,Name,Kind,Until",
-	},
 	"get.statistics": index_model.Cmd{
 		QueryName: "GetStatistics",
 		FlagMap: map[string]index_model.Flag{
@@ -1447,6 +1423,21 @@ var ResourceMonitorCmdMap = map[string]index_model.Cmd{
 				FlagType: "string",
 				FlagKind: "",
 			},
+			"limit.logs,l": index_model.Flag{
+				Required: false,
+				FlagType: "string",
+				FlagKind: "",
+			},
+			"from.time,f": index_model.Flag{
+				Required: false,
+				FlagType: "string",
+				FlagKind: "",
+			},
+			"until.time,u": index_model.Flag{
+				Required: false,
+				FlagType: "time.Time",
+				FlagKind: "",
+			},
 			"apps,a": index_model.Flag{
 				Required: false,
 				FlagType: "[]string",
@@ -1478,6 +1469,66 @@ var ResourceMonitorCmdMap = map[string]index_model.Cmd{
 				Required: true,
 				FlagType: "string",
 				FlagKind: "",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
+	"get.events": index_model.Cmd{
+		QueryName: "GetEvents",
+		FlagMap: map[string]index_model.Flag{
+			"cluster,c": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+		},
+		OutputKind:   "table",
+		OutputFormat: "Check,Level,Project,Node,Msg,ReissueDuration,Ignored,Time",
+	},
+	"get.event.rules": index_model.Cmd{
+		QueryName: "GetEventRules",
+		FlagMap: map[string]index_model.Flag{
+			"cluster,c": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+		},
+		OutputKind:   "table",
+		OutputFormat: "Node,Name,Kind,Until",
+	},
+	"create.event.rules": index_model.Cmd{
+		QueryName: "CreateEventRules",
+		FlagMap: map[string]index_model.Flag{
+			"spec,s": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "file",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
+	"update.event.rules": index_model.Cmd{
+		QueryName: "UpdateEventRules",
+		FlagMap: map[string]index_model.Flag{
+			"spec,s": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "file",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
+	"delete.event.rules": index_model.Cmd{
+		QueryName: "DeleteEventRules",
+		FlagMap: map[string]index_model.Flag{
+			"spec,s": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "file",
 			},
 		},
 		OutputKind:   "",
@@ -1919,14 +1970,6 @@ var ApiQueryMap = map[string]map[string]spec_model.QueryModel{
 			RequiredAuth:    true,
 			RequiredProject: true,
 		},
-		"GetEvents": spec_model.QueryModel{
-			RequiredAuth:    true,
-			RequiredProject: true,
-		},
-		"GetEventRules": spec_model.QueryModel{
-			RequiredAuth:    true,
-			RequiredProject: true,
-		},
 		"GetStatistics": spec_model.QueryModel{
 			RequiredAuth:    true,
 			RequiredProject: true,
@@ -1940,6 +1983,26 @@ var ApiQueryMap = map[string]map[string]spec_model.QueryModel{
 			RequiredProject: true,
 		},
 		"GetTrace": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"GetEvents": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"GetEventRules": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"CreateEventRules": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"UpdateEventRules": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"DeleteEventRules": spec_model.QueryModel{
 			RequiredAuth:    true,
 			RequiredProject: true,
 		},

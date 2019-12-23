@@ -80,3 +80,61 @@ func (resolver *Resolver) GetLogParams(tctx *logger.TraceContext, input *api_spe
 	code = base_const.CodeOk
 	return
 }
+
+func (resolver *Resolver) GetEvents(tctx *logger.TraceContext, input *api_spec.GetEvents, user *base_spec.UserAuthority) (data *api_spec.GetEventsData, code uint8, err error) {
+	var getIssuedEventsData *api_spec.GetIssuedEventsData
+	getIssuedEventsData, err = resolver.tsdbApi.GetIssuedEvents(tctx, &api_spec.GetIssuedEvents{})
+	if err != nil {
+		code = base_const.CodeServerInternalError
+		return
+	}
+	data = &api_spec.GetEventsData{
+		Events: getIssuedEventsData.Events,
+	}
+	code = base_const.CodeOk
+	return
+}
+
+func (resolver *Resolver) CreateEventRules(tctx *logger.TraceContext, input *api_spec.CreateEventRules, user *base_spec.UserAuthority) (data *api_spec.CreateEventRulesData, code uint8, err error) {
+	fmt.Println("DEBUG CreateEventRules")
+	// data, err = resolver.tsdbApi.CreateEventRules(tctx, input)
+	// if err != nil {
+	// 	code = base_const.CodeServerInternalError
+	// 	return
+	// }
+	code = base_const.CodeOk
+	return
+}
+
+func (resolver *Resolver) UpdateEventRules(tctx *logger.TraceContext, input *api_spec.UpdateEventRules, user *base_spec.UserAuthority) (data *api_spec.UpdateEventRulesData, code uint8, err error) {
+	fmt.Println("DEBUG UpdateEventRules")
+	// data, err = resolver.tsdbApi.UpdateEventRules(tctx, input)
+	// if err != nil {
+	// 	code = base_const.CodeServerInternalError
+	// 	return
+	// }
+	code = base_const.CodeOk
+	return
+}
+
+func (resolver *Resolver) DeleteEventRules(tctx *logger.TraceContext, input *api_spec.DeleteEventRules, user *base_spec.UserAuthority) (data *api_spec.DeleteEventRulesData, code uint8, err error) {
+	fmt.Println("DEBUG DeleteEventRules")
+	// data, err = resolver.tsdbApi.DeleteEventRules(tctx, input)
+	// if err != nil {
+	// 	code = base_const.CodeServerInternalError
+	// 	return
+	// }
+	code = base_const.CodeOk
+	return
+}
+
+func (resolver *Resolver) GetEventRules(tctx *logger.TraceContext, input *api_spec.GetEventRules, user *base_spec.UserAuthority) (data *api_spec.GetEventRulesData, code uint8, err error) {
+	fmt.Println("DEBUG GetEventRules")
+	// data, err = resolver.tsdbApi.GetEventRules(tctx, input)
+	// if err != nil {
+	// 	code = base_const.CodeServerInternalError
+	// 	return
+	// }
+	code = base_const.CodeOk
+	return
+}

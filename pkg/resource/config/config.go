@@ -105,7 +105,6 @@ type ResourceLogCheckConfig struct {
 	Key             string
 	Pattern         string
 	Level           string
-	Handler         string
 	ReissueDuration int
 }
 

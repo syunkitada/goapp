@@ -584,6 +584,16 @@ internet --- gateway-router --- floor-spine-router --- floor-leaf-router --- rac
       - 作り直しが難しい場合は、GlobalService から tokyo1 のサービスを外して停止し、tokyo2 へコールドマイグレーションしてサービスを再開して GlobalService に紐づける
     - GlobalService に紐図かないサービス(バッチなど)の場合は、停止を許容して tokyo1 のサービスを停止し tokyo2 へ移行する
 
+## 監視と運用
+
+- クラスタ内監視と通知
+  - システム監視は ClusterAgent の Check によって行われ、Event を作成して ClusterApi に報告する
+  - ClusterController が Event を集約して他のシステムに通知する
+  - 運用者は通知されたものを適宜対応して、システムの健全性を担保する
+- クラスタ間監視
+  - クラスタ内監視は、クラスタ自体が止まると通知ができなくなるため、クラスタ間で互いを監視する必要がある
+  - ClusterAgent は、他クラスタを監視して Event を作成することができる
+
 ## TimeSeriesData
 
 - TimeSeriesData の種別と用途
@@ -617,6 +627,12 @@ internet --- gateway-router --- floor-spine-router --- floor-leaf-router --- rac
     - リクエスト処理上のトランザクション上でログを記録する
     - MySQL などのデータベースを利用する
     - アプリケーション側で担保すべきなのでサポートしない
+  - システムサービスログ
+    - システムサービスに対してユーザが行ったアクションのログ
+    - リソースの作成や削除など
+  - システムイベント
+    - システムが自動的に行ったログ
+    - ライブマイグレーション、リバランス、ホストのメンテナンスなど
 
 ## EventData
 
@@ -636,13 +652,24 @@ internet --- gateway-router --- floor-spine-router --- floor-leaf-router --- rac
     - ReissueDuration も Event に埋め込む
   - ReportNode によって報告された Event は、ClusterApi により EventDatabase に保存される
 - Event の抑制と配信
-  - ClusterController は、Event を EventDatabase から取得して、抑制してから配信する
-  - Event 配信の抑制は IgnoreEvents と IssuedEvents によって行われる
-    - 配信した Event は IssuedEvents に追加され、一定時間までは Event の配信が抑制されるようになる
-      - 一定時間(ReissueDuration)を超過しても Event を検知した場合は再度配信する
-  - Event の配信は、Event に設定されたハンドラによって行われる
-- Aggregation
-  - Check の Aggregation ルールによって Event は Aggregate されて配信される
+  - ClusterController は、Event を EventDatabase から取得して、EventRule に従って処理する
+  - 一度処理された Event は IssuedEvents に追加され、一定時間(ReissueDuration)までは 同一 Event は無視される
+    - 一定時間を経過しても Event を検知した場合は再度 EventRule に従って処理される
+
+## EventRuleData
+
+- EventRuleData の種別
+  - Filter
+    - Event 保存前にフィルタリングするためのルール
+    - ルールに引っかかった Event は、データベースに保存せずに破棄する
+  - Ignore
+    - Event を無視するためのルール
+    - ルールに引っかかった Event は、何もせずに Ignore フラグを立てて IssuedEvent に追加して Event 処理を終了する
+  - Aggregate
+    - Event を集約するためのルール
+    - Event は集約されてから Handler によって処理される
+  - Handler
+    - 特定のアクションを実行するためのルール
 
 ## AlertData
 

@@ -66,9 +66,10 @@ func (driver *InfluxdbDriver) Report(tctx *logger.TraceContext, input *api_spec.
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
+	// TODO Filter Event By EventRule
 	eventsData := ""
 	for _, event := range input.Events {
-		tags := ",Check=" + event.Name + ",Handler=" + event.Handler + ",Level=" + event.Level + ",Project=" + input.Project + ",Node=" + input.Name
+		tags := ",Check=" + event.Name + ",Level=" + event.Level + ",Project=" + input.Project + ",Node=" + input.Name
 		for key, value := range event.Tag {
 			switch key {
 			case "Project":
@@ -314,7 +315,7 @@ func (driver *InfluxdbDriver) GetLogs(tctx *logger.TraceContext, input *api_spec
 func (driver *InfluxdbDriver) GetEvents(tctx *logger.TraceContext, input *api_spec.GetEvents) (data *api_spec.GetEventsData, err error) {
 	events := []spec.Event{}
 
-	query := "SELECT Check, Handler, Level, ReissueDuration, Node, Project, last(Msg) FROM \"events\" WHERE"
+	query := "SELECT Check, Level, ReissueDuration, Node, Project, last(Msg) FROM \"events\" WHERE"
 	query += " time > now() - 1d"
 	query += " group by Node,Check"
 	for _, client := range driver.eventClients {
@@ -330,12 +331,11 @@ func (driver *InfluxdbDriver) GetEvents(tctx *logger.TraceContext, input *api_sp
 					v := spec.Event{
 						Time:            time.Unix(sec, 0),
 						Check:           value[1].(string),
-						Handler:         value[2].(string),
-						Level:           value[3].(string),
-						ReissueDuration: int(value[4].(float64)),
-						Node:            value[5].(string),
-						Project:         value[6].(string),
-						Msg:             value[7].(string),
+						Level:           value[2].(string),
+						ReissueDuration: int(value[3].(float64)),
+						Node:            value[4].(string),
+						Project:         value[5].(string),
+						Msg:             value[6].(string),
 					}
 					events = append(events, v)
 				}
@@ -354,7 +354,7 @@ func (driver *InfluxdbDriver) IssueEvent(tctx *logger.TraceContext, input *api_s
 	eventsData := ""
 
 	event := input.Event
-	tags := ",Check=" + event.Check + ",Handler=" + event.Handler + ",Level=" + event.Level + ",Project=" + event.Project + ",Node=" + event.Node
+	tags := ",Check=" + event.Check + ",Level=" + event.Level + ",Project=" + event.Project + ",Node=" + event.Node
 	eventsData += "issued_events" + tags + " Msg=\"" + event.Msg + "\" " + strconv.FormatInt(event.Time.UnixNano(), 10) + "\n"
 	fmt.Println("DEBUG IssueEvent", eventsData)
 
@@ -370,7 +370,7 @@ func (driver *InfluxdbDriver) IssueEvent(tctx *logger.TraceContext, input *api_s
 func (driver *InfluxdbDriver) GetIssuedEvents(tctx *logger.TraceContext, input *api_spec.GetIssuedEvents) (data *api_spec.GetIssuedEventsData, err error) {
 	events := []spec.Event{}
 
-	query := "SELECT Check, Handler, Level, Node, Project, last(Msg) FROM \"issued_events\" WHERE"
+	query := "SELECT Check, Level, Node, Project, last(Msg) FROM \"issued_events\" WHERE"
 	query += " time > now() - 1d"
 	query += " group by Node,Check"
 	for _, client := range driver.eventClients {
@@ -386,11 +386,10 @@ func (driver *InfluxdbDriver) GetIssuedEvents(tctx *logger.TraceContext, input *
 					v := spec.Event{
 						Time:    time.Unix(sec, 0),
 						Check:   value[1].(string),
-						Handler: value[2].(string),
-						Level:   value[3].(string),
-						Node:    value[4].(string),
-						Project: value[5].(string),
-						Msg:     value[6].(string),
+						Level:   value[2].(string),
+						Node:    value[3].(string),
+						Project: value[4].(string),
+						Msg:     value[5].(string),
 					}
 					events = append(events, v)
 				}

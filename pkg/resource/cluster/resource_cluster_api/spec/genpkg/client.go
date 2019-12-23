@@ -37,6 +37,20 @@ type CreateComputeResult struct {
 	Error string
 	Data  spec.CreateComputeData
 }
+type CreateEventRulesResponse struct {
+	base_model.Response
+	ResultMap CreateEventRulesResultMap
+}
+
+type CreateEventRulesResultMap struct {
+	CreateEventRules CreateEventRulesResult
+}
+
+type CreateEventRulesResult struct {
+	Code  uint8
+	Error string
+	Data  spec.CreateEventRulesData
+}
 type DeleteComputeResponse struct {
 	base_model.Response
 	ResultMap DeleteComputeResultMap
@@ -65,6 +79,20 @@ type DeleteComputesResult struct {
 	Error string
 	Data  spec.DeleteComputesData
 }
+type DeleteEventRulesResponse struct {
+	base_model.Response
+	ResultMap DeleteEventRulesResultMap
+}
+
+type DeleteEventRulesResultMap struct {
+	DeleteEventRules DeleteEventRulesResult
+}
+
+type DeleteEventRulesResult struct {
+	Code  uint8
+	Error string
+	Data  spec.DeleteEventRulesData
+}
 type GetComputeResponse struct {
 	base_model.Response
 	ResultMap GetComputeResultMap
@@ -92,6 +120,34 @@ type GetComputesResult struct {
 	Code  uint8
 	Error string
 	Data  spec.GetComputesData
+}
+type GetEventRulesResponse struct {
+	base_model.Response
+	ResultMap GetEventRulesResultMap
+}
+
+type GetEventRulesResultMap struct {
+	GetEventRules GetEventRulesResult
+}
+
+type GetEventRulesResult struct {
+	Code  uint8
+	Error string
+	Data  spec.GetEventRulesData
+}
+type GetEventsResponse struct {
+	base_model.Response
+	ResultMap GetEventsResultMap
+}
+
+type GetEventsResultMap struct {
+	GetEvents GetEventsResult
+}
+
+type GetEventsResult struct {
+	Code  uint8
+	Error string
+	Data  spec.GetEventsData
 }
 type GetLogParamsResponse struct {
 	base_model.Response
@@ -218,6 +274,20 @@ type UpdateComputeResult struct {
 	Code  uint8
 	Error string
 	Data  spec.UpdateComputeData
+}
+type UpdateEventRulesResponse struct {
+	base_model.Response
+	ResultMap UpdateEventRulesResultMap
+}
+
+type UpdateEventRulesResultMap struct {
+	UpdateEventRules UpdateEventRulesResult
+}
+
+type UpdateEventRulesResult struct {
+	Code  uint8
+	Error string
+	Data  spec.UpdateEventRulesData
 }
 
 func (client *Client) ResourceVirtualAdminGetCompute(tctx *logger.TraceContext, queries []base_client.Query) (data *spec.GetComputeData, err error) {
@@ -422,6 +492,81 @@ func (client *Client) ResourceVirtualAdminGetLogParams(tctx *logger.TraceContext
 		return
 	}
 	result := res.ResultMap.GetLogParams
+	if result.Code >= 100 || result.Error != "" {
+		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
+		return
+	}
+
+	data = &result.Data
+	return
+}
+func (client *Client) ResourceVirtualAdminGetEvents(tctx *logger.TraceContext, queries []base_client.Query) (data *spec.GetEventsData, err error) {
+	var res GetEventsResponse
+	err = client.Request(tctx, "ResourceVirtualAdmin", queries, &res, true)
+	if err != nil {
+		return
+	}
+	result := res.ResultMap.GetEvents
+	if result.Code >= 100 || result.Error != "" {
+		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
+		return
+	}
+
+	data = &result.Data
+	return
+}
+func (client *Client) ResourceVirtualAdminCreateEventRules(tctx *logger.TraceContext, queries []base_client.Query) (data *spec.CreateEventRulesData, err error) {
+	var res CreateEventRulesResponse
+	err = client.Request(tctx, "ResourceVirtualAdmin", queries, &res, true)
+	if err != nil {
+		return
+	}
+	result := res.ResultMap.CreateEventRules
+	if result.Code >= 100 || result.Error != "" {
+		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
+		return
+	}
+
+	data = &result.Data
+	return
+}
+func (client *Client) ResourceVirtualAdminUpdateEventRules(tctx *logger.TraceContext, queries []base_client.Query) (data *spec.UpdateEventRulesData, err error) {
+	var res UpdateEventRulesResponse
+	err = client.Request(tctx, "ResourceVirtualAdmin", queries, &res, true)
+	if err != nil {
+		return
+	}
+	result := res.ResultMap.UpdateEventRules
+	if result.Code >= 100 || result.Error != "" {
+		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
+		return
+	}
+
+	data = &result.Data
+	return
+}
+func (client *Client) ResourceVirtualAdminDeleteEventRules(tctx *logger.TraceContext, queries []base_client.Query) (data *spec.DeleteEventRulesData, err error) {
+	var res DeleteEventRulesResponse
+	err = client.Request(tctx, "ResourceVirtualAdmin", queries, &res, true)
+	if err != nil {
+		return
+	}
+	result := res.ResultMap.DeleteEventRules
+	if result.Code >= 100 || result.Error != "" {
+		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
+		return
+	}
+
+	data = &result.Data
+	return
+}
+func (client *Client) ResourceVirtualAdminGetEventRules(tctx *logger.TraceContext, queries []base_client.Query) (data *spec.GetEventRulesData, err error) {
+	var res GetEventRulesResponse
+	err = client.Request(tctx, "ResourceVirtualAdmin", queries, &res, true)
+	if err != nil {
+		return
+	}
+	result := res.ResultMap.GetEventRules
 	if result.Code >= 100 || result.Error != "" {
 		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
 		return

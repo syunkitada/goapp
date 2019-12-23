@@ -67,6 +67,7 @@ interface IState {
   searchRegExp: any;
   anchorEl: any;
   actionName: any;
+  filterMap: any;
 }
 
 class IndexTable extends React.Component<IIndexTable> {
@@ -74,6 +75,7 @@ class IndexTable extends React.Component<IIndexTable> {
     actionName: null,
     anchorEl: null,
     data: [],
+    filterMap: {},
     order: 'asc',
     orderBy: 0,
     page: 0,
@@ -109,6 +111,7 @@ class IndexTable extends React.Component<IIndexTable> {
       searchRegExp,
       actionName,
       searchQueries,
+      filterMap,
     } = this.state;
     logger.info('IndexTable', 'render', actionName, routes);
     console.log('DEBUG Table', index.DataKey, index.Columns, data);
@@ -275,11 +278,19 @@ class IndexTable extends React.Component<IIndexTable> {
       if (column.FilterValues) {
         for (let j = 0, lenj = column.FilterValues.length; j < lenj; j++) {
           const filterValue = column.FilterValues[j];
+
+          const currentValue = filterMap[column.Name];
+          let opacity = 1;
+          if (currentValue && currentValue === filterValue.Value) {
+            opacity = 0.7;
+          }
+
           exButtons.push(
             <Tooltip key={j} title={filterValue.Value}>
               <IconButton
                 aria-label={column.Name}
                 className={classes.toolbarExButton}
+                style={{opacity}}
                 onClick={() =>
                   this.handleFilterClick(column.Name, filterValue.Value)
                 }
@@ -431,7 +442,10 @@ class IndexTable extends React.Component<IIndexTable> {
           exInputsForm={exInputsForm}
         />
         <div className={classes.tableWrapper}>
-          <Table className={classes.table} aria-labelledby="tableTitle">
+          <Table
+            className={classes.table}
+            aria-labelledby="tableTitle"
+            size="small">
             <IndexTableHead
               index={index}
               order={order}
@@ -515,6 +529,11 @@ class IndexTable extends React.Component<IIndexTable> {
                       );
                     } else if (columns[i].FilterValues) {
                       let filterButton: any = null;
+                      const currentValue = filterMap[columns[i].Name];
+                      let isShowCells = true;
+                      if (currentValue) {
+                        isShowCells = false;
+                      }
                       if (columns[i].FilterValues) {
                         for (
                           let j = 0, lenj = columns[i].FilterValues.length;
@@ -523,6 +542,12 @@ class IndexTable extends React.Component<IIndexTable> {
                         ) {
                           const filterValue = columns[i].FilterValues[j];
                           if (filterValue.Value === n[i]) {
+                            if (
+                              currentValue &&
+                              currentValue === filterValue.Value
+                            ) {
+                              isShowCells = true;
+                            }
                             filterButton = (
                               <Button>
                                 <Icon
@@ -543,6 +568,9 @@ class IndexTable extends React.Component<IIndexTable> {
                           }
                         }
                       }
+                      if (!isShowCells) {
+                        return;
+                      }
                       cells.push(
                         <TableCell key={i} align={i === 0 ? 'left' : 'right'}>
                           {filterButton}
@@ -556,7 +584,6 @@ class IndexTable extends React.Component<IIndexTable> {
                       );
                     }
                   }
-
                   return (
                     <TableRow hover={true} tabIndex={-1} key={rowIndex}>
                       {cells}
@@ -682,9 +709,13 @@ class IndexTable extends React.Component<IIndexTable> {
   };
 
   private handleFilterClick = (name, value) => {
-    console.log('DEBUG handle Filter Click', name, value);
-    // setAge(event.target.value);
-    // this.setState({searchRegExp});
+    const {filterMap} = this.state;
+    if (filterMap[name]) {
+      delete filterMap[name];
+    } else {
+      filterMap[name] = value;
+    }
+    this.setState({filterMap});
   };
 
   private handleSelectorChange = (event, name, values) => {
