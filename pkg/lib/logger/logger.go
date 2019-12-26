@@ -184,62 +184,77 @@ func StdoutFatalf(format string, args ...interface{}) {
 }
 
 func Fatal(tctx *TraceContext, args ...interface{}) {
+	tctx.mtx.Lock()
 	tctx.function = getFunc(0)
 	Logger.Print(timePrefix() + " Level=\"" + fatalLog +
 		"\" Msg=\"" + fmt.Sprint(args...) + "\"" + convertTags(tctx))
+	tctx.mtx.Unlock()
 	os.Exit(1)
 }
 
 func Fatalf(tctx *TraceContext, format string, args ...interface{}) {
+	tctx.mtx.Lock()
 	tctx.function = getFunc(0)
 	Logger.Print(timePrefix() + " Level=\"" + fatalLog +
 		"\" Msg=\"" + fmt.Sprintf(format, args...) + "\"" + convertTags(tctx))
+	tctx.mtx.Unlock()
 	os.Exit(1)
 }
 
 func Info(tctx *TraceContext, args ...interface{}) {
+	tctx.mtx.Lock()
 	tctx.function = getFunc(0)
 	Logger.Print(timePrefix() + " Level=\"" + infoLog +
 		"\" Msg=\"" + fmt.Sprint(args...) + "\"" + convertTags(tctx))
+	tctx.mtx.Unlock()
 }
 
 func Infof(tctx *TraceContext, format string, args ...interface{}) {
+	tctx.mtx.Lock()
 	tctx.function = getFunc(0)
 	Logger.Print(timePrefix() + " Level=\"" + infoLog +
 		"\" Msg=\"" + fmt.Sprintf(format, args...) + "\"" + convertTags(tctx))
+	tctx.mtx.Unlock()
 }
 
 func Warning(tctx *TraceContext, args ...interface{}) {
+	tctx.mtx.Lock()
 	tctx.function = getFunc(0)
 	Logger.Print(timePrefix() + " Level=\"" + warningLog +
 		"\" Msg=\"" + fmt.Sprint(args...) + "\"" + convertTags(tctx))
+	tctx.mtx.Unlock()
 }
 
 func Warningf(tctx *TraceContext, format string, args ...interface{}) {
+	tctx.mtx.Lock()
 	tctx.function = getFunc(0)
 	Logger.Print(timePrefix() + " Level=\"" + warningLog +
 		"\" Msg=\"" + fmt.Sprintf(format, args...) + "\"" + convertTags(tctx))
+	tctx.mtx.Unlock()
 }
 
 func Error(tctx *TraceContext, err error, args ...interface{}) {
+	tctx.mtx.Lock()
 	tctx.function = getFunc(0)
 	Logger.Print(timePrefix() + " Level=\"" + errorLog +
 		"\" Err=\"" + err.Error() + "\" Msg=\"" + fmt.Sprint(args...) + "\"" + convertTags(tctx))
+	tctx.mtx.Unlock()
 }
 
 func Errorf(tctx *TraceContext, err error, format string, args ...interface{}) {
+	tctx.mtx.Lock()
 	tctx.function = getFunc(0)
 	Logger.Print(timePrefix() + " Level=\"" + errorLog +
 		"\" Err=\"" + err.Error() + "\" Msg=\"" + fmt.Sprintf(format, args...) + "\"" + convertTags(tctx))
+	tctx.mtx.Unlock()
 }
 
 func StartTrace(tctx *TraceContext) time.Time {
 	startTime := time.Now()
 	tctx.mtx.Lock()
 	tctx.function = getFunc(0)
-	tctx.mtx.Unlock()
-	Info(tctx, "StartTrace")
 	Logger.Print(timePrefix() + " Level=\"" + infoLog + "\" Msg=\"StartTrace\"" + convertTags(tctx))
+	tctx.mtx.Unlock()
 	return startTime
 }
 
@@ -247,12 +262,12 @@ func EndTrace(tctx *TraceContext, startTime time.Time, err error, depth int) {
 	tctx.mtx.Lock()
 	tctx.function = getFunc(depth)
 	tctx.metadata["Latency"] = strconv.FormatInt(time.Now().Sub(startTime).Nanoseconds()/1000000, 10)
-	tctx.mtx.Unlock()
 	if err != nil {
 		Logger.Print(timePrefix() + " Level=\"" + errorLog + "\" Msg=\"EndTrace\" Err=\"" + err.Error() + "\"" + convertTags(tctx))
 	} else {
 		Logger.Print(timePrefix() + " Level=\"" + infoLog + "\" Msg=\"EndTrace\"" + convertTags(tctx))
 	}
+	tctx.mtx.Unlock()
 }
 
 func EndGrpcTrace(tctx *TraceContext, startTime time.Time, statusCode int64, err string) {
@@ -260,10 +275,10 @@ func EndGrpcTrace(tctx *TraceContext, startTime time.Time, statusCode int64, err
 	tctx.function = getFunc(0)
 	tctx.metadata["Latency"] = strconv.FormatInt(time.Now().Sub(startTime).Nanoseconds()/1000000, 10)
 	tctx.metadata["StatusCode"] = strconv.FormatInt(statusCode, 10)
-	tctx.mtx.Unlock()
 	if err != "" {
 		Logger.Print(timePrefix() + " Level=\"" + errorLog + "\" Msg=\"EndTrace\"" + convertTags(tctx))
 	} else {
 		Logger.Print(timePrefix() + " Level=\"" + infoLog + "\" Msg=\"EndTrace\"" + convertTags(tctx))
 	}
+	tctx.mtx.Unlock()
 }

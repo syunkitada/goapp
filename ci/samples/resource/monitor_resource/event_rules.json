@@ -1,0 +1,66 @@
+{
+  "Kind": "EventRule",
+  "Spec": {
+    "Cluster": "tokyo1",
+    "Name": "sample-filter01",
+    "Kind": "Filter",
+    "Node": "",
+    "Msg": "",
+    "Check": "",
+    "Level": "",
+    "Until": "2020-12-26T00:00:00+09:00"
+  }
+}
+
+---
+
+{
+  "Kind": "EventRule",
+  "Spec": {
+    "Cluster": "tokyo1",
+    "Name": "sample-ignore01",
+    "Kind": "Ignore",
+    "Node": "",
+    "Msg": "",
+    "Check": "",
+    "Level": "",
+    "Until": "2020-12-26T00:00:00+09:00"
+  }
+}
+
+---
+
+{
+  "Kind": "EventRule",
+  "Spec": {
+    "Cluster": "tokyo1",
+    "Name": "sample-aggregate01",
+    "Kind": "Aggregate",
+    "Node": "",
+    "Msg": "",
+    "Check": "",
+    "Level": "",
+    "Spec": {
+        "AggregateNode": true,
+        "Priority": 2
+    }
+  }
+}
+
+---
+
+{
+  "Kind": "EventRule",
+  "Spec": {
+    "Cluster": "tokyo1",
+    "Name": "sample-handler01",
+    "Kind": "Handler",
+    "Node": ".*",
+    "Msg": "",
+    "Check": "",
+    "Level": "",
+    "Spec": {
+        "Handlers": ["Mail"]
+    }
+  }
+}

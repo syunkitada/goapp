@@ -121,6 +121,20 @@ type GetComputesResult struct {
 	Error string
 	Data  spec.GetComputesData
 }
+type GetEventRuleResponse struct {
+	base_model.Response
+	ResultMap GetEventRuleResultMap
+}
+
+type GetEventRuleResultMap struct {
+	GetEventRule GetEventRuleResult
+}
+
+type GetEventRuleResult struct {
+	Code  uint8
+	Error string
+	Data  spec.GetEventRuleData
+}
 type GetEventRulesResponse struct {
 	base_model.Response
 	ResultMap GetEventRulesResultMap
@@ -515,6 +529,36 @@ func (client *Client) ResourceVirtualAdminGetEvents(tctx *logger.TraceContext, q
 	data = &result.Data
 	return
 }
+func (client *Client) ResourceVirtualAdminGetEventRule(tctx *logger.TraceContext, queries []base_client.Query) (data *spec.GetEventRuleData, err error) {
+	var res GetEventRuleResponse
+	err = client.Request(tctx, "ResourceVirtualAdmin", queries, &res, true)
+	if err != nil {
+		return
+	}
+	result := res.ResultMap.GetEventRule
+	if result.Code >= 100 || result.Error != "" {
+		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
+		return
+	}
+
+	data = &result.Data
+	return
+}
+func (client *Client) ResourceVirtualAdminGetEventRules(tctx *logger.TraceContext, queries []base_client.Query) (data *spec.GetEventRulesData, err error) {
+	var res GetEventRulesResponse
+	err = client.Request(tctx, "ResourceVirtualAdmin", queries, &res, true)
+	if err != nil {
+		return
+	}
+	result := res.ResultMap.GetEventRules
+	if result.Code >= 100 || result.Error != "" {
+		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
+		return
+	}
+
+	data = &result.Data
+	return
+}
 func (client *Client) ResourceVirtualAdminCreateEventRules(tctx *logger.TraceContext, queries []base_client.Query) (data *spec.CreateEventRulesData, err error) {
 	var res CreateEventRulesResponse
 	err = client.Request(tctx, "ResourceVirtualAdmin", queries, &res, true)
@@ -552,21 +596,6 @@ func (client *Client) ResourceVirtualAdminDeleteEventRules(tctx *logger.TraceCon
 		return
 	}
 	result := res.ResultMap.DeleteEventRules
-	if result.Code >= 100 || result.Error != "" {
-		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
-		return
-	}
-
-	data = &result.Data
-	return
-}
-func (client *Client) ResourceVirtualAdminGetEventRules(tctx *logger.TraceContext, queries []base_client.Query) (data *spec.GetEventRulesData, err error) {
-	var res GetEventRulesResponse
-	err = client.Request(tctx, "ResourceVirtualAdmin", queries, &res, true)
-	if err != nil {
-		return
-	}
-	result := res.ResultMap.GetEventRules
 	if result.Code >= 100 || result.Error != "" {
 		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
 		return

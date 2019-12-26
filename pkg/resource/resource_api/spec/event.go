@@ -49,36 +49,69 @@ type GetIssuedEventsData struct {
 }
 
 type CreateEventRules struct {
-	Spec string `validate:"required" flagKind:"file"`
+	Cluster string `validate:"required"`
+	Specs   string `validate:"required" flagKind:"file"`
 }
 
 type CreateEventRulesData struct{}
 
 type UpdateEventRules struct {
-	Spec string `validate:"required" flagKind:"file"`
+	Cluster string `validate:"required"`
+	Specs   string `validate:"required" flagKind:"file"`
 }
 
 type UpdateEventRulesData struct{}
 
 type DeleteEventRules struct {
-	Spec string `validate:"required" flagKind:"file"`
+	Cluster string `validate:"required"`
+	Specs   string `validate:"required" flagKind:"file"`
 }
 
 type DeleteEventRulesData struct{}
+
+type GetEventRule struct {
+	Cluster string `validate:"required"`
+	Name    string
+}
+
+type GetEventRuleData struct {
+	EventRule EventRule
+}
 
 type GetEventRules struct {
 	Cluster string `validate:"required"`
 }
 
 type EventRule struct {
-	Node  string
-	Name  string
-	Kind  string // Ignore, Aggregation
-	Until time.Time
+	Project string
+	Node    string
+	Name    string
+	Msg     string
+	Check   string
+	Level   string
+	Kind    string // Filter, Ignore, Aggregate, Handler
+	Until   *time.Time
+	Spec    interface{}
 }
 
 type GetEventRulesData struct {
 	EventRules []EventRule
+}
+
+type EventRuleFilterSpec struct {
+}
+
+type EventRuleIgnoreSpec struct {
+}
+
+type EventRuleAggregateSpec struct {
+	AggregateNode  bool
+	AggregateCheck bool
+	Priority       int
+}
+
+type EventRuleHandlerSpec struct {
+	Handlers []string // Mail,Hook
 }
 
 var EventsTable = index_model.Table{
@@ -139,8 +172,10 @@ var EventRulesTable = index_model.Table{
 		index_model.TableColumn{
 			Name: "Name", IsSearch: true,
 		},
-		index_model.TableColumn{Name: "Host"},
 		index_model.TableColumn{Name: "Kind"},
+		index_model.TableColumn{Name: "Node"},
+		index_model.TableColumn{Name: "Check"},
+		index_model.TableColumn{Name: "Msg"},
 		index_model.TableColumn{Name: "Until", Kind: "Time"},
 	},
 }

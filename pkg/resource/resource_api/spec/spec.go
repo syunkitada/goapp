@@ -174,6 +174,8 @@ var Spec = spec_model.Spec{
 				spec_model.QueryModel{Req: GetTrace{}, Rep: GetTraceData{}},
 
 				spec_model.QueryModel{Req: GetEvents{}, Rep: GetEventsData{}},
+
+				spec_model.QueryModel{Req: GetEventRule{}, Rep: GetEventRuleData{}},
 				spec_model.QueryModel{Req: GetEventRules{}, Rep: GetEventRulesData{}},
 				spec_model.QueryModel{Req: CreateEventRules{}, Rep: CreateEventRulesData{}},
 				spec_model.QueryModel{Req: UpdateEventRules{}, Rep: UpdateEventRulesData{}},

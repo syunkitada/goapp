@@ -284,37 +284,18 @@ var ResourceVirtualAdminCmdMap = map[string]index_model.Cmd{
 		OutputKind:   "table",
 		OutputFormat: "Check,Level,Project,Node,Msg,ReissueDuration,Ignored,Time",
 	},
-	"create.event.rules": index_model.Cmd{
-		QueryName: "CreateEventRules",
+	"get.event.rule": index_model.Cmd{
+		QueryName: "GetEventRule",
 		FlagMap: map[string]index_model.Flag{
-			"spec,s": index_model.Flag{
+			"cluster,c": index_model.Flag{
 				Required: true,
 				FlagType: "string",
-				FlagKind: "file",
+				FlagKind: "",
 			},
-		},
-		OutputKind:   "",
-		OutputFormat: "",
-	},
-	"update.event.rules": index_model.Cmd{
-		QueryName: "UpdateEventRules",
-		FlagMap: map[string]index_model.Flag{
-			"spec,s": index_model.Flag{
-				Required: true,
+			"name,n": index_model.Flag{
+				Required: false,
 				FlagType: "string",
-				FlagKind: "file",
-			},
-		},
-		OutputKind:   "",
-		OutputFormat: "",
-	},
-	"delete.event.rules": index_model.Cmd{
-		QueryName: "DeleteEventRules",
-		FlagMap: map[string]index_model.Flag{
-			"spec,s": index_model.Flag{
-				Required: true,
-				FlagType: "string",
-				FlagKind: "file",
+				FlagKind: "",
 			},
 		},
 		OutputKind:   "",
@@ -330,7 +311,58 @@ var ResourceVirtualAdminCmdMap = map[string]index_model.Cmd{
 			},
 		},
 		OutputKind:   "table",
-		OutputFormat: "Node,Name,Kind,Until",
+		OutputFormat: "Project,Node,Name,Msg,Check,Level,Kind,Until,Spec",
+	},
+	"create.event.rules": index_model.Cmd{
+		QueryName: "CreateEventRules",
+		FlagMap: map[string]index_model.Flag{
+			"cluster,c": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+			"specs,s": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "file",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
+	"update.event.rules": index_model.Cmd{
+		QueryName: "UpdateEventRules",
+		FlagMap: map[string]index_model.Flag{
+			"cluster,c": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+			"specs,s": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "file",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
+	"delete.event.rules": index_model.Cmd{
+		QueryName: "DeleteEventRules",
+		FlagMap: map[string]index_model.Flag{
+			"cluster,c": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+			"specs,s": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "file",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
 	},
 }
 
@@ -400,6 +432,14 @@ var ApiQueryMap = map[string]map[string]spec_model.QueryModel{
 			RequiredAuth:    true,
 			RequiredProject: true,
 		},
+		"GetEventRule": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"GetEventRules": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
 		"CreateEventRules": spec_model.QueryModel{
 			RequiredAuth:    true,
 			RequiredProject: true,
@@ -409,10 +449,6 @@ var ApiQueryMap = map[string]map[string]spec_model.QueryModel{
 			RequiredProject: true,
 		},
 		"DeleteEventRules": spec_model.QueryModel{
-			RequiredAuth:    true,
-			RequiredProject: true,
-		},
-		"GetEventRules": spec_model.QueryModel{
 			RequiredAuth:    true,
 			RequiredProject: true,
 		},

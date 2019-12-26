@@ -1,8 +1,10 @@
 package resolver
 
 import (
+	"encoding/json"
 	"fmt"
 
+	"github.com/jinzhu/gorm"
 	"github.com/syunkitada/goapp/pkg/base/base_const"
 	"github.com/syunkitada/goapp/pkg/base/base_spec"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
@@ -95,46 +97,100 @@ func (resolver *Resolver) GetEvents(tctx *logger.TraceContext, input *api_spec.G
 	return
 }
 
-func (resolver *Resolver) CreateEventRules(tctx *logger.TraceContext, input *api_spec.CreateEventRules, user *base_spec.UserAuthority) (data *api_spec.CreateEventRulesData, code uint8, err error) {
-	fmt.Println("DEBUG CreateEventRules")
-	// data, err = resolver.tsdbApi.CreateEventRules(tctx, input)
-	// if err != nil {
-	// 	code = base_const.CodeServerInternalError
-	// 	return
-	// }
+func (resolver *Resolver) GetEventRule(tctx *logger.TraceContext, input *api_spec.GetEventRule, user *base_spec.UserAuthority) (data *api_spec.GetEventRuleData, code uint8, err error) {
+	fmt.Println("DEBUG GetEventRule")
+	var eventRule *spec.EventRule
+	if eventRule, err = resolver.dbApi.GetEventRule(tctx, input, user); err != nil {
+		if gorm.IsRecordNotFoundError(err) {
+			code = base_const.CodeOkNotFound
+			return
+		}
+		code = base_const.CodeServerInternalError
+		return
+	}
 	code = base_const.CodeOk
-	return
-}
-
-func (resolver *Resolver) UpdateEventRules(tctx *logger.TraceContext, input *api_spec.UpdateEventRules, user *base_spec.UserAuthority) (data *api_spec.UpdateEventRulesData, code uint8, err error) {
-	fmt.Println("DEBUG UpdateEventRules")
-	// data, err = resolver.tsdbApi.UpdateEventRules(tctx, input)
-	// if err != nil {
-	// 	code = base_const.CodeServerInternalError
-	// 	return
-	// }
-	code = base_const.CodeOk
-	return
-}
-
-func (resolver *Resolver) DeleteEventRules(tctx *logger.TraceContext, input *api_spec.DeleteEventRules, user *base_spec.UserAuthority) (data *api_spec.DeleteEventRulesData, code uint8, err error) {
-	fmt.Println("DEBUG DeleteEventRules")
-	// data, err = resolver.tsdbApi.DeleteEventRules(tctx, input)
-	// if err != nil {
-	// 	code = base_const.CodeServerInternalError
-	// 	return
-	// }
-	code = base_const.CodeOk
+	data = &spec.GetEventRuleData{EventRule: *eventRule}
 	return
 }
 
 func (resolver *Resolver) GetEventRules(tctx *logger.TraceContext, input *api_spec.GetEventRules, user *base_spec.UserAuthority) (data *api_spec.GetEventRulesData, code uint8, err error) {
-	fmt.Println("DEBUG GetEventRules")
-	// data, err = resolver.tsdbApi.GetEventRules(tctx, input)
-	// if err != nil {
-	// 	code = base_const.CodeServerInternalError
-	// 	return
-	// }
+	var eventRules []spec.EventRule
+	if eventRules, err = resolver.dbApi.GetEventRules(tctx, input, user); err != nil {
+		code = base_const.CodeServerInternalError
+		return
+	}
 	code = base_const.CodeOk
+	data = &spec.GetEventRulesData{EventRules: eventRules}
+	return
+}
+
+func (resolver *Resolver) CreateEventRules(tctx *logger.TraceContext, input *api_spec.CreateEventRules, user *base_spec.UserAuthority) (data *api_spec.CreateEventRulesData, code uint8, err error) {
+	var specs []spec.EventRule
+	if specs, err = resolver.ConvertToEventRuleSpecs(input.Specs); err != nil {
+		code = base_const.CodeClientBadRequest
+		return
+	}
+	if err = resolver.dbApi.CreateEventRules(tctx, specs, user); err != nil {
+		code = base_const.CodeServerInternalError
+		return
+	}
+	code = base_const.CodeOkCreated
+	data = &spec.CreateEventRulesData{}
+	return
+}
+
+func (resolver *Resolver) UpdateEventRules(tctx *logger.TraceContext, input *api_spec.UpdateEventRules, user *base_spec.UserAuthority) (data *api_spec.UpdateEventRulesData, code uint8, err error) {
+	var specs []spec.EventRule
+	if specs, err = resolver.ConvertToEventRuleSpecs(input.Specs); err != nil {
+		code = base_const.CodeClientBadRequest
+		return
+	}
+	if err = resolver.dbApi.UpdateEventRules(tctx, specs, user); err != nil {
+		code = base_const.CodeServerInternalError
+		return
+	}
+	code = base_const.CodeOkUpdated
+	data = &spec.UpdateEventRulesData{}
+	return
+}
+
+func (resolver *Resolver) DeleteEventRules(tctx *logger.TraceContext, input *api_spec.DeleteEventRules, user *base_spec.UserAuthority) (data *api_spec.DeleteEventRulesData, code uint8, err error) {
+	var specs []spec.EventRule
+	if specs, err = resolver.ConvertToEventRuleSpecs(input.Specs); err != nil {
+		code = base_const.CodeClientBadRequest
+		return
+	}
+	if err = resolver.dbApi.DeleteEventRules(tctx, specs, user); err != nil {
+		code = base_const.CodeServerInternalError
+		return
+	}
+	code = base_const.CodeOkDeleted
+	data = &spec.DeleteEventRulesData{}
+	return
+}
+
+func (resolver *Resolver) ConvertToEventRuleSpecs(specsStr string) (specs []api_spec.EventRule, err error) {
+	var baseSpecs []base_spec.Spec
+	if err = json.Unmarshal([]byte(specsStr), &baseSpecs); err != nil {
+		return
+	}
+
+	for _, base := range baseSpecs {
+		if base.Kind != "EventRule" {
+			continue
+		}
+		var specBytes []byte
+		if specBytes, err = json.Marshal(base.Spec); err != nil {
+			return
+		}
+		var specData spec.EventRule
+		if err = json.Unmarshal(specBytes, &specData); err != nil {
+			return
+		}
+		if err = resolver.Validate.Struct(&specData); err != nil {
+			return
+		}
+		specs = append(specs, specData)
+	}
 	return
 }

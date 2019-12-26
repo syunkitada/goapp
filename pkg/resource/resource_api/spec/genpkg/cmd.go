@@ -1486,6 +1486,23 @@ var ResourceMonitorCmdMap = map[string]index_model.Cmd{
 		OutputKind:   "table",
 		OutputFormat: "Check,Level,Project,Node,Msg,ReissueDuration,Ignored,Time",
 	},
+	"get.event.rule": index_model.Cmd{
+		QueryName: "GetEventRule",
+		FlagMap: map[string]index_model.Flag{
+			"cluster,c": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+			"name,n": index_model.Flag{
+				Required: false,
+				FlagType: "string",
+				FlagKind: "",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
 	"get.event.rules": index_model.Cmd{
 		QueryName: "GetEventRules",
 		FlagMap: map[string]index_model.Flag{
@@ -1496,12 +1513,17 @@ var ResourceMonitorCmdMap = map[string]index_model.Cmd{
 			},
 		},
 		OutputKind:   "table",
-		OutputFormat: "Node,Name,Kind,Until",
+		OutputFormat: "Project,Node,Name,Msg,Check,Level,Kind,Until,Spec",
 	},
 	"create.event.rules": index_model.Cmd{
 		QueryName: "CreateEventRules",
 		FlagMap: map[string]index_model.Flag{
-			"spec,s": index_model.Flag{
+			"cluster,c": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+			"specs,s": index_model.Flag{
 				Required: true,
 				FlagType: "string",
 				FlagKind: "file",
@@ -1513,7 +1535,12 @@ var ResourceMonitorCmdMap = map[string]index_model.Cmd{
 	"update.event.rules": index_model.Cmd{
 		QueryName: "UpdateEventRules",
 		FlagMap: map[string]index_model.Flag{
-			"spec,s": index_model.Flag{
+			"cluster,c": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+			"specs,s": index_model.Flag{
 				Required: true,
 				FlagType: "string",
 				FlagKind: "file",
@@ -1525,7 +1552,12 @@ var ResourceMonitorCmdMap = map[string]index_model.Cmd{
 	"delete.event.rules": index_model.Cmd{
 		QueryName: "DeleteEventRules",
 		FlagMap: map[string]index_model.Flag{
-			"spec,s": index_model.Flag{
+			"cluster,c": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+			"specs,s": index_model.Flag{
 				Required: true,
 				FlagType: "string",
 				FlagKind: "file",
@@ -1987,6 +2019,10 @@ var ApiQueryMap = map[string]map[string]spec_model.QueryModel{
 			RequiredProject: true,
 		},
 		"GetEvents": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"GetEventRule": spec_model.QueryModel{
 			RequiredAuth:    true,
 			RequiredProject: true,
 		},

@@ -527,6 +527,20 @@ type GetDatacentersResult struct {
 	Error string
 	Data  spec.GetDatacentersData
 }
+type GetEventRuleResponse struct {
+	base_model.Response
+	ResultMap GetEventRuleResultMap
+}
+
+type GetEventRuleResultMap struct {
+	GetEventRule GetEventRuleResult
+}
+
+type GetEventRuleResult struct {
+	Code  uint8
+	Error string
+	Data  spec.GetEventRuleData
+}
 type GetEventRulesResponse struct {
 	base_model.Response
 	ResultMap GetEventRulesResultMap
@@ -2674,6 +2688,21 @@ func (client *Client) ResourceMonitorGetEvents(tctx *logger.TraceContext, querie
 		return
 	}
 	result := res.ResultMap.GetEvents
+	if result.Code >= 100 || result.Error != "" {
+		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
+		return
+	}
+
+	data = &result.Data
+	return
+}
+func (client *Client) ResourceMonitorGetEventRule(tctx *logger.TraceContext, queries []base_client.Query) (data *spec.GetEventRuleData, err error) {
+	var res GetEventRuleResponse
+	err = client.Request(tctx, "ResourceMonitor", queries, &res, true)
+	if err != nil {
+		return
+	}
+	result := res.ResultMap.GetEventRule
 	if result.Code >= 100 || result.Error != "" {
 		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
 		return
