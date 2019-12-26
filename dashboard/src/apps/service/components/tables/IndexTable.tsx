@@ -176,11 +176,15 @@ class IndexTable extends React.Component<IIndexTable> {
       for (const column of columns) {
         const c = d[column.Name];
         if (column.Kind === 'Time') {
-          const time: any = new Date(c);
-          if (!isNaN(time.getTime())) {
-            row.push(time.toISOString());
+          if (c) {
+            const time: any = new Date(c);
+            if (!isNaN(time.getTime())) {
+              row.push(time.toISOString());
+            } else {
+              row.push(time.toString());
+            }
           } else {
-            row.push(time.toString());
+            row.push('');
           }
         } else if (column.Kind === 'Action') {
           row.push('');
