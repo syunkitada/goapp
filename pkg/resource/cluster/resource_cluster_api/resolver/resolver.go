@@ -3,10 +3,12 @@ package resolver
 import (
 	"github.com/syunkitada/goapp/pkg/base/base_config"
 	"github.com/syunkitada/goapp/pkg/base/base_resolver"
+	"github.com/syunkitada/goapp/pkg/lib/logger"
 
 	"github.com/syunkitada/goapp/pkg/resource/cluster/db_api"
 	"github.com/syunkitada/goapp/pkg/resource/cluster/tsdb_api"
 	"github.com/syunkitada/goapp/pkg/resource/config"
+	"github.com/syunkitada/goapp/pkg/resource/db_model"
 )
 
 type Resolver struct {
@@ -23,4 +25,8 @@ func New(baseConf *base_config.Config, clusterConf *config.ResourceClusterConfig
 		dbApi:    dbApi,
 		tsdbApi:  tsdb_api.New(baseConf, clusterConf),
 	}
+}
+
+func (resolver *Resolver) SetFilterEventRules(tctx *logger.TraceContext, eventRules []db_model.EventRule) {
+	resolver.tsdbApi.SetFilterEventRules(tctx, eventRules)
 }

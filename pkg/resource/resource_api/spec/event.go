@@ -31,7 +31,7 @@ type Event struct {
 	Node            string
 	Msg             string
 	ReissueDuration int
-	Ignored         int
+	Silenced        int
 	Time            time.Time
 }
 
@@ -89,7 +89,7 @@ type EventRule struct {
 	Msg     string
 	Check   string
 	Level   string
-	Kind    string // Filter, Ignore, Aggregate, Handler
+	Kind    string // Filter, Silence, Aggregate, Action
 	Until   *time.Time
 	Spec    interface{}
 }
@@ -101,7 +101,7 @@ type GetEventRulesData struct {
 type EventRuleFilterSpec struct {
 }
 
-type EventRuleIgnoreSpec struct {
+type EventRuleSilenceSpec struct {
 }
 
 type EventRuleAggregateSpec struct {
@@ -110,8 +110,10 @@ type EventRuleAggregateSpec struct {
 	Priority       int
 }
 
-type EventRuleHandlerSpec struct {
-	Handlers []string // Mail,Hook
+type EventRuleActionSpec struct {
+	Actions      []string
+	Priority     int
+	ContinueNext bool
 }
 
 var EventsTable = index_model.Table{

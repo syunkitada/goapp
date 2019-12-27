@@ -19,7 +19,7 @@
   "Spec": {
     "Cluster": "tokyo1",
     "Name": "sample-ignore01",
-    "Kind": "Ignore",
+    "Kind": "Silence",
     "Node": "",
     "Msg": "",
     "Check": "",
@@ -54,7 +54,7 @@
   "Spec": {
     "Cluster": "tokyo1",
     "Name": "sample-handler01",
-    "Kind": "Handler",
+    "Kind": "Action",
     "Node": ".*",
     "Msg": "",
     "Check": "",

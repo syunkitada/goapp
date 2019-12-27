@@ -281,7 +281,7 @@ func (resolver *Resolver) GetServiceDashboardIndex(tctx *logger.TraceContext,
 							Route:            "/Clusters/:Cluster/Resources/:Kind",
 							TabParam:         "Kind",
 							GetQueries:       []string{"GetEvents", "GetEventRules", "GetNodes", "GetLogParams", "GetLogs"},
-							ExpectedDataKeys: []string{"Events", "EventIgnoreRules", "Nodes", "Logs"},
+							ExpectedDataKeys: []string{"Events", "EventSilenceRules", "Nodes", "Logs"},
 							IsSync:           true,
 							Tabs: []interface{}{
 								spec.EventsTable,

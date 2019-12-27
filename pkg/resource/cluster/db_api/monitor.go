@@ -1,7 +1,9 @@
 package db_api
 
 import (
+	"encoding/json"
 	"fmt"
+	"regexp"
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -12,8 +14,87 @@ import (
 	api_spec "github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
 )
 
+type EventRule struct {
+	ReNode         *regexp.Regexp
+	ReMsg          *regexp.Regexp
+	ReCheck        *regexp.Regexp
+	ReLevel        *regexp.Regexp
+	Until          *time.Time
+	AggregateNode  bool
+	AggregateCheck bool
+	Priority       int
+	Actions        []string
+	ContinueNext   bool
+}
+
 func (api *Api) MonitorEvents(tctx *logger.TraceContext) (err error) {
 	fmt.Println("MonitorEvents")
+	var eventRules []db_model.EventRule
+	eventRules, err = api.GetControllerEventRules(tctx)
+	if err != nil {
+		return
+	}
+
+	var silenceEventRules []EventRule
+	var aggregateEventRules []EventRule
+	var actionEventRules []EventRule
+	for _, eventRule := range eventRules {
+		rule := EventRule{}
+		if eventRule.Node != "" {
+			re, tmpErr := regexp.Compile(eventRule.Node)
+			if tmpErr != nil {
+				logger.Errorf(tctx, tmpErr, "Failed compile rule: %s", eventRule.Node)
+			}
+			rule.ReNode = re
+		}
+		if eventRule.Check != "" {
+			re, tmpErr := regexp.Compile(eventRule.Check)
+			if tmpErr != nil {
+				logger.Errorf(tctx, tmpErr, "Failed compile rule: %s", eventRule.Check)
+			}
+			rule.ReCheck = re
+		}
+		if eventRule.Msg != "" {
+			re, tmpErr := regexp.Compile(eventRule.Msg)
+			if tmpErr != nil {
+				logger.Errorf(tctx, tmpErr, "Failed compile rule: %s", eventRule.Msg)
+			}
+			rule.ReMsg = re
+		}
+		if eventRule.Level != "" {
+			re, tmpErr := regexp.Compile(eventRule.Level)
+			if tmpErr != nil {
+				logger.Errorf(tctx, tmpErr, "Failed compile rule: %s", eventRule.Level)
+			}
+			rule.ReLevel = re
+		}
+
+		switch eventRule.Kind {
+		case "Silence":
+			silenceEventRules = append(silenceEventRules, rule)
+		case "Aggregate":
+			var spec api_spec.EventRuleAggregateSpec
+			if tmpErr := json.Unmarshal([]byte(eventRule.Spec), &spec); tmpErr != nil {
+				logger.Errorf(tctx, tmpErr, "Failed Unmarshal")
+				continue
+			}
+			rule.AggregateNode = spec.AggregateNode
+			rule.AggregateCheck = spec.AggregateCheck
+			rule.Priority = spec.Priority
+			aggregateEventRules = append(aggregateEventRules, rule)
+		case "Action":
+			var spec api_spec.EventRuleActionSpec
+			if tmpErr := json.Unmarshal([]byte(eventRule.Spec), &spec); tmpErr != nil {
+				logger.Errorf(tctx, tmpErr, "Failed Unmarshal")
+				continue
+			}
+			rule.Actions = spec.Actions
+			rule.ContinueNext = spec.ContinueNext
+			rule.Priority = spec.Priority
+			actionEventRules = append(actionEventRules, rule)
+		}
+	}
+
 	var getEventsData *api_spec.GetEventsData
 	var getIssuedEventsData *api_spec.GetIssuedEventsData
 	getEventsData, err = api.tsdbApi.GetEvents(tctx, &api_spec.GetEvents{})
@@ -32,8 +113,14 @@ func (api *Api) MonitorEvents(tctx *logger.TraceContext) (err error) {
 		issuedEventMap[key] = event
 	}
 
-	// TODO Ignore Events
+	nodeEventsMap := map[string][]api_spec.Event{}
+	checkEventsMap := map[string][]api_spec.Event{}
+	nonAggregatedEvents := []api_spec.Event{}
 
+	silenceEvent := false
+	aggregateEvent := false
+	aggregateNode := false
+	aggregateCheck := false
 	for _, event := range getEventsData.Events {
 		key := event.Node + "@" + event.Check
 		issuedEvent, ok := issuedEventMap[key]
@@ -45,12 +132,221 @@ func (api *Api) MonitorEvents(tctx *logger.TraceContext) (err error) {
 				}
 			}
 		}
-		if tmpErr := api.tsdbApi.IssueEvent(tctx, &api_spec.IssueEvent{Event: event}); tmpErr != nil {
-			logger.Warningf(tctx, "Failed IssueEvent: %s", tmpErr.Error())
+
+		silenceEvent = false
+		for _, rule := range silenceEventRules {
+			if rule.ReCheck != nil {
+				if rule.ReCheck.MatchString(event.Check) {
+					silenceEvent = true
+				}
+			}
+			if rule.ReNode != nil {
+				if rule.ReNode.MatchString(event.Node) {
+					silenceEvent = true
+				} else {
+					silenceEvent = false
+				}
+			}
+			if rule.ReMsg != nil {
+				if rule.ReMsg.MatchString(event.Msg) {
+					silenceEvent = true
+				} else {
+					silenceEvent = false
+				}
+			}
+			if silenceEvent {
+				break
+			}
+		}
+		if silenceEvent {
+			fmt.Println("DEBUG sileceneEvent", event.Node, event.Check)
+			event.Silenced = 1
+			if tmpErr := api.tsdbApi.IssueEvent(tctx, &api_spec.IssueEvent{Event: event}); tmpErr != nil {
+				logger.Warningf(tctx, "Failed IssueEvent: %s", tmpErr.Error())
+			}
+			continue
+		}
+
+		aggregateNode = false
+		aggregateCheck = false
+		for _, rule := range aggregateEventRules {
+			if rule.ReCheck == nil && rule.ReNode == nil && rule.ReMsg == nil {
+				aggregateEvent = true
+			} else {
+				if rule.ReCheck != nil {
+					if rule.ReCheck.MatchString(event.Check) {
+						aggregateEvent = true
+					}
+				}
+				if rule.ReNode != nil {
+					if rule.ReNode.MatchString(event.Node) {
+						aggregateEvent = true
+					} else {
+						aggregateEvent = false
+					}
+				}
+				if rule.ReMsg != nil {
+					if rule.ReMsg.MatchString(event.Msg) {
+						aggregateEvent = true
+					} else {
+						aggregateEvent = false
+					}
+				}
+			}
+			if aggregateEvent {
+				aggregateNode = rule.AggregateNode
+				aggregateCheck = rule.AggregateCheck
+				break
+			}
+		}
+		if aggregateNode {
+			events, ok := nodeEventsMap[event.Node]
+			if !ok {
+				events = []api_spec.Event{}
+			}
+			events = append(events, event)
+			nodeEventsMap[event.Node] = events
+		} else if aggregateCheck {
+			events, ok := checkEventsMap[event.Check]
+			if !ok {
+				events = []api_spec.Event{}
+			}
+			events = append(events, event)
+			checkEventsMap[event.Check] = events
+		} else {
+			nonAggregatedEvents = append(nonAggregatedEvents, event)
 		}
 	}
 
-	// TODO Handle Event Queue For Aggregation
+	actionEvent := false
+	for _, event := range nonAggregatedEvents {
+		for i, rule := range actionEventRules {
+			actionEvent = false
+			for _, rule := range actionEventRules {
+				if rule.ReCheck != nil {
+					if rule.ReCheck.MatchString(event.Check) {
+						actionEvent = true
+					}
+				}
+				if rule.ReNode != nil {
+					if rule.ReNode.MatchString(event.Node) {
+						actionEvent = true
+					} else {
+						actionEvent = false
+					}
+				}
+				if rule.ReMsg != nil {
+					if rule.ReMsg.MatchString(event.Msg) {
+						actionEvent = true
+					} else {
+						actionEvent = false
+					}
+				}
+				if actionEvent {
+					break
+				}
+			}
+			if actionEvent {
+				fmt.Println("Exec handler", rule.Actions, []api_spec.Event{event})
+			}
+			if !rule.ContinueNext || i == len(actionEventRules)-1 {
+				if tmpErr := api.tsdbApi.IssueEvent(tctx, &api_spec.IssueEvent{Event: event}); tmpErr != nil {
+					logger.Warningf(tctx, "Failed IssueEvent: %s", tmpErr.Error())
+				}
+				break
+			}
+		}
+	}
+
+	for node, events := range nodeEventsMap {
+		for i, rule := range actionEventRules {
+			actionEvent = false
+			for _, rule := range actionEventRules {
+				if rule.ReCheck != nil {
+					for _, event := range events {
+						if rule.ReCheck.MatchString(event.Check) {
+							actionEvent = true
+							break
+						}
+					}
+				}
+				if rule.ReNode != nil {
+					if rule.ReNode.MatchString(node) {
+						actionEvent = true
+					} else {
+						actionEvent = false
+					}
+				}
+				if rule.ReMsg != nil {
+					for _, event := range events {
+						if rule.ReMsg.MatchString(event.Msg) {
+							actionEvent = true
+							break
+						}
+					}
+				}
+				if actionEvent {
+					break
+				}
+			}
+			if actionEvent {
+				fmt.Println("Exec handler aggregated by node", rule.Actions, events)
+			}
+			if !rule.ContinueNext || i == len(actionEventRules)-1 {
+				for _, event := range events {
+					if tmpErr := api.tsdbApi.IssueEvent(tctx, &api_spec.IssueEvent{Event: event}); tmpErr != nil {
+						logger.Warningf(tctx, "Failed IssueEvent: %s", tmpErr.Error())
+					}
+				}
+				break
+			}
+		}
+	}
+
+	for check, events := range checkEventsMap {
+		for i, rule := range actionEventRules {
+			actionEvent = false
+			for _, rule := range actionEventRules {
+				if rule.ReCheck != nil {
+					if rule.ReCheck.MatchString(check) {
+						actionEvent = true
+					} else {
+						actionEvent = false
+					}
+				}
+				if rule.ReNode != nil {
+					for _, event := range events {
+						if rule.ReNode.MatchString(event.Node) {
+							actionEvent = true
+							break
+						}
+					}
+				}
+				if rule.ReMsg != nil {
+					for _, event := range events {
+						if rule.ReMsg.MatchString(event.Msg) {
+							actionEvent = true
+							break
+						}
+					}
+				}
+				if actionEvent {
+					break
+				}
+			}
+			if actionEvent {
+				fmt.Println("Exec handler aggregated by check", rule.Actions, events)
+			}
+			if !rule.ContinueNext || i == len(actionEventRules)-1 {
+				for _, event := range events {
+					if tmpErr := api.tsdbApi.IssueEvent(tctx, &api_spec.IssueEvent{Event: event}); tmpErr != nil {
+						logger.Warningf(tctx, "Failed IssueEvent: %s", tmpErr.Error())
+					}
+				}
+				break
+			}
+		}
+	}
 
 	return
 }
@@ -62,8 +358,20 @@ func (api *Api) GetEventRule(tctx *logger.TraceContext, input *api_spec.GetEvent
 }
 
 func (api *Api) GetEventRules(tctx *logger.TraceContext, input *api_spec.GetEventRules, user *base_spec.UserAuthority) (data []api_spec.EventRule, err error) {
-	err = api.DB.Debug().Table("event_rules").Select("name, kind, `check`, level, project, node, msg, until").
+	err = api.DB.Table("event_rules").Select("name, kind, `check`, level, project, node, msg, until").
 		Where("project = ? AND deleted_at IS NULL", user.ProjectName).Scan(&data).Error
+	return
+}
+
+func (api *Api) GetFilterEventRules(tctx *logger.TraceContext) (data []db_model.EventRule, err error) {
+	err = api.DB.Table("event_rules").Select("name, kind, `check`, level, project, node, msg, until").
+		Where("kind = ? AND deleted_at IS NULL", "Filter").Scan(&data).Error
+	return
+}
+
+func (api *Api) GetControllerEventRules(tctx *logger.TraceContext) (data []db_model.EventRule, err error) {
+	err = api.DB.Table("event_rules").Select("name, kind, `check`, level, project, node, msg, until").
+		Where("kind != ? AND deleted_at IS NULL", "Filter").Scan(&data).Error
 	return
 }
 

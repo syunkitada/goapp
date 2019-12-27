@@ -3,6 +3,7 @@ package server
 import (
 	"github.com/syunkitada/goapp/pkg/base/base_client"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
+	"github.com/syunkitada/goapp/pkg/resource/db_model"
 	"github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
 	resource_api_spec "github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
 )
@@ -18,6 +19,10 @@ func (srv *Server) MainTask(tctx *logger.TraceContext) (err error) {
 	}
 
 	if err = srv.SyncCluster(tctx); err != nil {
+		return
+	}
+
+	if err = srv.SyncEventRules(tctx); err != nil {
 		return
 	}
 
@@ -50,5 +55,14 @@ func (srv *Server) SyncCluster(tctx *logger.TraceContext) (err error) {
 		return
 	}
 
+	return
+}
+
+func (srv *Server) SyncEventRules(tctx *logger.TraceContext) (err error) {
+	var eventRules []db_model.EventRule
+	if eventRules, err = srv.dbApi.GetFilterEventRules(tctx); err != nil {
+		return
+	}
+	srv.resolver.SetFilterEventRules(tctx, eventRules)
 	return
 }

@@ -282,7 +282,7 @@ var ResourceVirtualAdminCmdMap = map[string]index_model.Cmd{
 			},
 		},
 		OutputKind:   "table",
-		OutputFormat: "Check,Level,Project,Node,Msg,ReissueDuration,Ignored,Time",
+		OutputFormat: "Check,Level,Project,Node,Msg,ReissueDuration,Silenced,Time",
 	},
 	"get.event.rule": index_model.Cmd{
 		QueryName: "GetEventRule",

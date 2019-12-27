@@ -5,6 +5,7 @@ import (
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/resource/cluster/tsdb_api/drivers"
 	"github.com/syunkitada/goapp/pkg/resource/config"
+	"github.com/syunkitada/goapp/pkg/resource/db_model"
 	api_spec "github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
 )
 
@@ -26,6 +27,10 @@ func New(baseConf *base_config.Config, clusterConf *config.ResourceClusterConfig
 	}
 
 	return &api
+}
+
+func (api *Api) SetFilterEventRules(tctx *logger.TraceContext, eventRules []db_model.EventRule) {
+	api.driver.SetFilterEventRules(tctx, eventRules)
 }
 
 func (api *Api) ReportNode(tctx *logger.TraceContext, input *api_spec.ReportNode) error {

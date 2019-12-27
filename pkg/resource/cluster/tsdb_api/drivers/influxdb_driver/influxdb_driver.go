@@ -6,21 +6,34 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/resource/config"
+	"github.com/syunkitada/goapp/pkg/resource/db_model"
 	"github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
 	api_spec "github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
 )
 
+type FilterEventRule struct {
+	ReNode  *regexp.Regexp
+	ReMsg   *regexp.Regexp
+	ReCheck *regexp.Regexp
+	ReLevel *regexp.Regexp
+	Until   *time.Time
+}
+
 type InfluxdbDriver struct {
-	clusterConf   *config.ResourceClusterConfig
-	eventClients  []*Client
-	logClients    []*Client
-	metricClients []*Client
+	clusterConf      *config.ResourceClusterConfig
+	eventClients     []*Client
+	logClients       []*Client
+	metricClients    []*Client
+	mtx              *sync.Mutex
+	filterEventRules []FilterEventRule
 }
 
 func New(clusterConf *config.ResourceClusterConfig) *InfluxdbDriver {
@@ -58,7 +71,56 @@ func New(clusterConf *config.ResourceClusterConfig) *InfluxdbDriver {
 		eventClients:  eventClients,
 		logClients:    logClients,
 		metricClients: metricClients,
+		mtx:           new(sync.Mutex),
 	}
+}
+
+func (driver *InfluxdbDriver) SetFilterEventRules(tctx *logger.TraceContext, eventRules []db_model.EventRule) {
+	// Project string     `gorm:"not null;size:50;"`
+	// Node    string     `gorm:"not null;size:255;"`
+	// Msg     string     `gorm:"not null;size:255;"`
+	// Check   string     `gorm:"not null;size:255;"`
+	// Level   string     `gorm:"not null;size:50;"`
+	// Until   *time.Time `gorm:""`
+
+	var filterEventRules []FilterEventRule
+	for _, rule := range eventRules {
+		filter := FilterEventRule{}
+		if rule.Node != "" {
+			re, tmpErr := regexp.Compile(rule.Node)
+			if tmpErr != nil {
+				logger.Errorf(tctx, tmpErr, "Failed compile rule: %s", rule.Node)
+			}
+			filter.ReNode = re
+		}
+		if rule.Check != "" {
+			re, tmpErr := regexp.Compile(rule.Check)
+			if tmpErr != nil {
+				logger.Errorf(tctx, tmpErr, "Failed compile rule: %s", rule.Check)
+			}
+			filter.ReCheck = re
+		}
+		if rule.Msg != "" {
+			re, tmpErr := regexp.Compile(rule.Msg)
+			if tmpErr != nil {
+				logger.Errorf(tctx, tmpErr, "Failed compile rule: %s", rule.Msg)
+			}
+			filter.ReMsg = re
+		}
+		if rule.Level != "" {
+			re, tmpErr := regexp.Compile(rule.Level)
+			if tmpErr != nil {
+				logger.Errorf(tctx, tmpErr, "Failed compile rule: %s", rule.Level)
+			}
+			filter.ReLevel = re
+		}
+		filter.Until = rule.Until
+		filterEventRules = append(filterEventRules, filter)
+	}
+	driver.mtx.Lock()
+	driver.filterEventRules = filterEventRules
+	driver.mtx.Unlock()
+	return
 }
 
 func (driver *InfluxdbDriver) Report(tctx *logger.TraceContext, input *api_spec.ReportNode) error {
@@ -66,9 +128,41 @@ func (driver *InfluxdbDriver) Report(tctx *logger.TraceContext, input *api_spec.
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
-	// TODO Filter Event By EventRule
+	filterEventRules := driver.filterEventRules
 	eventsData := ""
+	filterEvent := false
 	for _, event := range input.Events {
+		filterEvent = false
+		for _, filter := range filterEventRules {
+			if filter.ReCheck != nil {
+				if filter.ReCheck.MatchString(event.Name) {
+					filterEvent = true
+				}
+			}
+			if filter.ReNode != nil {
+				if filter.ReNode.MatchString(input.Name) {
+					filterEvent = true
+				} else {
+					filterEvent = false
+				}
+			}
+			if filter.ReMsg != nil {
+				if msg, ok := event.Tag["Msg"]; ok {
+					if filter.ReMsg.MatchString(msg) {
+						filterEvent = true
+					} else {
+						filterEvent = false
+					}
+				}
+			}
+			if filterEvent {
+				break
+			}
+		}
+		if filterEvent {
+			continue
+		}
+
 		tags := ",Check=" + event.Name + ",Level=" + event.Level + ",Project=" + input.Project + ",Node=" + input.Name
 		for key, value := range event.Tag {
 			switch key {
@@ -168,10 +262,7 @@ func (driver *InfluxdbDriver) GetNode(tctx *logger.TraceContext, input *api_spec
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
-	// query := "show tag values from \"system_cpu\" with key = \"Host\""
-	// query := "select State, Warning, Warnings, Error, Errors, Timestamp from agent where Project = 'admin' group by Host,Kind"
 	var systemMetrics []api_spec.Metric
-
 	driver.GetMetrics(tctx,
 		&systemMetrics,
 		"ProcsRunning",

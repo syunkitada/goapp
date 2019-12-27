@@ -14,7 +14,7 @@ type EventRule struct {
 	Msg     string     `gorm:"not null;size:255;"`
 	Check   string     `gorm:"not null;size:255;"`
 	Level   string     `gorm:"not null;size:50;"`
-	Kind    string     `gorm:"not null;size:50;"` // Filter, Ignore, Aggregate, Handler
+	Kind    string     `gorm:"not null;size:50;"` // Filter, Silence, Aggregate, Handler
 	Until   *time.Time `gorm:""`
 	Spec    string     `gorm:"not null;size:100000;"`
 }

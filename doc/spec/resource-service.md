@@ -662,14 +662,19 @@ internet --- gateway-router --- floor-spine-router --- floor-leaf-router --- rac
   - Filter
     - Event 保存前にフィルタリングするためのルール
     - ルールに引っかかった Event は、データベースに保存せずに破棄する
-  - Ignore
-    - Event を無視するためのルール
-    - ルールに引っかかった Event は、何もせずに Ignore フラグを立てて IssuedEvent に追加して Event 処理を終了する
+  - Silence
+    - Event の Action をさせないためのルール
+    - ルールに引っかかった Event は、何もせずに Silence フラグを立てて IssuedEvent に追加して Event 処理を終了する
   - Aggregate
     - Event を集約するためのルール
-    - Event は集約されてから Handler によって処理される
-  - Handler
-    - 特定のアクションを実行するためのルール
+    - Event は集約されてから Action によって処理される
+  - Action
+    - 特定の Action を実行するためのルール
+    - Action の定義は設定ファイルによって管理される
+    - Action の種類
+      - CreateAlertData
+      - DeleteAlertData
+      - ApiHook
 
 ## AlertData
 
