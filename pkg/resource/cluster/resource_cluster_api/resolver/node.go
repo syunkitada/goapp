@@ -34,13 +34,68 @@ func (resolver *Resolver) ReportNode(tctx *logger.TraceContext, input *api_spec.
 
 func (resolver *Resolver) GetNodes(tctx *logger.TraceContext, input *api_spec.GetNodes,
 	user *base_spec.UserAuthority) (data *api_spec.GetNodesData, code uint8, err error) {
-	var nodes []spec.Node
-	if nodes, err = resolver.dbApi.GetNodes(tctx, input); err != nil {
+	var getIssuedEventsData *api_spec.GetIssuedEventsData
+	getIssuedEventsData, err = resolver.tsdbApi.GetIssuedEvents(tctx, &api_spec.GetIssuedEvents{})
+	if err != nil {
 		code = base_const.CodeServerInternalError
 		return
 	}
+
+	var nodeServices []base_spec.NodeService
+	if nodeServices, err = resolver.dbApi.GetNodeServices(tctx, &base_spec.GetNodeServices{}, &base_spec.UserAuthority{}); err != nil {
+		code = base_const.CodeServerInternalError
+		return
+	}
+
+	nodeMap := map[string]api_spec.Node{}
+	for _, event := range getIssuedEventsData.Events {
+		node, ok := nodeMap[event.Node]
+		if !ok {
+			node = api_spec.Node{}
+		}
+		if event.Silenced > 0 {
+			node.SilencedEventsData = append(node.SilencedEventsData, event)
+		}
+		switch event.Level {
+		case "Success":
+			node.SuccessEventsData = append(node.SuccessEventsData, event)
+		case "Critical":
+			node.CriticalEventsData = append(node.CriticalEventsData, event)
+		case "Warning":
+			node.WarningEventsData = append(node.WarningEventsData, event)
+		}
+		nodeMap[event.Node] = node
+	}
+
+	for _, service := range nodeServices {
+		node, ok := nodeMap[service.Name]
+		if !ok {
+			node = api_spec.Node{Name: service.Name}
+		}
+		if service.Status != base_const.StatusDisabled {
+			node.DisabledServicesData = append(node.DisabledServicesData, service)
+		} else if service.State == base_const.StateUp {
+			node.ActiveServicesData = append(node.ActiveServicesData, service)
+		} else {
+			node.CriticalServicesData = append(node.CriticalServicesData, service)
+		}
+		nodeMap[service.Name] = node
+	}
+
+	var resultNodes []api_spec.Node
+	for _, node := range nodeMap {
+		node.ActiveServices = len(node.ActiveServicesData)
+		node.CriticalServices = len(node.CriticalServicesData)
+		node.DisabledServices = len(node.DisabledServicesData)
+		node.SuccessEvents = len(node.SuccessEventsData)
+		node.CriticalEvents = len(node.CriticalEventsData)
+		node.WarningEvents = len(node.WarningEventsData)
+		node.SilencedEvents = len(node.SilencedEventsData)
+		resultNodes = append(resultNodes, node)
+	}
+
 	code = base_const.CodeOk
-	data = &spec.GetNodesData{Nodes: nodes}
+	data = &spec.GetNodesData{Nodes: resultNodes}
 	return
 }
 

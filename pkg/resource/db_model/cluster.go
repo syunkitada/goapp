@@ -21,6 +21,7 @@ type Cluster struct {
 type ClusterStatistic struct {
 	Warnings  int `gorm:"not null;"`
 	Criticals int `gorm:"not null;"`
+	Silences  int `gorm:"not null;"`
 	Nodes     int `gorm:"not null;"`
 	Instances int `gorm:"not null;"`
 }

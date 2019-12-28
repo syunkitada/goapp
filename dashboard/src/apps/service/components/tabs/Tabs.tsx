@@ -77,7 +77,7 @@ class Tabs extends React.Component<ITabs> {
   }
 
   private handleChange = (event, tabId) => {
-    console.log('DEBUG tab change');
+    console.log('TODO GetData for handleChangeTabs');
     const {index, routes} = this.props;
     const route = routes[routes.length - 1];
     const splitedPath = route.match.path.split('/');

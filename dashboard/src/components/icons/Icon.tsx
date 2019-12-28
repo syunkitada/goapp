@@ -8,12 +8,14 @@ import withStyles, {
 } from '@material-ui/core/styles/withStyles';
 
 import AddBoxIcon from '@material-ui/icons/AddBox';
+import CheckCircleOutlineIcon from '@material-ui/icons/CheckCircleOutline';
 import DeleteIcon from '@material-ui/icons/Delete';
 import DetailsIcon from '@material-ui/icons/Details';
 import EditIcon from '@material-ui/icons/Edit';
 import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline';
 import HelpOutlineIcon from '@material-ui/icons/HelpOutline';
 import HighlightOffOutlinedIcon from '@material-ui/icons/HighlightOffOutlined';
+import NotificationsOffIcon from '@material-ui/icons/NotificationsOff';
 
 const styles = (theme: Theme): StyleRules =>
   createStyles({
@@ -31,6 +33,7 @@ const styles = (theme: Theme): StyleRules =>
 interface IIcon extends WithStyles<typeof styles> {
   name;
   marginDirection;
+  onClick?;
   key?;
   style?;
 }
@@ -58,6 +61,14 @@ class Icon extends React.Component<IIcon> {
         return <AddBoxIcon className={classes[className]} {...props} />;
       case 'Delete':
         return <DeleteIcon className={classes[className]} {...props} />;
+      case 'Success':
+        return (
+          <CheckCircleOutlineIcon className={classes[className]} {...props} />
+        );
+      case 'Silenced':
+        return (
+          <NotificationsOffIcon className={classes[className]} {...props} />
+        );
       case 'Warning':
         return <ErrorOutlineIcon className={classes[className]} {...props} />;
       case 'Critical':

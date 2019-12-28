@@ -134,6 +134,7 @@ class ExpansionPanels extends React.Component<IExpansionPanels> {
   }
 
   private handleChange = (expandedPath, expandedUrl) => {
+    console.log('TODO GetData for Panel on handleChangeExpansionPanels');
     this.setState({
       expanded: expandedPath,
       expandedUrl,

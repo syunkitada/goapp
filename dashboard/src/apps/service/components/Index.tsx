@@ -40,7 +40,14 @@ function renderIndex(routes, data, index) {
         <Panes render={renderIndex} routes={routes} data={data} index={index} />
       );
     case 'Table':
-      return <IndexTable routes={routes} index={index} data={data} />;
+      return (
+        <IndexTable
+          render={renderIndex}
+          routes={routes}
+          index={index}
+          data={data}
+        />
+      );
     case 'View':
       return <IndexView routes={routes} index={index} data={data} />;
     case 'Form':

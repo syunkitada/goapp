@@ -15,6 +15,7 @@ import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
+import Popover from '@material-ui/core/Popover';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
@@ -50,6 +51,7 @@ import DateFnsUtils from '@date-io/date-fns';
 
 interface IIndexTable extends WithStyles<typeof styles> {
   auth;
+  render;
   routes;
   index;
   data;
@@ -62,6 +64,8 @@ interface IState {
   selected: any[];
   data: any[];
   page;
+  popoverHtml;
+  popoverTarget;
   rowsPerPage;
   searchQueries: any;
   searchRegExp: any;
@@ -79,6 +83,8 @@ class IndexTable extends React.Component<IIndexTable> {
     order: 'asc',
     orderBy: 0,
     page: 0,
+    popoverHtml: null,
+    popoverTarget: null,
     rowsPerPage: 5,
     searchQueries: {},
     searchRegExp: null,
@@ -104,6 +110,8 @@ class IndexTable extends React.Component<IIndexTable> {
   public render() {
     const {auth, routes, classes, index, data} = this.props;
     const {
+      popoverTarget,
+      popoverHtml,
       selected,
       anchorEl,
       rowsPerPage,
@@ -141,7 +149,7 @@ class IndexTable extends React.Component<IIndexTable> {
     for (let i = 0, len = columns.length; i < len; i++) {
       const column = columns[i];
       if (column.IsSearch) {
-        searchColumns.push(columns[i].Name);
+        searchColumns.push(column.Name);
       }
       if (column.Sort) {
         order = column.Sort;
@@ -188,6 +196,20 @@ class IndexTable extends React.Component<IIndexTable> {
           }
         } else if (column.Kind === 'Action') {
           row.push('');
+        } else if (column.Kind === 'Popover') {
+          if (column.View) {
+            const popoverData = {
+              Data: d,
+              Value: c,
+            };
+            row.push(popoverData);
+          } else {
+            const popoverData = {
+              Data: null,
+              Value: c,
+            };
+            row.push(popoverData);
+          }
         } else {
           row.push(c);
         }
@@ -200,7 +222,7 @@ class IndexTable extends React.Component<IIndexTable> {
             }
           }
         }
-      }
+      } // for (const column of columns) {
 
       tableData.push(row);
     }
@@ -481,8 +503,9 @@ class IndexTable extends React.Component<IIndexTable> {
                   }
 
                   for (let i = 0, len = columns.length; i < len; i++) {
-                    if (columns[i].Link) {
-                      let link = columns[i].Link;
+                    const column = columns[i];
+                    if (column.Link) {
+                      let link = column.Link;
                       const splitedLink = link.split('/');
                       const splitedNextLink: any[] = [];
                       const baseUrl = beforeRoute.match.url;
@@ -512,12 +535,12 @@ class IndexTable extends React.Component<IIndexTable> {
                           scope="row"
                           style={{cursor: 'pointer'}}
                           onClick={e => {
-                            this.handleLinkClick(e, link, n[i], columns[i]);
+                            this.handleLinkClick(e, link, n[i], column);
                           }}>
                           {n[i]}
                         </TableCell>,
                       );
-                    } else if (columns[i].Kind === 'Action') {
+                    } else if (column.Kind === 'Action') {
                       cells.push(
                         <TableCell key={i} align="right">
                           <Button
@@ -531,20 +554,20 @@ class IndexTable extends React.Component<IIndexTable> {
                           </Button>
                         </TableCell>,
                       );
-                    } else if (columns[i].FilterValues) {
+                    } else if (column.FilterValues) {
                       let filterButton: any = null;
-                      const currentValue = filterMap[columns[i].Name];
+                      const currentValue = filterMap[column.Name];
                       let isShowCells = true;
                       if (currentValue) {
                         isShowCells = false;
                       }
-                      if (columns[i].FilterValues) {
+                      if (column.FilterValues) {
                         for (
-                          let j = 0, lenj = columns[i].FilterValues.length;
+                          let j = 0, lenj = column.FilterValues.length;
                           j < lenj;
                           j++
                         ) {
-                          const filterValue = columns[i].FilterValues[j];
+                          const filterValue = column.FilterValues[j];
                           if (filterValue.Value === n[i]) {
                             if (
                               currentValue &&
@@ -580,6 +603,45 @@ class IndexTable extends React.Component<IIndexTable> {
                           {filterButton}
                         </TableCell>,
                       );
+                    } else if (column.Kind === 'Popover') {
+                      let tmpColor = column.Color;
+                      let isInactive = true;
+                      if (n[i].Data) {
+                        const tmpData = n[i].Data[column.View.DataKey];
+                        if (column.View.Kind === 'Table') {
+                          if (tmpData && tmpData.length > 0) {
+                            isInactive = false;
+                          }
+                        }
+                      }
+                      if (isInactive) {
+                        tmpColor = column.InactiveColor;
+                      }
+                      cells.push(
+                        <TableCell key={i} align={i === 0 ? 'left' : 'right'}>
+                          <Button
+                            variant="outlined"
+                            size="small"
+                            className={classes.button}
+                            startIcon={
+                              <Icon
+                                name={column.Icon}
+                                style={{
+                                  color: theme_utils.getFgColor(
+                                    auth.theme,
+                                    tmpColor,
+                                  ),
+                                }}
+                                marginDirection="left"
+                                onClick={e =>
+                                  this.handlePopoverOpen(e, n[i], column.View)
+                                }
+                              />
+                            }>
+                            {n[i].Value}
+                          </Button>
+                        </TableCell>,
+                      );
                     } else {
                       cells.push(
                         <TableCell key={i} align={i === 0 ? 'left' : 'right'}>
@@ -587,7 +649,8 @@ class IndexTable extends React.Component<IIndexTable> {
                         </TableCell>,
                       );
                     }
-                  }
+                  } // for (let i = 0, len = columns.length; i < len; i++) {
+
                   return (
                     <TableRow hover={true} tabIndex={-1} key={rowIndex}>
                       {cells}
@@ -612,6 +675,21 @@ class IndexTable extends React.Component<IIndexTable> {
 
           {actionDialog}
         </div>
+        <Popover
+          open={Boolean(popoverTarget)}
+          anchorEl={popoverTarget}
+          anchorOrigin={{
+            horizontal: 'left',
+            vertical: 'bottom',
+          }}
+          transformOrigin={{
+            horizontal: 'left',
+            vertical: 'top',
+          }}
+          disableRestoreFocus={true}
+          onClose={this.handlePopoverClose}>
+          {popoverHtml}
+        </Popover>
       </div>
     );
   }
@@ -753,6 +831,17 @@ class IndexTable extends React.Component<IIndexTable> {
     const {searchQueries} = this.state;
     searchQueries[name] = date;
     this.setState({searchQueries});
+  };
+
+  private handlePopoverOpen = (event, data, view) => {
+    console.log('handlePopoverOpen', data, view);
+    const {routes, render} = this.props;
+    const html = render(routes, data, view);
+    this.setState({popoverTarget: event.currentTarget, popoverHtml: html});
+  };
+
+  private handlePopoverClose = () => {
+    this.setState({popoverTarget: null, popoverHtml: null});
   };
 }
 

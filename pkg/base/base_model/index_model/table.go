@@ -33,6 +33,10 @@ type TableColumn struct {
 	RowColoringMap map[string]string
 	FilterValues   []map[string]string
 	Sort           string
+	Icon           string
+	Color          string
+	InactiveColor  string
+	View           interface{}
 }
 
 type Action struct {

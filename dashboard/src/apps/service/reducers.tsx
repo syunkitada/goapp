@@ -182,14 +182,39 @@ export default reducerWithInitialState(defaultState)
     let data = {};
     if (isGetIndex) {
       for (const query of payload.payload.queries) {
-        data = Object.assign(
-          data,
-          payload.result.ResultMap[query.Name].Data.Data,
-        );
+        if (payload.result.ResultMap[query.Name]) {
+          if (payload.result.ResultMap[query.Name].Data) {
+            data = Object.assign(
+              data,
+              payload.result.ResultMap[query.Name].Data.Data,
+            );
+          } else {
+            logger.warning(
+              'reducers',
+              'servicePostSuccess: QueryData is not found',
+              query.Name,
+            );
+          }
+        } else {
+          logger.warning(
+            'reducers',
+            'servicePostSuccess: QueryResult is not found',
+            query.Name,
+          );
+        }
       }
     } else {
       for (const query of payload.payload.queries) {
-        data = Object.assign(data, payload.result.ResultMap[query.Name].Data);
+        if (query.Name in payload.result.ResultMap) {
+          data = Object.assign(data, payload.result.ResultMap[query.Name].Data);
+        } else {
+          logger.warning(
+            'reducers',
+            'servicePostSuccess: QueryResult is not found',
+            query.Name,
+          );
+          return newState;
+        }
       }
     }
 
