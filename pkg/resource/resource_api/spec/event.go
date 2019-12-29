@@ -117,10 +117,11 @@ type EventRuleActionSpec struct {
 }
 
 var EventsTable = index_model.Table{
-	Name:    "Events",
-	Route:   "/Events",
-	Kind:    "Table",
-	DataKey: "Events",
+	Name:        "Events",
+	Route:       "/Events",
+	Kind:        "Table",
+	DataQueries: []string{"GetEvents"},
+	DataKey:     "Events",
 	SelectActions: []index_model.Action{
 		index_model.Action{
 			Name:      "Delete",
@@ -157,10 +158,11 @@ var EventsTable = index_model.Table{
 }
 
 var EventRulesTable = index_model.Table{
-	Name:    "EventRules",
-	Route:   "/EventRules",
-	Kind:    "Table",
-	DataKey: "EventRules",
+	Name:        "EventRules",
+	Route:       "/EventRules",
+	Kind:        "Table",
+	DataQueries: []string{"GetEventRules"},
+	DataKey:     "EventRules",
 	SelectActions: []index_model.Action{
 		index_model.Action{
 			Name:      "Delete",

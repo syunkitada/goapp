@@ -9,6 +9,7 @@ type Tabs struct {
 	RouteParamValue  string
 	TabParam         string
 	GetQueries       []string
+	DataQueries      []string
 	ExpectedDataKeys []string
 	IsSync           bool
 	Tabs             []interface{}

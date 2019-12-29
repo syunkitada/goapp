@@ -3,7 +3,7 @@ package spec
 import (
 	"time"
 
-	"github.com/syunkitada/goapp/pkg/authproxy/index_model"
+	"github.com/syunkitada/goapp/pkg/base/base_model/index_model"
 )
 
 type Datacenter struct {
@@ -55,10 +55,11 @@ type DeleteDatacenters struct {
 type DeleteDatacentersData struct{}
 
 var DatacentersTable = index_model.Table{
-	Name:    "Datacenters",
-	Kind:    "Table",
-	Route:   "",
-	DataKey: "Datacenters",
+	Name:        "Datacenters",
+	Kind:        "Table",
+	Route:       "",
+	DataQueries: []string{"GetDatacenters"},
+	DataKey:     "Datacenters",
 	Columns: []index_model.TableColumn{
 		index_model.TableColumn{
 			Name:      "Name",

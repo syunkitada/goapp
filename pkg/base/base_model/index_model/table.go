@@ -6,6 +6,7 @@ type Table struct {
 	Route         string
 	Subname       string
 	DataKey       string
+	DataQueries   []string
 	ExInputs      []TableInputField
 	Columns       []TableColumn
 	Actions       []Action

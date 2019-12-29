@@ -59,10 +59,11 @@ type GetTraceData struct {
 }
 
 var LogsTable = index_model.Table{
-	Name:    "Logs",
-	Route:   "/Logs",
-	Kind:    "Table",
-	DataKey: "Logs",
+	Name:        "Logs",
+	Route:       "/Logs",
+	Kind:        "Table",
+	DataQueries: []string{"GetLogParams"},
+	DataKey:     "Logs",
 	SelectActions: []index_model.Action{
 		index_model.Action{
 			Name:      "Delete",

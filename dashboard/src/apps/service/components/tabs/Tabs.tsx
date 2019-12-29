@@ -13,6 +13,7 @@ import Tab from '@material-ui/core/Tab';
 import CoreTabs from '@material-ui/core/Tabs';
 import Typography from '@material-ui/core/Typography';
 
+import actions from '../../../../actions';
 import logger from '../../../../lib/logger';
 
 const styles = (theme: Theme): StyleRules =>
@@ -26,6 +27,7 @@ const styles = (theme: Theme): StyleRules =>
 
 interface ITabs extends WithStyles<typeof styles> {
   classes;
+  getQueries;
   render;
   routes;
   data;
@@ -77,7 +79,6 @@ class Tabs extends React.Component<ITabs> {
   }
 
   private handleChange = (event, tabId) => {
-    console.log('TODO GetData for handleChangeTabs');
     const {index, routes} = this.props;
     const route = routes[routes.length - 1];
     const splitedPath = route.match.path.split('/');
@@ -90,6 +91,22 @@ class Tabs extends React.Component<ITabs> {
       index.Route.split('/').length;
     splitedUrl = splitedUrl.slice(0, lastIndex - 1);
 
+    const searchQueries = {};
+    for (let i = 0, len = index.Tabs.length; i < len; i++) {
+      const tab = index.Tabs[i];
+      if (index.Tabs[tabId].Name === tab.Name) {
+        if (tab.DataQueries) {
+          this.props.getQueries(
+            tab.DataQueries,
+            searchQueries,
+            tab.IsSync,
+            route.match.params,
+          );
+        }
+        break;
+      }
+    }
+
     route.history.push(splitedUrl.join('/'));
   };
 }
@@ -99,7 +116,18 @@ function mapStateToProps(state, ownProps) {
 }
 
 function mapDispatchToProps(dispatch, ownProps) {
-  return {};
+  return {
+    getQueries: (queries, searchQueries, isSync, params) => {
+      dispatch(
+        actions.service.serviceGetQueries({
+          isSync,
+          params,
+          queries,
+          searchQueries,
+        }),
+      );
+    },
+  };
 }
 
 export default connect(

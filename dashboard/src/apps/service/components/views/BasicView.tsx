@@ -71,10 +71,14 @@ class BasicView extends React.Component<IBasicView> {
       <div className={classes.root}>
         {title && <DialogTitle id="form-dialog-title">{title}</DialogTitle>}
         <DialogContent>
-          <DialogContentText>{index.Description}</DialogContentText>
-          <Table className={classes.table}>
-            <TableBody>{fields}</TableBody>
-          </Table>
+          {index.Description && (
+            <DialogContentText>{index.Description}</DialogContentText>
+          )}
+          {fields && fields.length > 0 && (
+            <Table className={classes.table}>
+              <TableBody>{fields}</TableBody>
+            </Table>
+          )}
           {panels}
         </DialogContent>
         <DialogActions>
@@ -174,9 +178,45 @@ class BasicView extends React.Component<IBasicView> {
       console.log('debug panel');
       const panelsGroup = index.PanelsGroups[i];
       const panels: JSX.Element[] = [];
-      if (panelsGroup.DataType === 'MetricsGroups') {
+      if (panelsGroup.Kind === 'Fields') {
+        const fields: JSX.Element[] = [];
+        for (let j = 0, jlen = panelsGroup.Fields.length; j < jlen; j++) {
+          const field = panelsGroup.Fields[j];
+          const value = rawData[field.Name];
+          fields.push(
+            <TableRow key={field.Name}>
+              <TableCell>{field.Name}</TableCell>
+              <TableCell style={{width: '100%'}}>{value}</TableCell>
+            </TableRow>,
+          );
+        }
+
+        panels.push(
+          <ExpansionPanel
+            key={panelsGroup.Name}
+            expanded={true}
+            onChange={this.handleChange}
+            className={classes.expansionPanel}>
+            <ExpansionPanelSummary
+              expandIcon={<ExpandMoreIcon />}
+              aria-controls="panel1bh-content"
+              id="panel1bh-header"
+              className={classes.expansionPanelSummary}>
+              <Typography variant="subtitle1">{panelsGroup.Name}</Typography>
+            </ExpansionPanelSummary>
+            <ExpansionPanelDetails className={classes.expansionPanelDetail}>
+              <Table className={classes.table}>
+                <TableBody>{fields}</TableBody>
+              </Table>
+            </ExpansionPanelDetails>
+          </ExpansionPanel>,
+        );
+      } else if (panelsGroup.Kind === 'MetricsGroups') {
         console.log('debug data', rawData[panelsGroup.DataKey]);
         const metricsGroups = rawData[panelsGroup.DataKey];
+        if (!metricsGroups) {
+          continue;
+        }
         for (let j = 0, jlen = metricsGroups.length; j < jlen; j++) {
           const metricsGroup = metricsGroups[j];
           const cards: JSX.Element[] = [];

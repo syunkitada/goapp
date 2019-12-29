@@ -57,10 +57,11 @@ type Metric struct {
 }
 
 var NodesTable = index_model.Table{
-	Name:    "Nodes",
-	Route:   "/Nodes",
-	Kind:    "Table",
-	DataKey: "Nodes",
+	Name:        "Nodes",
+	Route:       "/Nodes",
+	Kind:        "Table",
+	DataQueries: []string{"GetNodes"},
+	DataKey:     "Nodes",
 	SelectActions: []index_model.Action{
 		index_model.Action{
 			Name:      "Delete",
@@ -179,26 +180,31 @@ var NodesDetail = index_model.Tabs{
 	RouteParamValue: "Nodes",
 	Route:           "/Clusters/:Cluster/Resources/Nodes/Detail/:Name/:Subkind",
 	TabParam:        "Subkind",
-	GetQueries: []string{
+	DataQueries: []string{
 		"GetNode",
 	},
 	ExpectedDataKeys: []string{"Node"},
 	IsSync:           true,
 	Tabs: []interface{}{
 		index_model.View{
-			Name:    "View",
-			Route:   "/View",
-			Kind:    "View",
-			DataKey: "Node",
-			Fields: []index_model.Field{
-				index_model.Field{Name: "Name", Kind: "text"},
-				index_model.Field{Name: "Kind", Kind: "select"},
-			},
+			Name:        "View",
+			Route:       "/View",
+			Kind:        "View",
+			DataQueries: []string{"GetNode"},
+			DataKey:     "Node",
 			PanelsGroups: []interface{}{
+				map[string]interface{}{
+					"Name": "Node Data",
+					"Kind": "Fields",
+					"Fields": []index_model.Field{
+						index_model.Field{Name: "Name", Kind: "text"},
+						index_model.Field{Name: "Kind", Kind: "select"},
+					},
+				},
 				map[string]string{
-					"Name":     "Metrics",
-					"DataKey":  "MetricsGroups",
-					"DataType": "MetricsGroups",
+					"Name":    "Metrics",
+					"Kind":    "MetricsGroups",
+					"DataKey": "MetricsGroups",
 				},
 			},
 		},

@@ -67,9 +67,7 @@ class LeftSidebar extends React.Component<ILeftSidebar> {
     const tmpServices = Object.keys(serviceMap);
     tmpServices.sort();
     for (const serviceName of tmpServices) {
-      const service = serviceMap[serviceName];
       const path = prefixPath + serviceName;
-      console.log('DEBUG service', serviceName, service); // TODO remove debug print
       services.push(
         <NavLink
           key={serviceName}

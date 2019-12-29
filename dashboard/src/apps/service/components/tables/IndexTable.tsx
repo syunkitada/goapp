@@ -92,18 +92,29 @@ class IndexTable extends React.Component<IIndexTable> {
   };
 
   public componentWillMount() {
-    const {routes} = this.props;
+    const {routes, index} = this.props;
     const route = routes[routes.length - 1];
     const location = route.location;
     const queryStr = decodeURIComponent(location.search);
+    let searchQueries = {};
     try {
       const value = queryStr.match(new RegExp('[?&]q=({.*?})(&|$|#)'));
       if (value) {
-        const searchQueries = JSON.parse(value[1]);
+        searchQueries = JSON.parse(value[1]);
         this.setState({searchQueries});
       }
     } catch (e) {
       console.log('Ignored failed parse', queryStr);
+    }
+    console.log('XXXXXXXX IndexTable Mount');
+
+    if (index.DataQueries) {
+      this.props.getQueries(
+        index.DataQueries,
+        searchQueries,
+        index.IsSync,
+        route.match.params,
+      );
     }
   }
 
