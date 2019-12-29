@@ -266,13 +266,13 @@ func (driver *InfluxdbDriver) GetNode(tctx *logger.TraceContext, input *api_spec
 	driver.GetMetrics(tctx,
 		&systemMetrics,
 		"ProcsRunning",
-		fmt.Sprintf("select procs_running, procs_blocked from system_cpu where Node = '%s'", input.Name),
+		fmt.Sprintf("SELECT procs_running, procs_blocked FROM system_cpu WHERE Node = '%s' AND time > now() - 3h limit 10000", input.Name),
 		[]string{"procs_running", "procs_blocked"})
 
 	driver.GetMetrics(tctx,
 		&systemMetrics,
 		"Processes",
-		fmt.Sprintf("select processes from system_cpu where Node = '%s'", input.Name),
+		fmt.Sprintf("select processes from system_cpu where Node = '%s' AND time > now() - 3h limit 10000", input.Name),
 		[]string{"processes"})
 
 	data = append(data, api_spec.MetricsGroup{

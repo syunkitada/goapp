@@ -107,6 +107,7 @@ class LineGraphCard extends React.Component<IBasicView> {
                     type="monotone"
                     dataKey={key}
                     stroke={colorPaletts[index]}
+                    isAnimationActive={false}
                   />
                 ))}
               </LineChart>

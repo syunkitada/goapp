@@ -231,7 +231,7 @@ class BasicView extends React.Component<IBasicView> {
           }
           panels.push(
             <ExpansionPanel
-              key={metricsGroup.Name}
+              key={panelsGroup.Name + metricsGroup.Name}
               expanded={true}
               onChange={this.handleChange}
               className={classes.expansionPanel}>
@@ -240,7 +240,9 @@ class BasicView extends React.Component<IBasicView> {
                 aria-controls="panel1bh-content"
                 id="panel1bh-header"
                 className={classes.expansionPanelSummary}>
-                <Typography variant="subtitle1">{metricsGroup.Name}</Typography>
+                <Typography variant="subtitle1">
+                  {panelsGroup.Name} {metricsGroup.Name}
+                </Typography>
               </ExpansionPanelSummary>
               <ExpansionPanelDetails className={classes.expansionPanelDetail}>
                 <Grid container={true} spacing={2}>
@@ -252,13 +254,7 @@ class BasicView extends React.Component<IBasicView> {
         }
       }
 
-      panelsGroups.push(
-        <div key={panelsGroup.Name}>
-          <hr />
-          <Typography variant="subtitle1">{panelsGroup.Name}</Typography>
-          {panels}
-        </div>,
-      );
+      panelsGroups.push(<div key={panelsGroup.Name}>{panels}</div>);
     }
 
     return <div>{panelsGroups}</div>;
