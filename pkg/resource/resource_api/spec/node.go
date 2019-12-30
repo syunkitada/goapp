@@ -45,6 +45,15 @@ type GetNodeData struct {
 	Node Node
 }
 
+type GetNodeMetrics struct {
+	Cluster string `validate:"required"`
+	Name    string `validate:"required"`
+}
+
+type GetNodeMetricsData struct {
+	NodeMetrics Node
+}
+
 type MetricsGroup struct {
 	Name    string
 	Metrics []Metric
@@ -107,7 +116,7 @@ var NodesTable = index_model.Table{
 			Name: "SuccessEvents", Kind: "Popover", Icon: "Success", Color: "Success", InactiveColor: "Default",
 			View: index_model.Table{
 				Kind:    "Table",
-				DataKey: "SuccessEvents",
+				DataKey: "SuccessEventsData",
 				Columns: NodeEventsTableColumns,
 			},
 		},
@@ -149,12 +158,8 @@ var NodeServicesTableColumns = []index_model.TableColumn{
 }
 
 var NodeEventsTableColumns = []index_model.TableColumn{
-	index_model.TableColumn{
-		Name: "Check", IsSearch: true,
-	},
-	index_model.TableColumn{
-		Name: "Node", IsSearch: true,
-	},
+	index_model.TableColumn{Name: "Check"},
+	index_model.TableColumn{Name: "Node"},
 	index_model.TableColumn{
 		Name:           "Level",
 		RowColoringMap: map[string]string{"Warning": "Warning", "Critical": "Critical"},
@@ -174,15 +179,12 @@ var NodeEventsTableColumns = []index_model.TableColumn{
 }
 
 var NodesDetail = index_model.Tabs{
-	Name:            "Nodes",
-	Kind:            "RouteTabs",
-	RouteParamKey:   "Kind",
-	RouteParamValue: "Nodes",
-	Route:           "/Clusters/:Cluster/Resources/Nodes/Detail/:Name/:Subkind",
-	TabParam:        "Subkind",
-	DataQueries: []string{
-		"GetNode",
-	},
+	Name:             "Nodes",
+	Kind:             "RouteTabs",
+	RouteParamKey:    "Kind",
+	RouteParamValue:  "Nodes",
+	Route:            "/Clusters/:Cluster/Resources/Nodes/Detail/:Name/:Subkind",
+	TabParam:         "Subkind",
 	ExpectedDataKeys: []string{"Node"},
 	IsSync:           true,
 	Tabs: []interface{}{
@@ -195,10 +197,109 @@ var NodesDetail = index_model.Tabs{
 			PanelsGroups: []interface{}{
 				map[string]interface{}{
 					"Name": "Node Data",
-					"Kind": "Fields",
-					"Fields": []index_model.Field{
-						index_model.Field{Name: "Name", Kind: "text"},
-						index_model.Field{Name: "Kind", Kind: "select"},
+					"Kind": "Cards",
+					"Cards": []interface{}{
+						map[string]interface{}{
+							"Name": "Node",
+							"Kind": "Fields",
+							"Fields": []index_model.Field{
+								index_model.Field{Name: "Name", Kind: "text"},
+							},
+						},
+					},
+				},
+				map[string]interface{}{
+					"Name": "Node Services",
+					"Kind": "Cards",
+					"Cards": []interface{}{
+						index_model.Table{
+							Name:           "ActiveServices",
+							Kind:           "Table",
+							DisableToolbar: true,
+							DisablePaging:  true,
+							DataKey:        "ActiveServicesData",
+							Columns:        NodeServicesTableColumns,
+						},
+						index_model.Table{
+							Name:           "CriticalServices",
+							Kind:           "Table",
+							DisableToolbar: true,
+							DisablePaging:  true,
+							DataKey:        "CriticalServicesData",
+							Columns:        NodeServicesTableColumns,
+						},
+						index_model.Table{
+							Name:           "DisableServices",
+							Kind:           "Table",
+							DisableToolbar: true,
+							DisablePaging:  true,
+							DataKey:        "DisabledServicesData",
+							Columns:        NodeServicesTableColumns,
+						},
+					},
+				},
+				map[string]interface{}{
+					"Name": "Node Events",
+					"Kind": "Cards",
+					"Cards": []interface{}{
+						index_model.Table{
+							Name:           "SuccessEvents",
+							Kind:           "Table",
+							DisableToolbar: true,
+							DisablePaging:  true,
+							DataKey:        "SuccessEventsData",
+							Columns:        NodeEventsTableColumns,
+						},
+						index_model.Table{
+							Name:           "CriticalEvents",
+							Kind:           "Table",
+							DisableToolbar: true,
+							DisablePaging:  true,
+							DataKey:        "CriticalEventsData",
+							Columns:        NodeEventsTableColumns,
+						},
+						index_model.Table{
+							Name:           "WarningEvents",
+							Kind:           "Table",
+							DisableToolbar: true,
+							DisablePaging:  true,
+							DataKey:        "WarningEventsData",
+							Columns:        NodeEventsTableColumns,
+						},
+						index_model.Table{
+							Name:           "SilencedEvents",
+							Kind:           "Table",
+							DisableToolbar: true,
+							DisablePaging:  true,
+							DataKey:        "SilencedEventsData",
+							Columns:        NodeEventsTableColumns,
+						},
+					},
+				},
+			},
+		},
+		index_model.View{
+			Name:        "Metrics",
+			Route:       "/Metrics",
+			Kind:        "View",
+			DataQueries: []string{"GetNodeMetrics"},
+			DataKey:     "NodeMetrics",
+			PanelsGroups: []interface{}{
+				map[string]interface{}{
+					"Name": "Inputs",
+					"Kind": "SearchForm",
+					"Inputs": []interface{}{
+						index_model.TableInputField{
+							Name:     "FromTime",
+							Type:     "Selector",
+							Data:     []string{"-6h", "-1d", "-3d"},
+							Default:  "-6h",
+							Multiple: false,
+						},
+						index_model.TableInputField{
+							Name: "UntilTime",
+							Type: "DateTime",
+						},
 					},
 				},
 				map[string]string{

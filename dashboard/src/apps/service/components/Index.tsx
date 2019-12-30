@@ -49,7 +49,14 @@ function renderIndex(routes, data, index) {
         />
       );
     case 'View':
-      return <IndexView routes={routes} index={index} data={data} />;
+      return (
+        <IndexView
+          render={renderIndex}
+          routes={routes}
+          index={index}
+          data={data}
+        />
+      );
     case 'Form':
       return <IndexForm routes={routes} index={index} data={data} />;
     default:

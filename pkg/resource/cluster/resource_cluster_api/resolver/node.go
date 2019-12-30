@@ -9,6 +9,7 @@ import (
 	"github.com/syunkitada/goapp/pkg/base/base_spec"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 
+	"github.com/syunkitada/goapp/pkg/resource/consts"
 	"github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
 	api_spec "github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
 )
@@ -22,7 +23,6 @@ func (resolver *Resolver) ReportNode(tctx *logger.TraceContext, input *api_spec.
 
 	if err = resolver.tsdbApi.ReportNode(tctx, input); err != nil {
 		code = base_const.CodeServerInternalError
-		fmt.Println("DEBUG error report", err)
 		return
 	}
 	fmt.Println("DEBUG logs:", len(input.Logs))
@@ -57,11 +57,11 @@ func (resolver *Resolver) GetNodes(tctx *logger.TraceContext, input *api_spec.Ge
 			node.SilencedEventsData = append(node.SilencedEventsData, event)
 		}
 		switch event.Level {
-		case "Success":
+		case consts.EventLevelSuccess:
 			node.SuccessEventsData = append(node.SuccessEventsData, event)
-		case "Critical":
+		case consts.EventLevelCritical:
 			node.CriticalEventsData = append(node.CriticalEventsData, event)
-		case "Warning":
+		case consts.EventLevelWarning:
 			node.WarningEventsData = append(node.WarningEventsData, event)
 		}
 		nodeMap[event.Node] = node
@@ -72,7 +72,7 @@ func (resolver *Resolver) GetNodes(tctx *logger.TraceContext, input *api_spec.Ge
 		if !ok {
 			node = api_spec.Node{Name: service.Name}
 		}
-		if service.Status != base_const.StatusDisabled {
+		if service.Status == base_const.StatusDisabled {
 			node.DisabledServicesData = append(node.DisabledServicesData, service)
 		} else if service.State == base_const.StateUp {
 			node.ActiveServicesData = append(node.ActiveServicesData, service)
@@ -101,20 +101,70 @@ func (resolver *Resolver) GetNodes(tctx *logger.TraceContext, input *api_spec.Ge
 
 func (resolver *Resolver) GetNode(tctx *logger.TraceContext, input *api_spec.GetNode,
 	user *base_spec.UserAuthority) (data *api_spec.GetNodeData, code uint8, err error) {
-	var node spec.Node
-	if node, err = resolver.dbApi.GetNode(tctx, input); err != nil {
-		code = base_const.CodeServerInternalError
-		return
-	}
-	var metricsGroups []api_spec.MetricsGroup
-	if metricsGroups, err = resolver.tsdbApi.GetNode(tctx, input); err != nil {
+
+	var getIssuedEventsData *api_spec.GetIssuedEventsData
+	getIssuedEventsData, err = resolver.tsdbApi.GetIssuedEvents(
+		tctx, &api_spec.GetIssuedEvents{Node: input.Name})
+	if err != nil {
 		code = base_const.CodeServerInternalError
 		return
 	}
 
+	node := api_spec.Node{Name: input.Name}
+	for _, event := range getIssuedEventsData.Events {
+		if event.Silenced > 0 {
+			node.SilencedEventsData = append(node.SilencedEventsData, event)
+		}
+		switch event.Level {
+		case consts.EventLevelSuccess:
+			node.SuccessEventsData = append(node.SuccessEventsData, event)
+		case consts.EventLevelCritical:
+			node.CriticalEventsData = append(node.CriticalEventsData, event)
+		case consts.EventLevelWarning:
+			node.WarningEventsData = append(node.WarningEventsData, event)
+		}
+	}
+
+	var nodeServices []base_spec.NodeService
+	if nodeServices, err = resolver.dbApi.GetNodeServices(tctx, &base_spec.GetNodeServices{
+		Name: input.Name,
+	}, &base_spec.UserAuthority{}); err != nil {
+		code = base_const.CodeServerInternalError
+		return
+	}
+
+	for _, service := range nodeServices {
+		if service.Status == base_const.StatusDisabled {
+			node.DisabledServicesData = append(node.DisabledServicesData, service)
+		} else if service.State == base_const.StateUp {
+			node.ActiveServicesData = append(node.ActiveServicesData, service)
+		} else {
+			node.CriticalServicesData = append(node.CriticalServicesData, service)
+		}
+	}
+
+	node.ActiveServices = len(node.ActiveServicesData)
+	node.CriticalServices = len(node.CriticalServicesData)
+	node.DisabledServices = len(node.DisabledServicesData)
+	node.SuccessEvents = len(node.SuccessEventsData)
+	node.CriticalEvents = len(node.CriticalEventsData)
+	node.WarningEvents = len(node.WarningEventsData)
+	node.SilencedEvents = len(node.SilencedEventsData)
+
 	code = base_const.CodeOk
-	node.MetricsGroups = metricsGroups
 	data = &spec.GetNodeData{Node: node}
+	return
+}
+
+func (resolver *Resolver) GetNodeMetrics(tctx *logger.TraceContext, input *api_spec.GetNodeMetrics,
+	user *base_spec.UserAuthority) (data *api_spec.GetNodeMetricsData, code uint8, err error) {
+	node := api_spec.Node{Name: input.Name}
+	var metricsGroup []api_spec.MetricsGroup
+	if metricsGroup, err = resolver.tsdbApi.GetNode(tctx, input); err != nil {
+		return
+	}
+	node.MetricsGroups = metricsGroup
+	data = &spec.GetNodeMetricsData{NodeMetrics: node}
 	return
 }
 
@@ -153,7 +203,6 @@ func (resolver *Resolver) GetEvents(tctx *logger.TraceContext, input *api_spec.G
 }
 
 func (resolver *Resolver) GetEventRule(tctx *logger.TraceContext, input *api_spec.GetEventRule, user *base_spec.UserAuthority) (data *api_spec.GetEventRuleData, code uint8, err error) {
-	fmt.Println("DEBUG GetEventRule")
 	var eventRule *spec.EventRule
 	if eventRule, err = resolver.dbApi.GetEventRule(tctx, input, user); err != nil {
 		if gorm.IsRecordNotFoundError(err) {

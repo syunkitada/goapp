@@ -4,6 +4,7 @@ import {connect} from 'react-redux';
 import BasicView from './BasicView';
 
 interface IIndexView {
+  render;
   routes;
   data;
   index;
@@ -11,7 +12,7 @@ interface IIndexView {
 
 class IndexView extends React.Component<IIndexView> {
   public render() {
-    const {routes, data, index} = this.props;
+    const {render, routes, data, index} = this.props;
 
     console.log('DEBUG render IndexView', data, index);
     const rawData = data[index.DataKey];
@@ -24,6 +25,7 @@ class IndexView extends React.Component<IIndexView> {
       <BasicView
         data={data}
         index={index}
+        render={render}
         routes={routes}
         rawData={rawData}
         queryKind={queryKind}

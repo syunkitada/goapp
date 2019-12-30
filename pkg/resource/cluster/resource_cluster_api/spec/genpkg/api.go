@@ -36,6 +36,7 @@ type QueryResolver interface {
 	GetLogParams(tctx *logger.TraceContext, input *spec.GetLogParams, user *base_spec.UserAuthority) (*spec.GetLogParamsData, uint8, error)
 	GetLogs(tctx *logger.TraceContext, input *spec.GetLogs, user *base_spec.UserAuthority) (*spec.GetLogsData, uint8, error)
 	GetNode(tctx *logger.TraceContext, input *spec.GetNode, user *base_spec.UserAuthority) (*spec.GetNodeData, uint8, error)
+	GetNodeMetrics(tctx *logger.TraceContext, input *spec.GetNodeMetrics, user *base_spec.UserAuthority) (*spec.GetNodeMetricsData, uint8, error)
 	GetNodeServices(tctx *logger.TraceContext, input *spec.GetNodeServices, user *base_spec.UserAuthority) (*spec.GetNodeServicesData, uint8, error)
 	GetNodes(tctx *logger.TraceContext, input *spec.GetNodes, user *base_spec.UserAuthority) (*spec.GetNodesData, uint8, error)
 	ReportNode(tctx *logger.TraceContext, input *spec.ReportNode, user *base_spec.UserAuthority) (*spec.ReportNodeData, uint8, error)
@@ -457,6 +458,27 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				return err
 			}
 			data, code, tmpErr := handler.resolver.GetNode(tctx, &input, user)
+			if tmpErr != nil {
+				if code == 0 {
+					code = base_const.CodeServerInternalError
+				}
+				rep.ResultMap[query.Name] = base_model.Result{
+					Code:  code,
+					Error: tmpErr.Error(),
+				}
+				break
+			}
+			rep.ResultMap[query.Name] = base_model.Result{
+				Code: code,
+				Data: data,
+			}
+		case "GetNodeMetrics":
+			var input spec.GetNodeMetrics
+			err = json.Unmarshal([]byte(query.Data), &input)
+			if err != nil {
+				return err
+			}
+			data, code, tmpErr := handler.resolver.GetNodeMetrics(tctx, &input, user)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError

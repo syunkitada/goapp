@@ -695,6 +695,20 @@ type GetNodeResult struct {
 	Error string
 	Data  spec.GetNodeData
 }
+type GetNodeMetricsResponse struct {
+	base_model.Response
+	ResultMap GetNodeMetricsResultMap
+}
+
+type GetNodeMetricsResultMap struct {
+	GetNodeMetrics GetNodeMetricsResult
+}
+
+type GetNodeMetricsResult struct {
+	Code  uint8
+	Error string
+	Data  spec.GetNodeMetricsData
+}
 type GetNodeServicesResponse struct {
 	base_model.Response
 	ResultMap GetNodeServicesResultMap
@@ -2613,6 +2627,21 @@ func (client *Client) ResourceMonitorGetNode(tctx *logger.TraceContext, queries 
 		return
 	}
 	result := res.ResultMap.GetNode
+	if result.Code >= 100 || result.Error != "" {
+		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
+		return
+	}
+
+	data = &result.Data
+	return
+}
+func (client *Client) ResourceMonitorGetNodeMetrics(tctx *logger.TraceContext, queries []base_client.Query) (data *spec.GetNodeMetricsData, err error) {
+	var res GetNodeMetricsResponse
+	err = client.Request(tctx, "ResourceMonitor", queries, &res, true)
+	if err != nil {
+		return
+	}
+	result := res.ResultMap.GetNodeMetrics
 	if result.Code >= 100 || result.Error != "" {
 		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
 		return

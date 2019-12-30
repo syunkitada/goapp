@@ -460,24 +460,42 @@ class IndexTable extends React.Component<IIndexTable> {
     }
 
     const indexLength = tableData.length;
-    const emptyRows =
-      rowsPerPage - Math.min(rowsPerPage, indexLength - page * rowsPerPage);
+
+    let emptyRows: number = 0;
+    let cellItems: any;
+    if (index.DisablePaging) {
+      cellItems = sort_utils.stableSort(
+        tableData,
+        sort_utils.getSorting(order, orderBy),
+      );
+      if (cellItems.length === 0) {
+        emptyRows = 1;
+      }
+    } else {
+      cellItems = sort_utils
+        .stableSort(tableData, sort_utils.getSorting(order, orderBy))
+        .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+      emptyRows =
+        rowsPerPage - Math.min(rowsPerPage, indexLength - page * rowsPerPage);
+    }
 
     return (
-      <div className={classes.root}>
-        <TableToolbar
-          count={indexLength}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          index={index}
-          numSelected={selected.length}
-          onChangePage={this.handleChangePage}
-          onChangeRowsPerPage={this.handleChangeRowsPerPage}
-          onChangeSearchInput={this.handleChangeSearchInput}
-          onActionClick={this.handleActionClick}
-          exButtons={exButtons}
-          exInputsForm={exInputsForm}
-        />
+      <div key={index.Name} className={classes.root}>
+        {!index.DisableToolbar && (
+          <TableToolbar
+            count={indexLength}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            index={index}
+            numSelected={selected.length}
+            onChangePage={this.handleChangePage}
+            onChangeRowsPerPage={this.handleChangeRowsPerPage}
+            onChangeSearchInput={this.handleChangeSearchInput}
+            onActionClick={this.handleActionClick}
+            exButtons={exButtons}
+            exInputsForm={exInputsForm}
+          />
+        )}
         <div className={classes.tableWrapper}>
           <Table
             className={classes.table}
@@ -494,180 +512,177 @@ class IndexTable extends React.Component<IIndexTable> {
               numSelected={selected.length}
             />
             <TableBody>
-              {sort_utils
-                .stableSort(tableData, sort_utils.getSorting(order, orderBy))
-                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((n, rowIndex) => {
-                  const cells: any = [];
-                  const key = n[0];
-                  const isSelected = this.isSelected(key);
+              {cellItems.map((n, rowIndex) => {
+                const cells: any = [];
+                const key = n[0];
+                const isSelected = this.isSelected(key);
 
-                  if (isSelectActions) {
+                if (isSelectActions) {
+                  cells.push(
+                    <TableCell
+                      key={-1}
+                      padding="checkbox"
+                      onClick={event => this.handleSelectClick(event, key)}>
+                      <Checkbox checked={isSelected} />
+                    </TableCell>,
+                  );
+                }
+
+                for (let i = 0, len = columns.length; i < len; i++) {
+                  const column = columns[i];
+                  if (column.Link) {
+                    let link = column.Link;
+                    const splitedLink = link.split('/');
+                    const splitedNextLink: any[] = [];
+                    const baseUrl = beforeRoute.match.url;
+                    for (
+                      let j = 0, linkLen = splitedLink.length;
+                      j < linkLen;
+                      j++
+                    ) {
+                      let path = splitedLink[j];
+                      if (path.indexOf(':') === 0) {
+                        const pathKey = path.slice(1);
+                        const tmppath = currentRoute.match.params[pathKey];
+                        if (tmppath) {
+                          path = tmppath;
+                        } else {
+                          path = n[parseInt(pathKey, 10)];
+                        }
+                      }
+                      splitedNextLink.push(path);
+                    }
+                    link = baseUrl + '/' + splitedNextLink.join('/');
                     cells.push(
                       <TableCell
-                        key={-1}
-                        padding="checkbox"
-                        onClick={event => this.handleSelectClick(event, key)}>
-                        <Checkbox checked={isSelected} />
+                        align={i === 0 ? 'left' : 'right'}
+                        key={i}
+                        component="th"
+                        scope="row"
+                        style={{cursor: 'pointer'}}
+                        onClick={e => {
+                          this.handleLinkClick(e, link, n[i], column);
+                        }}>
+                        {n[i]}
                       </TableCell>,
                     );
-                  }
-
-                  for (let i = 0, len = columns.length; i < len; i++) {
-                    const column = columns[i];
-                    if (column.Link) {
-                      let link = column.Link;
-                      const splitedLink = link.split('/');
-                      const splitedNextLink: any[] = [];
-                      const baseUrl = beforeRoute.match.url;
+                  } else if (column.Kind === 'Action') {
+                    cells.push(
+                      <TableCell key={i} align="right">
+                        <Button
+                          aria-owns={anchorEl ? 'simple-menu' : undefined}
+                          aria-haspopup="true"
+                          variant="outlined"
+                          onClick={e => {
+                            this.handleActionMenuClick(e, key);
+                          }}>
+                          Actions <KeyboardArrowDownIcon />
+                        </Button>
+                      </TableCell>,
+                    );
+                  } else if (column.FilterValues) {
+                    let filterButton: any = null;
+                    const currentValue = filterMap[column.Name];
+                    let isShowCells = true;
+                    if (currentValue) {
+                      isShowCells = false;
+                    }
+                    if (column.FilterValues) {
                       for (
-                        let j = 0, linkLen = splitedLink.length;
-                        j < linkLen;
+                        let j = 0, lenj = column.FilterValues.length;
+                        j < lenj;
                         j++
                       ) {
-                        let path = splitedLink[j];
-                        if (path.indexOf(':') === 0) {
-                          const pathKey = path.slice(1);
-                          const tmppath = currentRoute.match.params[pathKey];
-                          if (tmppath) {
-                            path = tmppath;
-                          } else {
-                            path = n[parseInt(pathKey, 10)];
+                        const filterValue = column.FilterValues[j];
+                        if (filterValue.Value === n[i]) {
+                          if (
+                            currentValue &&
+                            currentValue === filterValue.Value
+                          ) {
+                            isShowCells = true;
                           }
-                        }
-                        splitedNextLink.push(path);
-                      }
-                      link = baseUrl + '/' + splitedNextLink.join('/');
-                      cells.push(
-                        <TableCell
-                          align={i === 0 ? 'left' : 'right'}
-                          key={i}
-                          component="th"
-                          scope="row"
-                          style={{cursor: 'pointer'}}
-                          onClick={e => {
-                            this.handleLinkClick(e, link, n[i], column);
-                          }}>
-                          {n[i]}
-                        </TableCell>,
-                      );
-                    } else if (column.Kind === 'Action') {
-                      cells.push(
-                        <TableCell key={i} align="right">
-                          <Button
-                            aria-owns={anchorEl ? 'simple-menu' : undefined}
-                            aria-haspopup="true"
-                            variant="outlined"
-                            onClick={e => {
-                              this.handleActionMenuClick(e, key);
-                            }}>
-                            Actions <KeyboardArrowDownIcon />
-                          </Button>
-                        </TableCell>,
-                      );
-                    } else if (column.FilterValues) {
-                      let filterButton: any = null;
-                      const currentValue = filterMap[column.Name];
-                      let isShowCells = true;
-                      if (currentValue) {
-                        isShowCells = false;
-                      }
-                      if (column.FilterValues) {
-                        for (
-                          let j = 0, lenj = column.FilterValues.length;
-                          j < lenj;
-                          j++
-                        ) {
-                          const filterValue = column.FilterValues[j];
-                          if (filterValue.Value === n[i]) {
-                            if (
-                              currentValue &&
-                              currentValue === filterValue.Value
-                            ) {
-                              isShowCells = true;
-                            }
-                            filterButton = (
-                              <Button>
-                                <Icon
-                                  key={j}
-                                  name={filterValue.Icon}
-                                  style={{
-                                    color: theme_utils.getFgColor(
-                                      auth.theme,
-                                      filterValue.Icon,
-                                    ),
-                                  }}
-                                  marginDirection="left"
-                                />
-                                {n[i]}
-                              </Button>
-                            );
-                            break;
-                          }
-                        }
-                      }
-                      if (!isShowCells) {
-                        return;
-                      }
-                      cells.push(
-                        <TableCell key={i} align={i === 0 ? 'left' : 'right'}>
-                          {filterButton}
-                        </TableCell>,
-                      );
-                    } else if (column.Kind === 'Popover') {
-                      let tmpColor = column.Color;
-                      let isInactive = true;
-                      if (n[i].Data) {
-                        const tmpData = n[i].Data[column.View.DataKey];
-                        if (column.View.Kind === 'Table') {
-                          if (tmpData && tmpData.length > 0) {
-                            isInactive = false;
-                          }
-                        }
-                      }
-                      if (isInactive) {
-                        tmpColor = column.InactiveColor;
-                      }
-                      cells.push(
-                        <TableCell key={i} align={i === 0 ? 'left' : 'right'}>
-                          <Button
-                            variant="outlined"
-                            size="small"
-                            className={classes.button}
-                            startIcon={
+                          filterButton = (
+                            <Button>
                               <Icon
-                                name={column.Icon}
+                                key={j}
+                                name={filterValue.Icon}
                                 style={{
                                   color: theme_utils.getFgColor(
                                     auth.theme,
-                                    tmpColor,
+                                    filterValue.Icon,
                                   ),
                                 }}
                                 marginDirection="left"
-                                onClick={e =>
-                                  this.handlePopoverOpen(e, n[i], column.View)
-                                }
                               />
-                            }>
-                            {n[i].Value}
-                          </Button>
-                        </TableCell>,
-                      );
-                    } else {
-                      cells.push(
-                        <TableCell key={i} align={i === 0 ? 'left' : 'right'}>
-                          {n[i]}
-                        </TableCell>,
-                      );
+                              {n[i]}
+                            </Button>
+                          );
+                          break;
+                        }
+                      }
                     }
-                  } // for (let i = 0, len = columns.length; i < len; i++) {
+                    if (!isShowCells) {
+                      return;
+                    }
+                    cells.push(
+                      <TableCell key={i} align={i === 0 ? 'left' : 'right'}>
+                        {filterButton}
+                      </TableCell>,
+                    );
+                  } else if (column.Kind === 'Popover') {
+                    let tmpColor = column.Color;
+                    let isInactive = true;
+                    if (n[i].Data) {
+                      const tmpData = n[i].Data[column.View.DataKey];
+                      if (column.View.Kind === 'Table') {
+                        if (tmpData && tmpData.length > 0) {
+                          isInactive = false;
+                        }
+                      }
+                    }
+                    if (isInactive) {
+                      tmpColor = column.InactiveColor;
+                    }
+                    cells.push(
+                      <TableCell key={i} align={i === 0 ? 'left' : 'right'}>
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          className={classes.button}
+                          startIcon={
+                            <Icon
+                              name={column.Icon}
+                              style={{
+                                color: theme_utils.getFgColor(
+                                  auth.theme,
+                                  tmpColor,
+                                ),
+                              }}
+                              marginDirection="left"
+                              onClick={e =>
+                                this.handlePopoverOpen(e, n[i], column.View)
+                              }
+                            />
+                          }>
+                          {n[i].Value}
+                        </Button>
+                      </TableCell>,
+                    );
+                  } else {
+                    cells.push(
+                      <TableCell key={i} align={i === 0 ? 'left' : 'right'}>
+                        {n[i]}
+                      </TableCell>,
+                    );
+                  }
+                } // for (let i = 0, len = columns.length; i < len; i++) {
 
-                  return (
-                    <TableRow hover={true} tabIndex={-1} key={rowIndex}>
-                      {cells}
-                    </TableRow>
-                  );
-                })}
+                return (
+                  <TableRow hover={true} tabIndex={-1} key={rowIndex}>
+                    {cells}
+                  </TableRow>
+                );
+              })}
               {emptyRows > 0 && (
                 <TableRow style={{height: 49 * emptyRows}}>
                   <TableCell colSpan={6} />
@@ -818,15 +833,11 @@ class IndexTable extends React.Component<IIndexTable> {
   };
 
   private handleInputSubmit = event => {
+    event.preventDefault();
     const {routes} = this.props;
     const {searchQueries} = this.state;
     const route = routes[routes.length - 1];
     const location = route.location;
-    console.log('debug handle submit sub');
-    console.log('DEBUG location', location);
-    console.log('DEBUG submit', searchQueries);
-    event.preventDefault();
-    // route.history.push(link);
     const queryStr = encodeURIComponent(JSON.stringify(searchQueries));
     location.search = 'q=' + queryStr;
     route.history.push(location);
@@ -845,7 +856,6 @@ class IndexTable extends React.Component<IIndexTable> {
   };
 
   private handlePopoverOpen = (event, data, view) => {
-    console.log('handlePopoverOpen', data, view);
     const {routes, render} = this.props;
     const html = render(routes, data, view);
     this.setState({popoverTarget: event.currentTarget, popoverHtml: html});

@@ -751,7 +751,7 @@ var ResourceVirtualAdminCmdMap = map[string]index_model.Cmd{
 			},
 		},
 		OutputKind:   "table",
-		OutputFormat: "Name,State,Warnings,Errors,Labels,MetricsGroups",
+		OutputFormat: "Name,DisabledServices,ActiveServices,CriticalServices,DisabledServicesData,ActiveServicesData,CriticalServicesData,SuccessEvents,CriticalEvents,WarningEvents,SilencedEvents,SuccessEventsData,CriticalEventsData,WarningEventsData,SilencedEventsData,MetricsGroups,Labels,UpdatedAt",
 	},
 	"get.node.services": index_model.Cmd{
 		QueryName: "GetNodeServices",
@@ -1367,10 +1367,27 @@ var ResourceMonitorCmdMap = map[string]index_model.Cmd{
 			},
 		},
 		OutputKind:   "table",
-		OutputFormat: "Name,State,Warnings,Errors,Labels,MetricsGroups",
+		OutputFormat: "Name,DisabledServices,ActiveServices,CriticalServices,DisabledServicesData,ActiveServicesData,CriticalServicesData,SuccessEvents,CriticalEvents,WarningEvents,SilencedEvents,SuccessEventsData,CriticalEventsData,WarningEventsData,SilencedEventsData,MetricsGroups,Labels,UpdatedAt",
 	},
 	"get.node": index_model.Cmd{
 		QueryName: "GetNode",
+		FlagMap: map[string]index_model.Flag{
+			"cluster,c": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+			"name,n": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
+	"get.node.metrics": index_model.Cmd{
+		QueryName: "GetNodeMetrics",
 		FlagMap: map[string]index_model.Flag{
 			"cluster,c": index_model.Flag{
 				Required: true,
@@ -1999,6 +2016,10 @@ var ApiQueryMap = map[string]map[string]spec_model.QueryModel{
 			RequiredProject: true,
 		},
 		"GetNode": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"GetNodeMetrics": spec_model.QueryModel{
 			RequiredAuth:    true,
 			RequiredProject: true,
 		},

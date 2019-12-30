@@ -167,7 +167,17 @@ function mapDispatchToProps(dispatch, ownProps) {
           for (let i = 0, len = panel.Panes.length; i < len; i++) {
             const pane = panel.Panes[i];
             if (route.match.params[panel.PaneParam] === pane.Name) {
-              view = pane;
+              switch (pane.Kind) {
+                case 'RouteTabs':
+                  for (let j = 0, lenj = pane.Tabs.length; j < lenj; j++) {
+                    const tab = pane.Tabs[j];
+                    if (route.match.params[pane.TabParam] === tab.Name) {
+                      view = tab;
+                      break;
+                    }
+                  }
+                  break;
+              }
               break;
             }
           }

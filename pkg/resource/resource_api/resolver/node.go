@@ -28,3 +28,12 @@ func (resolver *Resolver) GetNode(tctx *logger.TraceContext, input *spec.GetNode
 	data = &spec.GetNodeData{Node: *node}
 	return
 }
+
+func (resolver *Resolver) GetNodeMetrics(tctx *logger.TraceContext, input *spec.GetNodeMetrics, user *base_spec.UserAuthority) (data *spec.GetNodeMetricsData, code uint8, err error) {
+	if data, err = resolver.dbApi.GetNodeMetrics(tctx, input, user); err != nil {
+		code = base_const.CodeServerInternalError
+		return
+	}
+	code = base_const.CodeOk
+	return
+}

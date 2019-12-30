@@ -662,9 +662,9 @@ internet --- gateway-router --- floor-spine-router --- floor-leaf-router --- rac
   - Filter
     - Event 保存前にフィルタリングするためのルール
     - ルールに引っかかった Event は、データベースに保存せずに破棄する
-  - Silence
+  - Silenced
     - Event の Action をさせないためのルール
-    - ルールに引っかかった Event は、何もせずに Silence フラグを立てて IssuedEvent に追加して Event 処理を終了する
+    - ルールに引っかかった Event は、何もせずに Silenced フラグを立てて IssuedEvent に追加して Event 処理を終了する
   - Aggregate
     - Event を集約するためのルール
     - Event は集約されてから Action によって処理される

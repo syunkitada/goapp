@@ -42,6 +42,7 @@ type IssueEvent struct {
 type IssueEventData struct{}
 
 type GetIssuedEvents struct {
+	Node string
 }
 
 type GetIssuedEventsData struct {

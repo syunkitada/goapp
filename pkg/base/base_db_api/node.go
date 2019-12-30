@@ -20,7 +20,16 @@ func (api *Api) GetNodeService(tctx *logger.TraceContext, input *base_spec.GetNo
 }
 
 func (api *Api) GetNodeServices(tctx *logger.TraceContext, input *base_spec.GetNodeServices, user *base_spec.UserAuthority) (data []base_spec.NodeService, err error) {
-	err = api.DB.Where("deleted_at IS NULL").Find(&data).Error
+	query := api.DB.Debug().Table("node_services").
+		Select("name, kind, role, status, status_reason, state, state_reason").
+		Where("deleted_at IS NULL")
+	if input.Name != "" {
+		query = query.Where("name = ?", input.Name)
+	}
+	if input.Kind != "" {
+		query = query.Where("kind = ?", input.Kind)
+	}
+	err = query.Find(&data).Error
 	return
 }
 

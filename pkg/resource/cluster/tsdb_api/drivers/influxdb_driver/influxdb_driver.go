@@ -258,7 +258,7 @@ func (driver *InfluxdbDriver) Report(tctx *logger.TraceContext, input *api_spec.
 	return nil
 }
 
-func (driver *InfluxdbDriver) GetNode(tctx *logger.TraceContext, input *api_spec.GetNode) (data []api_spec.MetricsGroup, err error) {
+func (driver *InfluxdbDriver) GetNode(tctx *logger.TraceContext, input *api_spec.GetNodeMetrics) (data []api_spec.MetricsGroup, err error) {
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
@@ -462,6 +462,9 @@ func (driver *InfluxdbDriver) GetIssuedEvents(tctx *logger.TraceContext, input *
 	events := []spec.Event{}
 
 	query := "SELECT Check, Level, Node, Project, last(Msg) FROM \"issued_events\" WHERE"
+	if input.Node != "" {
+		query += " Node = \"" + input.Node + "\""
+	}
 	query += " time > now() - 1d"
 	query += " group by Node,Check"
 	for _, client := range driver.eventClients {

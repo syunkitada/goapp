@@ -32,6 +32,7 @@ var Spec = spec_model.Spec{
 
 				spec_model.QueryModel{Req: api_spec.GetNodes{}, Rep: api_spec.GetNodesData{}},
 				spec_model.QueryModel{Req: api_spec.GetNode{}, Rep: api_spec.GetNodeData{}},
+				spec_model.QueryModel{Req: api_spec.GetNodeMetrics{}, Rep: api_spec.GetNodeMetricsData{}},
 				spec_model.QueryModel{Req: api_spec.ReportNode{}, Rep: api_spec.ReportNodeData{}},
 
 				spec_model.QueryModel{Req: api_spec.GetLogs{}, Rep: api_spec.GetLogsData{}},

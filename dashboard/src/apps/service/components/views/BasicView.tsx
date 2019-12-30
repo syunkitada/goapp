@@ -43,6 +43,7 @@ import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 interface IBasicView extends WithStyles<typeof styles> {
   targets;
   routes;
+  render;
   data;
   selected;
   index;
@@ -61,7 +62,6 @@ class BasicView extends React.Component<IBasicView> {
 
   public render() {
     const {classes, index, selected, isSubmitting, title, onClose} = this.props;
-    // const {expanded} = this.state;
     logger.info('BasicView', 'render', index, selected);
 
     const fields = this.renderFields();
@@ -169,26 +169,70 @@ class BasicView extends React.Component<IBasicView> {
   };
 
   private renderPanels = () => {
-    const {classes, index, rawData} = this.props;
-    console.log('debug renderpanels', index, rawData);
-    console.log('debug index', index.PanelsGroups);
+    const {render, routes, classes, index, rawData} = this.props;
 
     const panelsGroups: JSX.Element[] = [];
     for (let i = 0, len = index.PanelsGroups.length; i < len; i++) {
-      console.log('debug panel');
+      console.log('TODO renderPanels', index, rawData);
       const panelsGroup = index.PanelsGroups[i];
       const panels: JSX.Element[] = [];
-      if (panelsGroup.Kind === 'Fields') {
-        const fields: JSX.Element[] = [];
-        for (let j = 0, jlen = panelsGroup.Fields.length; j < jlen; j++) {
-          const field = panelsGroup.Fields[j];
-          const value = rawData[field.Name];
-          fields.push(
-            <TableRow key={field.Name}>
-              <TableCell>{field.Name}</TableCell>
-              <TableCell style={{width: '100%'}}>{value}</TableCell>
-            </TableRow>,
-          );
+      if (panelsGroup.Kind === 'Cards') {
+        const cards: JSX.Element[] = [];
+
+        for (let j = 0, jlen = panelsGroup.Cards.length; j < jlen; j++) {
+          const card = panelsGroup.Cards[j];
+          switch (card.Kind) {
+            case 'Fields':
+              const fields: JSX.Element[] = [];
+              for (let x = 0, xlen = card.Fields.length; x < xlen; x++) {
+                const field = card.Fields[x];
+                const value = rawData[field.Name];
+                fields.push(
+                  <TableRow key={field.Name}>
+                    <TableCell>{field.Name}</TableCell>
+                    <TableCell style={{width: '100%'}}>{value}</TableCell>
+                  </TableRow>,
+                );
+              }
+
+              cards.push(
+                <Grid key={card.Name} item={true} xs={6}>
+                  <Table className={classes.table}>
+                    <TableBody>{fields}</TableBody>
+                  </Table>
+                </Grid>,
+              );
+
+              break;
+            case 'Tables':
+              const tables: JSX.Element[] = [];
+              for (let x = 0, xlen = card.Tables.length; x < xlen; x++) {
+                const table = card.Tables[x];
+                const html = render(routes, rawData, table);
+                tables.push(
+                  <div key={table.Name}>
+                    <Typography variant="subtitle1">{table.Name}</Typography>
+                    {html}
+                    <hr />
+                  </div>,
+                );
+              }
+
+              cards.push(
+                <Grid key={card.Name} item={true} xs={6}>
+                  {tables}
+                </Grid>,
+              );
+              break;
+            case 'Table':
+              cards.push(
+                <Grid key={card.Name} item={true} xs={6}>
+                  <Typography variant="subtitle1">{card.Name}</Typography>
+                  {render(routes, rawData, card)}
+                </Grid>,
+              );
+              break;
+          }
         }
 
         panels.push(
@@ -199,15 +243,32 @@ class BasicView extends React.Component<IBasicView> {
             className={classes.expansionPanel}>
             <ExpansionPanelSummary
               expandIcon={<ExpandMoreIcon />}
-              aria-controls="panel1bh-content"
-              id="panel1bh-header"
               className={classes.expansionPanelSummary}>
               <Typography variant="subtitle1">{panelsGroup.Name}</Typography>
             </ExpansionPanelSummary>
             <ExpansionPanelDetails className={classes.expansionPanelDetail}>
-              <Table className={classes.table}>
-                <TableBody>{fields}</TableBody>
-              </Table>
+              <Grid container={true} spacing={2}>
+                {cards}
+              </Grid>
+            </ExpansionPanelDetails>
+          </ExpansionPanel>,
+        );
+      } else if (panelsGroup.Kind === 'SearchForm') {
+        panels.push(
+          <ExpansionPanel
+            key={panelsGroup.Name}
+            expanded={true}
+            onChange={this.handleChange}
+            className={classes.expansionPanel}>
+            <ExpansionPanelSummary
+              expandIcon={<ExpandMoreIcon />}
+              className={classes.expansionPanelSummary}>
+              <Typography variant="subtitle1">{panelsGroup.Name}</Typography>
+            </ExpansionPanelSummary>
+            <ExpansionPanelDetails className={classes.expansionPanelDetail}>
+              <Grid container={true} spacing={2}>
+                inputs
+              </Grid>
             </ExpansionPanelDetails>
           </ExpansionPanel>,
         );
@@ -237,8 +298,6 @@ class BasicView extends React.Component<IBasicView> {
               className={classes.expansionPanel}>
               <ExpansionPanelSummary
                 expandIcon={<ExpandMoreIcon />}
-                aria-controls="panel1bh-content"
-                id="panel1bh-header"
                 className={classes.expansionPanelSummary}>
                 <Typography variant="subtitle1">
                   {panelsGroup.Name} {metricsGroup.Name}
@@ -254,7 +313,11 @@ class BasicView extends React.Component<IBasicView> {
         }
       }
 
-      panelsGroups.push(<div key={panelsGroup.Name}>{panels}</div>);
+      panelsGroups.push(
+        <div key={panelsGroup.Name} className={classes.panelsGroups}>
+          {panels}
+        </div>,
+      );
     }
 
     return <div>{panelsGroups}</div>;
@@ -311,6 +374,9 @@ const styles = (theme: Theme): StyleRules =>
       position: 'absolute',
       top: -6,
       zIndex: 1,
+    },
+    panelsGroups: {
+      marginBottom: '5px',
     },
     root: {
       width: '100%',
