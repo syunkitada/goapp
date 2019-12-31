@@ -267,7 +267,7 @@ class BasicView extends React.Component<IBasicView> {
             </ExpansionPanelSummary>
             <ExpansionPanelDetails className={classes.expansionPanelDetail}>
               <Grid container={true} spacing={2}>
-                inputs
+                {render(routes, rawData, panelsGroup)}
               </Grid>
             </ExpansionPanelDetails>
           </ExpansionPanel>,

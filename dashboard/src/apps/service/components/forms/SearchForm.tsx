@@ -9,19 +9,8 @@ import withStyles, {
 } from '@material-ui/core/styles/withStyles';
 
 import Button from '@material-ui/core/Button';
-import CircularProgress from '@material-ui/core/CircularProgress';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogContentText from '@material-ui/core/DialogContentText';
-import DialogTitle from '@material-ui/core/DialogTitle';
 import Grid from '@material-ui/core/Grid';
 import TextField from '@material-ui/core/TextField';
-
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemIcon from '@material-ui/core/ListItemIcon';
-import ListItemText from '@material-ui/core/ListItemText';
-import DoneIcon from '@material-ui/icons/Done';
 
 import green from '@material-ui/core/colors/green';
 import red from '@material-ui/core/colors/red';
@@ -29,30 +18,45 @@ import red from '@material-ui/core/colors/red';
 import actions from '../../../../actions';
 import logger from '../../../../lib/logger';
 
-import Icon from '../../../../components/icons/Icon';
+import Autocomplete from '@material-ui/lab/Autocomplete';
+
+import {DateTimePicker} from '@material-ui/pickers';
+import {MuiPickersUtilsProvider} from '@material-ui/pickers';
+
+import DateFnsUtils from '@date-io/date-fns';
+
+import SearchIcon from '@material-ui/icons/Search';
+
+// import Icon from '../../../../components/icons/Icon';
 
 interface ISearchForm extends WithStyles<typeof styles> {
   targets;
   routes;
   data;
+  selected;
   index;
+  isSubmitting;
   searchQueries: any;
+  submitQueries;
 }
 
 class SearchForm extends React.Component<ISearchForm> {
   public state = {
+    fieldMap: {},
     searchQueries: {},
   };
 
   public render() {
-    const {classes, index, selected, searchQueries} = this.props;
-    logger.info('SearchForm', 'render', index, selected);
+    const {data, index, selected, searchQueries, isSubmitting} = this.props;
+    logger.info('SearchForm', 'render', index, selected, isSubmitting);
 
     const inputs: any[] = [];
     for (let i = 0, len = index.Inputs.length; i < len; i++) {
       const input = index.Inputs[i];
-      let defaultValue = searchQueries[input.Name];
-      if (!defaultValue) {
+      let defaultValue: any;
+      if (searchQueries && input.Name in searchQueries) {
+        defaultValue = searchQueries[input.Name];
+      } else {
         defaultValue = input.Default;
       }
       switch (input.Type) {
@@ -98,7 +102,6 @@ class SearchForm extends React.Component<ISearchForm> {
             </Grid>,
           );
           break;
-
         case 'Text':
           inputs.push(
             <Grid item={true} key={input.Name}>
@@ -113,7 +116,6 @@ class SearchForm extends React.Component<ISearchForm> {
             </Grid>,
           );
           break;
-
         case 'DateTime':
           inputs.push(
             <Grid item={true} key={input.Name}>
@@ -136,7 +138,7 @@ class SearchForm extends React.Component<ISearchForm> {
       }
     }
 
-    let inputsForm = (
+    return (
       <form onSubmit={this.handleInputSubmit}>
         <Grid container={true} direction="row" spacing={1}>
           {inputs}
@@ -213,6 +215,36 @@ function mapDispatchToProps(dispatch, ownProps) {
 
 const styles = (theme: Theme): StyleRules =>
   createStyles({
+    button: {
+      margin: theme.spacing(1),
+    },
+    buttonFailed: {
+      '&:hover': {
+        backgroundColor: red[700],
+      },
+      backgroundColor: red[500],
+    },
+    buttonProgress: {
+      color: green[500],
+      left: '50%',
+      marginLeft: -12,
+      marginTop: -12,
+      position: 'absolute',
+      top: '50%',
+    },
+    buttonSuccess: {
+      '&:hover': {
+        backgroundColor: green[700],
+      },
+      backgroundColor: green[500],
+    },
+    fabProgress: {
+      color: green[500],
+      left: -6,
+      position: 'absolute',
+      top: -6,
+      zIndex: 1,
+    },
     root: {
       width: '100%',
     },

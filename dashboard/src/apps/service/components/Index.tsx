@@ -2,6 +2,7 @@ import * as React from 'react';
 import {connect} from 'react-redux';
 
 import IndexForm from './forms/IndexForm';
+import SearchForm from './forms/SearchForm';
 import RoutePanels from './panels/RoutePanels';
 import Panes from './panes/Panes';
 import GetMsgSnackbar from './snackbars/GetMsgSnackbar';
@@ -57,6 +58,8 @@ function renderIndex(routes, data, index) {
           data={data}
         />
       );
+    case 'SearchForm':
+      return <SearchForm routes={routes} index={index} data={data} />;
     case 'Form':
       return <IndexForm routes={routes} index={index} data={data} />;
     default:
