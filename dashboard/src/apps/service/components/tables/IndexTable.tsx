@@ -10,7 +10,6 @@ import withStyles, {
 
 import Button from '@material-ui/core/Button';
 import Checkbox from '@material-ui/core/Checkbox';
-import Grid from '@material-ui/core/Grid';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import Menu from '@material-ui/core/Menu';
@@ -21,6 +20,8 @@ import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableRow from '@material-ui/core/TableRow';
 
+import Grid from '@material-ui/core/Grid';
+
 import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown';
 
 import FormDialog from '../dialogs/FormDialog';
@@ -29,7 +30,6 @@ import TableToolbar from './TableToolbar';
 
 import Badge from '@material-ui/core/Badge';
 import IconButton from '@material-ui/core/IconButton';
-import TextField from '@material-ui/core/TextField';
 
 import actions from '../../../../actions';
 import logger from '../../../../lib/logger';
@@ -40,14 +40,7 @@ import sort_utils from '../../../../modules/sort_utils';
 import Tooltip from '@material-ui/core/Tooltip';
 import Icon from '../../../../components/icons/Icon';
 
-import SearchIcon from '@material-ui/icons/Search';
-
-import Autocomplete from '@material-ui/lab/Autocomplete';
-
-import {DateTimePicker} from '@material-ui/pickers';
-import {MuiPickersUtilsProvider} from '@material-ui/pickers';
-
-import DateFnsUtils from '@date-io/date-fns';
+import SearchForm from '../forms/SearchForm';
 
 interface IIndexTable extends WithStyles<typeof styles> {
   auth;
@@ -129,7 +122,6 @@ class IndexTable extends React.Component<IIndexTable> {
       page,
       searchRegExp,
       actionName,
-      searchQueries,
       filterMap,
     } = this.state;
     logger.info('IndexTable', 'render', actionName, routes);
@@ -137,7 +129,6 @@ class IndexTable extends React.Component<IIndexTable> {
 
     console.log(auth);
     const exButtons: any[] = [];
-    const exInputs: any[] = [];
     const columns = index.Columns;
     let rawData = data[index.DataKey];
 
@@ -353,109 +344,18 @@ class IndexTable extends React.Component<IIndexTable> {
       }
     }
 
-    let exInputsForm: any = null;
-    if (index.ExInputs) {
-      for (let i = 0, len = index.ExInputs.length; i < len; i++) {
-        const input = index.ExInputs[i];
-        let defaultValue = searchQueries[input.Name];
-        if (!defaultValue) {
-          defaultValue = input.Default;
-        }
-        switch (input.Type) {
-          case 'Selector':
-            let selectorData: any;
-            if (input.DataKey) {
-              selectorData = data[input.DataKey];
-            } else if (input.Data) {
-              selectorData = input.Data;
-            }
-            const options: any = [];
-            if (!selectorData) {
-              continue;
-            }
-            for (let j = 0, lenj = selectorData.length; j < lenj; j++) {
-              options.push(selectorData[j]);
-            }
-
-            const selectorProps = {
-              getOptionLabel: option => option,
-              options,
-            };
-
-            exInputs.push(
-              <Grid item={true} key={input.Name}>
-                <Autocomplete
-                  {...selectorProps}
-                  multiple={input.Multiple}
-                  disableCloseOnSelect={true}
-                  defaultValue={defaultValue}
-                  onChange={(event, values) =>
-                    this.handleSelectorChange(event, input.Name, values)
-                  }
-                  renderInput={params => (
-                    <TextField
-                      {...params}
-                      size="small"
-                      label={input.Name}
-                      variant="outlined"
-                    />
-                  )}
-                />
-              </Grid>,
-            );
-            break;
-          case 'Text':
-            exInputs.push(
-              <Grid item={true} key={input.Name}>
-                <TextField
-                  label={input.Name}
-                  defaultValue={defaultValue}
-                  variant="outlined"
-                  size="small"
-                  name={input.Name}
-                  onChange={this.handleInputChange}
-                />
-              </Grid>,
-            );
-            break;
-          case 'DateTime':
-            exInputs.push(
-              <Grid item={true} key={input.Name}>
-                <MuiPickersUtilsProvider utils={DateFnsUtils}>
-                  <DateTimePicker
-                    label={input.Name}
-                    inputVariant="outlined"
-                    size="small"
-                    value={defaultValue}
-                    format="yyyy/MM/dd HH:mm"
-                    showTodayButton={true}
-                    onChange={(date: Date | null) =>
-                      this.handleDateChange(input.Name, date)
-                    }
-                  />
-                </MuiPickersUtilsProvider>
-              </Grid>,
-            );
-            break;
-        }
-      }
-
-      exInputsForm = (
-        <form onSubmit={this.handleInputSubmit}>
-          <Grid container={true} direction="row" spacing={1}>
-            {exInputs}
-            <Grid item={true}>
-              <Button
-                variant="outlined"
-                type="submit"
-                size="medium"
-                color="primary"
-                startIcon={<SearchIcon />}>
-                Submit
-              </Button>
-            </Grid>
-          </Grid>
-        </form>
+    let searchForm: any = null;
+    if (index.SearchForm) {
+      searchForm = (
+        <Grid item={true} xs={12}>
+          <SearchForm
+            routes={routes}
+            index={index.SearchForm}
+            data={data}
+            onChange={this.handleChangeOnSearchForm}
+            onSubmit={this.handleSubmitOnSearchForm}
+          />
+        </Grid>
       );
     }
 
@@ -493,7 +393,7 @@ class IndexTable extends React.Component<IIndexTable> {
             onChangeSearchInput={this.handleChangeSearchInput}
             onActionClick={this.handleActionClick}
             exButtons={exButtons}
-            exInputsForm={exInputsForm}
+            searchForm={searchForm}
           />
         )}
         <div className={classes.tableWrapper}>
@@ -826,33 +726,12 @@ class IndexTable extends React.Component<IIndexTable> {
     this.setState({filterMap});
   };
 
-  private handleSelectorChange = (event, name, values) => {
-    const {searchQueries} = this.state;
-    searchQueries[name] = values;
-    this.setState({searchQueries});
+  private handleChangeOnSearchForm = (event, searchQuery) => {
+    console.log('TODO handleChangeOnSearchForm');
   };
 
-  private handleInputSubmit = event => {
-    event.preventDefault();
-    const {routes} = this.props;
-    const {searchQueries} = this.state;
-    const route = routes[routes.length - 1];
-    const location = route.location;
-    const queryStr = encodeURIComponent(JSON.stringify(searchQueries));
-    location.search = 'q=' + queryStr;
-    route.history.push(location);
-  };
-
-  private handleInputChange = event => {
-    const {searchQueries} = this.state;
-    searchQueries[event.target.name] = event.target.value;
-    this.setState({searchQueries});
-  };
-
-  private handleDateChange = (name: string, date: Date | null) => {
-    const {searchQueries} = this.state;
-    searchQueries[name] = date;
-    this.setState({searchQueries});
+  private handleSubmitOnSearchForm = (event, index, searchQuery) => {
+    console.log('TODO handleSubmitOnSearchForm');
   };
 
   private handlePopoverOpen = (event, data, view) => {

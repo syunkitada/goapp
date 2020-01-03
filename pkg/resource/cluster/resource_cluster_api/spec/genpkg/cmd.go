@@ -164,6 +164,16 @@ var ResourceVirtualAdminCmdMap = map[string]index_model.Cmd{
 				FlagType: "string",
 				FlagKind: "",
 			},
+			"from.time,f": index_model.Flag{
+				Required: false,
+				FlagType: "string",
+				FlagKind: "",
+			},
+			"until.time,u": index_model.Flag{
+				Required: false,
+				FlagType: "time.Time",
+				FlagKind: "",
+			},
 		},
 		OutputKind:   "",
 		OutputFormat: "",

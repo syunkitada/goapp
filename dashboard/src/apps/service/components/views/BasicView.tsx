@@ -31,6 +31,8 @@ import DoneIcon from '@material-ui/icons/Done';
 import green from '@material-ui/core/colors/green';
 import red from '@material-ui/core/colors/red';
 
+import actions from '../../../../actions';
+import form_utils from '../../../../lib/form_utils';
 import logger from '../../../../lib/logger';
 
 import LineGraphCard from '../cards/LineGraphCard';
@@ -40,7 +42,12 @@ import ExpansionPanelDetails from '@material-ui/core/ExpansionPanelDetails';
 import ExpansionPanelSummary from '@material-ui/core/ExpansionPanelSummary';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 
+// import Toolbar from '@material-ui/core/Toolbar';
+
+import SearchForm from '../forms/SearchForm';
+
 interface IBasicView extends WithStyles<typeof styles> {
+  getQueries;
   targets;
   routes;
   render;
@@ -265,9 +272,17 @@ class BasicView extends React.Component<IBasicView> {
               className={classes.expansionPanelSummary}>
               <Typography variant="subtitle1">{panelsGroup.Name}</Typography>
             </ExpansionPanelSummary>
-            <ExpansionPanelDetails className={classes.expansionPanelDetail}>
+            <ExpansionPanelDetails
+              className={classes.expansionPanelDetail}
+              style={{padding: '20px 20px 20px 20px'}}>
               <Grid container={true} spacing={2}>
-                {render(routes, rawData, panelsGroup)}
+                <SearchForm
+                  routes={routes}
+                  index={panelsGroup}
+                  data={rawData}
+                  onChange={this.handleChangeOnSearchForm}
+                  onSubmit={this.handleSubmitOnSearchForm}
+                />
               </Grid>
             </ExpansionPanelDetails>
           </ExpansionPanel>,
@@ -322,6 +337,37 @@ class BasicView extends React.Component<IBasicView> {
 
     return <div>{panelsGroups}</div>;
   };
+
+  private handleChangeOnSearchForm = (event, searchQuery) => {
+    console.log('TODO handleChangeOnSearchForm');
+  };
+
+  private handleSubmitOnSearchForm = (event, index, searchQueries) => {
+    const {routes, rawData, getQueries} = this.props;
+    if (!index.DataQueries) {
+      logger.warning(
+        'handlesubmitOnSearchForm',
+        'skip submit because of SubmitQueries empty',
+      );
+      return;
+    }
+
+    const {
+      newFormData,
+      inputErrorMap,
+    }: any = form_utils.mergeDefaultInputsToFormData(
+      index,
+      rawData,
+      searchQueries,
+    );
+    console.log(
+      'TODO DEBUG mergeDefaultInputsToFormData: ',
+      inputErrorMap.length,
+      newFormData,
+      inputErrorMap,
+    );
+    getQueries(routes, index, newFormData);
+  };
 }
 
 function mapStateToProps(state, ownProps) {
@@ -329,7 +375,19 @@ function mapStateToProps(state, ownProps) {
 }
 
 function mapDispatchToProps(dispatch, ownProps) {
-  return {};
+  return {
+    getQueries: (routes, index, searchQueries) => {
+      const route = routes[routes.length - 1];
+      dispatch(
+        actions.service.serviceGetQueries({
+          isSync: index.IsSync,
+          params: route.match.params,
+          queries: index.DataQueries,
+          searchQueries,
+        }),
+      );
+    },
+  };
 }
 
 const styles = (theme: Theme): StyleRules =>

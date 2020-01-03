@@ -81,7 +81,7 @@ class LineGraphCard extends React.Component<IBasicView> {
                   dataKey="time"
                   type="number"
                   domain={['dataMin', 'dataMax']}
-                  tickFormatter={t => moment(new Date(t)).format('MM/DD hh:mm')}
+                  tickFormatter={t => moment(new Date(t)).format('MM/DD HH:mm')}
                 />
                 <YAxis
                   tickFormatter={y => {
@@ -106,6 +106,7 @@ class LineGraphCard extends React.Component<IBasicView> {
                     key={key}
                     type="monotone"
                     dataKey={key}
+                    dot={false}
                     stroke={colorPaletts[index]}
                     isAnimationActive={false}
                   />

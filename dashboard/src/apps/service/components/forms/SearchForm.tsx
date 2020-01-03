@@ -16,6 +16,7 @@ import green from '@material-ui/core/colors/green';
 import red from '@material-ui/core/colors/red';
 
 import actions from '../../../../actions';
+import form_utils from '../../../../lib/form_utils';
 import logger from '../../../../lib/logger';
 
 import Autocomplete from '@material-ui/lab/Autocomplete';
@@ -38,6 +39,8 @@ interface ISearchForm extends WithStyles<typeof styles> {
   isSubmitting;
   searchQueries: any;
   submitQueries;
+  onSubmit;
+  onChange;
 }
 
 class SearchForm extends React.Component<ISearchForm> {
@@ -46,21 +49,33 @@ class SearchForm extends React.Component<ISearchForm> {
     searchQueries: {},
   };
 
+  public componentWillMount() {
+    const searchQueries = form_utils.getSearchQueries();
+    console.log('DEBUG searchQueries', searchQueries);
+    this.setState({searchQueries});
+  }
+
   public render() {
-    const {data, index, selected, searchQueries, isSubmitting} = this.props;
+    const {data, index, selected, isSubmitting} = this.props;
+    const {searchQueries} = this.state;
     logger.info('SearchForm', 'render', index, selected, isSubmitting);
+    if (!index.Inputs) {
+      logger.warning('SearchForm', 'Not found index.Inputs');
+      return null;
+    }
 
     const inputs: any[] = [];
     for (let i = 0, len = index.Inputs.length; i < len; i++) {
       const input = index.Inputs[i];
       let defaultValue: any;
+      console.log('TODO DEBUG SearchQueries', searchQueries);
       if (searchQueries && input.Name in searchQueries) {
         defaultValue = searchQueries[input.Name];
       } else {
         defaultValue = input.Default;
       }
       switch (input.Type) {
-        case 'Selector':
+        case 'Select':
           let selectorData: any;
           if (input.DataKey) {
             selectorData = data[input.DataKey];
@@ -149,7 +164,7 @@ class SearchForm extends React.Component<ISearchForm> {
               size="medium"
               color="primary"
               startIcon={<SearchIcon />}>
-              Submit
+              Search
             </Button>
           </Grid>
         </Grid>
@@ -165,13 +180,16 @@ class SearchForm extends React.Component<ISearchForm> {
 
   private handleInputSubmit = event => {
     event.preventDefault();
-    const {routes} = this.props;
+    const {routes, index, onSubmit} = this.props;
     const {searchQueries} = this.state;
     const route = routes[routes.length - 1];
     const location = route.location;
     const queryStr = encodeURIComponent(JSON.stringify(searchQueries));
     location.search = 'q=' + queryStr;
     route.history.push(location);
+    if (onSubmit) {
+      onSubmit(event, index, searchQueries);
+    }
   };
 
   private handleInputChange = event => {

@@ -16,6 +16,7 @@ import Typography from '@material-ui/core/Typography';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 
 import actions from '../../../../actions';
+import form_utils from '../../../../lib/form_utils';
 import logger from '../../../../lib/logger';
 
 interface IExpansionPanels extends WithStyles<typeof styles> {
@@ -136,17 +137,7 @@ function mapDispatchToProps(dispatch, ownProps) {
   return {
     getQueries: (routes, panel) => {
       const route = routes[routes.length - 1];
-      const location = route.location;
-      const queryStr = decodeURIComponent(location.search);
-      let searchQueries = {};
-      try {
-        const value = queryStr.match(new RegExp('[?&]q=({.*?})(&|$|#)'));
-        if (value) {
-          searchQueries = JSON.parse(value[1]);
-        }
-      } catch (e) {
-        console.log('Ignored failed parse', queryStr);
-      }
+      const searchQueries = form_utils.getSearchQueries();
 
       let view: any = {};
       switch (panel.Kind) {

@@ -9,11 +9,17 @@ type Table struct {
 	DataQueries    []string
 	DisablePaging  bool
 	DisableToolbar bool
-	ExInputs       []TableInputField
+	SearchForm     SearchForm
 	Columns        []TableColumn
 	Actions        []Action
 	SelectActions  []Action
 	ColumnActions  []Action
+}
+
+type SearchForm struct {
+	Name   string
+	Kind   string
+	Inputs []TableInputField
 }
 
 type TableInputField struct {

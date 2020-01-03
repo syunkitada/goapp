@@ -73,40 +73,43 @@ var LogsTable = index_model.Table{
 			SelectKey: "Name",
 		},
 	},
-	ExInputs: []index_model.TableInputField{
-		index_model.TableInputField{
-			Name:     "Apps",
-			Type:     "Selector",
-			DataKey:  "LogApps",
-			Multiple: true,
-		},
-		index_model.TableInputField{
-			Name:     "Nodes",
-			Type:     "Selector",
-			DataKey:  "LogNodes",
-			Multiple: true,
-		},
-		index_model.TableInputField{
-			Name: "TraceId",
-			Type: "Text",
-		},
-		index_model.TableInputField{
-			Name:     "LimitLogs",
-			Type:     "Selector",
-			Data:     []string{"5k", "10k", "20k", "30k", "40k", "50k"},
-			Default:  "10k",
-			Multiple: false,
-		},
-		index_model.TableInputField{
-			Name:     "FromTime",
-			Type:     "Selector",
-			Data:     []string{"-6h", "-1d", "-3d"},
-			Default:  "-6h",
-			Multiple: false,
-		},
-		index_model.TableInputField{
-			Name: "UntilTime",
-			Type: "DateTime",
+	SearchForm: index_model.SearchForm{
+		Kind: "SearchForm",
+		Inputs: []index_model.TableInputField{
+			index_model.TableInputField{
+				Name:     "Apps",
+				Type:     "Selector",
+				DataKey:  "LogApps",
+				Multiple: true,
+			},
+			index_model.TableInputField{
+				Name:     "Nodes",
+				Type:     "Selector",
+				DataKey:  "LogNodes",
+				Multiple: true,
+			},
+			index_model.TableInputField{
+				Name: "TraceId",
+				Type: "Text",
+			},
+			index_model.TableInputField{
+				Name:     "LimitLogs",
+				Type:     "Selector",
+				Data:     []string{"5k", "10k", "20k", "30k", "40k", "50k"},
+				Default:  "10k",
+				Multiple: false,
+			},
+			index_model.TableInputField{
+				Name:     "FromTime",
+				Type:     "Selector",
+				Data:     []string{"-6h", "-1d", "-3d"},
+				Default:  "-6h",
+				Multiple: false,
+			},
+			index_model.TableInputField{
+				Name: "UntilTime",
+				Type: "DateTime",
+			},
 		},
 	},
 	Columns: []index_model.TableColumn{

@@ -262,17 +262,30 @@ func (driver *InfluxdbDriver) GetNode(tctx *logger.TraceContext, input *api_spec
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
+	until := "now()"
+	if input.UntilTime != nil {
+		until = fmt.Sprintf("'%s'", input.UntilTime.Format(time.RFC3339))
+	}
+	from := "-6h"
+	if input.FromTime != "" {
+		from = input.FromTime
+	}
+
+	whereStr := fmt.Sprintf("WHERE Node = '%s' AND time < %s AND time > %s %s",
+		input.Name, until, until, from)
+	suffixQuery := fmt.Sprintf("%s GROUP BY time(1m)", whereStr)
+
 	var systemMetrics []api_spec.Metric
 	driver.GetMetrics(tctx,
 		&systemMetrics,
 		"ProcsRunning",
-		fmt.Sprintf("SELECT procs_running, procs_blocked FROM system_cpu WHERE Node = '%s' AND time > now() - 3h limit 10000", input.Name),
+		fmt.Sprintf("SELECT MEAN(procs_running), MEAN(procs_blocked) FROM system_cpu %s", suffixQuery),
 		[]string{"procs_running", "procs_blocked"})
 
 	driver.GetMetrics(tctx,
 		&systemMetrics,
 		"Processes",
-		fmt.Sprintf("select processes from system_cpu where Node = '%s' AND time > now() - 3h limit 10000", input.Name),
+		fmt.Sprintf("SELECT MEAN(processes) FROM system_cpu %s", suffixQuery),
 		[]string{"processes"})
 
 	data = append(data, api_spec.MetricsGroup{
@@ -284,9 +297,12 @@ func (driver *InfluxdbDriver) GetNode(tctx *logger.TraceContext, input *api_spec
 }
 
 func (driver *InfluxdbDriver) GetMetrics(tctx *logger.TraceContext, metrics *[]api_spec.Metric, name string, query string, keys []string) {
+	fmt.Println("DEBUG GetMetrics")
+	fmt.Println(query)
 	for _, client := range driver.metricClients {
 		queryResult, tmpErr := client.Query(query)
 		if tmpErr != nil {
+			fmt.Println("DEBUG FaledQuery", tmpErr)
 			logger.Warningf(tctx, "Failed Query: %s", tmpErr.Error())
 			continue
 		}

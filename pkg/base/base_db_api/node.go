@@ -20,7 +20,7 @@ func (api *Api) GetNodeService(tctx *logger.TraceContext, input *base_spec.GetNo
 }
 
 func (api *Api) GetNodeServices(tctx *logger.TraceContext, input *base_spec.GetNodeServices, user *base_spec.UserAuthority) (data []base_spec.NodeService, err error) {
-	query := api.DB.Debug().Table("node_services").
+	query := api.DB.Table("node_services").
 		Select("name, kind, role, status, status_reason, state, state_reason").
 		Where("deleted_at IS NULL")
 	if input.Name != "" {
