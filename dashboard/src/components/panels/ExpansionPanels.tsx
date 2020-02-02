@@ -42,7 +42,7 @@ class ExpansionPanels extends React.Component<IExpansionPanels> {
     for (let i = 0, len = index.Panels.length; i < len; i++) {
       const panel = index.Panels[i];
       if (route.match.path === beforeRoute.match.path + panel.Route) {
-        this.props.getQueries(panel, this.state, route);
+        this.props.getQueries(panel, route);
         break;
       }
     }
@@ -109,7 +109,7 @@ class ExpansionPanels extends React.Component<IExpansionPanels> {
       const panel = index.Panels[i];
       if (expandedPath === beforeRoute.match.path + panel.Route) {
         const route = routes[routes.length - 1];
-        this.props.getQueries(panel, this.state, route);
+        this.props.getQueries(panel, route);
         break;
       }
     }
@@ -138,7 +138,7 @@ function mapStateToProps(state, ownProps) {
 
 function mapDispatchToProps(dispatch, ownProps) {
   return {
-    getQueries: (index, state, route) => {
+    getQueries: (index, route) => {
       const searchQueries = form_utils.getSearchQueries();
 
       if (index.DataQueries) {
@@ -147,8 +147,7 @@ function mapDispatchToProps(dispatch, ownProps) {
           actions.service.serviceGetQueries({
             index,
             route,
-            searchQueries,
-            state
+            searchQueries
           })
         );
       }
@@ -197,8 +196,7 @@ function mapDispatchToProps(dispatch, ownProps) {
           actions.service.serviceGetQueries({
             index: subIndex,
             route,
-            searchQueries,
-            state
+            searchQueries
           })
         );
       }

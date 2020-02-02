@@ -383,7 +383,7 @@ class BasicView extends React.Component<IBasicView> {
     );
 
     const route = routes[routes.length - 1];
-    getQueries(this.state, route, newFormData);
+    getQueries(route, newFormData);
   };
 }
 
@@ -395,13 +395,12 @@ function mapStateToProps(state, ownProps) {
 function mapDispatchToProps(dispatch, ownProps) {
   const { index } = ownProps;
   return {
-    getQueries: (state, route, searchQueries) => {
+    getQueries: (route, searchQueries) => {
       dispatch(
         actions.service.serviceGetQueries({
           index,
           route,
-          searchQueries,
-          state
+          searchQueries
         })
       );
     }

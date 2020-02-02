@@ -86,7 +86,7 @@ class IndexTable extends React.Component<IIndexTable> {
   };
 
   public componentWillMount() {
-    const { auth, routes, index } = this.props;
+    const { routes, index } = this.props;
     const route = routes[routes.length - 1];
     const location = route.location;
     const queryStr = decodeURIComponent(location.search);
@@ -103,13 +103,7 @@ class IndexTable extends React.Component<IIndexTable> {
     console.log("XXXXXXXX IndexTable Mount");
 
     if (index.DataQueries) {
-      this.props.getQueries(
-        auth,
-        index.DataQueries,
-        searchQueries,
-        index.IsSync,
-        route.match.params
-      );
+      this.props.getQueries(index, route, searchQueries);
     }
   }
 
@@ -817,7 +811,7 @@ class IndexTable extends React.Component<IIndexTable> {
     params[column.LinkParam] = value;
     if (column.LinkDataQueries) {
       console.log("DEBUG TODO getQueries indexTable", link, value, params);
-      this.props.getQueries(this.state, route, searchQueries);
+      this.props.getQueries(column, route, searchQueries);
     }
     route.history.push(link);
   };
@@ -891,15 +885,13 @@ function mapStateToProps(state, ownProps) {
 }
 
 function mapDispatchToProps(dispatch, ownProps) {
-  const { index } = ownProps;
   return {
-    getQueries: (state, route, searchQueries) => {
+    getQueries: (index, route, searchQueries) => {
       dispatch(
         actions.service.serviceGetQueries({
           index,
           route,
-          searchQueries,
-          state
+          searchQueries
         })
       );
     },

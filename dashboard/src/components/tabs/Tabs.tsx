@@ -98,7 +98,7 @@ class Tabs extends React.Component<ITabs> {
       const tab = index.Tabs[i];
       if (index.Tabs[tabId].Name === tab.Name) {
         if (tab.DataQueries) {
-          this.props.getQueries(tab, this.state, route, searchQueries);
+          this.props.getQueries(tab, route, searchQueries);
         }
         break;
       }
@@ -115,14 +115,13 @@ function mapStateToProps(state, ownProps) {
 
 function mapDispatchToProps(dispatch, ownProps) {
   return {
-    getQueries: (index, state, route, searchQueries) => {
+    getQueries: (index, route, searchQueries) => {
       console.log("DEBUG getQueries on Tabs");
       dispatch(
         actions.service.serviceGetQueries({
           index,
           route,
-          searchQueries,
-          state
+          searchQueries
         })
       );
     }

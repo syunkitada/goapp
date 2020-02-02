@@ -1,24 +1,24 @@
-import * as React from 'react';
+import * as React from "react";
 
-import IndexForm from './forms/IndexForm';
-import SearchForm from './forms/SearchForm';
-import RoutePanels from './panels/RoutePanels';
-import Panes from './panes/Panes';
-import IndexTable from './tables/IndexTable';
-import Tabs from './tabs/Tabs';
-import IndexView from './views/IndexView';
+import IndexForm from "./forms/IndexForm";
+import SearchForm from "./forms/SearchForm";
+import RoutePanels from "./panels/RoutePanels";
+import Panes from "./panes/Panes";
+import IndexTable from "./tables/IndexTable";
+import Tabs from "./tabs/Tabs";
+import IndexView from "./views/IndexView";
 
-import logger from '../lib/logger';
+import logger from "../lib/logger";
 
 function renderIndex(routes, data, index) {
   if (!index) {
     return <div>Not Found</div>;
   }
-  logger.info('Index', 'renderIndex:', index.Kind, routes);
+  logger.info("Index", "renderIndex:", index.Kind, routes);
   switch (index.Kind) {
-    case 'Msg':
+    case "Msg":
       return <div>{index.Name}</div>;
-    case 'RoutePanels':
+    case "RoutePanels":
       return (
         <RoutePanels
           render={renderIndex}
@@ -27,15 +27,15 @@ function renderIndex(routes, data, index) {
           index={index}
         />
       );
-    case 'RouteTabs':
+    case "RouteTabs":
       return (
         <Tabs render={renderIndex} routes={routes} data={data} index={index} />
       );
-    case 'RoutePanes':
+    case "RoutePanes":
       return (
         <Panes render={renderIndex} routes={routes} data={data} index={index} />
       );
-    case 'Table':
+    case "Table":
       return (
         <IndexTable
           render={renderIndex}
@@ -44,7 +44,7 @@ function renderIndex(routes, data, index) {
           data={data}
         />
       );
-    case 'View':
+    case "View":
       return (
         <IndexView
           render={renderIndex}
@@ -53,9 +53,9 @@ function renderIndex(routes, data, index) {
           data={data}
         />
       );
-    case 'SearchForm':
+    case "SearchForm":
       return <SearchForm routes={routes} index={index} data={data} />;
-    case 'Form':
+    case "Form":
       return <IndexForm routes={routes} index={index} data={data} />;
     default:
       return <div>Unsupported Kind: {index.Kind}</div>;
@@ -63,5 +63,5 @@ function renderIndex(routes, data, index) {
 }
 
 export default {
-  renderIndex,
+  renderIndex
 };

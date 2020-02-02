@@ -455,7 +455,7 @@ class BasicForm extends React.Component<IBasicForm> {
       }
     }
 
-    submitQueries(this.state, route, items, fieldData);
+    submitQueries(route, items, fieldData);
   };
 }
 
@@ -474,14 +474,13 @@ function mapStateToProps(state, ownProps) {
 function mapDispatchToProps(dispatch, ownProps) {
   const { index } = ownProps;
   return {
-    submitQueries: (state, route, items, fieldMap) => {
+    submitQueries: (route, items, fieldMap) => {
       dispatch(
         actions.service.serviceSubmitQueries({
           fieldMap,
           index,
           items,
-          route,
-          state
+          route
         })
       );
     }

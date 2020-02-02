@@ -13,13 +13,11 @@ export const serviceStopBackgroundSync = actionCreator(
 );
 export const serviceGetQueries = actionCreator<{
   index: any;
-  state: any;
   route: any;
   searchQueries: any;
 }>("SERVICE_GET_QUERIES");
 export const serviceSubmitQueries = actionCreator<{
   index: any;
-  state: any;
   route: any;
   items: any;
   fieldMap: any;

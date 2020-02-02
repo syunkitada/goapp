@@ -140,13 +140,12 @@ function mapStateToProps(state, ownProps) {
 
 function mapDispatchToProps(dispatch, ownProps) {
   return {
-    getQueries: (index, state, route, searchQueries) => {
+    getQueries: (index, route, searchQueries) => {
       dispatch(
         actions.service.serviceGetQueries({
           index,
           route,
-          searchQueries,
-          state
+          searchQueries
         })
       );
     }

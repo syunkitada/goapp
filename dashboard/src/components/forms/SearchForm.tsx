@@ -219,14 +219,13 @@ function mapStateToProps(state, ownProps) {
 function mapDispatchToProps(dispatch, ownProps) {
   const { index } = ownProps;
   return {
-    submitQueries: (state, items, fieldMap, route) => {
+    submitQueries: (items, fieldMap, route) => {
       dispatch(
         actions.service.serviceSubmitQueries({
           fieldMap,
           index,
           items,
-          route,
-          state
+          route
         })
       );
     }
