@@ -1,9 +1,9 @@
 import * as React from 'react';
 import {connect} from 'react-redux';
 
-import actions from '../../../../actions';
-import {toStringFromStatusCode} from '../../../../lib/codes';
-import logger from '../../../../lib/logger';
+import actions from '../../actions';
+import {toStringFromStatusCode} from '../../lib/codes';
+import logger from '../../lib/logger';
 import MsgSnackbar from './MsgSnackbar';
 
 interface ISubmitMsgSnackbar {
@@ -74,7 +74,4 @@ function mapDispatchToProps(dispatch, ownProps) {
   };
 }
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(SubmitMsgSnackbar);
+export default connect(mapStateToProps, mapDispatchToProps)(SubmitMsgSnackbar);

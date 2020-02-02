@@ -1,37 +1,39 @@
-import * as React from 'react';
-import {connect} from 'react-redux';
+import * as React from "react";
+import { connect } from "react-redux";
 
-import {Theme} from '@material-ui/core/styles/createMuiTheme';
-import createStyles from '@material-ui/core/styles/createStyles';
+import { Theme } from "@material-ui/core/styles/createMuiTheme";
+import createStyles from "@material-ui/core/styles/createStyles";
 import withStyles, {
   StyleRules,
-  WithStyles,
-} from '@material-ui/core/styles/withStyles';
+  WithStyles
+} from "@material-ui/core/styles/withStyles";
 
-import Button from '@material-ui/core/Button';
-import CircularProgress from '@material-ui/core/CircularProgress';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogContentText from '@material-ui/core/DialogContentText';
-import DialogTitle from '@material-ui/core/DialogTitle';
-import Grid from '@material-ui/core/Grid';
-import TextField from '@material-ui/core/TextField';
+import Button from "@material-ui/core/Button";
+import CircularProgress from "@material-ui/core/CircularProgress";
+import DialogActions from "@material-ui/core/DialogActions";
+import DialogContent from "@material-ui/core/DialogContent";
+import DialogContentText from "@material-ui/core/DialogContentText";
+import DialogTitle from "@material-ui/core/DialogTitle";
+import Grid from "@material-ui/core/Grid";
+// import TextareaAutosize from '@material-ui/core/TextareaAutosize';
+import TextField from "@material-ui/core/TextField";
 
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemIcon from '@material-ui/core/ListItemIcon';
-import ListItemText from '@material-ui/core/ListItemText';
-import DoneIcon from '@material-ui/icons/Done';
+import List from "@material-ui/core/List";
+import ListItem from "@material-ui/core/ListItem";
+import ListItemIcon from "@material-ui/core/ListItemIcon";
+import ListItemText from "@material-ui/core/ListItemText";
+import DoneIcon from "@material-ui/icons/Done";
 
-import green from '@material-ui/core/colors/green';
-import red from '@material-ui/core/colors/red';
+import green from "@material-ui/core/colors/green";
+import red from "@material-ui/core/colors/red";
 
-import actions from '../../../../actions';
-import logger from '../../../../lib/logger';
+import actions from "../../actions";
+import logger from "../../lib/logger";
 
-import Icon from '../../../../components/icons/Icon';
+import Icon from "../icons/Icon";
 
 interface IBasicForm extends WithStyles<typeof styles> {
+  auth;
   targets;
   routes;
   data;
@@ -41,13 +43,14 @@ interface IBasicForm extends WithStyles<typeof styles> {
   isSubmitting;
   title;
   rawData;
-  submitButtonName;
+  service;
   submitQueries;
+  submitSuccessMsg;
 }
 
 class BasicForm extends React.Component<IBasicForm> {
   public state = {
-    fieldMap: {},
+    fieldMap: {}
   };
 
   public render() {
@@ -56,23 +59,67 @@ class BasicForm extends React.Component<IBasicForm> {
       index,
       selected,
       isSubmitting,
+      submitSuccessMsg,
       title,
-      submitButtonName,
-      onClose,
+      onClose
     } = this.props;
-    logger.info('BasicForm', 'render', index, selected);
+    logger.info("BasicForm", "render", index, selected);
+
+    if (submitSuccessMsg) {
+      return (
+        <div>
+          {title && <DialogTitle id="form-dialog-title">{title}</DialogTitle>}
+          <DialogContent className={classes.dialogContent}>
+            <DialogContentText>{index.Description}</DialogContentText>
+            {submitSuccessMsg}
+          </DialogContent>
+          <DialogActions>
+            <div className={classes.wrapper} style={{ width: "100%" }}>
+              <Grid container={true}>
+                <Grid container={true} item={true} xs={6} justify="flex-start">
+                  {onClose && (
+                    <Button onClick={onClose} disabled={isSubmitting}>
+                      Cancel
+                    </Button>
+                  )}
+                </Grid>
+                <Grid container={true} item={true} xs={6} justify="flex-end">
+                  {isSubmitting ? (
+                    <CircularProgress
+                      size={24}
+                      className={classes.buttonProgress}
+                    />
+                  ) : (
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      disabled={isSubmitting}
+                      className={classes.button}
+                      onClick={this.handleActionSubmit}
+                    >
+                      <Icon name={index.Icon} marginDirection={"right"} />
+                      {index.SubmitButtonName}
+                    </Button>
+                  )}
+                </Grid>
+              </Grid>
+            </div>
+          </DialogActions>
+        </div>
+      );
+    }
 
     const fields = this.renderFields();
 
     return (
-      <div className={classes.root}>
+      <div>
         {title && <DialogTitle id="form-dialog-title">{title}</DialogTitle>}
-        <DialogContent>
+        <DialogContent className={classes.dialogContent}>
           <DialogContentText>{index.Description}</DialogContentText>
           {fields}
         </DialogContent>
         <DialogActions>
-          <div className={classes.wrapper} style={{width: '100%'}}>
+          <div className={classes.wrapper} style={{ width: "100%" }}>
             <Grid container={true}>
               <Grid container={true} item={true} xs={6} justify="flex-start">
                 {onClose && (
@@ -93,9 +140,10 @@ class BasicForm extends React.Component<IBasicForm> {
                     color="primary"
                     disabled={isSubmitting}
                     className={classes.button}
-                    onClick={this.handleActionSubmit}>
-                    <Icon name={index.Icon} marginDirection={'right'} />
-                    {submitButtonName}
+                    onClick={this.handleActionSubmit}
+                  >
+                    <Icon name={index.Icon} marginDirection={"right"} />
+                    {index.SubmitButtonName}
                   </Button>
                 )}
               </Grid>
@@ -107,25 +155,29 @@ class BasicForm extends React.Component<IBasicForm> {
   }
 
   private renderFields = () => {
-    const {classes, data, selected, index, rawData} = this.props;
-    const {fieldMap} = this.state;
+    const { classes, data, selected, index, rawData } = this.props;
+    const { fieldMap } = this.state;
     const fields: JSX.Element[] = [];
 
     if (selected) {
+      const items = data[index.DataKey];
       const listItems: JSX.Element[] = [];
       for (let i = 0, len = selected.length; i < len; i++) {
         const s = selected[i];
+        const item = items[s];
+        const value = item[index.SelectKey];
+
         listItems.push(
           <ListItem key={s}>
             <ListItemIcon>
               <DoneIcon />
             </ListItemIcon>
-            <ListItemText primary={s} />
-          </ListItem>,
+            <ListItemText primary={value} />
+          </ListItem>
         );
       }
 
-      fields.push(<List key={'selected'}>{listItems}</List>);
+      fields.push(<List key={"selected"}>{listItems}</List>);
     }
 
     if (!index.Fields) {
@@ -134,25 +186,22 @@ class BasicForm extends React.Component<IBasicForm> {
 
     for (let i = 0, len = index.Fields.length; i < len; i++) {
       const field = index.Fields[i];
-      const fieldState = fieldMap[field.Name];
       let isError = false;
-      let helperText = '';
-      if (fieldState) {
-        if (fieldState.error !== '') {
-          isError = true;
-          helperText = fieldState.error;
-        }
-      }
+      let helperText = "";
 
       let autoFocus = false;
       if (i === 0) {
         autoFocus = true;
       }
-
       let disabled = false;
 
-      let value = '';
+      let value = "";
+      const fieldState = fieldMap[field.Name];
       if (fieldState) {
+        if (fieldState.error !== "") {
+          isError = true;
+          helperText = fieldState.error;
+        }
         value = fieldState.value;
       } else {
         if (rawData) {
@@ -160,11 +209,13 @@ class BasicForm extends React.Component<IBasicForm> {
           if (!field.Updatable) {
             disabled = true;
           }
+        } else if (field.DefaultFunc) {
+          value = field.DefaultFunc(data);
         }
       }
 
       switch (field.Kind) {
-        case 'text':
+        case "text":
           fields.push(
             <TextField
               id={field.Name}
@@ -181,10 +232,34 @@ class BasicForm extends React.Component<IBasicForm> {
               value={value}
               helperText={helperText}
               error={isError}
-            />,
+            />
           );
           break;
-        case 'select':
+
+        case "texts":
+          fields.push(
+            <TextField
+              id={field.Name}
+              key={i}
+              disabled={disabled}
+              label={field.Name}
+              multiline={true}
+              rows={3}
+              autoFocus={autoFocus}
+              margin="dense"
+              type={field.Kind}
+              fullWidth={true}
+              onChange={event => {
+                this.handleTextFieldChange(event, field);
+              }}
+              value={value}
+              helperText={helperText}
+              error={isError}
+            />
+          );
+          break;
+
+        case "select":
           let options = field.Options;
           if (!options) {
             options = [];
@@ -194,10 +269,10 @@ class BasicForm extends React.Component<IBasicForm> {
                 options.push(d[j].Name);
               }
             } else {
-              options.push('');
+              options.push("");
             }
           }
-          if (!value || value === '') {
+          if (!value || value === "") {
             value = options[0];
           }
 
@@ -214,19 +289,20 @@ class BasicForm extends React.Component<IBasicForm> {
               }}
               SelectProps={{
                 MenuProps: {
-                  className: classes.menu,
+                  className: classes.menu
                 },
-                native: true,
+                native: true
               }}
               helperText="Please select"
               margin="normal"
-              fullWidth={true}>
+              fullWidth={true}
+            >
               {options.map(option => (
                 <option key={option} value={option}>
                   {option}
                 </option>
               ))}
-            </TextField>,
+            </TextField>
           );
           break;
         default:
@@ -239,10 +315,10 @@ class BasicForm extends React.Component<IBasicForm> {
   };
 
   private handleTextFieldChange = (event, field) => {
-    const {fieldMap} = this.state;
+    const { fieldMap } = this.state;
 
     const text = event.target.value;
-    let error = '';
+    let error = "";
     const len = text.length;
 
     if (field.Min) {
@@ -257,9 +333,9 @@ class BasicForm extends React.Component<IBasicForm> {
       const re = new RegExp(field.RegExp);
       if (!re.test(text)) {
         if (field.RegExpMsg) {
-          error += field.RegExpMsg + ' ';
+          error += field.RegExpMsg + " ";
         } else {
-          error += 'Invalid characters. ';
+          error += "Invalid characters. ";
         }
       }
     }
@@ -267,36 +343,44 @@ class BasicForm extends React.Component<IBasicForm> {
     fieldMap[field.Name] = {
       error,
       type: field.Kind,
-      value: event.target.value,
+      value: event.target.value
     };
 
-    this.setState({fieldMap});
+    this.setState({ fieldMap });
   };
 
   private handleSelectFieldChange = (event, field) => {
-    const {fieldMap} = this.state;
+    const { fieldMap } = this.state;
     fieldMap[field.Name] = {
       error: null,
       type: field.Kind,
-      value: event.target.value,
+      value: event.target.value
     };
-    this.setState({fieldMap});
+    this.setState({ fieldMap });
   };
 
   private handleActionSubmit = () => {
-    const {index, data, rawData, selected, routes, submitQueries} = this.props;
-    const {fieldMap} = this.state;
+    const {
+      index,
+      data,
+      rawData,
+      selected,
+      routes,
+      submitQueries
+    } = this.props;
+    const { fieldMap } = this.state;
     const route = routes.slice(-1)[0];
     const fieldData = {};
 
     if (index.Fields) {
+      console.log("DEBUG index.Fields", index.Fields);
       // Validate
       // フォーム入力がなく、デフォルト値がある場合はセットする
       for (let i = 0, len = index.Fields.length; i < len; i++) {
         const field = index.Fields[i];
 
         const fieldState = fieldMap[field.Name];
-        let value = '';
+        let value = "";
         if (fieldState) {
           value = fieldState.value;
         } else {
@@ -306,20 +390,27 @@ class BasicForm extends React.Component<IBasicForm> {
         }
 
         switch (field.Kind) {
-          case 'text':
+          case "text":
+          case "texts":
             if (field.Require) {
-              if (!value || value === '') {
+              if (!value || value === "") {
                 fieldMap[field.Name] = {
-                  error: 'This is required',
+                  error: "This is required",
                   type: field.Kind,
-                  value: '',
+                  value: ""
                 };
               }
-              fieldData[field.Name] = {value};
+              fieldData[field.Name] = { value };
+            } else {
+              if (value) {
+                fieldData[field.Name] = { value };
+              } else {
+                fieldData[field.Name] = { value: field.Default };
+              }
             }
             break;
 
-          case 'select':
+          case "select":
             if (!value) {
               let options = field.Options;
               if (!options) {
@@ -330,12 +421,12 @@ class BasicForm extends React.Component<IBasicForm> {
                     options.push(d[j].Name);
                   }
                 } else {
-                  options.push('');
+                  options.push("");
                 }
               }
               value = options[0];
             }
-            fieldData[field.Name] = {value};
+            fieldData[field.Name] = { value };
             break;
           default:
             break;
@@ -345,10 +436,9 @@ class BasicForm extends React.Component<IBasicForm> {
 
     const items: any[] = [];
     if (index.SelectKey && selected) {
+      const tmpItems = data[index.DataKey];
       for (let i = 0, len = selected.length; i < len; i++) {
-        const item = {};
-        item[index.SelectKey] = selected[i];
-        items.push(item);
+        items.push(tmpItems[selected[i]]);
       }
       if (items.length === 0) {
         // TODO handle unknown error
@@ -359,84 +449,90 @@ class BasicForm extends React.Component<IBasicForm> {
     }
 
     for (const key in fieldMap) {
-      if (fieldMap[key].error && fieldMap[key].error !== '') {
-        this.setState({fieldMap});
+      if (fieldMap[key].error && fieldMap[key].error !== "") {
+        this.setState({ fieldMap });
         return;
       }
     }
 
-    submitQueries(index, items, fieldData, route.match.params);
+    submitQueries(this.state, route, items, fieldData);
   };
 }
 
 function mapStateToProps(state, ownProps) {
-  const {isSubmitting, isSubmitSuccess} = state.service;
+  const { auth, service } = state;
+  const { isSubmitting, submitSuccessMsg } = state.service;
+  console.log("DEBUG auth in BasicForm", auth);
   return {
-    isSubmitSuccess,
+    auth,
     isSubmitting,
+    service,
+    submitSuccessMsg
   };
 }
 
 function mapDispatchToProps(dispatch, ownProps) {
-  const {queryKind, dataKind} = ownProps;
+  const { index } = ownProps;
   return {
-    submitQueries: (index, items, fieldMap, params) => {
+    submitQueries: (state, route, items, fieldMap) => {
       dispatch(
         actions.service.serviceSubmitQueries({
-          action: index,
-          dataKind,
           fieldMap,
+          index,
           items,
-          params,
-          queryKind,
-        }),
+          route,
+          state
+        })
       );
-    },
+    }
   };
 }
 
 const styles = (theme: Theme): StyleRules =>
   createStyles({
     button: {
-      margin: theme.spacing(1),
+      margin: theme.spacing(1)
     },
     buttonFailed: {
-      '&:hover': {
-        backgroundColor: red[700],
+      "&:hover": {
+        backgroundColor: red[700]
       },
-      backgroundColor: red[500],
+      backgroundColor: red[500]
     },
     buttonProgress: {
       color: green[500],
-      left: '50%',
+      left: "50%",
       marginLeft: -12,
       marginTop: -12,
-      position: 'absolute',
-      top: '50%',
+      position: "absolute",
+      top: "50%"
     },
     buttonSuccess: {
-      '&:hover': {
-        backgroundColor: green[700],
+      "&:hover": {
+        backgroundColor: green[700]
       },
-      backgroundColor: green[500],
+      backgroundColor: green[500]
+    },
+    dialogContent: {
+      minWidth: 400
     },
     fabProgress: {
       color: green[500],
       left: -6,
-      position: 'absolute',
+      position: "absolute",
       top: -6,
-      zIndex: 1,
+      zIndex: 1
     },
     root: {
-      width: '100%',
+      width: "100%"
     },
     wrapper: {
       margin: theme.spacing(1),
-      position: 'relative',
-    },
+      position: "relative"
+    }
   });
 
 export default connect(
   mapStateToProps,
-  mapDispatchToProps,
-)(withStyles(styles, {withTheme: true})(BasicForm));
+  mapDispatchToProps
+)(withStyles(styles, { withTheme: true })(BasicForm));

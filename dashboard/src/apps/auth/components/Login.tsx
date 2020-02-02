@@ -78,7 +78,7 @@ class Login extends React.Component<ILogin> {
     }
 
     if (auth.user) {
-      return <Redirect to={{pathname: '/'}} />;
+      return <Redirect to={{pathname: '/Service/Home'}} />;
     }
 
     if (auth.isFetching) {

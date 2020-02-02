@@ -85,7 +85,7 @@ var PhysicalModelsTable = index_model.Table{
 			Name:           "Name",
 			IsSearch:       true,
 			Link:           "Datacenters/:Datacenter/Resources/Models/Detail/:0/View",
-			LinkParam:      "resource",
+			LinkKey:      "resource",
 			LinkSync:       false,
 			LinkGetQueries: []string{"GetPhysicalModel"}},
 		index_model.TableColumn{Name: "Kind"},

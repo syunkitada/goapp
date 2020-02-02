@@ -79,7 +79,7 @@ var ComputesTable = index_model.Table{
 		index_model.TableColumn{
 			Name: "Name", IsSearch: true,
 			Link:           "Datacenters/:Datacenter/Resources/Computes/Detail/:0/View",
-			LinkParam:      "Name",
+			LinkKey:      "Name",
 			LinkSync:       false,
 			LinkGetQueries: []string{"GetCompute"},
 		},

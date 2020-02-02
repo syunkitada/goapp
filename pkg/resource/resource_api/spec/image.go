@@ -77,7 +77,7 @@ var ImagesTable = index_model.Table{
 		index_model.TableColumn{
 			Name: "Name", IsSearch: true,
 			Link:           "Regions/:Region/Resources/Images/Detail/:0/View",
-			LinkParam:      "Name",
+			LinkKey:      "Name",
 			LinkSync:       false,
 			LinkGetQueries: []string{"GetImage"},
 		},

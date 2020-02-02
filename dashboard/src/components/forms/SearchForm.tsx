@@ -1,32 +1,32 @@
-import * as React from 'react';
-import {connect} from 'react-redux';
+import * as React from "react";
+import { connect } from "react-redux";
 
-import {Theme} from '@material-ui/core/styles/createMuiTheme';
-import createStyles from '@material-ui/core/styles/createStyles';
+import { Theme } from "@material-ui/core/styles/createMuiTheme";
+import createStyles from "@material-ui/core/styles/createStyles";
 import withStyles, {
   StyleRules,
-  WithStyles,
-} from '@material-ui/core/styles/withStyles';
+  WithStyles
+} from "@material-ui/core/styles/withStyles";
 
-import Button from '@material-ui/core/Button';
-import Grid from '@material-ui/core/Grid';
-import TextField from '@material-ui/core/TextField';
+import Button from "@material-ui/core/Button";
+import Grid from "@material-ui/core/Grid";
+import TextField from "@material-ui/core/TextField";
 
-import green from '@material-ui/core/colors/green';
-import red from '@material-ui/core/colors/red';
+import green from "@material-ui/core/colors/green";
+import red from "@material-ui/core/colors/red";
 
-import actions from '../../../../actions';
-import form_utils from '../../../../lib/form_utils';
-import logger from '../../../../lib/logger';
+import actions from "../../actions";
+import form_utils from "../../lib/form_utils";
+import logger from "../../lib/logger";
 
-import Autocomplete from '@material-ui/lab/Autocomplete';
+import Autocomplete from "@material-ui/lab/Autocomplete";
 
-import {DateTimePicker} from '@material-ui/pickers';
-import {MuiPickersUtilsProvider} from '@material-ui/pickers';
+import { DateTimePicker } from "@material-ui/pickers";
+import { MuiPickersUtilsProvider } from "@material-ui/pickers";
 
-import DateFnsUtils from '@date-io/date-fns';
+import DateFnsUtils from "@date-io/date-fns";
 
-import SearchIcon from '@material-ui/icons/Search';
+import SearchIcon from "@material-ui/icons/Search";
 
 // import Icon from '../../../../components/icons/Icon';
 
@@ -46,21 +46,21 @@ interface ISearchForm extends WithStyles<typeof styles> {
 class SearchForm extends React.Component<ISearchForm> {
   public state = {
     fieldMap: {},
-    searchQueries: {},
+    searchQueries: {}
   };
 
   public componentWillMount() {
     const searchQueries = form_utils.getSearchQueries();
-    console.log('DEBUG searchQueries', searchQueries);
-    this.setState({searchQueries});
+    console.log("DEBUG searchQueries", searchQueries);
+    this.setState({ searchQueries });
   }
 
   public render() {
-    const {data, index, selected, isSubmitting} = this.props;
-    const {searchQueries} = this.state;
-    logger.info('SearchForm', 'render', index, selected, isSubmitting);
+    const { data, index, selected, isSubmitting } = this.props;
+    const { searchQueries } = this.state;
+    logger.info("SearchForm", "render", index, selected, isSubmitting);
     if (!index.Inputs) {
-      logger.warning('SearchForm', 'Not found index.Inputs');
+      logger.warning("SearchForm", "Not found index.Inputs");
       return null;
     }
 
@@ -68,14 +68,14 @@ class SearchForm extends React.Component<ISearchForm> {
     for (let i = 0, len = index.Inputs.length; i < len; i++) {
       const input = index.Inputs[i];
       let defaultValue: any;
-      console.log('TODO DEBUG SearchQueries', searchQueries);
+      console.log("TODO DEBUG SearchQueries", searchQueries);
       if (searchQueries && input.Name in searchQueries) {
         defaultValue = searchQueries[input.Name];
       } else {
         defaultValue = input.Default;
       }
       switch (input.Type) {
-        case 'Select':
+        case "Select":
           let selectorData: any;
           if (input.DataKey) {
             selectorData = data[input.DataKey];
@@ -92,7 +92,7 @@ class SearchForm extends React.Component<ISearchForm> {
 
           const selectorProps = {
             getOptionLabel: option => option,
-            options,
+            options
           };
 
           inputs.push(
@@ -114,10 +114,10 @@ class SearchForm extends React.Component<ISearchForm> {
                   />
                 )}
               />
-            </Grid>,
+            </Grid>
           );
           break;
-        case 'Text':
+        case "Text":
           inputs.push(
             <Grid item={true} key={input.Name}>
               <TextField
@@ -128,10 +128,10 @@ class SearchForm extends React.Component<ISearchForm> {
                 name={input.Name}
                 onChange={this.handleInputChange}
               />
-            </Grid>,
+            </Grid>
           );
           break;
-        case 'DateTime':
+        case "DateTime":
           inputs.push(
             <Grid item={true} key={input.Name}>
               <MuiPickersUtilsProvider utils={DateFnsUtils}>
@@ -147,7 +147,7 @@ class SearchForm extends React.Component<ISearchForm> {
                   }
                 />
               </MuiPickersUtilsProvider>
-            </Grid>,
+            </Grid>
           );
           break;
       }
@@ -163,7 +163,8 @@ class SearchForm extends React.Component<ISearchForm> {
               type="submit"
               size="medium"
               color="primary"
-              startIcon={<SearchIcon />}>
+              startIcon={<SearchIcon />}
+            >
               Search
             </Button>
           </Grid>
@@ -173,19 +174,19 @@ class SearchForm extends React.Component<ISearchForm> {
   }
 
   private handleSelectorChange = (event, name, values) => {
-    const {searchQueries} = this.state;
+    const { searchQueries } = this.state;
     searchQueries[name] = values;
-    this.setState({searchQueries});
+    this.setState({ searchQueries });
   };
 
   private handleInputSubmit = event => {
     event.preventDefault();
-    const {routes, index, onSubmit} = this.props;
-    const {searchQueries} = this.state;
+    const { routes, index, onSubmit } = this.props;
+    const { searchQueries } = this.state;
     const route = routes[routes.length - 1];
     const location = route.location;
     const queryStr = encodeURIComponent(JSON.stringify(searchQueries));
-    location.search = 'q=' + queryStr;
+    location.search = "q=" + queryStr;
     route.history.push(location);
     if (onSubmit) {
       onSubmit(event, index, searchQueries);
@@ -193,86 +194,87 @@ class SearchForm extends React.Component<ISearchForm> {
   };
 
   private handleInputChange = event => {
-    const {searchQueries} = this.state;
+    const { searchQueries } = this.state;
     searchQueries[event.target.name] = event.target.value;
-    this.setState({searchQueries});
+    this.setState({ searchQueries });
   };
 
   private handleDateChange = (name: string, date: Date | null) => {
-    const {searchQueries} = this.state;
+    const { searchQueries } = this.state;
     searchQueries[name] = date;
-    this.setState({searchQueries});
+    this.setState({ searchQueries });
   };
 }
 
 function mapStateToProps(state, ownProps) {
-  const {isSubmitting, isSubmitSuccess} = state.service;
+  const { auth, service, isSubmitting, isSubmitSuccess } = state.service;
   return {
+    auth,
     isSubmitSuccess,
     isSubmitting,
+    service
   };
 }
 
 function mapDispatchToProps(dispatch, ownProps) {
-  const {queryKind, dataKind} = ownProps;
+  const { index } = ownProps;
   return {
-    submitQueries: (index, items, fieldMap, params) => {
+    submitQueries: (state, items, fieldMap, route) => {
       dispatch(
         actions.service.serviceSubmitQueries({
-          action: index,
-          dataKind,
           fieldMap,
+          index,
           items,
-          params,
-          queryKind,
-        }),
+          route,
+          state
+        })
       );
-    },
+    }
   };
 }
 
 const styles = (theme: Theme): StyleRules =>
   createStyles({
     button: {
-      margin: theme.spacing(1),
+      margin: theme.spacing(1)
     },
     buttonFailed: {
-      '&:hover': {
-        backgroundColor: red[700],
+      "&:hover": {
+        backgroundColor: red[700]
       },
-      backgroundColor: red[500],
+      backgroundColor: red[500]
     },
     buttonProgress: {
       color: green[500],
-      left: '50%',
+      left: "50%",
       marginLeft: -12,
       marginTop: -12,
-      position: 'absolute',
-      top: '50%',
+      position: "absolute",
+      top: "50%"
     },
     buttonSuccess: {
-      '&:hover': {
-        backgroundColor: green[700],
+      "&:hover": {
+        backgroundColor: green[700]
       },
-      backgroundColor: green[500],
+      backgroundColor: green[500]
     },
     fabProgress: {
       color: green[500],
       left: -6,
-      position: 'absolute',
+      position: "absolute",
       top: -6,
-      zIndex: 1,
+      zIndex: 1
     },
     root: {
-      width: '100%',
+      width: "100%"
     },
     wrapper: {
       margin: theme.spacing(1),
-      position: 'relative',
-    },
+      position: "relative"
+    }
   });
 
 export default connect(
   mapStateToProps,
-  mapDispatchToProps,
-)(withStyles(styles, {withTheme: true})(SearchForm));
+  mapDispatchToProps
+)(withStyles(styles, { withTheme: true })(SearchForm));

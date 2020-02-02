@@ -115,7 +115,7 @@ var RegionServicesTable = index_model.Table{
 		index_model.TableColumn{
 			Name: "Name", IsSearch: true,
 			Link:           "Regions/:Region/Resources/RegionServices/Detail/:0/View",
-			LinkParam:      "Name",
+			LinkKey:      "Name",
 			LinkSync:       false,
 			LinkGetQueries: []string{"GetRegionService"},
 		},

@@ -1,4 +1,4 @@
-import fetch from 'cross-fetch';
+import fetch from "cross-fetch";
 
 interface IResponse {
   result: any;
@@ -9,19 +9,20 @@ function post({
   serviceName,
   actionName,
   projectName,
-  queries,
+  queries
 }): Promise<IResponse> {
   const body = JSON.stringify({
     Project: projectName,
     Queries: queries,
-    Service: serviceName,
+    Service: serviceName
   });
+  console.log("DEBUGHOGEpost");
 
-  return fetch(process.env.REACT_APP_AUTHPROXY_URL + '/q', {
+  return fetch(process.env.REACT_APP_AUTHPROXY_URL + "/q", {
     body,
-    credentials: 'include',
-    method: 'POST',
-    mode: 'cors',
+    credentials: "include",
+    method: "POST",
+    mode: "cors"
   })
     .then(resp => {
       if (!resp.ok) {
@@ -29,18 +30,19 @@ function post({
           const result: IResponse = {
             error: {
               err: payload.Error,
-              errCode: resp.status,
+              errCode: resp.status
             },
-            result: null,
+            result: null
           };
           return result;
         });
       }
 
       return resp.json().then(payload => {
+        console.log("DEBUGHOGEpost2", payload);
         const result: IResponse = {
           error: null,
-          result: payload,
+          result: payload
         };
         return result;
       });
@@ -48,14 +50,14 @@ function post({
     .catch(error => {
       const result: IResponse = {
         error: {
-          err: error,
+          err: error
         },
-        result: null,
+        result: null
       };
       return result;
     });
 }
 
 export default {
-  post,
+  post
 };

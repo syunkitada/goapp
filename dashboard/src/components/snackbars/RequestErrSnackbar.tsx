@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {connect} from 'react-redux';
 
-import actions from '../../../../actions';
+import actions from '../../actions';
 import MsgSnackbar from './MsgSnackbar';
 
 interface IRequestErrSnackbar {
@@ -51,7 +51,4 @@ function mapDispatchToProps(dispatch, ownProps) {
   };
 }
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(RequestErrSnackbar);
+export default connect(mapStateToProps, mapDispatchToProps)(RequestErrSnackbar);

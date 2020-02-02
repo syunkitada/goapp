@@ -1,52 +1,53 @@
-import * as React from 'react';
+import * as React from "react";
 
-import {connect} from 'react-redux';
+import { connect } from "react-redux";
 
-import {Theme} from '@material-ui/core/styles/createMuiTheme';
-import createStyles from '@material-ui/core/styles/createStyles';
+import { Theme } from "@material-ui/core/styles/createMuiTheme";
+import createStyles from "@material-ui/core/styles/createStyles";
 import withStyles, {
   StyleRules,
-  WithStyles,
-} from '@material-ui/core/styles/withStyles';
+  WithStyles
+} from "@material-ui/core/styles/withStyles";
 
-import Button from '@material-ui/core/Button';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogContentText from '@material-ui/core/DialogContentText';
-import DialogTitle from '@material-ui/core/DialogTitle';
-import Grid from '@material-ui/core/Grid';
-import Typography from '@material-ui/core/Typography';
+import Button from "@material-ui/core/Button";
+import DialogActions from "@material-ui/core/DialogActions";
+import DialogContent from "@material-ui/core/DialogContent";
+import DialogContentText from "@material-ui/core/DialogContentText";
+import DialogTitle from "@material-ui/core/DialogTitle";
+import Grid from "@material-ui/core/Grid";
+import Typography from "@material-ui/core/Typography";
 
-import Table from '@material-ui/core/Table';
-import TableBody from '@material-ui/core/TableBody';
-import TableCell from '@material-ui/core/TableCell';
-import TableRow from '@material-ui/core/TableRow';
+import Table from "@material-ui/core/Table";
+import TableBody from "@material-ui/core/TableBody";
+import TableCell from "@material-ui/core/TableCell";
+import TableRow from "@material-ui/core/TableRow";
 
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemIcon from '@material-ui/core/ListItemIcon';
-import ListItemText from '@material-ui/core/ListItemText';
-import DoneIcon from '@material-ui/icons/Done';
+import List from "@material-ui/core/List";
+import ListItem from "@material-ui/core/ListItem";
+import ListItemIcon from "@material-ui/core/ListItemIcon";
+import ListItemText from "@material-ui/core/ListItemText";
+import DoneIcon from "@material-ui/icons/Done";
 
-import green from '@material-ui/core/colors/green';
-import red from '@material-ui/core/colors/red';
+import green from "@material-ui/core/colors/green";
+import red from "@material-ui/core/colors/red";
 
-import actions from '../../../../actions';
-import form_utils from '../../../../lib/form_utils';
-import logger from '../../../../lib/logger';
+import actions from "../../actions";
+import form_utils from "../../lib/form_utils";
+import logger from "../../lib/logger";
 
-import LineGraphCard from '../cards/LineGraphCard';
+import LineGraphCard from "../cards/LineGraphCard";
 
-import ExpansionPanel from '@material-ui/core/ExpansionPanel';
-import ExpansionPanelDetails from '@material-ui/core/ExpansionPanelDetails';
-import ExpansionPanelSummary from '@material-ui/core/ExpansionPanelSummary';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+import ExpansionPanel from "@material-ui/core/ExpansionPanel";
+import ExpansionPanelDetails from "@material-ui/core/ExpansionPanelDetails";
+import ExpansionPanelSummary from "@material-ui/core/ExpansionPanelSummary";
+import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 
 // import Toolbar from '@material-ui/core/Toolbar';
 
-import SearchForm from '../forms/SearchForm';
+import SearchForm from "../forms/SearchForm";
 
 interface IBasicView extends WithStyles<typeof styles> {
+  auth;
   getQueries;
   targets;
   routes;
@@ -64,12 +65,19 @@ interface IBasicView extends WithStyles<typeof styles> {
 
 class BasicView extends React.Component<IBasicView> {
   public state = {
-    fieldMap: {},
+    fieldMap: {}
   };
 
   public render() {
-    const {classes, index, selected, isSubmitting, title, onClose} = this.props;
-    logger.info('BasicView', 'render', index, selected);
+    const {
+      classes,
+      index,
+      selected,
+      isSubmitting,
+      title,
+      onClose
+    } = this.props;
+    logger.info("BasicView", "render", index, selected);
 
     const fields = this.renderFields();
     const panels = this.renderPanels();
@@ -89,7 +97,7 @@ class BasicView extends React.Component<IBasicView> {
           {panels}
         </DialogContent>
         <DialogActions>
-          <div className={classes.wrapper} style={{width: '100%'}}>
+          <div className={classes.wrapper} style={{ width: "100%" }}>
             <Grid container={true}>
               <Grid container={true} item={true} xs={6} justify="flex-start">
                 {onClose && (
@@ -107,12 +115,12 @@ class BasicView extends React.Component<IBasicView> {
   }
 
   private handleChange = (event, isExpanded) => {
-    console.log('handleChange');
+    console.log("handleChange");
   };
 
   private renderFields = () => {
-    const {selected, index, rawData} = this.props;
-    const {fieldMap} = this.state;
+    const { selected, index, rawData } = this.props;
+    const { fieldMap } = this.state;
     const fields: JSX.Element[] = [];
 
     if (selected) {
@@ -125,11 +133,11 @@ class BasicView extends React.Component<IBasicView> {
               <DoneIcon />
             </ListItemIcon>
             <ListItemText primary={s} />
-          </ListItem>,
+          </ListItem>
         );
       }
 
-      fields.push(<List key={'selected'}>{listItems}</List>);
+      fields.push(<List key={"selected"}>{listItems}</List>);
     }
 
     if (!index.Fields) {
@@ -140,7 +148,7 @@ class BasicView extends React.Component<IBasicView> {
       const field = index.Fields[i];
       const fieldState = fieldMap[field.Name];
 
-      let value = '';
+      let value = "";
       if (fieldState) {
         value = fieldState.value;
       } else {
@@ -150,20 +158,20 @@ class BasicView extends React.Component<IBasicView> {
       }
 
       switch (field.Kind) {
-        case 'text':
+        case "text":
           fields.push(
             <TableRow key={field.Name}>
               <TableCell>{field.Name}</TableCell>
-              <TableCell style={{width: '100%'}}>{value}</TableCell>
-            </TableRow>,
+              <TableCell style={{ width: "100%" }}>{value}</TableCell>
+            </TableRow>
           );
           break;
-        case 'select':
+        case "select":
           fields.push(
             <TableRow key={field.Name}>
               <TableCell>{field.Name}</TableCell>
-              <TableCell style={{width: '100%'}}>{value}</TableCell>
-            </TableRow>,
+              <TableCell style={{ width: "100%" }}>{value}</TableCell>
+            </TableRow>
           );
           break;
         default:
@@ -176,20 +184,20 @@ class BasicView extends React.Component<IBasicView> {
   };
 
   private renderPanels = () => {
-    const {render, routes, classes, index, rawData} = this.props;
+    const { render, routes, classes, index, rawData } = this.props;
 
     const panelsGroups: JSX.Element[] = [];
     for (let i = 0, len = index.PanelsGroups.length; i < len; i++) {
-      console.log('TODO renderPanels', index, rawData);
+      console.log("TODO renderPanels", index, rawData);
       const panelsGroup = index.PanelsGroups[i];
       const panels: JSX.Element[] = [];
-      if (panelsGroup.Kind === 'Cards') {
+      if (panelsGroup.Kind === "Cards") {
         const cards: JSX.Element[] = [];
 
         for (let j = 0, jlen = panelsGroup.Cards.length; j < jlen; j++) {
           const card = panelsGroup.Cards[j];
           switch (card.Kind) {
-            case 'Fields':
+            case "Fields":
               const fields: JSX.Element[] = [];
               for (let x = 0, xlen = card.Fields.length; x < xlen; x++) {
                 const field = card.Fields[x];
@@ -197,8 +205,8 @@ class BasicView extends React.Component<IBasicView> {
                 fields.push(
                   <TableRow key={field.Name}>
                     <TableCell>{field.Name}</TableCell>
-                    <TableCell style={{width: '100%'}}>{value}</TableCell>
-                  </TableRow>,
+                    <TableCell style={{ width: "100%" }}>{value}</TableCell>
+                  </TableRow>
                 );
               }
 
@@ -207,11 +215,11 @@ class BasicView extends React.Component<IBasicView> {
                   <Table className={classes.table}>
                     <TableBody>{fields}</TableBody>
                   </Table>
-                </Grid>,
+                </Grid>
               );
 
               break;
-            case 'Tables':
+            case "Tables":
               const tables: JSX.Element[] = [];
               for (let x = 0, xlen = card.Tables.length; x < xlen; x++) {
                 const table = card.Tables[x];
@@ -221,22 +229,22 @@ class BasicView extends React.Component<IBasicView> {
                     <Typography variant="subtitle1">{table.Name}</Typography>
                     {html}
                     <hr />
-                  </div>,
+                  </div>
                 );
               }
 
               cards.push(
                 <Grid key={card.Name} item={true} xs={6}>
                   {tables}
-                </Grid>,
+                </Grid>
               );
               break;
-            case 'Table':
+            case "Table":
               cards.push(
                 <Grid key={card.Name} item={true} xs={6}>
                   <Typography variant="subtitle1">{card.Name}</Typography>
                   {render(routes, rawData, card)}
-                </Grid>,
+                </Grid>
               );
               break;
           }
@@ -247,10 +255,12 @@ class BasicView extends React.Component<IBasicView> {
             key={panelsGroup.Name}
             expanded={true}
             onChange={this.handleChange}
-            className={classes.expansionPanel}>
+            className={classes.expansionPanel}
+          >
             <ExpansionPanelSummary
               expandIcon={<ExpandMoreIcon />}
-              className={classes.expansionPanelSummary}>
+              className={classes.expansionPanelSummary}
+            >
               <Typography variant="subtitle1">{panelsGroup.Name}</Typography>
             </ExpansionPanelSummary>
             <ExpansionPanelDetails className={classes.expansionPanelDetail}>
@@ -258,23 +268,26 @@ class BasicView extends React.Component<IBasicView> {
                 {cards}
               </Grid>
             </ExpansionPanelDetails>
-          </ExpansionPanel>,
+          </ExpansionPanel>
         );
-      } else if (panelsGroup.Kind === 'SearchForm') {
+      } else if (panelsGroup.Kind === "SearchForm") {
         panels.push(
           <ExpansionPanel
             key={panelsGroup.Name}
             expanded={true}
             onChange={this.handleChange}
-            className={classes.expansionPanel}>
+            className={classes.expansionPanel}
+          >
             <ExpansionPanelSummary
               expandIcon={<ExpandMoreIcon />}
-              className={classes.expansionPanelSummary}>
+              className={classes.expansionPanelSummary}
+            >
               <Typography variant="subtitle1">{panelsGroup.Name}</Typography>
             </ExpansionPanelSummary>
             <ExpansionPanelDetails
               className={classes.expansionPanelDetail}
-              style={{padding: '20px 20px 20px 20px'}}>
+              style={{ padding: "20px 20px 20px 20px" }}
+            >
               <Grid container={true} spacing={2}>
                 <SearchForm
                   routes={routes}
@@ -285,10 +298,10 @@ class BasicView extends React.Component<IBasicView> {
                 />
               </Grid>
             </ExpansionPanelDetails>
-          </ExpansionPanel>,
+          </ExpansionPanel>
         );
-      } else if (panelsGroup.Kind === 'MetricsGroups') {
-        console.log('debug data', rawData[panelsGroup.DataKey]);
+      } else if (panelsGroup.Kind === "MetricsGroups") {
+        console.log("debug data", rawData[panelsGroup.DataKey]);
         const metricsGroups = rawData[panelsGroup.DataKey];
         if (!metricsGroups) {
           continue;
@@ -298,11 +311,11 @@ class BasicView extends React.Component<IBasicView> {
           const cards: JSX.Element[] = [];
           for (let x = 0, xlen = metricsGroup.Metrics.length; x < xlen; x++) {
             const metric = metricsGroup.Metrics[x];
-            console.log('DEBUG metrics', metric);
+            console.log("DEBUG metrics", metric);
             cards.push(
               <Grid key={metric.Name} item={true} xs={6}>
                 <LineGraphCard data={metric} />
-              </Grid>,
+              </Grid>
             );
           }
           panels.push(
@@ -310,10 +323,12 @@ class BasicView extends React.Component<IBasicView> {
               key={panelsGroup.Name + metricsGroup.Name}
               expanded={true}
               onChange={this.handleChange}
-              className={classes.expansionPanel}>
+              className={classes.expansionPanel}
+            >
               <ExpansionPanelSummary
                 expandIcon={<ExpandMoreIcon />}
-                className={classes.expansionPanelSummary}>
+                className={classes.expansionPanelSummary}
+              >
                 <Typography variant="subtitle1">
                   {panelsGroup.Name} {metricsGroup.Name}
                 </Typography>
@@ -323,7 +338,7 @@ class BasicView extends React.Component<IBasicView> {
                   {cards}
                 </Grid>
               </ExpansionPanelDetails>
-            </ExpansionPanel>,
+            </ExpansionPanel>
           );
         }
       }
@@ -331,7 +346,7 @@ class BasicView extends React.Component<IBasicView> {
       panelsGroups.push(
         <div key={panelsGroup.Name} className={classes.panelsGroups}>
           {panels}
-        </div>,
+        </div>
       );
     }
 
@@ -339,113 +354,116 @@ class BasicView extends React.Component<IBasicView> {
   };
 
   private handleChangeOnSearchForm = (event, searchQuery) => {
-    console.log('TODO handleChangeOnSearchForm');
+    console.log("TODO handleChangeOnSearchForm");
   };
 
   private handleSubmitOnSearchForm = (event, index, searchQueries) => {
-    const {routes, rawData, getQueries} = this.props;
+    const { routes, rawData, getQueries } = this.props;
     if (!index.DataQueries) {
       logger.warning(
-        'handlesubmitOnSearchForm',
-        'skip submit because of SubmitQueries empty',
+        "handlesubmitOnSearchForm",
+        "skip submit because of SubmitQueries empty"
       );
       return;
     }
 
     const {
       newFormData,
-      inputErrorMap,
+      inputErrorMap
     }: any = form_utils.mergeDefaultInputsToFormData(
       index,
       rawData,
-      searchQueries,
+      searchQueries
     );
     console.log(
-      'TODO DEBUG mergeDefaultInputsToFormData: ',
+      "TODO DEBUG mergeDefaultInputsToFormData: ",
       inputErrorMap.length,
       newFormData,
-      inputErrorMap,
+      inputErrorMap
     );
-    getQueries(routes, index, newFormData);
+
+    const route = routes[routes.length - 1];
+    getQueries(this.state, route, newFormData);
   };
 }
 
 function mapStateToProps(state, ownProps) {
-  return {};
+  const auth = state.auth;
+  return { auth };
 }
 
 function mapDispatchToProps(dispatch, ownProps) {
+  const { index } = ownProps;
   return {
-    getQueries: (routes, index, searchQueries) => {
-      const route = routes[routes.length - 1];
+    getQueries: (state, route, searchQueries) => {
       dispatch(
         actions.service.serviceGetQueries({
-          isSync: index.IsSync,
-          params: route.match.params,
-          queries: index.DataQueries,
+          index,
+          route,
           searchQueries,
-        }),
+          state
+        })
       );
-    },
+    }
   };
 }
 
 const styles = (theme: Theme): StyleRules =>
   createStyles({
     button: {
-      margin: theme.spacing(1),
+      margin: theme.spacing(1)
     },
     buttonFailed: {
-      '&:hover': {
-        backgroundColor: red[700],
+      "&:hover": {
+        backgroundColor: red[700]
       },
-      backgroundColor: red[500],
+      backgroundColor: red[500]
     },
     buttonProgress: {
       color: green[500],
-      left: '50%',
+      left: "50%",
       marginLeft: -12,
       marginTop: -12,
-      position: 'absolute',
-      top: '50%',
+      position: "absolute",
+      top: "50%"
     },
     buttonSuccess: {
-      '&:hover': {
-        backgroundColor: green[700],
+      "&:hover": {
+        backgroundColor: green[700]
       },
-      backgroundColor: green[500],
+      backgroundColor: green[500]
     },
     expansionPanel: {
-      border: '1px solid rgba(0, 0, 0, .125)',
-      boxShadow: 'none',
+      border: "1px solid rgba(0, 0, 0, .125)",
+      boxShadow: "none"
     },
     expansionPanelDetail: {
-      boxShadow: 'none',
+      boxShadow: "none"
     },
     expansionPanelSummary: {
-      borderBottom: '1px solid rgba(0, 0, 0, .125)',
-      boxShadow: 'none',
+      borderBottom: "1px solid rgba(0, 0, 0, .125)",
+      boxShadow: "none"
     },
     fabProgress: {
       color: green[500],
       left: -6,
-      position: 'absolute',
+      position: "absolute",
       top: -6,
-      zIndex: 1,
+      zIndex: 1
     },
     panelsGroups: {
-      marginBottom: '5px',
+      marginBottom: "5px"
     },
     root: {
-      width: '100%',
+      width: "100%"
     },
     wrapper: {
       margin: theme.spacing(1),
-      position: 'relative',
-    },
+      position: "relative"
+    }
   });
 
 export default connect(
   mapStateToProps,
-  mapDispatchToProps,
-)(withStyles(styles, {withTheme: true})(BasicView));
+  mapDispatchToProps
+)(withStyles(styles, { withTheme: true })(BasicView));

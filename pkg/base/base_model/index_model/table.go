@@ -37,6 +37,7 @@ type TableColumn struct {
 	IsSearch       bool
 	Link           string
 	LinkParam      string
+	LinkKey        string
 	LinkSync       bool
 	LinkGetQueries []string
 	RowColoringMap map[string]string

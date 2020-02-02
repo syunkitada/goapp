@@ -65,7 +65,7 @@ var DatacentersTable = index_model.Table{
 			Name:      "Name",
 			IsSearch:  true,
 			Link:      "Datacenters/:0/Resources/Resources",
-			LinkParam: "Datacenter",
+			LinkKey: "Datacenter",
 			LinkSync:  true,
 			LinkGetQueries: []string{
 				"GetPhysicalResources", "GetRacks", "GetFloors", "GetPhysicalModels"},

@@ -70,7 +70,7 @@ var RacksTable = index_model.Table{
 		index_model.TableColumn{
 			Name: "Name", IsSearch: true,
 			Link:           "Datacenters/:Datacenter/Resources/Racks/Detail/:0/View",
-			LinkParam:      "Name",
+			LinkKey:      "Name",
 			LinkSync:       false,
 			LinkGetQueries: []string{"GetRack"},
 		},

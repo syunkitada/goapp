@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {connect} from 'react-redux';
 
-import actions from '../../../../actions';
+import actions from '../../actions';
 import MsgSnackbar from './MsgSnackbar';
 
 interface IGetMsgSnackbar {
@@ -70,7 +70,4 @@ function mapDispatchToProps(dispatch, ownProps) {
   };
 }
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(GetMsgSnackbar);
+export default connect(mapStateToProps, mapDispatchToProps)(GetMsgSnackbar);

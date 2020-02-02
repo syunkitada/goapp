@@ -1,31 +1,32 @@
-import * as React from 'react';
-import {connect} from 'react-redux';
+import * as React from "react";
+import { connect } from "react-redux";
 
-import {Theme} from '@material-ui/core/styles/createMuiTheme';
-import createStyles from '@material-ui/core/styles/createStyles';
+import { Theme } from "@material-ui/core/styles/createMuiTheme";
+import createStyles from "@material-ui/core/styles/createStyles";
 import withStyles, {
   StyleRules,
-  WithStyles,
-} from '@material-ui/core/styles/withStyles';
+  WithStyles
+} from "@material-ui/core/styles/withStyles";
 
-import AppBar from '@material-ui/core/AppBar';
-import Tab from '@material-ui/core/Tab';
-import CoreTabs from '@material-ui/core/Tabs';
-import Typography from '@material-ui/core/Typography';
+import AppBar from "@material-ui/core/AppBar";
+import Tab from "@material-ui/core/Tab";
+import CoreTabs from "@material-ui/core/Tabs";
+import Typography from "@material-ui/core/Typography";
 
-import actions from '../../../../actions';
-import logger from '../../../../lib/logger';
+import actions from "../../actions";
+import logger from "../../lib/logger";
 
 const styles = (theme: Theme): StyleRules =>
   createStyles({
     root: {
       backgroundColor: theme.palette.background.paper,
       flexGrow: 1,
-      width: '100%',
-    },
+      width: "100%"
+    }
   });
 
 interface ITabs extends WithStyles<typeof styles> {
+  auth;
   classes;
   getQueries;
   render;
@@ -37,12 +38,12 @@ interface ITabs extends WithStyles<typeof styles> {
 class Tabs extends React.Component<ITabs> {
   public state = {
     tabId: null,
-    tabRoute: null,
+    tabRoute: null
   };
 
   public render() {
-    const {classes, render, routes, data, index} = this.props;
-    logger.info('Tabs', 'render()', routes);
+    const { classes, render, routes, data, index } = this.props;
+    logger.info("Tabs", "render()", routes);
 
     const route = routes[routes.length - 1];
 
@@ -69,7 +70,8 @@ class Tabs extends React.Component<ITabs> {
             indicatorColor="primary"
             textColor="primary"
             variant="scrollable"
-            scrollButtons="auto">
+            scrollButtons="auto"
+          >
             {tabs}
           </CoreTabs>
         </AppBar>
@@ -79,16 +81,16 @@ class Tabs extends React.Component<ITabs> {
   }
 
   private handleChange = (event, tabId) => {
-    const {index, routes} = this.props;
+    const { index, routes } = this.props;
     const route = routes[routes.length - 1];
-    const splitedPath = route.match.path.split('/');
-    let splitedUrl = route.match.url.split('/');
-    splitedUrl[splitedPath.indexOf(':' + index.TabParam)] =
+    const splitedPath = route.match.path.split("/");
+    let splitedUrl = route.match.url.split("/");
+    splitedUrl[splitedPath.indexOf(":" + index.TabParam)] =
       index.Tabs[tabId].Name;
 
     const lastIndex =
-      route.match.path.split(index.Route)[0].split('/').length +
-      index.Route.split('/').length;
+      route.match.path.split(index.Route)[0].split("/").length +
+      index.Route.split("/").length;
     splitedUrl = splitedUrl.slice(0, lastIndex - 1);
 
     const searchQueries = {};
@@ -96,41 +98,38 @@ class Tabs extends React.Component<ITabs> {
       const tab = index.Tabs[i];
       if (index.Tabs[tabId].Name === tab.Name) {
         if (tab.DataQueries) {
-          this.props.getQueries(
-            tab.DataQueries,
-            searchQueries,
-            tab.IsSync,
-            route.match.params,
-          );
+          this.props.getQueries(tab, this.state, route, searchQueries);
         }
         break;
       }
     }
 
-    route.history.push(splitedUrl.join('/'));
+    route.history.push(splitedUrl.join("/"));
   };
 }
 
 function mapStateToProps(state, ownProps) {
-  return {};
+  const auth = state.auth;
+  return { auth };
 }
 
 function mapDispatchToProps(dispatch, ownProps) {
   return {
-    getQueries: (queries, searchQueries, isSync, params) => {
+    getQueries: (index, state, route, searchQueries) => {
+      console.log("DEBUG getQueries on Tabs");
       dispatch(
         actions.service.serviceGetQueries({
-          isSync,
-          params,
-          queries,
+          index,
+          route,
           searchQueries,
-        }),
+          state
+        })
       );
-    },
+    }
   };
 }
 
 export default connect(
   mapStateToProps,
-  mapDispatchToProps,
+  mapDispatchToProps
 )(withStyles(styles)(Tabs));

@@ -1,29 +1,29 @@
-import * as React from 'react';
-import {connect} from 'react-redux';
+import * as React from "react";
+import { connect } from "react-redux";
 
-import IndexForm from './forms/IndexForm';
-import SearchForm from './forms/SearchForm';
-import RoutePanels from './panels/RoutePanels';
-import Panes from './panes/Panes';
-import GetMsgSnackbar from './snackbars/GetMsgSnackbar';
-import RequestErrSnackbar from './snackbars/RequestErrSnackbar';
-import SubmitMsgSnackbar from './snackbars/SubmitMsgSnackbar';
-import IndexTable from './tables/IndexTable';
-import Tabs from './tabs/Tabs';
-import IndexView from './views/IndexView';
+import IndexForm from "../../../components/forms/IndexForm";
+import SearchForm from "../../../components/forms/SearchForm";
+import RoutePanels from "../../../components/panels/RoutePanels";
+import Panes from "../../../components/panes/Panes";
+import GetMsgSnackbar from "../../../components/snackbars/GetMsgSnackbar";
+import RequestErrSnackbar from "../../../components/snackbars/RequestErrSnackbar";
+import SubmitMsgSnackbar from "../../../components/snackbars/SubmitMsgSnackbar";
+import IndexTable from "../../../components/tables/IndexTable";
+import Tabs from "../../../components/tabs/Tabs";
+import IndexView from "../../../components/views/IndexView";
 
-import actions from '../../../actions';
-import logger from '../../../lib/logger';
+import actions from "../../../actions";
+import logger from "../../../lib/logger";
 
 function renderIndex(routes, data, index) {
   if (!index) {
     return <div>Not Found</div>;
   }
-  logger.info('Index', 'renderIndex:', index.Kind, index.Name, routes);
+  logger.info("Index", "renderIndex:", index.Kind, index.Name, routes);
   switch (index.Kind) {
-    case 'Msg':
+    case "Msg":
       return <div>{index.Name}</div>;
-    case 'RoutePanels':
+    case "RoutePanels":
       return (
         <RoutePanels
           render={renderIndex}
@@ -32,15 +32,15 @@ function renderIndex(routes, data, index) {
           index={index}
         />
       );
-    case 'RouteTabs':
+    case "RouteTabs":
       return (
         <Tabs render={renderIndex} routes={routes} data={data} index={index} />
       );
-    case 'RoutePanes':
+    case "RoutePanes":
       return (
         <Panes render={renderIndex} routes={routes} data={data} index={index} />
       );
-    case 'Table':
+    case "Table":
       return (
         <IndexTable
           render={renderIndex}
@@ -49,7 +49,7 @@ function renderIndex(routes, data, index) {
           data={data}
         />
       );
-    case 'View':
+    case "View":
       return (
         <IndexView
           render={renderIndex}
@@ -58,9 +58,9 @@ function renderIndex(routes, data, index) {
           data={data}
         />
       );
-    case 'SearchForm':
+    case "SearchForm":
       return <SearchForm routes={routes} index={index} data={data} />;
-    case 'Form':
+    case "Form":
       return <IndexForm routes={routes} index={index} data={data} />;
     default:
       return <div>Unsupported Kind: {index.Kind}</div>;
@@ -78,24 +78,24 @@ interface IIndex {
 class Index extends React.Component<IIndex> {
   public state = {
     openAlertSnackbar: true,
-    traceMsgMap: {},
+    traceMsgMap: {}
   };
 
   public componentWillMount() {
-    logger.info('Index', 'componentWillMount()');
-    const {match, getIndex} = this.props;
-    getIndex(match.params);
+    logger.info("Index", "componentWillMount()");
+    const { getIndex } = this.props;
+    getIndex();
   }
 
   public render() {
-    const {match, service, serviceName, projectName, getIndex} = this.props;
-    logger.info('Index', 'render', projectName, serviceName);
+    const { service, serviceName, projectName, getIndex } = this.props;
+    logger.info("Index", "render", projectName, serviceName);
 
     if (
       service.serviceName !== serviceName ||
       service.projectName !== projectName
     ) {
-      getIndex(match.params);
+      getIndex();
       return null;
     }
 
@@ -128,28 +128,25 @@ class Index extends React.Component<IIndex> {
 }
 
 function mapStateToProps(state, ownProps) {
-  const match = ownProps.match;
   const auth = state.auth;
   const service = state.service;
+  const { match } = ownProps;
 
   return {
     auth,
     match,
     projectName: match.params.project,
     service,
-    serviceName: match.params.service,
+    serviceName: match.params.service
   };
 }
 
 function mapDispatchToProps(dispatch, ownProps) {
   return {
-    getIndex: params => {
-      dispatch(actions.service.serviceGetIndex({params}));
-    },
+    getIndex: () => {
+      dispatch(actions.service.serviceGetIndex({ route: ownProps }));
+    }
   };
 }
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(Index);
+export default connect(mapStateToProps, mapDispatchToProps)(Index);

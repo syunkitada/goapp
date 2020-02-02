@@ -44,25 +44,35 @@ class IndexTableHead extends React.Component<IIndexTableHead> {
             </TableCell>
           ) : null}
           {columns.map(
-            column => (
-              <TableCell
-                key={column.id}
-                align={column.id === 0 ? 'left' : 'right'}
-                padding={column.disablePadding ? 'none' : 'default'}
-                sortDirection={orderBy === column.id ? order : false}>
-                <Tooltip
-                  title="Sort"
-                  placement={column.numeric ? 'bottom-end' : 'bottom-start'}
-                  enterDelay={300}>
-                  <TableSortLabel
-                    active={orderBy === column.id}
-                    direction={order}
-                    onClick={this.createSortHandler(column.id)}>
-                    {column.Name}
-                  </TableSortLabel>
-                </Tooltip>
-              </TableCell>
-            ),
+            column =>
+              column.Sortable ? (
+                <TableCell
+                  key={column.id}
+                  align={column.Align ? column.Align : 'right'}
+                  padding={column.Padding ? column.Padding : 'default'}
+                  sortDirection={orderBy === column.id ? order : false}
+                  style={{minWidth: column.MinWidth, width: column.Width}}>
+                  <Tooltip
+                    title="Sort"
+                    placement={column.numeric ? 'bottom-end' : 'bottom-start'}
+                    enterDelay={300}>
+                    <TableSortLabel
+                      active={orderBy === column.id}
+                      direction={order}
+                      onClick={this.createSortHandler(column.id)}>
+                      {column.Name}
+                    </TableSortLabel>
+                  </Tooltip>
+                </TableCell>
+              ) : (
+                <TableCell
+                  key={column.id}
+                  align={column.Align ? column.Align : 'right'}
+                  padding={column.Padding ? column.Padding : 'default'}
+                  style={{minWidth: column.MinWidth, width: column.Width}}>
+                  {column.Name}
+                </TableCell>
+              ),
             this,
           )}
         </TableRow>
@@ -83,7 +93,4 @@ function mapDispatchToProps(dispatch, ownProps) {
   return {};
 }
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(IndexTableHead);
+export default connect(mapStateToProps, mapDispatchToProps)(IndexTableHead);

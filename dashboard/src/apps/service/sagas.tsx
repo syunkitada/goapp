@@ -6,56 +6,67 @@ import {
   fork,
   put,
   take,
-  takeEvery,
-} from 'redux-saga/effects';
+  takeEvery
+} from "redux-saga/effects";
 
-import actions from '../../actions';
-import logger from '../../lib/logger';
-import modules from '../../modules';
-import store from '../../store';
+import actions from "../../actions";
+import logger from "../../lib/logger";
+import modules from "../../modules";
+import store from "../../store";
 
 function* post(action) {
   const dataQueries: any[] = [];
   const {
-    params,
-    queries,
+    index,
+    state,
+    route,
     searchQueries,
     isSync,
     queryKind,
     dataKind,
     items,
-    fieldMap,
+    fieldMap
   } = action.payload;
+
+  console.log("DEBUG TODO post", index, state, route);
+  if (!route.match) {
+    console.error("FIXME Invalid route", index, state, route);
+    return;
+  }
+  const params = route.match.params;
 
   let payload: any = null;
 
-  console.log('DEBUG searchQueries', searchQueries);
-
   switch (action.type) {
-    case 'SERVICE_GET_INDEX':
+    case "SERVICE_GET_INDEX":
+      console.log("DEBUG TODO getindex");
       payload = {
         projectName: params.project,
         queries: [
           {
-            Data: JSON.stringify({Name: params.service}),
-            Name: 'GetServiceDashboardIndex',
-          },
+            Data: JSON.stringify({ Name: params.service }),
+            Name: "GetServiceDashboardIndex"
+          }
         ],
         serviceName: params.service,
-        stateKey: 'index',
+        stateKey: "index"
       };
       break;
 
-    case 'SERVICE_GET_QUERIES':
+    case "SERVICE_GET_QUERIES":
       const syncQueryMap: any[] = [];
       const queryData = Object.assign({}, params, searchQueries);
-      console.log('DEBUG QUERY data', queryData);
-      for (let i = 0, len = queries.length; i < len; i++) {
-        dataQueries.push({Name: queries[i], Data: JSON.stringify(queryData)});
+      console.log("DEBUG TODO getqueries", index, state, route);
+
+      for (let i = 0, len = index.DataQueries.length; i < len; i++) {
+        dataQueries.push({
+          Data: JSON.stringify(queryData),
+          Name: index.DataQueries[i]
+        });
         if (isSync) {
-          syncQueryMap[queries[i]] = {
+          syncQueryMap[index.DataQueries[i]] = {
             Data: JSON.stringify(params),
-            Name: queries[i],
+            Name: index.DataQueries[i]
           };
         }
       }
@@ -64,13 +75,14 @@ function* post(action) {
         projectName: params.project,
         queries: dataQueries,
         serviceName: params.service,
-        stateKey: 'index',
-        syncQueryMap,
+        stateKey: "index",
+        syncQueryMap
       };
 
+      console.log("DEBUG TODO getqueries", index, state, route, payload);
       break;
 
-    case 'SERVICE_SUBMIT_QUERIES':
+    case "SERVICE_SUBMIT_QUERIES":
       const specs: any[] = [];
       const spec = Object.assign({}, params);
       for (const key of Object.keys(fieldMap)) {
@@ -81,13 +93,13 @@ function* post(action) {
       for (let i = 0, len = items.length; i < len; i++) {
         specs.push({
           Kind: dataKind,
-          Spec: Object.assign({}, spec, items[i]),
+          Spec: Object.assign({}, spec, items[i])
         });
       }
 
       dataQueries.push({
-        Data: JSON.stringify({Spec: JSON.stringify(specs)}),
-        Name: queryKind,
+        Data: JSON.stringify({ Spec: JSON.stringify(specs) }),
+        Name: queryKind
       });
 
       const serviceState = Object.assign({}, store.getState().service);
@@ -101,7 +113,7 @@ function* post(action) {
         projectName: params.project,
         queries: dataQueries,
         serviceName: params.service,
-        stateKey: 'index',
+        stateKey: "index"
       };
 
       break;
@@ -110,17 +122,20 @@ function* post(action) {
       return {};
   }
 
-  const {result, error} = yield call(modules.service.post, payload);
+  console.log("DEBUG TODO post", payload);
+  const { result, error } = yield call(modules.service.post, payload);
+  console.log("DEBUG TODO post", payload, result, error);
 
   if (error) {
-    yield put(actions.service.servicePostFailure({action, payload, error}));
+    yield put(actions.service.servicePostFailure({ action, payload, error }));
   } else {
-    yield put(actions.service.servicePostSuccess({action, payload, result}));
+    yield put(actions.service.servicePostSuccess({ action, payload, result }));
   }
   return {};
 }
 
 function* sync(action) {
+  return;
   try {
     while (true) {
       const serviceState = Object.assign({}, store.getState().service);
@@ -129,49 +144,55 @@ function* sync(action) {
         for (const key of Object.keys(serviceState.syncQueryMap)) {
           queries.push(serviceState.syncQueryMap[key]);
         }
-        const postAction = {
-          payload: {
+        const route = {
+          match: {
             params: {
               project: serviceState.projectName,
-              service: serviceState.serviceName,
-            },
+              service: serviceState.serviceName
+            }
+          }
+        };
+        const postAction = {
+          payload: {
+            route
           },
-          type: 'SERVICE_GET_QUERIES',
+          type: "SERVICE_GET_QUERIES"
         };
         const payload = {
-          actionName: 'SERVICE_GET_QUERIES',
+          actionName: "SERVICE_GET_QUERIES",
           projectName: serviceState.projectName,
           queries,
-          serviceName: serviceState.serviceName,
+          route,
+          serviceName: serviceState.serviceName
         };
-        logger.info('saga', 'sync', 'syncAction', action, postAction, payload);
+        logger.info("saga", "sync", "syncAction", action, postAction, payload);
 
-        const {result, error} = yield call(modules.service.post, payload);
-        if (error) {
-          yield put(
-            actions.service.servicePostFailure({
-              action: postAction,
-              error,
-              payload,
-            }),
-          );
-        } else {
-          yield put(
-            actions.service.servicePostSuccess({
-              action: postAction,
-              payload,
-              result,
-            }),
-          );
-        }
+        // const { result, error } = yield call(modules.service.post, payload);
+        // if (error) {
+        //   yield put(
+        //     actions.service.servicePostFailure({
+        //       action: postAction,
+        //       error,
+        //       payload
+        //     })
+        //   );
+        // } else {
+        //   yield put(
+        //     actions.service.servicePostSuccess({
+        //       action: postAction,
+        //       payload,
+        //       result
+        //     })
+        //   );
+        // }
       } else {
-        logger.info('saga', 'sync', 'syncAction is null');
+        logger.info("saga", "sync", "syncAction is null");
       }
       yield delay(serviceState.syncDelay);
     }
   } finally {
     if (yield cancelled()) {
-      logger.info('saga', 'sync', 'finally');
+      logger.info("saga", "sync", "finally");
       // yield put(actions.requestFailure('Sync cancelled!'))
     }
   }
@@ -208,5 +229,5 @@ export default {
   watchGetIndex,
   watchGetQueries,
   watchStartBackgroundSync,
-  watchSubmitQueries,
+  watchSubmitQueries
 };

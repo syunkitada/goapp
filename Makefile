@@ -1,5 +1,5 @@
 env:
-	ci/tools/setup-env.sh	
+	ci/tools/setup-env.sh
 
 gen:
 	go run cmd/goapp-resource/main.go ctl generate-code
@@ -19,3 +19,6 @@ stop-all:
 
 status:
 	ci/tools/service.sh status
+
+mod:
+	GO111MODULE=on; go mod tidy; go mod vendor;

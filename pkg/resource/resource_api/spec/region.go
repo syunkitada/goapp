@@ -55,7 +55,7 @@ var RegionsTable = index_model.Table{
 			Name:      "Name",
 			IsSearch:  true,
 			Link:      "Regions/:0/Resources/Resources",
-			LinkParam: "Region",
+			LinkKey: "Region",
 			LinkSync:  true,
 			LinkGetQueries: []string{
 				"GetRegionServices", "GetImages"},

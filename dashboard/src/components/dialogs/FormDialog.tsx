@@ -17,7 +17,6 @@ interface IFormDialog {
 class FormDialog extends React.Component<IFormDialog> {
   public render() {
     const {data, routes, selected, open, action, onClose} = this.props;
-    const title = action.Name + ' ' + action.DataKind;
 
     return (
       <div>
@@ -31,10 +30,10 @@ class FormDialog extends React.Component<IFormDialog> {
             routes={routes}
             selected={selected}
             index={action}
-            title={title}
+            title={action.Name}
             queryKind={action.Query}
             dataKind={action.DataKind}
-            submitButtonName={action.Name}
+            submitButtonName={action.SubmitButtonName}
           />
         </Dialog>
       </div>
@@ -50,7 +49,4 @@ function mapDispatchToProps(dispatch, ownProps) {
   return {};
 }
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(FormDialog);
+export default connect(mapStateToProps, mapDispatchToProps)(FormDialog);

@@ -1,25 +1,26 @@
-import * as React from 'react';
-import {connect} from 'react-redux';
+import * as React from "react";
+import { connect } from "react-redux";
 
-import {Theme} from '@material-ui/core/styles/createMuiTheme';
-import createStyles from '@material-ui/core/styles/createStyles';
+import { Theme } from "@material-ui/core/styles/createMuiTheme";
+import createStyles from "@material-ui/core/styles/createStyles";
 import withStyles, {
   StyleRules,
-  WithStyles,
-} from '@material-ui/core/styles/withStyles';
+  WithStyles
+} from "@material-ui/core/styles/withStyles";
 
-import ExpansionPanel from '@material-ui/core/ExpansionPanel';
-import ExpansionPanelDetails from '@material-ui/core/ExpansionPanelDetails';
-import ExpansionPanelSummary from '@material-ui/core/ExpansionPanelSummary';
-import Typography from '@material-ui/core/Typography';
+import ExpansionPanel from "@material-ui/core/ExpansionPanel";
+import ExpansionPanelDetails from "@material-ui/core/ExpansionPanelDetails";
+import ExpansionPanelSummary from "@material-ui/core/ExpansionPanelSummary";
+import Typography from "@material-ui/core/Typography";
 
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 
-import actions from '../../../../actions';
-import form_utils from '../../../../lib/form_utils';
-import logger from '../../../../lib/logger';
+import actions from "../../actions";
+import form_utils from "../../lib/form_utils";
+import logger from "../../lib/logger";
 
 interface IExpansionPanels extends WithStyles<typeof styles> {
+  auth;
   render;
   routes;
   data;
@@ -30,28 +31,28 @@ interface IExpansionPanels extends WithStyles<typeof styles> {
 class ExpansionPanels extends React.Component<IExpansionPanels> {
   public state = {
     expanded: null,
-    expandedUrl: null,
+    expandedUrl: null
   };
 
   public componentWillMount() {
-    const {routes, index} = this.props;
+    const { routes, index } = this.props;
     const route = routes.slice(-1)[0];
     const beforeRoute = routes.slice(-2)[0];
 
     for (let i = 0, len = index.Panels.length; i < len; i++) {
       const panel = index.Panels[i];
       if (route.match.path === beforeRoute.match.path + panel.Route) {
-        this.props.getQueries(routes, panel);
+        this.props.getQueries(panel, this.state, route);
         break;
       }
     }
   }
 
   public render() {
-    const {classes, render, routes, data, index} = this.props;
-    const {expanded, expandedUrl} = this.state;
+    const { classes, render, routes, data, index } = this.props;
+    const { expanded, expandedUrl } = this.state;
 
-    logger.info('ExpansionPanels', 'render()', routes);
+    logger.info("ExpansionPanels", "render()", routes);
 
     const route = routes.slice(-1)[0];
     const beforeRoute = routes.slice(-2)[0];
@@ -81,18 +82,19 @@ class ExpansionPanels extends React.Component<IExpansionPanels> {
           onChange={() =>
             this.handleChange(
               beforeRoute.match.path + panel.Route,
-              route.match.url,
+              route.match.url
             )
-          }>
+          }
+        >
           <ExpansionPanelSummary expandIcon={<ExpandMoreIcon />}>
             <Typography variant="subtitle1">
               {panel.Name} {route.match.params[panel.Subname]}
             </Typography>
           </ExpansionPanelSummary>
-          <ExpansionPanelDetails style={{padding: 0}}>
+          <ExpansionPanelDetails style={{ padding: 0 }}>
             {render(routes, data, panel)}
           </ExpansionPanelDetails>
-        </ExpansionPanel>,
+        </ExpansionPanel>
       );
     }
 
@@ -100,20 +102,21 @@ class ExpansionPanels extends React.Component<IExpansionPanels> {
   }
 
   private handleChange = (expandedPath, expandedUrl) => {
-    const {routes, index} = this.props;
+    const { routes, index } = this.props;
 
     const beforeRoute = routes.slice(-2)[0];
     for (let i = 0, len = index.Panels.length; i < len; i++) {
       const panel = index.Panels[i];
       if (expandedPath === beforeRoute.match.path + panel.Route) {
-        this.props.getQueries(routes, panel);
+        const route = routes[routes.length - 1];
+        this.props.getQueries(panel, this.state, route);
         break;
       }
     }
 
     this.setState({
       expanded: expandedPath,
-      expandedUrl,
+      expandedUrl
     });
   };
 }
@@ -123,47 +126,55 @@ const styles = (theme: Theme): StyleRules =>
     root: {
       backgroundColor: theme.palette.background.paper,
       flexGrow: 1,
-      width: '100%',
-    },
+      width: "100%"
+    }
   });
 
 function mapStateToProps(state, ownProps) {
   const auth = state.auth;
 
-  return {auth};
+  return { auth };
 }
 
 function mapDispatchToProps(dispatch, ownProps) {
   return {
-    getQueries: (routes, panel) => {
-      const route = routes[routes.length - 1];
+    getQueries: (index, state, route) => {
       const searchQueries = form_utils.getSearchQueries();
 
-      let view: any = {};
-      switch (panel.Kind) {
-        case 'Table':
-        case 'View':
-          view = panel;
-          break;
-        case 'RouteTabs':
-          for (let i = 0, len = panel.Tabs.length; i < len; i++) {
-            const tab = panel.Tabs[i];
-            if (route.match.params[panel.TabParam] === tab.Name) {
-              view = tab;
+      if (index.DataQueries) {
+        console.log("TODO DEBUG ExpansionPanel getQueries", index, route);
+        dispatch(
+          actions.service.serviceGetQueries({
+            index,
+            route,
+            searchQueries,
+            state
+          })
+        );
+      }
+
+      // exec sub queries
+      let subIndex: any = {};
+      switch (index.Kind) {
+        case "RouteTabs":
+          for (let i = 0, len = index.Tabs.length; i < len; i++) {
+            const tab = index.Tabs[i];
+            if (route.match.params[index.TabParam] === tab.Name) {
+              subIndex = tab;
               break;
             }
           }
           break;
-        case 'RoutePanes':
-          for (let i = 0, len = panel.Panes.length; i < len; i++) {
-            const pane = panel.Panes[i];
-            if (route.match.params[panel.PaneParam] === pane.Name) {
+        case "RoutePanes":
+          for (let i = 0, len = index.Panes.length; i < len; i++) {
+            const pane = index.Panes[i];
+            if (route.match.params[index.PaneParam] === pane.Name) {
               switch (pane.Kind) {
-                case 'RouteTabs':
+                case "RouteTabs":
                   for (let j = 0, lenj = pane.Tabs.length; j < lenj; j++) {
                     const tab = pane.Tabs[j];
                     if (route.match.params[pane.TabParam] === tab.Name) {
-                      view = tab;
+                      subIndex = tab;
                       break;
                     }
                   }
@@ -174,28 +185,28 @@ function mapDispatchToProps(dispatch, ownProps) {
           }
           break;
         default:
-          logger.warning(
-            'ExpansionPanels',
-            'Unsupported panel.Kind',
-            panel.Kind,
-          );
           break;
       }
-      if (view.DataQueries) {
+      if (subIndex.DataQueries) {
+        console.log(
+          "TODO DEBUG ExpansionPanel subIndex getQueries",
+          subIndex,
+          route
+        );
         dispatch(
           actions.service.serviceGetQueries({
-            isSync: view.IsSync,
-            params: route.match.params,
-            queries: view.DataQueries,
+            index: subIndex,
+            route,
             searchQueries,
-          }),
+            state
+          })
         );
       }
-    },
+    }
   };
 }
 
 export default connect(
   mapStateToProps,
-  mapDispatchToProps,
+  mapDispatchToProps
 )(withStyles(styles)(ExpansionPanels));

@@ -17,7 +17,7 @@ type TableColumn struct {
 	Kind           string
 	IsSearch       bool
 	Link           string
-	LinkParam      string
+	LinkKey      string
 	LinkSync       bool
 	LinkGetQueries []string
 	Sort           string

@@ -102,7 +102,7 @@ var PhysicalResourcesTable = index_model.Table{
 		index_model.TableColumn{
 			Name: "Name", IsSearch: true,
 			Link:           "Datacenters/:Datacenter/Resources/Resources/Detail/:0/View",
-			LinkParam:      "Name",
+			LinkKey:      "Name",
 			LinkSync:       true,
 			LinkGetQueries: []string{"GetPhysicalResource"},
 		},

@@ -80,7 +80,7 @@ var ClustersTable = index_model.Table{
 			Name:      "Name",
 			IsSearch:  true,
 			Link:      "Clusters/:0/Resources/Computes",
-			LinkParam: "cluster",
+			LinkKey: "cluster",
 			LinkSync:  true,
 			LinkGetQueries: []string{
 				"GetPhysicalResources", "GetRacks", "GetFloors", "GetPhysicalModels"},

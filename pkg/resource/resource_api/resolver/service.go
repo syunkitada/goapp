@@ -3,8 +3,6 @@ package resolver
 import (
 	"fmt"
 
-	"github.com/gin-gonic/gin"
-
 	"github.com/syunkitada/goapp/pkg/base/base_const"
 	"github.com/syunkitada/goapp/pkg/base/base_model/index_model"
 	"github.com/syunkitada/goapp/pkg/base/base_spec"
@@ -95,7 +93,7 @@ func (resolver *Resolver) GetServiceDashboardIndex(tctx *logger.TraceContext,
 								spec.PhysicalModelsTable,
 							}, // Tabs
 						},
-						gin.H{
+						map[string]interface{}{
 							"Name":      "Resource",
 							"Subname":   "Name",
 							"Route":     "/Datacenters/:Datacenter/Resources/:Kind/Detail/:Name/:Subkind",
@@ -145,7 +143,7 @@ func (resolver *Resolver) GetServiceDashboardIndex(tctx *logger.TraceContext,
 								spec.PhysicalModelsTable,
 							}, // Tabs
 						},
-						gin.H{
+						map[string]interface{}{
 							"Name":      "Resource",
 							"Subname":   "Name",
 							"Route":     "/Datacenters/:Datacenter/Resources/:Kind/Detail/:Name/:Subkind",
@@ -193,7 +191,7 @@ func (resolver *Resolver) GetServiceDashboardIndex(tctx *logger.TraceContext,
 								spec.ImagesTable,
 							},
 						},
-						gin.H{
+						map[string]interface{}{
 							"Name":      "Resource",
 							"Subname":   "Name",
 							"Route":     "/Regions/:Region/Resources/:Kind/Detail/:Name/:Subkind",
@@ -218,12 +216,12 @@ func (resolver *Resolver) GetServiceDashboardIndex(tctx *logger.TraceContext,
 					Name: "Root",
 					Kind: "RoutePanels",
 					Panels: []interface{}{
-						gin.H{
+						map[string]interface{}{
 							"Name":  "ResourceVirtual HOGE",
 							"Kind":  "Msg",
 							"Route": "",
 						},
-						gin.H{
+						map[string]interface{}{
 							"Name":  "Piyo",
 							"Kind":  "Msg",
 							"Route": "/Piyo",
@@ -259,9 +257,9 @@ func (resolver *Resolver) GetServiceDashboardIndex(tctx *logger.TraceContext,
 								index_model.TableColumn{
 									Name:           "Name",
 									IsSearch:       true,
-									Link:           "Clusters/:0/Resources/Nodes",
+									Link:           "Clusters/:Cluster/Resources/Nodes",
 									LinkParam:      "Cluster",
-									LinkSync:       true,
+									LinkKey:        "Name",
 									LinkGetQueries: []string{"GetNodes"},
 								},
 								index_model.TableColumn{Name: "Region", IsSearch: true},
@@ -291,7 +289,7 @@ func (resolver *Resolver) GetServiceDashboardIndex(tctx *logger.TraceContext,
 								spec.LogsTable,
 							},
 						},
-						gin.H{
+						map[string]interface{}{
 							"Name":      "Resource",
 							"Subname":   "Name",
 							"Route":     "/Clusters/:Cluster/Resources/:Kind/Detail/:Name/:Subkind",

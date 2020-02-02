@@ -18,12 +18,12 @@ export default class Root extends React.Component {
         <Auth>
           <BrowserRouter>
             <Switch>
-              <Route path="/login" component={Login} />
               <AuthRoute path="/Service/:service" component={Service} />
               <AuthRoute
                 path="/Project/:project/:service"
                 component={Service}
               />
+              <Route path="/" component={Login} />
               <Route component={NotFound} />
             </Switch>
           </BrowserRouter>

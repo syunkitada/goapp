@@ -1,8 +1,6 @@
 package resolver
 
 import (
-	"github.com/gin-gonic/gin"
-
 	"github.com/syunkitada/goapp/pkg/base/base_const"
 	"github.com/syunkitada/goapp/pkg/base/base_model/index_model"
 	"github.com/syunkitada/goapp/pkg/base/base_spec"
@@ -37,12 +35,12 @@ func (resolver *Resolver) GetServiceDashboardIndex(tctx *logger.TraceContext, in
 				Name: "Root",
 				Kind: "RoutePanels",
 				Panels: []interface{}{
-					gin.H{
+					map[string]interface{}{
 						"Name":  "Hoge",
 						"Kind":  "Msg",
 						"Route": "",
 					},
-					gin.H{
+					map[string]interface{}{
 						"Name":  "Piyo",
 						"Kind":  "Msg",
 						"Route": "/Piyo",

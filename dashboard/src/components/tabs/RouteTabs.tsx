@@ -11,7 +11,7 @@ import withStyles, {
 
 import Tabs from './Tabs';
 
-import logger from '../../../../lib/logger';
+import logger from '../../lib/logger';
 
 const styles = (theme: Theme): StyleRules =>
   createStyles({

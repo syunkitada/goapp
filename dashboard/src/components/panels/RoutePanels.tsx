@@ -4,7 +4,7 @@ import {Route} from 'react-router-dom';
 
 import ExpansionPanels from './ExpansionPanels';
 
-import logger from '../../../../lib/logger';
+import logger from '../../lib/logger';
 
 interface IRoutePanels {
   render;
@@ -55,7 +55,4 @@ function mapDispatchToProps(dispatch, ownProps) {
   return {};
 }
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(RoutePanels);
+export default connect(mapStateToProps, mapDispatchToProps)(RoutePanels);

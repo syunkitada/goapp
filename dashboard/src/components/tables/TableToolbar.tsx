@@ -22,8 +22,9 @@ import Tooltip from '@material-ui/core/Tooltip';
 
 import SearchIcon from '@material-ui/icons/Search';
 
-import icon_utils from '../../../../modules/icon_utils';
 import TablePagination from './TablePagination';
+
+import Icon from '../icons/Icon';
 
 const styles = (theme: Theme): StyleRules =>
   createStyles({
@@ -77,11 +78,9 @@ const styles = (theme: Theme): StyleRules =>
     spacer: {
       flex: '1 1 100%',
     },
-    table: {
-      minWidth: 1020,
-    },
     tableWrapper: {
       overflowX: 'auto',
+      width: '100%',
     },
     title: {
       flex: '0 0 auto',
@@ -135,7 +134,7 @@ class TableToolbar extends React.Component<ITableToolbar> {
                 color="secondary"
                 className={classes.marginButton}
                 onClick={e => onActionClick(e, action.Name)}>
-                {icon_utils.getIcon(action.Icon)}
+                <Icon name={action.Icon} />
               </IconButton>
             </Tooltip>,
           );
@@ -151,7 +150,7 @@ class TableToolbar extends React.Component<ITableToolbar> {
                 color="primary"
                 className={classes.marginButton}
                 onClick={e => onActionClick(e, action.Name)}>
-                {icon_utils.getIcon(action.Icon)}
+                <Icon name={action.Icon} />
               </IconButton>
             </Tooltip>,
           );
@@ -161,7 +160,7 @@ class TableToolbar extends React.Component<ITableToolbar> {
 
     return (
       <Toolbar>
-        <Grid container={true} justify="space-between" spacing={1}>
+        <Grid container={true} justify="space-between">
           <Grid item={true}>
             <FormControl className={classes.margin}>
               <Input
@@ -175,19 +174,22 @@ class TableToolbar extends React.Component<ITableToolbar> {
                 }
               />
             </FormControl>
-            {exButtons}
           </Grid>
+          <Grid item={true}>{exButtons}</Grid>
           <Grid item={true}>{actionButtons}</Grid>
 
+          {!index.DisablePaging && (
           <Grid item={true}>
-            <TablePagination
-              count={count}
-              rowsPerPage={rowsPerPage}
-              page={page}
-              onChangePage={onChangePage}
-              onChangeRowsPerPage={onChangeRowsPerPage}
-            />
-          </Grid>
+            <div className={classes.tableWrapper}>
+              <TablePagination
+                  count={count}
+                  rowsPerPage={rowsPerPage}
+                  page={page}
+                  onChangePage={onChangePage}
+                  onChangeRowsPerPage={onChangeRowsPerPage}
+              />
+            </div>
+          </Grid>)}
 
           {searchForm}
         </Grid>
