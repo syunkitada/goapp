@@ -79,7 +79,7 @@ class IndexTable extends React.Component<IIndexTable> {
     page: 0,
     popoverHtml: null,
     popoverTarget: null,
-    rowsPerPage: 5,
+    rowsPerPage: 0,
     searchQueries: {},
     searchRegExp: null,
     selected: []
@@ -134,6 +134,13 @@ class IndexTable extends React.Component<IIndexTable> {
       tmpSelected = [];
     } else {
       tmpSelected = selected;
+    }
+
+    let tmpRowsPerPage = 5
+    if (rowsPerPage > 0) {
+      tmpRowsPerPage = rowsPerPage
+    } else if (index.RowsPerPage) {
+      tmpRowsPerPage = index.RowsPerPage
     }
 
     console.log(auth);
@@ -402,11 +409,11 @@ class IndexTable extends React.Component<IIndexTable> {
       }
     } else {
       cellItems = cellItems.slice(
-        page * rowsPerPage,
-        page * rowsPerPage + rowsPerPage
+        page * tmpRowsPerPage,
+        page * tmpRowsPerPage + tmpRowsPerPage
       );
       emptyRows =
-        rowsPerPage - Math.min(rowsPerPage, indexLength - page * rowsPerPage);
+        tmpRowsPerPage - Math.min(tmpRowsPerPage, indexLength - page * tmpRowsPerPage);
     }
 
     return (
@@ -414,7 +421,7 @@ class IndexTable extends React.Component<IIndexTable> {
         {!index.DisableToolbar && (
           <TableToolbar
             count={indexLength}
-            rowsPerPage={rowsPerPage}
+            rowsPerPage={tmpRowsPerPage}
             page={page}
             index={index}
             numSelected={tmpSelected.length}

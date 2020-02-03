@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {connect} from 'react-redux';
+import { connect } from 'react-redux';
 
 import OriginTablePagination from '@material-ui/core/TablePagination';
 
@@ -22,6 +22,8 @@ class TablePagination extends React.Component<ITablePagination> {
       onChangePage,
       onChangeRowsPerPage,
     } = this.props;
+
+    console.log("DEBUG TODO PAGE", count, rowsPerPage, page)
 
     return (
       <OriginTablePagination
