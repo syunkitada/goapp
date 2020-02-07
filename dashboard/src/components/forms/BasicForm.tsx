@@ -93,12 +93,11 @@ class BasicForm extends React.Component<IBasicForm> {
                     <Button
                       variant="contained"
                       color="primary"
-                      disabled={isSubmitting}
+                      disabled={true}
                       className={classes.button}
-                      onClick={this.handleActionSubmit}
                     >
                       <Icon name={index.Icon} marginDirection={"right"} />
-                      {index.SubmitButtonName}
+                      Success
                     </Button>
                   )}
                 </Grid>

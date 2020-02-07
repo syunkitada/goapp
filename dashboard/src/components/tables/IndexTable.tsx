@@ -136,11 +136,11 @@ class IndexTable extends React.Component<IIndexTable> {
       tmpSelected = selected;
     }
 
-    let tmpRowsPerPage = 5
+    let tmpRowsPerPage = 5;
     if (rowsPerPage > 0) {
-      tmpRowsPerPage = rowsPerPage
+      tmpRowsPerPage = rowsPerPage;
     } else if (index.RowsPerPage) {
-      tmpRowsPerPage = index.RowsPerPage
+      tmpRowsPerPage = index.RowsPerPage;
     }
 
     console.log(auth);
@@ -412,8 +412,13 @@ class IndexTable extends React.Component<IIndexTable> {
         page * tmpRowsPerPage,
         page * tmpRowsPerPage + tmpRowsPerPage
       );
-      emptyRows =
-        tmpRowsPerPage - Math.min(tmpRowsPerPage, indexLength - page * tmpRowsPerPage);
+      if (index.FixHeight) {
+        emptyRows =
+          tmpRowsPerPage -
+          Math.min(tmpRowsPerPage, indexLength - page * tmpRowsPerPage);
+      } else {
+        emptyRows = 1;
+      }
     }
 
     return (
@@ -561,7 +566,7 @@ class IndexTable extends React.Component<IIndexTable> {
                     let filterButton: any = null;
                     const currentValue = filterMap[column.Name];
                     let isShowCells = true;
-                    if (currentValue) {
+                    if (currentValue !== undefined) {
                       isShowCells = false;
                     }
                     if (column.FilterValues) {
@@ -573,7 +578,7 @@ class IndexTable extends React.Component<IIndexTable> {
                         const filterValue = column.FilterValues[j];
                         if (filterValue.Value === cellValue) {
                           if (
-                            currentValue &&
+                            currentValue !== undefined &&
                             currentValue === filterValue.Value
                           ) {
                             isShowCells = true;
@@ -825,7 +830,7 @@ class IndexTable extends React.Component<IIndexTable> {
 
   private handleFilterClick = (name, value) => {
     const { filterMap } = this.state;
-    if (filterMap[name]) {
+    if (filterMap[name] !== undefined) {
       delete filterMap[name];
     } else {
       filterMap[name] = value;
