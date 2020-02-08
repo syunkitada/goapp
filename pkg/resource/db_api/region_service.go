@@ -86,7 +86,7 @@ func (api *Api) UpdateRegionServices(tctx *logger.TraceContext, input []spec.Reg
 
 func (api *Api) DeleteRegionService(tctx *logger.TraceContext, input *spec.DeleteRegionService, user *base_spec.UserAuthority) (err error) {
 	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
-		err = tx.Where("name = ? AND region = ? AND project = ?", input.Name, input.Region, user.ProjectName).
+		err = tx.Table("region_services").Where("name = ? AND region = ? AND project = ?", input.Name, input.Region, user.ProjectName).
 			Updates(&db_model.RegionService{
 				Status:       db_model.StatusDeleting,
 				StatusReason: "DeleteRegionService",
@@ -409,7 +409,8 @@ func (api *Api) ConfirmCreatingOrUpdatingRegionServiceCompute(tctx *logger.Trace
 		}
 		for _, compute := range computes {
 			if compute.Status != base_const.StatusActive {
-				logger.Infof(tctx, "Wating to be activated: status=%s", compute.Status)
+				logger.Infof(tctx, "Wating to compute is activated: status=%s", compute.Status)
+				return
 			}
 		}
 		if err = tx.Table("region_services").Where("id = ?", service.ID).Updates(map[string]interface{}{

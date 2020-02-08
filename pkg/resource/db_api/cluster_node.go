@@ -12,8 +12,17 @@ import (
 
 	resource_cluster_api "github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_api/spec/genpkg"
 	"github.com/syunkitada/goapp/pkg/resource/db_model"
+	"github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
 	resource_api_spec "github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
 )
+
+func (api *Api) GetClusterNodeServices(tctx *logger.TraceContext, input *spec.GetNodeServices, user *base_spec.UserAuthority) (data []base_spec.NodeService, err error) {
+	query := api.DB.Table("cluster_node_services").
+		Select("name, kind, role, status, status_reason, state, state_reason").
+		Where("deleted_at IS NULL AND cluster = ?", input.Cluster)
+	err = query.Find(&data).Error
+	return
+}
 
 func (api *Api) SyncClusterNodeService(tctx *logger.TraceContext) (err error) {
 	var clusters []db_model.Cluster
@@ -41,7 +50,7 @@ func (api *Api) SyncClusterNodeService(tctx *logger.TraceContext) (err error) {
 			logger.Warningf(tctx, "Failed GetNodeServices: %s", tmpErr.Error())
 			continue
 		}
-		if tmpErr := api.CreateOrUpdateClusterNodeService(tctx, res.NodeServices); tmpErr != nil {
+		if tmpErr := api.CreateOrUpdateClusterNodeService(tctx, &cluster, res.NodeServices); tmpErr != nil {
 			logger.Warningf(tctx, "Failed CreateOrUpdateClusterNodeService: %s", tmpErr.Error())
 			continue
 		}
@@ -49,7 +58,7 @@ func (api *Api) SyncClusterNodeService(tctx *logger.TraceContext) (err error) {
 	return
 }
 
-func (api *Api) CreateOrUpdateClusterNodeService(tctx *logger.TraceContext, nodes []base_spec.NodeService) (err error) {
+func (api *Api) CreateOrUpdateClusterNodeService(tctx *logger.TraceContext, cluster *db_model.Cluster, nodes []base_spec.NodeService) (err error) {
 	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
 		for _, node := range nodes {
 			var tmp db_model.ClusterNodeService
@@ -67,14 +76,20 @@ func (api *Api) CreateOrUpdateClusterNodeService(tctx *logger.TraceContext, node
 						State:        node.State,
 						StateReason:  node.StateReason,
 					},
+					Cluster: cluster.Name,
 				}
 				if err = tx.Create(&tmp).Error; err != nil {
 					return
 				}
 			} else {
-				tmp.State = node.State
-				tmp.StateReason = node.StateReason
-				if err = tx.Save(&tmp).Error; err != nil {
+				if err = tx.Model(&tmp).Updates(map[string]interface{}{
+					"Role":         node.Role,
+					"Status":       node.Status,
+					"StatusReason": node.StatusReason,
+					"State":        node.State,
+					"StateReason":  node.StateReason,
+					"Cluster":      cluster.Name,
+				}).Error; err != nil {
 					return
 				}
 			}
