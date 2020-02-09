@@ -27,6 +27,17 @@ func MustMkdir(path string, perm os.FileMode) {
 	}
 }
 
+func Rmdir(path string) error {
+	if _, err := os.Stat(path); err == nil {
+		if err := os.RemoveAll(path); err != nil {
+			return err
+		}
+	} else if !os.IsNotExist(err) {
+		return err
+	}
+	return nil
+}
+
 func PathExists(path string) bool {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		return false

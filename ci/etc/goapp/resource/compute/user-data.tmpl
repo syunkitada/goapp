@@ -12,12 +12,13 @@ sed -i 's/^PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd
 sudo systemctl restart sshd
 
 # Disable cloud-*
-for $service in `systemctl list-unit-files -t service | grep cloud- | awk '{print $1}'`
+# systemctl disable cloud-config
+# systemctl disable cloud-final
+# systemctl disable cloud-init-local
+# systemctl disable cloud-init
+for service in `systemctl list-unit-files -t service | grep cloud- | awk '{print $1}'`
 do
-    systemctl disable cloud-config
-    systemctl disable cloud-final
-    systemctl disable cloud-init-local
-    systemctl disable cloud-init
+    systemctl disable $service
 done
 
 
@@ -25,7 +26,7 @@ done
 mkdir -p /opt/goapp
 mkdir -p /opt/goapp/bin/
 
-cat << EOS > /opt/goapp/bin/goapp-init
+cat << 'EOS' > /opt/goapp/bin/goapp-init
 #!/bin/sh -x
 # Setup Network
 {{- range $i, $port := .Ports }}
@@ -40,9 +41,10 @@ ip route add {{ .DefaultGateway }} dev $dev0
 ip route add default via {{ .DefaultGateway }}
 EOS
 
+chmod 755 /opt/goapp/bin/goapp-init
 
 # Create init service
-cat << EOS > /etc/systemd/system/goapp-init.service
+cat << 'EOS' > /etc/systemd/system/goapp-init.service
 [Unit]
 Description=Initial cloud-init job (metadata service crawler)
 DefaultDependencies=no
@@ -64,3 +66,6 @@ TimeoutSec=0
 # Output needs to appear in instance console output
 StandardOutput=journal+console
 EOS
+
+sudo systemctl enable goapp-init
+sudo systemctl start goapp-init
