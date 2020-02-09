@@ -8,7 +8,6 @@ type RegionService struct {
 	Kind         string `validate:"required"`
 	Status       string
 	StatusReason string
-	Cluster      string
 	Spec         interface{} `validate:"required"`
 }
 
@@ -28,9 +27,9 @@ type RegionServiceComputeSpec struct {
 }
 
 type SchedulePolicySpec struct {
-	Replicas                    int `validate:"required"`
-	ClusterFilters              []string
-	ClusterLabelFilters         []string
+	Replicas                           int `validate:"required"`
+	ClusterFilters                     []string
+	ClusterLabelFilters                []string
 	NodeServiceFilters                 []string
 	NodeServiceLabelFilters            []string
 	NodeServiceLabelHardAffinities     []string
@@ -115,7 +114,7 @@ var RegionServicesTable = index_model.Table{
 		index_model.TableColumn{
 			Name: "Name", IsSearch: true,
 			Link:           "Regions/:Region/Resources/RegionServices/Detail/:0/View",
-			LinkKey:      "Name",
+			LinkKey:        "Name",
 			LinkSync:       false,
 			LinkGetQueries: []string{"GetRegionService"},
 		},

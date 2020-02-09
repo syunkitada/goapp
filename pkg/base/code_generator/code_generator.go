@@ -156,6 +156,15 @@ func convertApi(api *spec_model.Api) {
 					}
 					outputFormat = strings.Join(columns, ",")
 				}
+			case reflect.Struct:
+				lenFields := f.Type.NumField()
+				outputKind = "table"
+				columns := []string{}
+				for j := 0; j < lenFields; j++ {
+					c := f.Type.Field(j)
+					columns = append(columns, c.Name)
+				}
+				outputFormat = strings.Join(columns, ",")
 			}
 		}
 

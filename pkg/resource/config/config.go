@@ -48,25 +48,43 @@ type ResourceClusterAgentConfig struct {
 	Metric        ResourceMetricConfig
 }
 
+// ResourceComputeConfig is config for compute
 type ResourceComputeConfig struct {
 	Enable               bool
 	ConfirmRetryCount    int
 	ConfirmRetryInterval int
-	ConfigDir            string
-	VarDir               string
-	VmsDir               string
-	ImagesDir            string
 
+	// ConfigDir is directory for Compute config
+	ConfigDir string
+
+	// VarDir is directory for Compute data
+	VarDir string
+	// VmsDir is directory for VM data
+	// Default is $VarDir/vms
+	VmsDir string
+	// Default is $VarDir/images
+	ImagesDir string
+
+	// VmNetnsGateway is Gateway in netns on host
 	VmNetnsGatewayStartIp string
 	VmNetnsGatewayEndIp   string
-	VmNetnsServiceIp      string
-	VmNetnsStartIp        string
-	VmNetnsEndIp          string
 
-	Driver  string // libvirt
-	Libvirt ResourceLibvirtConfig
+	// VmNetnsServiceIp is ServiceIp for VM in netns on host
+	// NetnsService serve convenient services for VM
+	VmNetnsServiceIp string
+
+	// VmNetnsIp is assigned vm, this ip is available in netns on host
+	// VmNetnsIp range is defined VmNetnsStartIp, and VmNetnsEndIp
+	VmNetnsStartIp string
+	VmNetnsEndIp   string
+
+	// Driver is provider for VM.
+	// Available providers are mock, qemu
+	Driver string
 }
 
+// ResourceComputeExConfig is config for ComputeDriver
+// This is auto generated from ResourceComputeConfig
 type ResourceComputeExConfig struct {
 	ResourceComputeConfig
 	ConfirmRetryInterval  time.Duration
@@ -83,15 +101,15 @@ type ResourceComputeExConfig struct {
 	SystemdDir            string
 }
 
-type ResourceLibvirtConfig struct {
-	AvailableCpus      string
-	CpuMode            string // host-model
-	CpuType            string // kvm, qemu
-	MemoryType         string // local, hugepage
-	DiskType           string // local
-	NetworkType        string // local-linuxbridge
-	NetworkVhostQueues int
-}
+// type ResourceLibvirtConfig struct {
+// 	AvailableCpus      string
+// 	CpuMode            string // host-model
+// 	CpuType            string // kvm, qemu
+// 	MemoryType         string // local, hugepage
+// 	DiskType           string // local
+// 	NetworkType        string // local-linuxbridge
+// 	NetworkVhostQueues int
+// }
 
 type ResourceLogConfig struct {
 	Path               string

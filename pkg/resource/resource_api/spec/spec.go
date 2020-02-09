@@ -123,6 +123,9 @@ var Spec = spec_model.Spec{
 				spec_model.QueryModel{Req: UpdateRegionService{}, Rep: UpdateRegionServiceData{}},
 				spec_model.QueryModel{Req: DeleteRegionService{}, Rep: DeleteRegionServiceData{}},
 				spec_model.QueryModel{Req: DeleteRegionServices{}, Rep: DeleteRegionServicesData{}},
+
+				spec_model.QueryModel{Req: GetCompute{}, Rep: GetComputeData{}},
+				spec_model.QueryModel{Req: GetComputes{}, Rep: GetComputesData{}},
 			},
 		},
 		spec_model.Api{

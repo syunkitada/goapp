@@ -18,8 +18,8 @@ var ResourcePhysicalCmdMap = map[string]index_model.Cmd{
 				FlagKind: "",
 			},
 		},
-		OutputKind:   "",
-		OutputFormat: "",
+		OutputKind:   "table",
+		OutputFormat: "Name,Kind",
 	},
 	"get.regions": index_model.Cmd{
 		QueryName:    "GetRegions",
@@ -36,8 +36,8 @@ var ResourcePhysicalCmdMap = map[string]index_model.Cmd{
 				FlagKind: "",
 			},
 		},
-		OutputKind:   "",
-		OutputFormat: "",
+		OutputKind:   "table",
+		OutputFormat: "Kind,Name,Description,Region,DomainSuffix,UpdatedAt,CreatedAt",
 	},
 	"get.datacenters": index_model.Cmd{
 		QueryName:    "GetDatacenters",
@@ -59,8 +59,8 @@ var ResourcePhysicalCmdMap = map[string]index_model.Cmd{
 				FlagKind: "",
 			},
 		},
-		OutputKind:   "",
-		OutputFormat: "",
+		OutputKind:   "table",
+		OutputFormat: "Kind,Name,Datacenter,Zone,Floor",
 	},
 	"get.floors": index_model.Cmd{
 		QueryName: "GetFloors",
@@ -83,8 +83,8 @@ var ResourcePhysicalCmdMap = map[string]index_model.Cmd{
 				FlagKind: "",
 			},
 		},
-		OutputKind:   "",
-		OutputFormat: "",
+		OutputKind:   "table",
+		OutputFormat: "Kind,Name,Unit,Description,Spec",
 	},
 	"get.physical.models": index_model.Cmd{
 		QueryName:    "GetPhysicalModels",
@@ -106,8 +106,8 @@ var ResourcePhysicalCmdMap = map[string]index_model.Cmd{
 				FlagKind: "",
 			},
 		},
-		OutputKind:   "",
-		OutputFormat: "",
+		OutputKind:   "table",
+		OutputFormat: "Kind,Name,Datacenter,Cluster,Rack,PhysicalModel,RackPosition,UpdatedAt,CreatedAt,Spec",
 	},
 	"get.physical.resources": index_model.Cmd{
 		QueryName: "GetPhysicalResources",
@@ -132,8 +132,8 @@ var ResourcePhysicalAdminCmdMap = map[string]index_model.Cmd{
 				FlagKind: "",
 			},
 		},
-		OutputKind:   "",
-		OutputFormat: "",
+		OutputKind:   "table",
+		OutputFormat: "Name,Kind",
 	},
 	"get.regions": index_model.Cmd{
 		QueryName:    "GetRegions",
@@ -198,8 +198,8 @@ var ResourcePhysicalAdminCmdMap = map[string]index_model.Cmd{
 				FlagKind: "",
 			},
 		},
-		OutputKind:   "",
-		OutputFormat: "",
+		OutputKind:   "table",
+		OutputFormat: "Kind,Name,Description,Region,DomainSuffix,UpdatedAt,CreatedAt",
 	},
 	"get.datacenters": index_model.Cmd{
 		QueryName:    "GetDatacenters",
@@ -269,8 +269,8 @@ var ResourcePhysicalAdminCmdMap = map[string]index_model.Cmd{
 				FlagKind: "",
 			},
 		},
-		OutputKind:   "",
-		OutputFormat: "",
+		OutputKind:   "table",
+		OutputFormat: "Kind,Name,Datacenter,Zone,Floor",
 	},
 	"get.floors": index_model.Cmd{
 		QueryName: "GetFloors",
@@ -351,8 +351,8 @@ var ResourcePhysicalAdminCmdMap = map[string]index_model.Cmd{
 				FlagKind: "",
 			},
 		},
-		OutputKind:   "",
-		OutputFormat: "",
+		OutputKind:   "table",
+		OutputFormat: "Kind,Name,Datacenter,Floor,Unit",
 	},
 	"get.racks": index_model.Cmd{
 		QueryName: "GetRacks",
@@ -428,8 +428,8 @@ var ResourcePhysicalAdminCmdMap = map[string]index_model.Cmd{
 				FlagKind: "",
 			},
 		},
-		OutputKind:   "",
-		OutputFormat: "",
+		OutputKind:   "table",
+		OutputFormat: "Kind,Name,Unit,Description,Spec",
 	},
 	"get.physical.models": index_model.Cmd{
 		QueryName:    "GetPhysicalModels",
@@ -499,8 +499,8 @@ var ResourcePhysicalAdminCmdMap = map[string]index_model.Cmd{
 				FlagKind: "",
 			},
 		},
-		OutputKind:   "",
-		OutputFormat: "",
+		OutputKind:   "table",
+		OutputFormat: "Kind,Name,Datacenter,Cluster,Rack,PhysicalModel,RackPosition,UpdatedAt,CreatedAt,Spec",
 	},
 	"get.physical.resources": index_model.Cmd{
 		QueryName: "GetPhysicalResources",
@@ -578,8 +578,8 @@ var ResourceVirtualAdminCmdMap = map[string]index_model.Cmd{
 				FlagKind: "",
 			},
 		},
-		OutputKind:   "",
-		OutputFormat: "",
+		OutputKind:   "table",
+		OutputFormat: "Name,Kind",
 	},
 	"get.regions": index_model.Cmd{
 		QueryName:    "GetRegions",
@@ -644,8 +644,8 @@ var ResourceVirtualAdminCmdMap = map[string]index_model.Cmd{
 				FlagKind: "",
 			},
 		},
-		OutputKind:   "",
-		OutputFormat: "",
+		OutputKind:   "table",
+		OutputFormat: "Region,Datacenter,Name,Kind,Description,DomainSuffix,Labels,Warnings,Criticals,Nodes,Instances,Weight,UpdatedAt,CreatedAt",
 	},
 	"get.clusters": index_model.Cmd{
 		QueryName:    "GetClusters",
@@ -779,8 +779,8 @@ var ResourceVirtualAdminCmdMap = map[string]index_model.Cmd{
 				FlagKind: "",
 			},
 		},
-		OutputKind:   "",
-		OutputFormat: "",
+		OutputKind:   "table",
+		OutputFormat: "Kind,Name,Description,Cluster,Subnet,StartIp,EndIp,Gateway",
 	},
 	"get.network.v4s": index_model.Cmd{
 		QueryName: "GetNetworkV4s",
@@ -861,8 +861,8 @@ var ResourceVirtualAdminCmdMap = map[string]index_model.Cmd{
 				FlagKind: "",
 			},
 		},
-		OutputKind:   "",
-		OutputFormat: "",
+		OutputKind:   "table",
+		OutputFormat: "Region,Name,Kind,Labels,Description,Status,StatusReason,Spec",
 	},
 	"get.images": index_model.Cmd{
 		QueryName: "GetImages",
@@ -943,8 +943,8 @@ var ResourceVirtualAdminCmdMap = map[string]index_model.Cmd{
 				FlagKind: "",
 			},
 		},
-		OutputKind:   "",
-		OutputFormat: "",
+		OutputKind:   "table",
+		OutputFormat: "Region,Name,Kind,Status,StatusReason,Spec",
 	},
 	"get.region.services": index_model.Cmd{
 		QueryName: "GetRegionServices",
@@ -956,7 +956,7 @@ var ResourceVirtualAdminCmdMap = map[string]index_model.Cmd{
 			},
 		},
 		OutputKind:   "table",
-		OutputFormat: "Region,Name,Kind,Status,StatusReason,Cluster,Spec",
+		OutputFormat: "Region,Name,Kind,Status,StatusReason,Spec",
 	},
 	"create.region.service": index_model.Cmd{
 		QueryName: "CreateRegionService",
@@ -1011,6 +1011,35 @@ var ResourceVirtualAdminCmdMap = map[string]index_model.Cmd{
 		OutputKind:   "",
 		OutputFormat: "",
 	},
+	"get.compute": index_model.Cmd{
+		QueryName: "GetCompute",
+		FlagMap: map[string]index_model.Flag{
+			"name,n": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+			"region,r": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+		},
+		OutputKind:   "table",
+		OutputFormat: "Region,Cluster,RegionService,Name,Kind,Labels,Status,StatusReason,Project,Spec,LinkSpec,Image,Vcpus,Memory,Disk",
+	},
+	"get.computes": index_model.Cmd{
+		QueryName: "GetComputes",
+		FlagMap: map[string]index_model.Flag{
+			"region,r": index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+		},
+		OutputKind:   "table",
+		OutputFormat: "Region,Cluster,RegionService,Name,Kind,Labels,Status,StatusReason,Project,Spec,LinkSpec,Image,Vcpus,Memory,Disk",
+	},
 }
 var ResourceVirtualCmdMap = map[string]index_model.Cmd{
 	"get.region": index_model.Cmd{
@@ -1022,8 +1051,8 @@ var ResourceVirtualCmdMap = map[string]index_model.Cmd{
 				FlagKind: "",
 			},
 		},
-		OutputKind:   "",
-		OutputFormat: "",
+		OutputKind:   "table",
+		OutputFormat: "Name,Kind",
 	},
 	"get.regions": index_model.Cmd{
 		QueryName:    "GetRegions",
@@ -1088,8 +1117,8 @@ var ResourceVirtualCmdMap = map[string]index_model.Cmd{
 				FlagKind: "",
 			},
 		},
-		OutputKind:   "",
-		OutputFormat: "",
+		OutputKind:   "table",
+		OutputFormat: "Region,Datacenter,Name,Kind,Description,DomainSuffix,Labels,Warnings,Criticals,Nodes,Instances,Weight,UpdatedAt,CreatedAt",
 	},
 	"get.clusters": index_model.Cmd{
 		QueryName:    "GetClusters",
@@ -1199,8 +1228,8 @@ var ResourceVirtualCmdMap = map[string]index_model.Cmd{
 				FlagKind: "",
 			},
 		},
-		OutputKind:   "",
-		OutputFormat: "",
+		OutputKind:   "table",
+		OutputFormat: "Region,Name,Kind,Labels,Description,Status,StatusReason,Spec",
 	},
 	"get.images": index_model.Cmd{
 		QueryName: "GetImages",
@@ -1281,8 +1310,8 @@ var ResourceVirtualCmdMap = map[string]index_model.Cmd{
 				FlagKind: "",
 			},
 		},
-		OutputKind:   "",
-		OutputFormat: "",
+		OutputKind:   "table",
+		OutputFormat: "Region,Name,Kind,Status,StatusReason,Spec",
 	},
 	"get.region.services": index_model.Cmd{
 		QueryName: "GetRegionServices",
@@ -1294,7 +1323,7 @@ var ResourceVirtualCmdMap = map[string]index_model.Cmd{
 			},
 		},
 		OutputKind:   "table",
-		OutputFormat: "Region,Name,Kind,Status,StatusReason,Cluster,Spec",
+		OutputFormat: "Region,Name,Kind,Status,StatusReason,Spec",
 	},
 	"create.region.service": index_model.Cmd{
 		QueryName: "CreateRegionService",
@@ -1383,8 +1412,8 @@ var ResourceMonitorCmdMap = map[string]index_model.Cmd{
 				FlagKind: "",
 			},
 		},
-		OutputKind:   "",
-		OutputFormat: "",
+		OutputKind:   "table",
+		OutputFormat: "Name,DisabledServices,ActiveServices,CriticalServices,DisabledServicesData,ActiveServicesData,CriticalServicesData,SuccessEvents,CriticalEvents,WarningEvents,SilencedEvents,SuccessEventsData,CriticalEventsData,WarningEventsData,SilencedEventsData,MetricsGroups,Labels,UpdatedAt",
 	},
 	"get.node.metrics": index_model.Cmd{
 		QueryName: "GetNodeMetrics",
@@ -1406,12 +1435,12 @@ var ResourceMonitorCmdMap = map[string]index_model.Cmd{
 			},
 			"until.time,u": index_model.Flag{
 				Required: false,
-				FlagType: "time.Time",
+				FlagType: "*time.Time",
 				FlagKind: "",
 			},
 		},
-		OutputKind:   "",
-		OutputFormat: "",
+		OutputKind:   "table",
+		OutputFormat: "Name,DisabledServices,ActiveServices,CriticalServices,DisabledServicesData,ActiveServicesData,CriticalServicesData,SuccessEvents,CriticalEvents,WarningEvents,SilencedEvents,SuccessEventsData,CriticalEventsData,WarningEventsData,SilencedEventsData,MetricsGroups,Labels,UpdatedAt",
 	},
 	"get.statistics": index_model.Cmd{
 		QueryName: "GetStatistics",
@@ -1527,8 +1556,8 @@ var ResourceMonitorCmdMap = map[string]index_model.Cmd{
 				FlagKind: "",
 			},
 		},
-		OutputKind:   "",
-		OutputFormat: "",
+		OutputKind:   "table",
+		OutputFormat: "Project,Node,Name,Msg,Check,Level,Kind,Until,Spec",
 	},
 	"get.event.rules": index_model.Cmd{
 		QueryName: "GetEventRules",
@@ -1914,6 +1943,14 @@ var ApiQueryMap = map[string]map[string]spec_model.QueryModel{
 			RequiredProject: true,
 		},
 		"DeleteRegionServices": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"GetCompute": spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"GetComputes": spec_model.QueryModel{
 			RequiredAuth:    true,
 			RequiredProject: true,
 		},

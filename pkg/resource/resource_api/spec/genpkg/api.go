@@ -57,6 +57,8 @@ type QueryResolver interface {
 	DeleteRegions(tctx *logger.TraceContext, input *spec.DeleteRegions, user *base_spec.UserAuthority) (*spec.DeleteRegionsData, uint8, error)
 	GetCluster(tctx *logger.TraceContext, input *spec.GetCluster, user *base_spec.UserAuthority) (*spec.GetClusterData, uint8, error)
 	GetClusters(tctx *logger.TraceContext, input *spec.GetClusters, user *base_spec.UserAuthority) (*spec.GetClustersData, uint8, error)
+	GetCompute(tctx *logger.TraceContext, input *spec.GetCompute, user *base_spec.UserAuthority) (*spec.GetComputeData, uint8, error)
+	GetComputes(tctx *logger.TraceContext, input *spec.GetComputes, user *base_spec.UserAuthority) (*spec.GetComputesData, uint8, error)
 	GetDatacenter(tctx *logger.TraceContext, input *spec.GetDatacenter, user *base_spec.UserAuthority) (*spec.GetDatacenterData, uint8, error)
 	GetDatacenters(tctx *logger.TraceContext, input *spec.GetDatacenters, user *base_spec.UserAuthority) (*spec.GetDatacentersData, uint8, error)
 	GetEventRule(tctx *logger.TraceContext, input *spec.GetEventRule, user *base_spec.UserAuthority) (*spec.GetEventRuleData, uint8, error)
@@ -952,6 +954,48 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				return err
 			}
 			data, code, tmpErr := handler.resolver.GetClusters(tctx, &input, user)
+			if tmpErr != nil {
+				if code == 0 {
+					code = base_const.CodeServerInternalError
+				}
+				rep.ResultMap[query.Name] = base_model.Result{
+					Code:  code,
+					Error: tmpErr.Error(),
+				}
+				break
+			}
+			rep.ResultMap[query.Name] = base_model.Result{
+				Code: code,
+				Data: data,
+			}
+		case "GetCompute":
+			var input spec.GetCompute
+			err = json.Unmarshal([]byte(query.Data), &input)
+			if err != nil {
+				return err
+			}
+			data, code, tmpErr := handler.resolver.GetCompute(tctx, &input, user)
+			if tmpErr != nil {
+				if code == 0 {
+					code = base_const.CodeServerInternalError
+				}
+				rep.ResultMap[query.Name] = base_model.Result{
+					Code:  code,
+					Error: tmpErr.Error(),
+				}
+				break
+			}
+			rep.ResultMap[query.Name] = base_model.Result{
+				Code: code,
+				Data: data,
+			}
+		case "GetComputes":
+			var input spec.GetComputes
+			err = json.Unmarshal([]byte(query.Data), &input)
+			if err != nil {
+				return err
+			}
+			data, code, tmpErr := handler.resolver.GetComputes(tctx, &input, user)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError

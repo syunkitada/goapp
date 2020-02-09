@@ -1,6 +1,7 @@
 package qemu_driver
 
 import (
+	"fmt"
 	"io/ioutil"
 	"path/filepath"
 
@@ -29,6 +30,7 @@ func (driver *QemuDriver) syncActivatingAssignment(tctx *logger.TraceContext,
 	assignment spec.ComputeAssignmentEx, netnsPorts []compute_models.NetnsPort) error {
 	var err error
 	compute := assignment.Spec
+	fmt.Println("DEBUG QEMU syncActivatingAssignment")
 
 	vmDir := filepath.Join(driver.conf.VmsDir, compute.Name)
 	vmImagePath := filepath.Join(vmDir, "img")

@@ -95,6 +95,16 @@ func (ctl *Ctl) output(cmdInfo *index_model.Cmd, resp *Response,
 								table.Append(r)
 							}
 						}
+					case map[string]interface{}:
+						r := make([]string, len(tableHeader))
+						for i, head := range tableHeader {
+							if v, ok := data[head]; ok {
+								r[i] = fmt.Sprint(v)
+							} else {
+								r[i] = "None"
+							}
+						}
+						table.Append(r)
 					}
 					table.Render()
 				default:

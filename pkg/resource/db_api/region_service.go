@@ -20,12 +20,32 @@ import (
 
 func (api *Api) GetRegionService(tctx *logger.TraceContext, input *spec.GetRegionService, user *base_spec.UserAuthority) (data *spec.RegionService, err error) {
 	data = &spec.RegionService{}
-	err = api.DB.Where("name = ? AND deleted_at IS NULL", input.Name).First(data).Error
+	var dbData db_model.RegionService
+	err = api.DB.Where("name = ? AND deleted_at IS NULL", input.Name).First(&dbData).Error
+
+	data = &spec.RegionService{
+		Region:       dbData.Region,
+		Name:         dbData.Name,
+		Kind:         dbData.Kind,
+		Status:       dbData.Status,
+		StatusReason: dbData.StatusReason,
+	}
+	switch dbData.Kind {
+	case consts.KindCompute:
+		var specData spec.RegionServiceComputeSpec
+		if err = json_utils.Unmarshal(dbData.Spec, &specData); err != nil {
+			return
+		}
+		data.Spec = &specData
+	}
+
 	return
 }
 
 func (api *Api) GetRegionServices(tctx *logger.TraceContext, input *spec.GetRegionServices, user *base_spec.UserAuthority) (data []spec.RegionService, err error) {
-	err = api.DB.Where("region = ? AND deleted_at IS NULL", input.Region).Find(&data).Error
+	err = api.DB.Table("region_services").
+		Select("region, name, project, kind, status, status_reason").
+		Where("region = ? AND deleted_at IS NULL", input.Region).Scan(&data).Error
 	return
 }
 

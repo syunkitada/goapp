@@ -53,7 +53,45 @@ func New(baseConf *base_config.Config, mainConf *config.Config) *Server {
 	baseApp := base_app.New(baseConf, &clusterConf.Agent.AppConfig, nil, queryHandler)
 	apiClient := resource_cluster_api.NewClient(&clusterConf.Agent.RootClient)
 
-	computeConf := clusterConf.Agent.Compute
+	srv := &Server{
+		BaseApp:      baseApp,
+		baseConf:     baseConf,
+		clusterConf:  &clusterConf,
+		queryHandler: queryHandler,
+		apiClient:    apiClient,
+	}
+	srv.initReader()
+	srv.initComputeDriver()
+	srv.SetDriver(srv)
+	return srv
+}
+
+func (srv *Server) initReader() {
+	metricReaderMap := map[string]readers.MetricReader{}
+	if srv.clusterConf.Agent.Metric.System.Enable {
+		metricReaderMap["system"] = system_metric_reader.New(&srv.clusterConf.Agent.Metric.System)
+	}
+
+	srv.reportCount = 0
+	srv.reportSpan = 10
+	srv.metricReaderMap = metricReaderMap
+	srv.logMap = srv.clusterConf.Agent.LogMap
+	srv.logReaderMap = map[string]*log_reader.LogReader{}
+	srv.logReaderRefreshSpan = 10
+	srv.logReaderRefreshCount = 0
+}
+
+func (srv *Server) initComputeDriver() {
+	computeConf := srv.clusterConf.Agent.Compute
+	vmsDir := filepath.Join(computeConf.VarDir, "vms")
+	if computeConf.VmsDir != "" {
+		vmsDir = computeConf.VmsDir
+	}
+	imagesDir := filepath.Join(computeConf.VarDir, "images")
+	if computeConf.ImagesDir != "" {
+		vmsDir = computeConf.ImagesDir
+	}
+
 	computeExConf := config.ResourceComputeExConfig{
 		ResourceComputeConfig: computeConf,
 		ConfirmRetryInterval:  time.Duration(computeConf.ConfirmRetryInterval) * time.Second,
@@ -62,8 +100,8 @@ func New(baseConf *base_config.Config, mainConf *config.Config) *Server {
 		VmNetnsServiceIp:      net.ParseIP(computeConf.VmNetnsServiceIp),
 		VmNetnsStartIp:        net.ParseIP(computeConf.VmNetnsStartIp),
 		VmNetnsEndIp:          net.ParseIP(computeConf.VmNetnsEndIp),
-		VmsDir:                filepath.Join(computeConf.VarDir, "vms"),
-		ImagesDir:             filepath.Join(computeConf.VarDir, "images"),
+		VmsDir:                vmsDir,
+		ImagesDir:             imagesDir,
 		UserdataTmpl:          filepath.Join(computeConf.ConfigDir, "user-data.tmpl"),
 		VmServiceTmpl:         filepath.Join(computeConf.ConfigDir, "vm-service.tmpl"),
 		VmServiceShTmpl:       filepath.Join(computeConf.ConfigDir, "vm-service.sh.tmpl"),
@@ -74,31 +112,6 @@ func New(baseConf *base_config.Config, mainConf *config.Config) *Server {
 	os_utils.MustMkdir(computeExConf.VmsDir, 0755)
 	os_utils.MustMkdir(computeExConf.ImagesDir, 0755)
 
-	computeDriver := compute_drivers.Load(&computeExConf)
-
-	// init metric readers
-	metricReaderMap := map[string]readers.MetricReader{}
-	if clusterConf.Agent.Metric.System.Enable {
-		metricReaderMap["system"] = system_metric_reader.New(&clusterConf.Agent.Metric.System)
-	}
-
-	srv := &Server{
-		BaseApp:       baseApp,
-		baseConf:      baseConf,
-		clusterConf:   &clusterConf,
-		queryHandler:  queryHandler,
-		apiClient:     apiClient,
-		computeConf:   computeExConf,
-		computeDriver: computeDriver,
-
-		reportCount:           0,
-		reportSpan:            10,
-		metricReaderMap:       metricReaderMap,
-		logMap:                clusterConf.Agent.LogMap,
-		logReaderMap:          map[string]*log_reader.LogReader{},
-		logReaderRefreshSpan:  10,
-		logReaderRefreshCount: 0,
-	}
-	srv.SetDriver(srv)
-	return srv
+	srv.computeConf = computeExConf
+	srv.computeDriver = compute_drivers.Load(&computeExConf)
 }
