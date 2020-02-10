@@ -34,6 +34,8 @@ func (driver *QemuDriver) syncActivatingAssignment(tctx *logger.TraceContext,
 
 	vmDir := filepath.Join(driver.conf.VmsDir, compute.Name)
 	vmImagePath := filepath.Join(vmDir, "img")
+	vmMonitorSocketPath := filepath.Join(vmDir, "monitor.sock")
+	vmSerialSocketPath := filepath.Join(vmDir, "serial.sock")
 	vmConfigImagePath := filepath.Join(vmDir, "config.img")
 	configDir := filepath.Join(vmDir, "config")
 	vmServiceShFilePath := filepath.Join(vmDir, "service.sh")
@@ -100,6 +102,8 @@ func (driver *QemuDriver) syncActivatingAssignment(tctx *logger.TraceContext,
 			"Ports":             netnsPorts,
 			"VmImagePath":       vmImagePath,
 			"VmConfigImagePath": vmConfigImagePath,
+			"MonitorSocketPath": vmMonitorSocketPath,
+			"SerialSocketPath":  vmSerialSocketPath,
 		}); err != nil {
 		return err
 	}

@@ -49,8 +49,8 @@ function start {
         {{- range $i, $port := .Ports }}
         -nic tap,ifname={{ $port.Name }}-tap,model=virtio-net-pci,mac={{ $port.VmMac }},script=no,script=no,downscript=no \
         {{- end }}
-        -monitor telnet::4444,server,nowait \
-        -nographic -serial telnet:localhost:4321,server,nowait &
+        -monitor unix:{{ .MonitorSocketPath }},server,nowait \
+        -nographic -serial unix:{{ .SerialSocketPath }},server,nowait &
     pid=$!
 
     sleep 2s

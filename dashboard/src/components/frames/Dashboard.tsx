@@ -156,6 +156,7 @@ interface IDashboard extends WithStyles<typeof styles> {
   services;
   selectedServiceIndex;
   onClickLogout;
+  history;
   projectService;
   match;
 }
@@ -177,6 +178,7 @@ class Dashboard extends React.Component<IDashboard> {
       services,
       selectedServiceIndex,
       projectService,
+      history,
       match
     } = this.props;
     const isMenuOpen = Boolean(anchorEl);
