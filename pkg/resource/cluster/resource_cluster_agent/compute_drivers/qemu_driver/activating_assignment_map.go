@@ -82,11 +82,30 @@ func (driver *QemuDriver) syncActivatingAssignment(tctx *logger.TraceContext,
 		return err
 	}
 
+	var resolvers []spec.Resolver
+	for _, port := range netnsPorts {
+		switch port.Kind {
+		case "Local":
+			for _, resolver := range port.NetworkV4LocalSpec.Resolvers {
+				exists := false
+				for _, r := range resolvers {
+					if r.Resolver == resolver.Resolver {
+						exists = true
+					}
+				}
+				if !exists {
+					resolvers = append(resolvers, resolver)
+				}
+			}
+		}
+	}
+
 	defaultGateway := netnsPorts[0].NetnsGateway
 	if err = template_utils.Template(tctx, vmUserDataConfigFilePath, 0644, driver.conf.UserdataTmpl,
 		map[string]interface{}{
 			"DefaultGateway": defaultGateway,
 			"Ports":          netnsPorts,
+			"Resolvers":      resolvers,
 		}); err != nil {
 		return err
 	}

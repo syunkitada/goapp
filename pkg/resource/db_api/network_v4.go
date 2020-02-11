@@ -6,6 +6,7 @@ import (
 	"github.com/syunkitada/goapp/pkg/base/base_spec"
 	"github.com/syunkitada/goapp/pkg/lib/ip_utils"
 	"github.com/syunkitada/goapp/pkg/lib/ip_utils/ip_utils_model"
+	"github.com/syunkitada/goapp/pkg/lib/json_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/resource/consts"
 	"github.com/syunkitada/goapp/pkg/resource/db_model"
@@ -27,6 +28,10 @@ func (api *Api) GetNetworkV4s(tctx *logger.TraceContext, input *spec.GetNetworkV
 func (api *Api) CreateNetworkV4s(tctx *logger.TraceContext, input []spec.NetworkV4, user *base_spec.UserAuthority) (err error) {
 	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
 		for _, val := range input {
+			var specBytes []byte
+			if specBytes, err = json_utils.Marshal(val.Spec); err != nil {
+				return
+			}
 			var tmp db_model.NetworkV4
 			if err = tx.Where("name = ? AND cluster = ?", val.Name, val.Cluster).
 				First(&tmp).Error; err != nil {
@@ -44,6 +49,7 @@ func (api *Api) CreateNetworkV4s(tctx *logger.TraceContext, input []spec.Network
 					StartIp:      val.StartIp,
 					EndIp:        val.EndIp,
 					Gateway:      val.Gateway,
+					Spec:         string(specBytes),
 				}
 				if err = tx.Create(&tmp).Error; err != nil {
 					return
@@ -58,6 +64,10 @@ func (api *Api) CreateNetworkV4s(tctx *logger.TraceContext, input []spec.Network
 func (api *Api) UpdateNetworkV4s(tctx *logger.TraceContext, input []spec.NetworkV4, user *base_spec.UserAuthority) (err error) {
 	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
 		for _, val := range input {
+			var specBytes []byte
+			if specBytes, err = json_utils.Marshal(val.Spec); err != nil {
+				return
+			}
 			if err = tx.Model(&db_model.NetworkV4{}).
 				Where("name = ? AND cluster = ?", val.Name, val.Cluster).
 				Updates(&db_model.NetworkV4{
@@ -69,6 +79,7 @@ func (api *Api) UpdateNetworkV4s(tctx *logger.TraceContext, input []spec.Network
 					StartIp:      val.StartIp,
 					EndIp:        val.EndIp,
 					Gateway:      val.Gateway,
+					Spec:         string(specBytes),
 				}).Error; err != nil {
 				return
 			}
@@ -151,6 +162,8 @@ func (api *Api) AssignNetworkV4Port(tctx *logger.TraceContext, tx *gorm.DB,
 			Name:         net.Name,
 			Subnet:       net.Subnet,
 			Gateway:      net.Gateway,
+			Kind:         net.Kind,
+			Spec:         net.Spec,
 			AvailableIps: availableIps,
 		})
 	}
@@ -219,6 +232,8 @@ func (api *Api) AssignNetworkV4Port(tctx *logger.TraceContext, tx *gorm.DB,
 				Gateway:   net.Gateway,
 				Ip:        ip,
 				Mac:       mac,
+				Kind:      net.Kind,
+				Spec:      net.Spec,
 			})
 		}
 	}

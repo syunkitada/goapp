@@ -52,6 +52,8 @@ type PortSpec struct {
 	Gateway   string
 	Ip        string
 	Mac       string
+	Kind      string
+	Spec      string
 }
 
 type GetRegionService struct {

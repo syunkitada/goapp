@@ -11,6 +11,21 @@ type NetworkV4 struct {
 	StartIp     string `validate:"required"`
 	EndIp       string `validate:"required"`
 	Gateway     string `validate:"required"`
+	Spec        interface{}
+}
+
+type NetworkV4LocalSpec struct {
+	Resolvers []Resolver
+	Nat       Nat
+}
+
+type Resolver struct {
+	Resolver string
+}
+
+type Nat struct {
+	Enable bool
+	Ports  string
 }
 
 type GetNetworkV4 struct {
@@ -61,6 +76,8 @@ type Network struct {
 	Subnet       string
 	Gateway      string
 	AvailableIps []string
+	Kind         string
+	Spec         string
 }
 
 var NetworkV4sTable = index_model.Table{
@@ -81,7 +98,7 @@ var NetworkV4sTable = index_model.Table{
 		index_model.TableColumn{
 			Name: "Name", IsSearch: true,
 			Link:           "Regions/:Region/Resources/NetworkV4s/Detail/:0/View",
-			LinkKey:      "Name",
+			LinkKey:        "Name",
 			LinkSync:       false,
 			LinkGetQueries: []string{"GetNetworkV4"},
 		},

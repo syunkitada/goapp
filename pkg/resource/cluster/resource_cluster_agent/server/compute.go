@@ -7,6 +7,7 @@ import (
 	"github.com/syunkitada/goapp/pkg/base/base_const"
 	"github.com/syunkitada/goapp/pkg/lib/error_utils"
 	"github.com/syunkitada/goapp/pkg/lib/ip_utils"
+	"github.com/syunkitada/goapp/pkg/lib/json_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_agent/compute_models"
 	"github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
@@ -62,6 +63,18 @@ func (srv *Server) SyncComputeAssignments(tctx *logger.TraceContext,
 					NetnsIp:      netnsIp.String(),
 					VmIp:         port.Ip,
 					VmMac:        port.Mac,
+					Kind:         port.Kind,
+				}
+
+				switch port.Kind {
+				case "Local":
+					fmt.Println("DEBUG Kind", port.Spec)
+					var netSpec spec.NetworkV4LocalSpec
+					if tmpErr := json_utils.Unmarshal(port.Spec, &netSpec); tmpErr != nil {
+						logger.Warningf(tctx, "Invalid port.Spec: %s", tmpErr.Error())
+						continue
+					}
+					netnsPort.NetworkV4LocalSpec = netSpec
 				}
 
 				netnsPorts = append(netnsPorts, netnsPort)
