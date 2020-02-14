@@ -1,6 +1,10 @@
 package spec
 
-import "github.com/syunkitada/goapp/pkg/authproxy/index_model"
+import (
+	"time"
+
+	"github.com/syunkitada/goapp/pkg/base/base_model/index_model"
+)
 
 type Compute struct {
 	Region        string
@@ -18,6 +22,8 @@ type Compute struct {
 	Vcpus         uint
 	Memory        uint
 	Disk          uint
+	UpdatedAt     time.Time
+	CreatedAt     time.Time
 }
 
 type GetCompute struct {
@@ -62,10 +68,11 @@ type DeleteComputes struct {
 type DeleteComputesData struct{}
 
 var ComputesTable = index_model.Table{
-	Name:    "Computes",
-	Route:   "/Computes",
-	Kind:    "Table",
-	DataKey: "Computes",
+	Name:        "Computes",
+	Route:       "/Computes",
+	Kind:        "Table",
+	DataKey:     "Computes",
+	DataQueries: []string{"GetComputes"},
 	SelectActions: []index_model.Action{
 		index_model.Action{
 			Name:      "Delete",
@@ -78,12 +85,15 @@ var ComputesTable = index_model.Table{
 	Columns: []index_model.TableColumn{
 		index_model.TableColumn{
 			Name: "Name", IsSearch: true,
+			Align:          "left",
 			Link:           "Datacenters/:Datacenter/Resources/Computes/Detail/:0/View",
-			LinkKey:      "Name",
+			LinkKey:        "Name",
 			LinkSync:       false,
 			LinkGetQueries: []string{"GetCompute"},
 		},
 		index_model.TableColumn{Name: "Kind"},
+		index_model.TableColumn{Name: "Status"},
+		index_model.TableColumn{Name: "StatusReason"},
 		index_model.TableColumn{Name: "UpdatedAt", Kind: "Time"},
 		index_model.TableColumn{Name: "CreatedAt", Kind: "Time"},
 	},

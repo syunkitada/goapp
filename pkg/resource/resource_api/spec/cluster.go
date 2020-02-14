@@ -3,7 +3,7 @@ package spec
 import (
 	"time"
 
-	"github.com/syunkitada/goapp/pkg/authproxy/index_model"
+	"github.com/syunkitada/goapp/pkg/base/base_model/index_model"
 )
 
 type Cluster struct {
@@ -77,16 +77,47 @@ var ClustersTable = index_model.Table{
 	DataKey: "Clusters",
 	Columns: []index_model.TableColumn{
 		index_model.TableColumn{
-			Name:      "Name",
-			IsSearch:  true,
-			Link:      "Clusters/:0/Resources/Computes",
-			LinkKey: "cluster",
-			LinkSync:  true,
+			Name:     "Name",
+			IsSearch: true,
+			Link:     "Clusters/:0/Resources/Computes",
+			LinkKey:  "cluster",
+			LinkSync: true,
 			LinkGetQueries: []string{
 				"GetPhysicalResources", "GetRacks", "GetFloors", "GetPhysicalModels"},
 		},
 		index_model.TableColumn{Name: "Datacenter", IsSearch: true},
 		index_model.TableColumn{Name: "UpdatedAt", Kind: "Time", Sort: "asc"},
 		index_model.TableColumn{Name: "CreatedAt", Kind: "Time"},
+	},
+}
+
+var VirtualAdminClustersTable = index_model.Table{
+	Name:        "Clusters",
+	Kind:        "Table",
+	Route:       "",
+	Subname:     "cluster",
+	DataKey:     "Clusters",
+	DataQueries: []string{"GetClusters"},
+	Columns: []index_model.TableColumn{
+		index_model.TableColumn{
+			Name:            "Name",
+			IsSearch:        true,
+			Align:           "left",
+			Link:            "Regions/:Region/RegionResources/Clusters/:Cluster/Resources/Computes",
+			LinkKey:         "Name",
+			LinkParam:       "Cluster",
+			LinkSync:        true,
+			LinkDataQueries: []string{"GetComputes"},
+		},
+		index_model.TableColumn{Name: "Datacenter", IsSearch: true},
+		index_model.TableColumn{Name: "UpdatedAt", Kind: "Time", Sort: "asc"},
+		index_model.TableColumn{Name: "CreatedAt", Kind: "Time"},
+	},
+	SelectActions: []index_model.Action{
+		index_model.Action{Name: "Delete", Icon: "Delete",
+			Kind:      "Form",
+			DataKind:  "Region",
+			SelectKey: "Name",
+		},
 	},
 }

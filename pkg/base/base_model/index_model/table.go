@@ -32,21 +32,23 @@ type TableInputField struct {
 }
 
 type TableColumn struct {
-	Name           string
-	Kind           string
-	IsSearch       bool
-	Link           string
-	LinkParam      string
-	LinkKey        string
-	LinkSync       bool
-	LinkGetQueries []string
-	RowColoringMap map[string]string
-	FilterValues   []map[string]string
-	Sort           string
-	Icon           string
-	Color          string
-	InactiveColor  string
-	View           interface{}
+	Name            string
+	Kind            string
+	IsSearch        bool
+	Link            string
+	LinkParam       string
+	LinkKey         string
+	LinkSync        bool
+	LinkGetQueries  []string
+	LinkDataQueries []string
+	RowColoringMap  map[string]string
+	FilterValues    []map[string]string
+	Sort            string
+	Icon            string
+	Color           string
+	InactiveColor   string
+	Align           string
+	View            interface{}
 }
 
 type Action struct {

@@ -1,6 +1,10 @@
 package spec
 
-import "github.com/syunkitada/goapp/pkg/authproxy/index_model"
+import (
+	"time"
+
+	"github.com/syunkitada/goapp/pkg/base/base_model/index_model"
+)
 
 type Image struct {
 	Region       string
@@ -10,6 +14,8 @@ type Image struct {
 	Description  string
 	Status       string
 	StatusReason string
+	UpdatedAt    time.Time
+	CreatedAt    time.Time
 	Spec         interface{}
 }
 
@@ -60,10 +66,11 @@ type DeleteImages struct {
 type DeleteImagesData struct{}
 
 var ImagesTable = index_model.Table{
-	Name:    "Images",
-	Route:   "/Images",
-	Kind:    "Table",
-	DataKey: "Images",
+	Name:        "Images",
+	Route:       "/Images",
+	Kind:        "Table",
+	DataKey:     "Images",
+	DataQueries: []string{"GetImages"},
 	SelectActions: []index_model.Action{
 		index_model.Action{
 			Name:      "Delete",
@@ -76,8 +83,9 @@ var ImagesTable = index_model.Table{
 	Columns: []index_model.TableColumn{
 		index_model.TableColumn{
 			Name: "Name", IsSearch: true,
-			Link:           "Regions/:Region/Resources/Images/Detail/:0/View",
-			LinkKey:      "Name",
+			Align:          "left",
+			Link:           "Regions/:Region/RegionResources/Images/Detail/:0/View",
+			LinkKey:        "Name",
 			LinkSync:       false,
 			LinkGetQueries: []string{"GetImage"},
 		},

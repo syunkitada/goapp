@@ -1,10 +1,16 @@
 package spec
 
-import "github.com/syunkitada/goapp/pkg/authproxy/index_model"
+import (
+	"time"
+
+	"github.com/syunkitada/goapp/pkg/base/base_model/index_model"
+)
 
 type Region struct {
-	Name string `validate:"required"`
-	Kind string `validate:"required"`
+	Name      string `validate:"required"`
+	Kind      string `validate:"required"`
+	UpdatedAt time.Time
+	CreatedAt time.Time
 }
 
 type GetRegion struct {
@@ -54,15 +60,19 @@ var RegionsTable = index_model.Table{
 		index_model.TableColumn{
 			Name:      "Name",
 			IsSearch:  true,
-			Link:      "Regions/:0/Resources/Resources",
-			LinkKey: "Region",
+			Align:     "left",
+			Link:      "Regions/:Region/RegionResources/Clusters",
+			LinkKey:   "Name",
+			LinkParam: "Region",
 			LinkSync:  true,
 			LinkGetQueries: []string{
-				"GetRegionServices", "GetImages"},
+				"GetClusters"},
+			LinkDataQueries: []string{
+				"GetClusters"},
 		},
-		index_model.TableColumn{Name: "Region", IsSearch: true},
+		index_model.TableColumn{Name: "Kind"},
 		index_model.TableColumn{Name: "UpdatedAt", Kind: "Time", Sort: "asc"},
-		index_model.TableColumn{Name: "CreatedAt", Kind: "Time"},
+		index_model.TableColumn{Name: "CreatedAt", Kind: "Time", Sort: "asc"},
 	},
 	SelectActions: []index_model.Action{
 		index_model.Action{Name: "Delete", Icon: "Delete",

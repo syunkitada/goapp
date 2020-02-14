@@ -44,7 +44,7 @@ func (api *Api) GetRegionService(tctx *logger.TraceContext, input *spec.GetRegio
 
 func (api *Api) GetRegionServices(tctx *logger.TraceContext, input *spec.GetRegionServices, user *base_spec.UserAuthority) (data []spec.RegionService, err error) {
 	err = api.DB.Table("region_services").
-		Select("region, name, project, kind, status, status_reason").
+		Select("region, name, project, kind, status, status_reason, updated_at, created_at").
 		Where("region = ? AND deleted_at IS NULL", input.Region).Scan(&data).Error
 	return
 }

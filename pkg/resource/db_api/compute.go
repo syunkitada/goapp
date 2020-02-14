@@ -47,7 +47,7 @@ func (api *Api) GetCompute(tctx *logger.TraceContext, input *spec.GetCompute, us
 
 func (api *Api) GetComputes(tctx *logger.TraceContext, input *spec.GetComputes, user *base_spec.UserAuthority) (data []spec.Compute, err error) {
 	err = api.DB.Table("computes").
-		Select("region, cluster, region_service, project, name, kind, status, status_reason").
+		Select("region, cluster, region_service, project, name, kind, status, status_reason, updated_at, created_at").
 		Where("region = ? AND deleted_at IS NULL", input.Region).Scan(&data).Error
 	return
 }

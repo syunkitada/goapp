@@ -1,6 +1,10 @@
 package spec
 
-import "github.com/syunkitada/goapp/pkg/authproxy/index_model"
+import (
+	"time"
+
+	"github.com/syunkitada/goapp/pkg/base/base_model/index_model"
+)
 
 type RegionService struct {
 	Region       string `validate:"required"`
@@ -8,6 +12,8 @@ type RegionService struct {
 	Kind         string `validate:"required"`
 	Status       string
 	StatusReason string
+	UpdatedAt    time.Time
+	CreatedAt    time.Time
 	Spec         interface{} `validate:"required"`
 }
 
@@ -99,10 +105,11 @@ type DeleteRegionServices struct {
 type DeleteRegionServicesData struct{}
 
 var RegionServicesTable = index_model.Table{
-	Name:    "RegionServices",
-	Route:   "/RegionServices",
-	Kind:    "Table",
-	DataKey: "RegionServices",
+	Name:        "RegionServices",
+	Route:       "/RegionServices",
+	Kind:        "Table",
+	DataKey:     "RegionServices",
+	DataQueries: []string{"GetRegionServices"},
 	SelectActions: []index_model.Action{
 		index_model.Action{
 			Name:      "Delete",
@@ -115,12 +122,15 @@ var RegionServicesTable = index_model.Table{
 	Columns: []index_model.TableColumn{
 		index_model.TableColumn{
 			Name: "Name", IsSearch: true,
-			Link:           "Regions/:Region/Resources/RegionServices/Detail/:0/View",
+			Align:          "left",
+			Link:           "Regions/:Region/RegionResources/RegionServices/Detail/:0/View",
 			LinkKey:        "Name",
 			LinkSync:       false,
 			LinkGetQueries: []string{"GetRegionService"},
 		},
 		index_model.TableColumn{Name: "Kind"},
+		index_model.TableColumn{Name: "Status"},
+		index_model.TableColumn{Name: "StatusReason"},
 		index_model.TableColumn{Name: "UpdatedAt", Kind: "Time"},
 		index_model.TableColumn{Name: "CreatedAt", Kind: "Time"},
 	},
