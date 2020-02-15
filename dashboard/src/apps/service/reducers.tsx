@@ -1,7 +1,7 @@
-import {reducerWithInitialState} from 'typescript-fsa-reducers';
+import { reducerWithInitialState } from "typescript-fsa-reducers";
 
-import actions from '../../actions';
-import logger from '../../lib/logger';
+import actions from "../../actions";
+import logger from "../../lib/logger";
 
 const defaultState = {
   isFetching: false,
@@ -24,22 +24,23 @@ const defaultState = {
   syncQueryMap: {},
 
   projectServiceMap: {},
-  serviceMap: {},
+  serviceMap: {}
 };
 
 export default reducerWithInitialState(defaultState)
   .case(actions.service.serviceGetIndex, (state, payload) => {
-    logger.info('reducers', 'serviceGetIndex', payload.params);
-    const service = payload.params.service;
-    const project = payload.params.project;
+    logger.info("reducers", "serviceGetIndex", payload);
+    const params = payload.route.match.params;
+    const service = params.service;
+    const project = params.project;
     const newState = Object.assign({}, state, {
       getIndexTctx: {
-        fetching: true,
+        fetching: true
       },
       projectName: project,
       serviceName: service,
       syncDelay: 10000,
-      syncQueryMap: {},
+      syncQueryMap: {}
     });
 
     if (project) {
@@ -48,7 +49,7 @@ export default reducerWithInitialState(defaultState)
       }
       if (!newState.projectServiceMap[project][service]) {
         newState.projectServiceMap[project][service] = {
-          isFetching: true,
+          isFetching: true
         };
       } else {
         newState.projectServiceMap[project][service].isFetching = true;
@@ -56,73 +57,74 @@ export default reducerWithInitialState(defaultState)
     } else {
       if (!newState.serviceMap[service]) {
         newState.serviceMap[service] = {
-          isFetching: true,
+          isFetching: true
         };
       } else {
         newState.serviceMap[service].isFetching = true;
       }
     }
 
-    logger.info('reducers', 'serviceGetIndex: newState', newState);
+    logger.info("reducers", "serviceGetIndex: newState", newState);
 
     return newState;
   })
   .case(actions.service.serviceStartBackgroundSync, state => {
-    logger.info('reducers', 'serviceStartBackgroundSync');
+    logger.info("reducers", "serviceStartBackgroundSync");
     return Object.assign({}, state, {});
   })
   .case(actions.service.serviceStopBackgroundSync, state => {
-    logger.info('reducers', 'serviceStopBackgroundSync');
+    logger.info("reducers", "serviceStopBackgroundSync");
     return Object.assign({}, state, {});
   })
   .case(actions.service.serviceGetQueries, state => {
-    logger.info('reducers', 'serviceGetQueries');
+    logger.info("reducers", "serviceGetQueries");
     return Object.assign({}, state, {
       getQueriesTctx: {
-        fetching: true,
+        fetching: true
       },
-      openGetQueriesTctx: false,
+      openGetQueriesTctx: false
     });
   })
   .case(actions.service.serviceSubmitQueries, state => {
-    logger.info('reducers', 'serviceSubmitQueries');
+    logger.info("reducers", "serviceSubmitQueries");
     return Object.assign({}, state, {
       isFetching: true,
       isSubmitting: true,
       openSubmitQueriesTctx: false,
       submitQueriesTctx: {
-        fetching: true,
-      },
+        fetching: true
+      }
     });
   })
   .case(actions.service.serviceCloseErr, state => {
-    logger.info('reducers', 'serviceCloseErr');
+    logger.info("reducers", "serviceCloseErr");
     return Object.assign({}, state, {
-      error: null,
+      error: null
     });
   })
   .case(actions.service.serviceCloseGetQueriesTctx, state => {
-    logger.info('reducers', 'serviceCloseGetQueriesTctx');
+    logger.info("reducers", "serviceCloseGetQueriesTctx");
     return Object.assign({}, state, {
-      openGetQueriesTctx: false,
+      openGetQueriesTctx: false
     });
   })
   .case(actions.service.serviceCloseSubmitQueriesTctx, state => {
-    logger.info('reducers', 'serviceCloseSubmitQueriesTctx');
+    logger.info("reducers", "serviceCloseSubmitQueriesTctx");
     return Object.assign({}, state, {
-      openSubmitQueriesTctx: false,
+      openSubmitQueriesTctx: false
     });
   })
   .case(actions.service.servicePostSuccess, (state, payload) => {
-    logger.info('reducers', 'servicePostSuccess', payload.action.type, payload);
+    logger.info("reducers", "servicePostSuccess", payload.action.type, payload);
+    const { route } = payload.action.payload;
     const newState = Object.assign({}, state, {
       isFetching: false,
-      redirectToReferrer: true,
+      redirectToReferrer: true
     });
 
-    if (payload.action.type === 'SERVICE_SUBMIT_QUERIES') {
+    if (payload.action.type === "SERVICE_SUBMIT_QUERIES") {
       Object.assign(newState, {
-        isSubmitting: false,
+        isSubmitting: false
       });
     }
 
@@ -132,7 +134,7 @@ export default reducerWithInitialState(defaultState)
     const tctx: any = {
       Error: payload.result.Error,
       StatusCode: payload.result.Code,
-      TraceId: payload.result.TraceId,
+      TraceId: payload.result.TraceId
     };
     if (payload.result.ResultMap) {
       for (const key of Object.keys(payload.result.ResultMap)) {
@@ -146,25 +148,25 @@ export default reducerWithInitialState(defaultState)
 
     let isGetIndex = false;
     switch (actionType) {
-      case 'SERVICE_GET_INDEX':
+      case "SERVICE_GET_INDEX":
         newState.getIndexTctx = tctx;
         isGetIndex = true;
         break;
-      case 'SERVICE_GET_QUERIES':
+      case "SERVICE_GET_QUERIES":
         newState.getQueriesTctx = tctx;
         newState.openGetQueriesTctx = true;
         break;
-      case 'SERVICE_SUBMIT_QUERIES':
+      case "SERVICE_SUBMIT_QUERIES":
         newState.submitQueriesTctx = tctx;
         newState.openSubmitQueriesTctx = true;
         break;
       default:
-        console.log('DEBUG unknownaction', actionType);
+        console.log("DEBUG unknownaction", actionType);
         break;
     }
 
     if (tctx.StatusCode >= 300) {
-      logger.error('reducers', 'servicePostError: newState', newState);
+      logger.error("reducers", "servicePostError: newState", newState);
       // TODO handling tctx.Err, tctx.StatusCode
       return newState;
     }
@@ -174,7 +176,7 @@ export default reducerWithInitialState(defaultState)
       newState.syncQueryMap = Object.assign(
         {},
         state.syncQueryMap,
-        payload.payload.syncQueryMap,
+        payload.payload.syncQueryMap
       );
     }
 
@@ -182,14 +184,39 @@ export default reducerWithInitialState(defaultState)
     let data = {};
     if (isGetIndex) {
       for (const query of payload.payload.queries) {
-        data = Object.assign(
-          data,
-          payload.result.ResultMap[query.Name].Data.Data,
-        );
+        if (payload.result.ResultMap[query.Name]) {
+          if (payload.result.ResultMap[query.Name].Data) {
+            data = Object.assign(
+              data,
+              payload.result.ResultMap[query.Name].Data.Data
+            );
+          } else {
+            logger.warning(
+              "reducers",
+              "servicePostSuccess: QueryData is not found",
+              query.Name
+            );
+          }
+        } else {
+          logger.warning(
+            "reducers",
+            "servicePostSuccess: QueryResult is not found",
+            query.Name
+          );
+        }
       }
     } else {
       for (const query of payload.payload.queries) {
-        data = Object.assign(data, payload.result.ResultMap[query.Name].Data);
+        if (query.Name in payload.result.ResultMap) {
+          data = Object.assign(data, payload.result.ResultMap[query.Name].Data);
+        } else {
+          logger.warning(
+            "reducers",
+            "servicePostSuccess: QueryResult is not found",
+            query.Name
+          );
+          return newState;
+        }
       }
     }
 
@@ -201,8 +228,8 @@ export default reducerWithInitialState(defaultState)
       }
     }
 
-    const service = payload.action.payload.params.service;
-    const project = payload.action.payload.params.project;
+    const service = route.match.params.service;
+    const project = route.match.params.project;
     if (project) {
       newState.projectServiceMap[project][service].isFetching = false;
       if (isGetIndex) {
@@ -229,18 +256,18 @@ export default reducerWithInitialState(defaultState)
       }
     }
 
-    logger.info('reducers', 'servicePostSuccess: newState', newState);
+    logger.info("reducers", "servicePostSuccess: newState", newState);
     return newState;
   })
   .case(actions.service.servicePostFailure, (state, payload) => {
     const newState = Object.assign({}, state, {
       error: payload.error,
-      isFetching: false,
+      isFetching: false
     });
 
-    if (payload.action.type === 'SERVICE_SUBMIT_QUERIES') {
+    if (payload.action.type === "SERVICE_SUBMIT_QUERIES") {
       Object.assign(newState, {
-        isSubmitting: false,
+        isSubmitting: false
       });
     }
 
@@ -253,10 +280,10 @@ export default reducerWithInitialState(defaultState)
     }
 
     logger.error(
-      'reducers',
-      'servicePostFailure: newState',
+      "reducers",
+      "servicePostFailure: newState",
       payload.action.type,
-      newState,
+      newState
     );
     return newState;
   });

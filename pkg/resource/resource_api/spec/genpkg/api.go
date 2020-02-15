@@ -11,7 +11,7 @@ import (
 
 	"github.com/syunkitada/goapp/pkg/base/base_config"
 	"github.com/syunkitada/goapp/pkg/base/base_const"
-	"github.com/syunkitada/goapp/pkg/base/base_model"
+	"github.com/syunkitada/goapp/pkg/base/base_protocol"
 	"github.com/syunkitada/goapp/pkg/base/base_spec"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
@@ -25,6 +25,7 @@ type QueryResolver interface {
 	GetServiceDashboardIndex(tctx *logger.TraceContext, input *base_spec.GetServiceDashboardIndex, user *base_spec.UserAuthority) (*base_spec.GetServiceDashboardIndexData, uint8, error)
 	CreateCluster(tctx *logger.TraceContext, input *spec.CreateCluster, user *base_spec.UserAuthority) (*spec.CreateClusterData, uint8, error)
 	CreateDatacenter(tctx *logger.TraceContext, input *spec.CreateDatacenter, user *base_spec.UserAuthority) (*spec.CreateDatacenterData, uint8, error)
+	CreateEventRules(tctx *logger.TraceContext, input *spec.CreateEventRules, user *base_spec.UserAuthority) (*spec.CreateEventRulesData, uint8, error)
 	CreateFloor(tctx *logger.TraceContext, input *spec.CreateFloor, user *base_spec.UserAuthority) (*spec.CreateFloorData, uint8, error)
 	CreateImage(tctx *logger.TraceContext, input *spec.CreateImage, user *base_spec.UserAuthority) (*spec.CreateImageData, uint8, error)
 	CreateNetworkV4(tctx *logger.TraceContext, input *spec.CreateNetworkV4, user *base_spec.UserAuthority) (*spec.CreateNetworkV4Data, uint8, error)
@@ -37,6 +38,7 @@ type QueryResolver interface {
 	DeleteClusters(tctx *logger.TraceContext, input *spec.DeleteClusters, user *base_spec.UserAuthority) (*spec.DeleteClustersData, uint8, error)
 	DeleteDatacenter(tctx *logger.TraceContext, input *spec.DeleteDatacenter, user *base_spec.UserAuthority) (*spec.DeleteDatacenterData, uint8, error)
 	DeleteDatacenters(tctx *logger.TraceContext, input *spec.DeleteDatacenters, user *base_spec.UserAuthority) (*spec.DeleteDatacentersData, uint8, error)
+	DeleteEventRules(tctx *logger.TraceContext, input *spec.DeleteEventRules, user *base_spec.UserAuthority) (*spec.DeleteEventRulesData, uint8, error)
 	DeleteFloor(tctx *logger.TraceContext, input *spec.DeleteFloor, user *base_spec.UserAuthority) (*spec.DeleteFloorData, uint8, error)
 	DeleteFloors(tctx *logger.TraceContext, input *spec.DeleteFloors, user *base_spec.UserAuthority) (*spec.DeleteFloorsData, uint8, error)
 	DeleteImage(tctx *logger.TraceContext, input *spec.DeleteImage, user *base_spec.UserAuthority) (*spec.DeleteImageData, uint8, error)
@@ -53,12 +55,15 @@ type QueryResolver interface {
 	DeleteRegionService(tctx *logger.TraceContext, input *spec.DeleteRegionService, user *base_spec.UserAuthority) (*spec.DeleteRegionServiceData, uint8, error)
 	DeleteRegionServices(tctx *logger.TraceContext, input *spec.DeleteRegionServices, user *base_spec.UserAuthority) (*spec.DeleteRegionServicesData, uint8, error)
 	DeleteRegions(tctx *logger.TraceContext, input *spec.DeleteRegions, user *base_spec.UserAuthority) (*spec.DeleteRegionsData, uint8, error)
-	GetAlertRules(tctx *logger.TraceContext, input *spec.GetAlertRules, user *base_spec.UserAuthority) (*spec.GetAlertRulesData, uint8, error)
-	GetAlerts(tctx *logger.TraceContext, input *spec.GetAlerts, user *base_spec.UserAuthority) (*spec.GetAlertsData, uint8, error)
 	GetCluster(tctx *logger.TraceContext, input *spec.GetCluster, user *base_spec.UserAuthority) (*spec.GetClusterData, uint8, error)
 	GetClusters(tctx *logger.TraceContext, input *spec.GetClusters, user *base_spec.UserAuthority) (*spec.GetClustersData, uint8, error)
+	GetCompute(tctx *logger.TraceContext, input *spec.GetCompute, user *base_spec.UserAuthority) (*spec.GetComputeData, uint8, error)
+	GetComputes(tctx *logger.TraceContext, input *spec.GetComputes, user *base_spec.UserAuthority) (*spec.GetComputesData, uint8, error)
 	GetDatacenter(tctx *logger.TraceContext, input *spec.GetDatacenter, user *base_spec.UserAuthority) (*spec.GetDatacenterData, uint8, error)
 	GetDatacenters(tctx *logger.TraceContext, input *spec.GetDatacenters, user *base_spec.UserAuthority) (*spec.GetDatacentersData, uint8, error)
+	GetEventRule(tctx *logger.TraceContext, input *spec.GetEventRule, user *base_spec.UserAuthority) (*spec.GetEventRuleData, uint8, error)
+	GetEventRules(tctx *logger.TraceContext, input *spec.GetEventRules, user *base_spec.UserAuthority) (*spec.GetEventRulesData, uint8, error)
+	GetEvents(tctx *logger.TraceContext, input *spec.GetEvents, user *base_spec.UserAuthority) (*spec.GetEventsData, uint8, error)
 	GetFloor(tctx *logger.TraceContext, input *spec.GetFloor, user *base_spec.UserAuthority) (*spec.GetFloorData, uint8, error)
 	GetFloors(tctx *logger.TraceContext, input *spec.GetFloors, user *base_spec.UserAuthority) (*spec.GetFloorsData, uint8, error)
 	GetImage(tctx *logger.TraceContext, input *spec.GetImage, user *base_spec.UserAuthority) (*spec.GetImageData, uint8, error)
@@ -68,6 +73,7 @@ type QueryResolver interface {
 	GetNetworkV4(tctx *logger.TraceContext, input *spec.GetNetworkV4, user *base_spec.UserAuthority) (*spec.GetNetworkV4Data, uint8, error)
 	GetNetworkV4s(tctx *logger.TraceContext, input *spec.GetNetworkV4s, user *base_spec.UserAuthority) (*spec.GetNetworkV4sData, uint8, error)
 	GetNode(tctx *logger.TraceContext, input *spec.GetNode, user *base_spec.UserAuthority) (*spec.GetNodeData, uint8, error)
+	GetNodeMetrics(tctx *logger.TraceContext, input *spec.GetNodeMetrics, user *base_spec.UserAuthority) (*spec.GetNodeMetricsData, uint8, error)
 	GetNodeServices(tctx *logger.TraceContext, input *spec.GetNodeServices, user *base_spec.UserAuthority) (*spec.GetNodeServicesData, uint8, error)
 	GetNodes(tctx *logger.TraceContext, input *spec.GetNodes, user *base_spec.UserAuthority) (*spec.GetNodesData, uint8, error)
 	GetPhysicalModel(tctx *logger.TraceContext, input *spec.GetPhysicalModel, user *base_spec.UserAuthority) (*spec.GetPhysicalModelData, uint8, error)
@@ -84,6 +90,7 @@ type QueryResolver interface {
 	GetTrace(tctx *logger.TraceContext, input *spec.GetTrace, user *base_spec.UserAuthority) (*spec.GetTraceData, uint8, error)
 	UpdateCluster(tctx *logger.TraceContext, input *spec.UpdateCluster, user *base_spec.UserAuthority) (*spec.UpdateClusterData, uint8, error)
 	UpdateDatacenter(tctx *logger.TraceContext, input *spec.UpdateDatacenter, user *base_spec.UserAuthority) (*spec.UpdateDatacenterData, uint8, error)
+	UpdateEventRules(tctx *logger.TraceContext, input *spec.UpdateEventRules, user *base_spec.UserAuthority) (*spec.UpdateEventRulesData, uint8, error)
 	UpdateFloor(tctx *logger.TraceContext, input *spec.UpdateFloor, user *base_spec.UserAuthority) (*spec.UpdateFloorData, uint8, error)
 	UpdateImage(tctx *logger.TraceContext, input *spec.UpdateImage, user *base_spec.UserAuthority) (*spec.UpdateImageData, uint8, error)
 	UpdateNetworkV4(tctx *logger.TraceContext, input *spec.UpdateNetworkV4, user *base_spec.UserAuthority) (*spec.UpdateNetworkV4Data, uint8, error)
@@ -109,7 +116,7 @@ func NewQueryHandler(baseConf *base_config.Config, appConf *base_config.AppConfi
 }
 
 func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.UserAuthority, httpReq *http.Request, rw http.ResponseWriter,
-	req *base_model.Request, rep *base_model.Response) error {
+	req *base_protocol.Request, rep *base_protocol.Response) error {
 	var err error
 	for _, query := range req.Queries {
 		switch query.Name {
@@ -125,13 +132,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
@@ -146,7 +153,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			http.SetCookie(rw, &cookie)
 
 		case "Logout":
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: base_const.CodeOk,
 			}
 			cookie := http.Cookie{
@@ -169,13 +176,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
@@ -192,13 +199,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
@@ -215,13 +222,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
@@ -237,13 +244,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap["GetServiceDashboardIndex"] = base_model.Result{
+				rep.ResultMap["GetServiceDashboardIndex"] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
@@ -258,13 +265,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
@@ -279,13 +286,34 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
+				Code: code,
+				Data: data,
+			}
+		case "CreateEventRules":
+			var input spec.CreateEventRules
+			err = json.Unmarshal([]byte(query.Data), &input)
+			if err != nil {
+				return err
+			}
+			data, code, tmpErr := handler.resolver.CreateEventRules(tctx, &input, user)
+			if tmpErr != nil {
+				if code == 0 {
+					code = base_const.CodeServerInternalError
+				}
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  code,
+					Error: tmpErr.Error(),
+				}
+				break
+			}
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
@@ -300,13 +328,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
@@ -321,13 +349,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
@@ -342,13 +370,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
@@ -363,13 +391,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
@@ -384,13 +412,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
@@ -405,13 +433,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
@@ -426,13 +454,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
@@ -447,13 +475,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
@@ -468,13 +496,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
@@ -489,13 +517,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
@@ -510,13 +538,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
@@ -531,13 +559,34 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
+				Code: code,
+				Data: data,
+			}
+		case "DeleteEventRules":
+			var input spec.DeleteEventRules
+			err = json.Unmarshal([]byte(query.Data), &input)
+			if err != nil {
+				return err
+			}
+			data, code, tmpErr := handler.resolver.DeleteEventRules(tctx, &input, user)
+			if tmpErr != nil {
+				if code == 0 {
+					code = base_const.CodeServerInternalError
+				}
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  code,
+					Error: tmpErr.Error(),
+				}
+				break
+			}
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
@@ -552,13 +601,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
@@ -573,13 +622,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
@@ -594,13 +643,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
@@ -615,13 +664,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
@@ -636,13 +685,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
@@ -657,13 +706,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
@@ -678,13 +727,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
@@ -699,13 +748,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
@@ -720,13 +769,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
@@ -741,13 +790,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
@@ -762,13 +811,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
@@ -783,13 +832,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
@@ -804,13 +853,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
@@ -825,13 +874,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
@@ -846,13 +895,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
@@ -867,55 +916,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
-				Code: code,
-				Data: data,
-			}
-		case "GetAlertRules":
-			var input spec.GetAlertRules
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
-			}
-			data, code, tmpErr := handler.resolver.GetAlertRules(tctx, &input, user)
-			if tmpErr != nil {
-				if code == 0 {
-					code = base_const.CodeServerInternalError
-				}
-				rep.ResultMap[query.Name] = base_model.Result{
-					Code:  code,
-					Error: tmpErr.Error(),
-				}
-				break
-			}
-			rep.ResultMap[query.Name] = base_model.Result{
-				Code: code,
-				Data: data,
-			}
-		case "GetAlerts":
-			var input spec.GetAlerts
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
-			}
-			data, code, tmpErr := handler.resolver.GetAlerts(tctx, &input, user)
-			if tmpErr != nil {
-				if code == 0 {
-					code = base_const.CodeServerInternalError
-				}
-				rep.ResultMap[query.Name] = base_model.Result{
-					Code:  code,
-					Error: tmpErr.Error(),
-				}
-				break
-			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
@@ -930,13 +937,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
@@ -951,13 +958,55 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
+				Code: code,
+				Data: data,
+			}
+		case "GetCompute":
+			var input spec.GetCompute
+			err = json.Unmarshal([]byte(query.Data), &input)
+			if err != nil {
+				return err
+			}
+			data, code, tmpErr := handler.resolver.GetCompute(tctx, &input, user)
+			if tmpErr != nil {
+				if code == 0 {
+					code = base_const.CodeServerInternalError
+				}
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  code,
+					Error: tmpErr.Error(),
+				}
+				break
+			}
+			rep.ResultMap[query.Name] = base_protocol.Result{
+				Code: code,
+				Data: data,
+			}
+		case "GetComputes":
+			var input spec.GetComputes
+			err = json.Unmarshal([]byte(query.Data), &input)
+			if err != nil {
+				return err
+			}
+			data, code, tmpErr := handler.resolver.GetComputes(tctx, &input, user)
+			if tmpErr != nil {
+				if code == 0 {
+					code = base_const.CodeServerInternalError
+				}
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  code,
+					Error: tmpErr.Error(),
+				}
+				break
+			}
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
@@ -972,13 +1021,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
@@ -993,13 +1042,76 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
+				Code: code,
+				Data: data,
+			}
+		case "GetEventRule":
+			var input spec.GetEventRule
+			err = json.Unmarshal([]byte(query.Data), &input)
+			if err != nil {
+				return err
+			}
+			data, code, tmpErr := handler.resolver.GetEventRule(tctx, &input, user)
+			if tmpErr != nil {
+				if code == 0 {
+					code = base_const.CodeServerInternalError
+				}
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  code,
+					Error: tmpErr.Error(),
+				}
+				break
+			}
+			rep.ResultMap[query.Name] = base_protocol.Result{
+				Code: code,
+				Data: data,
+			}
+		case "GetEventRules":
+			var input spec.GetEventRules
+			err = json.Unmarshal([]byte(query.Data), &input)
+			if err != nil {
+				return err
+			}
+			data, code, tmpErr := handler.resolver.GetEventRules(tctx, &input, user)
+			if tmpErr != nil {
+				if code == 0 {
+					code = base_const.CodeServerInternalError
+				}
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  code,
+					Error: tmpErr.Error(),
+				}
+				break
+			}
+			rep.ResultMap[query.Name] = base_protocol.Result{
+				Code: code,
+				Data: data,
+			}
+		case "GetEvents":
+			var input spec.GetEvents
+			err = json.Unmarshal([]byte(query.Data), &input)
+			if err != nil {
+				return err
+			}
+			data, code, tmpErr := handler.resolver.GetEvents(tctx, &input, user)
+			if tmpErr != nil {
+				if code == 0 {
+					code = base_const.CodeServerInternalError
+				}
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  code,
+					Error: tmpErr.Error(),
+				}
+				break
+			}
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
@@ -1014,13 +1126,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
@@ -1035,13 +1147,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
@@ -1056,13 +1168,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
@@ -1077,13 +1189,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
@@ -1098,13 +1210,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
@@ -1119,13 +1231,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
@@ -1140,13 +1252,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
@@ -1161,13 +1273,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
@@ -1182,13 +1294,34 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
+				Code: code,
+				Data: data,
+			}
+		case "GetNodeMetrics":
+			var input spec.GetNodeMetrics
+			err = json.Unmarshal([]byte(query.Data), &input)
+			if err != nil {
+				return err
+			}
+			data, code, tmpErr := handler.resolver.GetNodeMetrics(tctx, &input, user)
+			if tmpErr != nil {
+				if code == 0 {
+					code = base_const.CodeServerInternalError
+				}
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  code,
+					Error: tmpErr.Error(),
+				}
+				break
+			}
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
@@ -1203,13 +1336,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
@@ -1224,13 +1357,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
@@ -1245,13 +1378,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
@@ -1266,13 +1399,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
@@ -1287,13 +1420,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
@@ -1308,13 +1441,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
@@ -1329,13 +1462,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
@@ -1350,13 +1483,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
@@ -1371,13 +1504,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
@@ -1392,13 +1525,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
@@ -1413,13 +1546,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
@@ -1434,13 +1567,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
@@ -1455,13 +1588,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
@@ -1476,13 +1609,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
@@ -1497,13 +1630,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
@@ -1518,13 +1651,34 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
+				Code: code,
+				Data: data,
+			}
+		case "UpdateEventRules":
+			var input spec.UpdateEventRules
+			err = json.Unmarshal([]byte(query.Data), &input)
+			if err != nil {
+				return err
+			}
+			data, code, tmpErr := handler.resolver.UpdateEventRules(tctx, &input, user)
+			if tmpErr != nil {
+				if code == 0 {
+					code = base_const.CodeServerInternalError
+				}
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  code,
+					Error: tmpErr.Error(),
+				}
+				break
+			}
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
@@ -1539,13 +1693,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
@@ -1560,13 +1714,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
@@ -1581,13 +1735,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
@@ -1602,13 +1756,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
@@ -1623,13 +1777,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
@@ -1644,13 +1798,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
@@ -1665,13 +1819,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
@@ -1686,13 +1840,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}

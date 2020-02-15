@@ -1,6 +1,7 @@
 package qemu_driver
 
 import (
+	"fmt"
 	"io/ioutil"
 	"path/filepath"
 
@@ -29,9 +30,12 @@ func (driver *QemuDriver) syncActivatingAssignment(tctx *logger.TraceContext,
 	assignment spec.ComputeAssignmentEx, netnsPorts []compute_models.NetnsPort) error {
 	var err error
 	compute := assignment.Spec
+	fmt.Println("DEBUG QEMU syncActivatingAssignment")
 
 	vmDir := filepath.Join(driver.conf.VmsDir, compute.Name)
 	vmImagePath := filepath.Join(vmDir, "img")
+	vmMonitorSocketPath := filepath.Join(vmDir, "monitor.sock")
+	vmSerialSocketPath := filepath.Join(vmDir, "serial.sock")
 	vmConfigImagePath := filepath.Join(vmDir, "config.img")
 	configDir := filepath.Join(vmDir, "config")
 	vmServiceShFilePath := filepath.Join(vmDir, "service.sh")
@@ -78,11 +82,30 @@ func (driver *QemuDriver) syncActivatingAssignment(tctx *logger.TraceContext,
 		return err
 	}
 
+	var resolvers []spec.Resolver
+	for _, port := range netnsPorts {
+		switch port.Kind {
+		case "Local":
+			for _, resolver := range port.NetworkV4LocalSpec.Resolvers {
+				exists := false
+				for _, r := range resolvers {
+					if r.Resolver == resolver.Resolver {
+						exists = true
+					}
+				}
+				if !exists {
+					resolvers = append(resolvers, resolver)
+				}
+			}
+		}
+	}
+
 	defaultGateway := netnsPorts[0].NetnsGateway
 	if err = template_utils.Template(tctx, vmUserDataConfigFilePath, 0644, driver.conf.UserdataTmpl,
 		map[string]interface{}{
 			"DefaultGateway": defaultGateway,
 			"Ports":          netnsPorts,
+			"Resolvers":      resolvers,
 		}); err != nil {
 		return err
 	}
@@ -98,6 +121,8 @@ func (driver *QemuDriver) syncActivatingAssignment(tctx *logger.TraceContext,
 			"Ports":             netnsPorts,
 			"VmImagePath":       vmImagePath,
 			"VmConfigImagePath": vmConfigImagePath,
+			"MonitorSocketPath": vmMonitorSocketPath,
+			"SerialSocketPath":  vmSerialSocketPath,
 		}); err != nil {
 		return err
 	}

@@ -1,6 +1,7 @@
 package base_db_api
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -20,7 +21,16 @@ func (api *Api) GetNodeService(tctx *logger.TraceContext, input *base_spec.GetNo
 }
 
 func (api *Api) GetNodeServices(tctx *logger.TraceContext, input *base_spec.GetNodeServices, user *base_spec.UserAuthority) (data []base_spec.NodeService, err error) {
-	err = api.DB.Where("deleted_at IS NULL").Find(&data).Error
+	query := api.DB.Table("node_services").
+		Select("name, kind, role, status, status_reason, state, state_reason").
+		Where("deleted_at IS NULL")
+	if input.Name != "" {
+		query = query.Where("name = ?", input.Name)
+	}
+	if input.Kind != "" {
+		query = query.Where("kind = ?", input.Kind)
+	}
+	err = query.Find(&data).Error
 	return
 }
 
@@ -140,6 +150,7 @@ func (api *Api) SyncNodeServiceState(tctx *logger.TraceContext) (err error) {
 
 		downTime := time.Now().Add(api.nodeDownTimeDuration)
 		for _, node := range nodes {
+			fmt.Println("DEBUG SyncNodeServiceState", node.UpdatedAt, downTime)
 			if node.UpdatedAt.After(downTime) {
 				node.State = resource_model.StateDown
 				if err = tx.Save(&node).Error; err != nil {

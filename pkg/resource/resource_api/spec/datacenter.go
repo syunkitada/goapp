@@ -3,7 +3,7 @@ package spec
 import (
 	"time"
 
-	"github.com/syunkitada/goapp/pkg/authproxy/index_model"
+	"github.com/syunkitada/goapp/pkg/base/base_index_model"
 )
 
 type Datacenter struct {
@@ -54,41 +54,42 @@ type DeleteDatacenters struct {
 
 type DeleteDatacentersData struct{}
 
-var DatacentersTable = index_model.Table{
-	Name:    "Datacenters",
-	Kind:    "Table",
-	Route:   "",
-	DataKey: "Datacenters",
-	Columns: []index_model.TableColumn{
-		index_model.TableColumn{
+var DatacentersTable = base_index_model.Table{
+	Name:        "Datacenters",
+	Kind:        "Table",
+	Route:       "",
+	DataQueries: []string{"GetDatacenters"},
+	DataKey:     "Datacenters",
+	Columns: []base_index_model.TableColumn{
+		base_index_model.TableColumn{
 			Name:      "Name",
 			IsSearch:  true,
 			Link:      "Datacenters/:0/Resources/Resources",
-			LinkParam: "Datacenter",
+			LinkKey: "Datacenter",
 			LinkSync:  true,
-			LinkGetQueries: []string{
+			LinkDataQueries: []string{
 				"GetPhysicalResources", "GetRacks", "GetFloors", "GetPhysicalModels"},
 		},
-		index_model.TableColumn{Name: "Region", IsSearch: true},
-		index_model.TableColumn{Name: "UpdatedAt", Kind: "Time", Sort: "asc"},
-		index_model.TableColumn{Name: "CreatedAt", Kind: "Time"},
+		base_index_model.TableColumn{Name: "Region", IsSearch: true},
+		base_index_model.TableColumn{Name: "UpdatedAt", Kind: "Time", Sort: "asc"},
+		base_index_model.TableColumn{Name: "CreatedAt", Kind: "Time"},
 	},
-	SelectActions: []index_model.Action{
-		index_model.Action{Name: "Delete", Icon: "Delete",
+	SelectActions: []base_index_model.Action{
+		base_index_model.Action{Name: "Delete", Icon: "Delete",
 			Kind:      "Form",
 			DataKind:  "Datacenter",
 			SelectKey: "Name",
 		},
 	},
-	Actions: []index_model.Action{
-		index_model.Action{
+	Actions: []base_index_model.Action{
+		base_index_model.Action{
 			Name: "Create", Icon: "Create", Kind: "Form",
 			DataKind: "Datacenter",
-			Fields: []index_model.Field{
-				index_model.Field{Name: "Name", Kind: "text", Require: true,
+			Fields: []base_index_model.Field{
+				base_index_model.Field{Name: "Name", Kind: "text", Require: true,
 					Min: 5, Max: 200, RegExp: "^[0-9a-zA-Z]+$",
 					RegExpMsg: "Please enter alphanumeric characters."},
-				index_model.Field{Name: "Kind", Kind: "select", Require: true,
+				base_index_model.Field{Name: "Kind", Kind: "select", Require: true,
 					Options: []string{
 						"Private", "Share",
 					}},

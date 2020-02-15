@@ -56,6 +56,28 @@ func (api *Api) GetNode(tctx *logger.TraceContext, input *spec.GetNode, user *ba
 	return
 }
 
+func (api *Api) GetNodeMetrics(tctx *logger.TraceContext, input *spec.GetNodeMetrics, user *base_spec.UserAuthority) (data *spec.GetNodeMetricsData, err error) {
+	client, ok := api.clusterClientMap[input.Cluster]
+	if !ok {
+		err = error_utils.NewNotFoundError("clusterClient")
+		return
+	}
+
+	queries := []base_client.Query{
+		base_client.Query{
+			Name: "GetNodeMetrics",
+			Data: *input,
+		},
+	}
+
+	data, tmpErr := client.ResourceVirtualAdminGetNodeMetrics(tctx, queries)
+	if tmpErr != nil {
+		err = fmt.Errorf("Failed GetNodeMetrics: %s", tmpErr.Error())
+		return
+	}
+	return
+}
+
 func (api *Api) GetLogParams(tctx *logger.TraceContext, input *spec.GetLogParams, user *base_spec.UserAuthority) (data *spec.GetLogParamsData, err error) {
 	client, ok := api.clusterClientMap[input.Cluster]
 	if !ok {
@@ -76,5 +98,32 @@ func (api *Api) GetLogParams(tctx *logger.TraceContext, input *spec.GetLogParams
 		return
 	}
 	data = getLogParamsData
+	return
+}
+
+func (api *Api) GetLogs(tctx *logger.TraceContext, input *spec.GetLogs, user *base_spec.UserAuthority) (data *spec.GetLogsData, err error) {
+	if len(input.Apps) == 0 && len(input.Nodes) == 0 && (input.TraceId) == "" {
+		return
+	}
+
+	client, ok := api.clusterClientMap[input.Cluster]
+	if !ok {
+		err = error_utils.NewNotFoundError("clusterClient")
+		return
+	}
+
+	queries := []base_client.Query{
+		base_client.Query{
+			Name: "GetLogs",
+			Data: *input,
+		},
+	}
+
+	getLogsData, tmpErr := client.ResourceVirtualAdminGetLogs(tctx, queries)
+	if tmpErr != nil {
+		err = fmt.Errorf("Failed GetLogs: %s", tmpErr.Error())
+		return
+	}
+	data = getLogsData
 	return
 }

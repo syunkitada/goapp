@@ -8,7 +8,7 @@ import (
 	"net/http"
 
 	"github.com/syunkitada/goapp/pkg/base/base_config"
-	"github.com/syunkitada/goapp/pkg/base/base_model"
+	"github.com/syunkitada/goapp/pkg/base/base_protocol"
 	"github.com/syunkitada/goapp/pkg/base/base_spec"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
@@ -31,7 +31,7 @@ func NewQueryHandler(baseConf *base_config.Config, appConf *base_config.AppConfi
 }
 
 func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.UserAuthority, httpReq *http.Request, rw http.ResponseWriter,
-	req *base_model.Request, rep *base_model.Response) error {
+	req *base_protocol.Request, rep *base_protocol.Response) error {
 	var err error
 	for _, query := range req.Queries {
 		switch query.Name {

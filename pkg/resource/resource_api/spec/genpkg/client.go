@@ -6,7 +6,7 @@ package genpkg
 import (
 	"github.com/syunkitada/goapp/pkg/base/base_client"
 	"github.com/syunkitada/goapp/pkg/base/base_config"
-	"github.com/syunkitada/goapp/pkg/base/base_model"
+	"github.com/syunkitada/goapp/pkg/base/base_protocol"
 	"github.com/syunkitada/goapp/pkg/lib/error_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
@@ -24,7 +24,7 @@ func NewClient(conf *base_config.ClientConfig) *Client {
 }
 
 type CreateClusterResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap CreateClusterResultMap
 }
 
@@ -38,7 +38,7 @@ type CreateClusterResult struct {
 	Data  spec.CreateClusterData
 }
 type CreateDatacenterResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap CreateDatacenterResultMap
 }
 
@@ -51,8 +51,22 @@ type CreateDatacenterResult struct {
 	Error string
 	Data  spec.CreateDatacenterData
 }
+type CreateEventRulesResponse struct {
+	base_protocol.Response
+	ResultMap CreateEventRulesResultMap
+}
+
+type CreateEventRulesResultMap struct {
+	CreateEventRules CreateEventRulesResult
+}
+
+type CreateEventRulesResult struct {
+	Code  uint8
+	Error string
+	Data  spec.CreateEventRulesData
+}
 type CreateFloorResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap CreateFloorResultMap
 }
 
@@ -66,7 +80,7 @@ type CreateFloorResult struct {
 	Data  spec.CreateFloorData
 }
 type CreateImageResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap CreateImageResultMap
 }
 
@@ -80,7 +94,7 @@ type CreateImageResult struct {
 	Data  spec.CreateImageData
 }
 type CreateNetworkV4Response struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap CreateNetworkV4ResultMap
 }
 
@@ -94,7 +108,7 @@ type CreateNetworkV4Result struct {
 	Data  spec.CreateNetworkV4Data
 }
 type CreatePhysicalModelResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap CreatePhysicalModelResultMap
 }
 
@@ -108,7 +122,7 @@ type CreatePhysicalModelResult struct {
 	Data  spec.CreatePhysicalModelData
 }
 type CreatePhysicalResourceResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap CreatePhysicalResourceResultMap
 }
 
@@ -122,7 +136,7 @@ type CreatePhysicalResourceResult struct {
 	Data  spec.CreatePhysicalResourceData
 }
 type CreateRackResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap CreateRackResultMap
 }
 
@@ -136,7 +150,7 @@ type CreateRackResult struct {
 	Data  spec.CreateRackData
 }
 type CreateRegionResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap CreateRegionResultMap
 }
 
@@ -150,7 +164,7 @@ type CreateRegionResult struct {
 	Data  spec.CreateRegionData
 }
 type CreateRegionServiceResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap CreateRegionServiceResultMap
 }
 
@@ -164,7 +178,7 @@ type CreateRegionServiceResult struct {
 	Data  spec.CreateRegionServiceData
 }
 type DeleteClusterResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap DeleteClusterResultMap
 }
 
@@ -178,7 +192,7 @@ type DeleteClusterResult struct {
 	Data  spec.DeleteClusterData
 }
 type DeleteClustersResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap DeleteClustersResultMap
 }
 
@@ -192,7 +206,7 @@ type DeleteClustersResult struct {
 	Data  spec.DeleteClustersData
 }
 type DeleteDatacenterResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap DeleteDatacenterResultMap
 }
 
@@ -206,7 +220,7 @@ type DeleteDatacenterResult struct {
 	Data  spec.DeleteDatacenterData
 }
 type DeleteDatacentersResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap DeleteDatacentersResultMap
 }
 
@@ -219,8 +233,22 @@ type DeleteDatacentersResult struct {
 	Error string
 	Data  spec.DeleteDatacentersData
 }
+type DeleteEventRulesResponse struct {
+	base_protocol.Response
+	ResultMap DeleteEventRulesResultMap
+}
+
+type DeleteEventRulesResultMap struct {
+	DeleteEventRules DeleteEventRulesResult
+}
+
+type DeleteEventRulesResult struct {
+	Code  uint8
+	Error string
+	Data  spec.DeleteEventRulesData
+}
 type DeleteFloorResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap DeleteFloorResultMap
 }
 
@@ -234,7 +262,7 @@ type DeleteFloorResult struct {
 	Data  spec.DeleteFloorData
 }
 type DeleteFloorsResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap DeleteFloorsResultMap
 }
 
@@ -248,7 +276,7 @@ type DeleteFloorsResult struct {
 	Data  spec.DeleteFloorsData
 }
 type DeleteImageResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap DeleteImageResultMap
 }
 
@@ -262,7 +290,7 @@ type DeleteImageResult struct {
 	Data  spec.DeleteImageData
 }
 type DeleteImagesResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap DeleteImagesResultMap
 }
 
@@ -276,7 +304,7 @@ type DeleteImagesResult struct {
 	Data  spec.DeleteImagesData
 }
 type DeleteNetworkV4Response struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap DeleteNetworkV4ResultMap
 }
 
@@ -290,7 +318,7 @@ type DeleteNetworkV4Result struct {
 	Data  spec.DeleteNetworkV4Data
 }
 type DeleteNetworkV4sResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap DeleteNetworkV4sResultMap
 }
 
@@ -304,7 +332,7 @@ type DeleteNetworkV4sResult struct {
 	Data  spec.DeleteNetworkV4sData
 }
 type DeletePhysicalModelResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap DeletePhysicalModelResultMap
 }
 
@@ -318,7 +346,7 @@ type DeletePhysicalModelResult struct {
 	Data  spec.DeletePhysicalModelData
 }
 type DeletePhysicalModelsResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap DeletePhysicalModelsResultMap
 }
 
@@ -332,7 +360,7 @@ type DeletePhysicalModelsResult struct {
 	Data  spec.DeletePhysicalModelsData
 }
 type DeletePhysicalResourceResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap DeletePhysicalResourceResultMap
 }
 
@@ -346,7 +374,7 @@ type DeletePhysicalResourceResult struct {
 	Data  spec.DeletePhysicalResourceData
 }
 type DeletePhysicalResourcesResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap DeletePhysicalResourcesResultMap
 }
 
@@ -360,7 +388,7 @@ type DeletePhysicalResourcesResult struct {
 	Data  spec.DeletePhysicalResourcesData
 }
 type DeleteRackResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap DeleteRackResultMap
 }
 
@@ -374,7 +402,7 @@ type DeleteRackResult struct {
 	Data  spec.DeleteRackData
 }
 type DeleteRacksResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap DeleteRacksResultMap
 }
 
@@ -388,7 +416,7 @@ type DeleteRacksResult struct {
 	Data  spec.DeleteRacksData
 }
 type DeleteRegionResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap DeleteRegionResultMap
 }
 
@@ -402,7 +430,7 @@ type DeleteRegionResult struct {
 	Data  spec.DeleteRegionData
 }
 type DeleteRegionServiceResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap DeleteRegionServiceResultMap
 }
 
@@ -416,7 +444,7 @@ type DeleteRegionServiceResult struct {
 	Data  spec.DeleteRegionServiceData
 }
 type DeleteRegionServicesResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap DeleteRegionServicesResultMap
 }
 
@@ -430,7 +458,7 @@ type DeleteRegionServicesResult struct {
 	Data  spec.DeleteRegionServicesData
 }
 type DeleteRegionsResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap DeleteRegionsResultMap
 }
 
@@ -443,36 +471,8 @@ type DeleteRegionsResult struct {
 	Error string
 	Data  spec.DeleteRegionsData
 }
-type GetAlertRulesResponse struct {
-	base_model.Response
-	ResultMap GetAlertRulesResultMap
-}
-
-type GetAlertRulesResultMap struct {
-	GetAlertRules GetAlertRulesResult
-}
-
-type GetAlertRulesResult struct {
-	Code  uint8
-	Error string
-	Data  spec.GetAlertRulesData
-}
-type GetAlertsResponse struct {
-	base_model.Response
-	ResultMap GetAlertsResultMap
-}
-
-type GetAlertsResultMap struct {
-	GetAlerts GetAlertsResult
-}
-
-type GetAlertsResult struct {
-	Code  uint8
-	Error string
-	Data  spec.GetAlertsData
-}
 type GetClusterResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap GetClusterResultMap
 }
 
@@ -486,7 +486,7 @@ type GetClusterResult struct {
 	Data  spec.GetClusterData
 }
 type GetClustersResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap GetClustersResultMap
 }
 
@@ -499,8 +499,36 @@ type GetClustersResult struct {
 	Error string
 	Data  spec.GetClustersData
 }
+type GetComputeResponse struct {
+	base_protocol.Response
+	ResultMap GetComputeResultMap
+}
+
+type GetComputeResultMap struct {
+	GetCompute GetComputeResult
+}
+
+type GetComputeResult struct {
+	Code  uint8
+	Error string
+	Data  spec.GetComputeData
+}
+type GetComputesResponse struct {
+	base_protocol.Response
+	ResultMap GetComputesResultMap
+}
+
+type GetComputesResultMap struct {
+	GetComputes GetComputesResult
+}
+
+type GetComputesResult struct {
+	Code  uint8
+	Error string
+	Data  spec.GetComputesData
+}
 type GetDatacenterResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap GetDatacenterResultMap
 }
 
@@ -514,7 +542,7 @@ type GetDatacenterResult struct {
 	Data  spec.GetDatacenterData
 }
 type GetDatacentersResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap GetDatacentersResultMap
 }
 
@@ -527,8 +555,50 @@ type GetDatacentersResult struct {
 	Error string
 	Data  spec.GetDatacentersData
 }
+type GetEventRuleResponse struct {
+	base_protocol.Response
+	ResultMap GetEventRuleResultMap
+}
+
+type GetEventRuleResultMap struct {
+	GetEventRule GetEventRuleResult
+}
+
+type GetEventRuleResult struct {
+	Code  uint8
+	Error string
+	Data  spec.GetEventRuleData
+}
+type GetEventRulesResponse struct {
+	base_protocol.Response
+	ResultMap GetEventRulesResultMap
+}
+
+type GetEventRulesResultMap struct {
+	GetEventRules GetEventRulesResult
+}
+
+type GetEventRulesResult struct {
+	Code  uint8
+	Error string
+	Data  spec.GetEventRulesData
+}
+type GetEventsResponse struct {
+	base_protocol.Response
+	ResultMap GetEventsResultMap
+}
+
+type GetEventsResultMap struct {
+	GetEvents GetEventsResult
+}
+
+type GetEventsResult struct {
+	Code  uint8
+	Error string
+	Data  spec.GetEventsData
+}
 type GetFloorResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap GetFloorResultMap
 }
 
@@ -542,7 +612,7 @@ type GetFloorResult struct {
 	Data  spec.GetFloorData
 }
 type GetFloorsResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap GetFloorsResultMap
 }
 
@@ -556,7 +626,7 @@ type GetFloorsResult struct {
 	Data  spec.GetFloorsData
 }
 type GetImageResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap GetImageResultMap
 }
 
@@ -570,7 +640,7 @@ type GetImageResult struct {
 	Data  spec.GetImageData
 }
 type GetImagesResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap GetImagesResultMap
 }
 
@@ -584,7 +654,7 @@ type GetImagesResult struct {
 	Data  spec.GetImagesData
 }
 type GetLogParamsResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap GetLogParamsResultMap
 }
 
@@ -598,7 +668,7 @@ type GetLogParamsResult struct {
 	Data  spec.GetLogParamsData
 }
 type GetLogsResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap GetLogsResultMap
 }
 
@@ -612,7 +682,7 @@ type GetLogsResult struct {
 	Data  spec.GetLogsData
 }
 type GetNetworkV4Response struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap GetNetworkV4ResultMap
 }
 
@@ -626,7 +696,7 @@ type GetNetworkV4Result struct {
 	Data  spec.GetNetworkV4Data
 }
 type GetNetworkV4sResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap GetNetworkV4sResultMap
 }
 
@@ -640,7 +710,7 @@ type GetNetworkV4sResult struct {
 	Data  spec.GetNetworkV4sData
 }
 type GetNodeResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap GetNodeResultMap
 }
 
@@ -653,8 +723,22 @@ type GetNodeResult struct {
 	Error string
 	Data  spec.GetNodeData
 }
+type GetNodeMetricsResponse struct {
+	base_protocol.Response
+	ResultMap GetNodeMetricsResultMap
+}
+
+type GetNodeMetricsResultMap struct {
+	GetNodeMetrics GetNodeMetricsResult
+}
+
+type GetNodeMetricsResult struct {
+	Code  uint8
+	Error string
+	Data  spec.GetNodeMetricsData
+}
 type GetNodeServicesResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap GetNodeServicesResultMap
 }
 
@@ -668,7 +752,7 @@ type GetNodeServicesResult struct {
 	Data  spec.GetNodeServicesData
 }
 type GetNodesResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap GetNodesResultMap
 }
 
@@ -682,7 +766,7 @@ type GetNodesResult struct {
 	Data  spec.GetNodesData
 }
 type GetPhysicalModelResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap GetPhysicalModelResultMap
 }
 
@@ -696,7 +780,7 @@ type GetPhysicalModelResult struct {
 	Data  spec.GetPhysicalModelData
 }
 type GetPhysicalModelsResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap GetPhysicalModelsResultMap
 }
 
@@ -710,7 +794,7 @@ type GetPhysicalModelsResult struct {
 	Data  spec.GetPhysicalModelsData
 }
 type GetPhysicalResourceResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap GetPhysicalResourceResultMap
 }
 
@@ -724,7 +808,7 @@ type GetPhysicalResourceResult struct {
 	Data  spec.GetPhysicalResourceData
 }
 type GetPhysicalResourcesResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap GetPhysicalResourcesResultMap
 }
 
@@ -738,7 +822,7 @@ type GetPhysicalResourcesResult struct {
 	Data  spec.GetPhysicalResourcesData
 }
 type GetRackResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap GetRackResultMap
 }
 
@@ -752,7 +836,7 @@ type GetRackResult struct {
 	Data  spec.GetRackData
 }
 type GetRacksResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap GetRacksResultMap
 }
 
@@ -766,7 +850,7 @@ type GetRacksResult struct {
 	Data  spec.GetRacksData
 }
 type GetRegionResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap GetRegionResultMap
 }
 
@@ -780,7 +864,7 @@ type GetRegionResult struct {
 	Data  spec.GetRegionData
 }
 type GetRegionServiceResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap GetRegionServiceResultMap
 }
 
@@ -794,7 +878,7 @@ type GetRegionServiceResult struct {
 	Data  spec.GetRegionServiceData
 }
 type GetRegionServicesResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap GetRegionServicesResultMap
 }
 
@@ -808,7 +892,7 @@ type GetRegionServicesResult struct {
 	Data  spec.GetRegionServicesData
 }
 type GetRegionsResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap GetRegionsResultMap
 }
 
@@ -822,7 +906,7 @@ type GetRegionsResult struct {
 	Data  spec.GetRegionsData
 }
 type GetStatisticsResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap GetStatisticsResultMap
 }
 
@@ -836,7 +920,7 @@ type GetStatisticsResult struct {
 	Data  spec.GetStatisticsData
 }
 type GetTraceResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap GetTraceResultMap
 }
 
@@ -850,7 +934,7 @@ type GetTraceResult struct {
 	Data  spec.GetTraceData
 }
 type UpdateClusterResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap UpdateClusterResultMap
 }
 
@@ -864,7 +948,7 @@ type UpdateClusterResult struct {
 	Data  spec.UpdateClusterData
 }
 type UpdateDatacenterResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap UpdateDatacenterResultMap
 }
 
@@ -877,8 +961,22 @@ type UpdateDatacenterResult struct {
 	Error string
 	Data  spec.UpdateDatacenterData
 }
+type UpdateEventRulesResponse struct {
+	base_protocol.Response
+	ResultMap UpdateEventRulesResultMap
+}
+
+type UpdateEventRulesResultMap struct {
+	UpdateEventRules UpdateEventRulesResult
+}
+
+type UpdateEventRulesResult struct {
+	Code  uint8
+	Error string
+	Data  spec.UpdateEventRulesData
+}
 type UpdateFloorResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap UpdateFloorResultMap
 }
 
@@ -892,7 +990,7 @@ type UpdateFloorResult struct {
 	Data  spec.UpdateFloorData
 }
 type UpdateImageResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap UpdateImageResultMap
 }
 
@@ -906,7 +1004,7 @@ type UpdateImageResult struct {
 	Data  spec.UpdateImageData
 }
 type UpdateNetworkV4Response struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap UpdateNetworkV4ResultMap
 }
 
@@ -920,7 +1018,7 @@ type UpdateNetworkV4Result struct {
 	Data  spec.UpdateNetworkV4Data
 }
 type UpdatePhysicalModelResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap UpdatePhysicalModelResultMap
 }
 
@@ -934,7 +1032,7 @@ type UpdatePhysicalModelResult struct {
 	Data  spec.UpdatePhysicalModelData
 }
 type UpdatePhysicalResourceResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap UpdatePhysicalResourceResultMap
 }
 
@@ -948,7 +1046,7 @@ type UpdatePhysicalResourceResult struct {
 	Data  spec.UpdatePhysicalResourceData
 }
 type UpdateRackResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap UpdateRackResultMap
 }
 
@@ -962,7 +1060,7 @@ type UpdateRackResult struct {
 	Data  spec.UpdateRackData
 }
 type UpdateRegionResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap UpdateRegionResultMap
 }
 
@@ -976,7 +1074,7 @@ type UpdateRegionResult struct {
 	Data  spec.UpdateRegionData
 }
 type UpdateRegionServiceResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap UpdateRegionServiceResultMap
 }
 
@@ -2160,6 +2258,36 @@ func (client *Client) ResourceVirtualAdminDeleteRegionServices(tctx *logger.Trac
 	data = &result.Data
 	return
 }
+func (client *Client) ResourceVirtualAdminGetCompute(tctx *logger.TraceContext, queries []base_client.Query) (data *spec.GetComputeData, err error) {
+	var res GetComputeResponse
+	err = client.Request(tctx, "ResourceVirtualAdmin", queries, &res, true)
+	if err != nil {
+		return
+	}
+	result := res.ResultMap.GetCompute
+	if result.Code >= 100 || result.Error != "" {
+		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
+		return
+	}
+
+	data = &result.Data
+	return
+}
+func (client *Client) ResourceVirtualAdminGetComputes(tctx *logger.TraceContext, queries []base_client.Query) (data *spec.GetComputesData, err error) {
+	var res GetComputesResponse
+	err = client.Request(tctx, "ResourceVirtualAdmin", queries, &res, true)
+	if err != nil {
+		return
+	}
+	result := res.ResultMap.GetComputes
+	if result.Code >= 100 || result.Error != "" {
+		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
+		return
+	}
+
+	data = &result.Data
+	return
+}
 func (client *Client) ResourceVirtualGetRegion(tctx *logger.TraceContext, queries []base_client.Query) (data *spec.GetRegionData, err error) {
 	var res GetRegionResponse
 	err = client.Request(tctx, "ResourceVirtual", queries, &res, true)
@@ -2565,28 +2693,13 @@ func (client *Client) ResourceMonitorGetNode(tctx *logger.TraceContext, queries 
 	data = &result.Data
 	return
 }
-func (client *Client) ResourceMonitorGetAlerts(tctx *logger.TraceContext, queries []base_client.Query) (data *spec.GetAlertsData, err error) {
-	var res GetAlertsResponse
+func (client *Client) ResourceMonitorGetNodeMetrics(tctx *logger.TraceContext, queries []base_client.Query) (data *spec.GetNodeMetricsData, err error) {
+	var res GetNodeMetricsResponse
 	err = client.Request(tctx, "ResourceMonitor", queries, &res, true)
 	if err != nil {
 		return
 	}
-	result := res.ResultMap.GetAlerts
-	if result.Code >= 100 || result.Error != "" {
-		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
-		return
-	}
-
-	data = &result.Data
-	return
-}
-func (client *Client) ResourceMonitorGetAlertRules(tctx *logger.TraceContext, queries []base_client.Query) (data *spec.GetAlertRulesData, err error) {
-	var res GetAlertRulesResponse
-	err = client.Request(tctx, "ResourceMonitor", queries, &res, true)
-	if err != nil {
-		return
-	}
-	result := res.ResultMap.GetAlertRules
+	result := res.ResultMap.GetNodeMetrics
 	if result.Code >= 100 || result.Error != "" {
 		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
 		return
@@ -2647,6 +2760,96 @@ func (client *Client) ResourceMonitorGetTrace(tctx *logger.TraceContext, queries
 		return
 	}
 	result := res.ResultMap.GetTrace
+	if result.Code >= 100 || result.Error != "" {
+		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
+		return
+	}
+
+	data = &result.Data
+	return
+}
+func (client *Client) ResourceMonitorGetEvents(tctx *logger.TraceContext, queries []base_client.Query) (data *spec.GetEventsData, err error) {
+	var res GetEventsResponse
+	err = client.Request(tctx, "ResourceMonitor", queries, &res, true)
+	if err != nil {
+		return
+	}
+	result := res.ResultMap.GetEvents
+	if result.Code >= 100 || result.Error != "" {
+		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
+		return
+	}
+
+	data = &result.Data
+	return
+}
+func (client *Client) ResourceMonitorGetEventRule(tctx *logger.TraceContext, queries []base_client.Query) (data *spec.GetEventRuleData, err error) {
+	var res GetEventRuleResponse
+	err = client.Request(tctx, "ResourceMonitor", queries, &res, true)
+	if err != nil {
+		return
+	}
+	result := res.ResultMap.GetEventRule
+	if result.Code >= 100 || result.Error != "" {
+		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
+		return
+	}
+
+	data = &result.Data
+	return
+}
+func (client *Client) ResourceMonitorGetEventRules(tctx *logger.TraceContext, queries []base_client.Query) (data *spec.GetEventRulesData, err error) {
+	var res GetEventRulesResponse
+	err = client.Request(tctx, "ResourceMonitor", queries, &res, true)
+	if err != nil {
+		return
+	}
+	result := res.ResultMap.GetEventRules
+	if result.Code >= 100 || result.Error != "" {
+		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
+		return
+	}
+
+	data = &result.Data
+	return
+}
+func (client *Client) ResourceMonitorCreateEventRules(tctx *logger.TraceContext, queries []base_client.Query) (data *spec.CreateEventRulesData, err error) {
+	var res CreateEventRulesResponse
+	err = client.Request(tctx, "ResourceMonitor", queries, &res, true)
+	if err != nil {
+		return
+	}
+	result := res.ResultMap.CreateEventRules
+	if result.Code >= 100 || result.Error != "" {
+		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
+		return
+	}
+
+	data = &result.Data
+	return
+}
+func (client *Client) ResourceMonitorUpdateEventRules(tctx *logger.TraceContext, queries []base_client.Query) (data *spec.UpdateEventRulesData, err error) {
+	var res UpdateEventRulesResponse
+	err = client.Request(tctx, "ResourceMonitor", queries, &res, true)
+	if err != nil {
+		return
+	}
+	result := res.ResultMap.UpdateEventRules
+	if result.Code >= 100 || result.Error != "" {
+		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
+		return
+	}
+
+	data = &result.Data
+	return
+}
+func (client *Client) ResourceMonitorDeleteEventRules(tctx *logger.TraceContext, queries []base_client.Query) (data *spec.DeleteEventRulesData, err error) {
+	var res DeleteEventRulesResponse
+	err = client.Request(tctx, "ResourceMonitor", queries, &res, true)
+	if err != nil {
+		return
+	}
+	result := res.ResultMap.DeleteEventRules
 	if result.Code >= 100 || result.Error != "" {
 		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
 		return

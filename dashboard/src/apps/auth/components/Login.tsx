@@ -1,63 +1,63 @@
-import * as React from 'react';
-import {connect} from 'react-redux';
-import {Redirect} from 'react-router-dom';
+import * as React from "react";
+import { connect } from "react-redux";
+import { Redirect } from "react-router-dom";
 
-import {Theme} from '@material-ui/core/styles/createMuiTheme';
-import createStyles from '@material-ui/core/styles/createStyles';
+import { Theme } from "@material-ui/core/styles/createMuiTheme";
+import createStyles from "@material-ui/core/styles/createStyles";
 import withStyles, {
   StyleRules,
-  WithStyles,
-} from '@material-ui/core/styles/withStyles';
+  WithStyles
+} from "@material-ui/core/styles/withStyles";
 
-import Avatar from '@material-ui/core/Avatar';
-import Button from '@material-ui/core/Button';
-import CssBaseline from '@material-ui/core/CssBaseline';
-import FormControl from '@material-ui/core/FormControl';
-import Input from '@material-ui/core/Input';
-import InputLabel from '@material-ui/core/InputLabel';
-import Paper from '@material-ui/core/Paper';
-import Typography from '@material-ui/core/Typography';
+import Avatar from "@material-ui/core/Avatar";
+import Button from "@material-ui/core/Button";
+import CssBaseline from "@material-ui/core/CssBaseline";
+import FormControl from "@material-ui/core/FormControl";
+import Input from "@material-ui/core/Input";
+import InputLabel from "@material-ui/core/InputLabel";
+import Paper from "@material-ui/core/Paper";
+import Typography from "@material-ui/core/Typography";
 
-import LockOutlinedIcon from '@material-ui/icons/LockOutlined';
+import LockOutlinedIcon from "@material-ui/icons/LockOutlined";
 
-import MsgSnackbar from '../../../components/snackbars/MsgSnackbar';
+import MsgSnackbar from "../../../components/snackbars/MsgSnackbar";
 
-import actions from '../../../actions';
-import logger from '../../../lib/logger';
+import actions from "../../../actions";
+import logger from "../../../lib/logger";
 
 const styles = (theme: Theme): StyleRules =>
   createStyles({
     avatar: {
       backgroundColor: theme.palette.secondary.main,
-      margin: theme.spacing(1),
+      margin: theme.spacing(1)
     },
     form: {
       marginTop: theme.spacing(1),
-      width: '100%', // Fix IE11 issue.
+      width: "100%" // Fix IE11 issue.
     },
     layout: {
-      display: 'block', // Fix IE11 issue.
+      display: "block", // Fix IE11 issue.
       marginLeft: theme.spacing(3),
       marginRight: theme.spacing(3),
-      width: 'auto',
+      width: "auto",
       [theme.breakpoints.up(400 + theme.spacing(6))]: {
-        marginLeft: 'auto',
-        marginRight: 'auto',
-        width: 400,
-      },
+        marginLeft: "auto",
+        marginRight: "auto",
+        width: 400
+      }
     },
     paper: {
-      alignItems: 'center',
-      display: 'flex',
-      flexDirection: 'column',
+      alignItems: "center",
+      display: "flex",
+      flexDirection: "column",
       marginTop: theme.spacing(8),
       padding: `${theme.spacing(2)}px ${theme.spacing(3)}px ${theme.spacing(
-        3,
-      )}px`,
+        3
+      )}px`
     },
     submit: {
-      marginTop: theme.spacing(3),
-    },
+      marginTop: theme.spacing(3)
+    }
   });
 
 interface ILogin extends WithStyles<typeof styles> {
@@ -68,17 +68,18 @@ interface ILogin extends WithStyles<typeof styles> {
 
 class Login extends React.Component<ILogin> {
   public render() {
-    const {classes, auth, history, onSubmit} = this.props;
-    const {from} = history.location.state || {from: {pathname: '/'}};
-
-    logger.info('Login', 'render');
+    const { classes, auth, history, onSubmit } = this.props;
+    const { from } = history.location.state || {
+      from: { pathname: "/Service/Home" }
+    };
+    logger.info("Login", "render");
 
     if (auth.redirectToReferrer) {
       return <Redirect to={from} />;
     }
 
     if (auth.user) {
-      return <Redirect to={{pathname: '/'}} />;
+      return <Redirect to={{ pathname: "/Service/Home" }} />;
     }
 
     if (auth.isFetching) {
@@ -86,10 +87,10 @@ class Login extends React.Component<ILogin> {
     }
 
     let msgHtml: any = null;
-    if (auth.error != null && auth.error !== '') {
-      const variant = 'error';
-      const vertical = 'bottom';
-      const horizontal = 'left';
+    if (auth.error != null && auth.error !== "") {
+      const variant = "error";
+      const vertical = "bottom";
+      const horizontal = "left";
 
       msgHtml = (
         <MsgSnackbar
@@ -132,7 +133,8 @@ class Login extends React.Component<ILogin> {
                 fullWidth={true}
                 variant="contained"
                 color="primary"
-                className={classes.submit}>
+                className={classes.submit}
+              >
                 Sign in
               </Button>
             </form>
@@ -150,7 +152,7 @@ class Login extends React.Component<ILogin> {
 function mapStateToProps(state, ownProps) {
   const auth = state.auth;
 
-  return {auth};
+  return { auth };
 }
 
 function mapDispatchToProps(dispatch, ownProps) {
@@ -159,12 +161,12 @@ function mapDispatchToProps(dispatch, ownProps) {
       e.preventDefault();
       const username = e.target.username.value.trim();
       const password = e.target.password.value.trim();
-      dispatch(actions.auth.authLogin({username, password}));
-    },
+      dispatch(actions.auth.authLogin({ username, password }));
+    }
   };
 }
 
 export default connect(
   mapStateToProps,
-  mapDispatchToProps,
+  mapDispatchToProps
 )(withStyles(styles)(Login));

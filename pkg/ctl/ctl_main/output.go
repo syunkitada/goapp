@@ -7,12 +7,12 @@ import (
 
 	"github.com/olekukonko/tablewriter"
 
-	"github.com/syunkitada/goapp/pkg/base/base_model/index_model"
+	"github.com/syunkitada/goapp/pkg/base/base_index_model"
 	"github.com/syunkitada/goapp/pkg/lib/json_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
 
-func (ctl *Ctl) outputCmdHelp(cmd string, cmdInfo index_model.Cmd) {
+func (ctl *Ctl) outputCmdHelp(cmd string, cmdInfo base_index_model.Cmd) {
 	cmdHelp := cmd
 	if cmdInfo.Arg != "" {
 		cmdHelp += fmt.Sprintf(" [%s:%s]", cmdInfo.ArgType, cmdInfo.Arg)
@@ -31,7 +31,7 @@ func (ctl *Ctl) outputCmdHelp(cmd string, cmdInfo index_model.Cmd) {
 	// fmt.Printf("Invalid args: %s %s %v :%s\n", cmd, cmdInfo.Arg, cmdInfo.FlagMap, cmdInfo.Help)
 }
 
-func (ctl *Ctl) output(cmdInfo *index_model.Cmd, resp *Response,
+func (ctl *Ctl) output(cmdInfo *base_index_model.Cmd, resp *Response,
 	flagMap map[string]interface{}, shortFlagMap map[string]interface{}) {
 	outputFormat, ok := flagMap["out"]
 	if !ok {
@@ -95,6 +95,16 @@ func (ctl *Ctl) output(cmdInfo *index_model.Cmd, resp *Response,
 								table.Append(r)
 							}
 						}
+					case map[string]interface{}:
+						r := make([]string, len(tableHeader))
+						for i, head := range tableHeader {
+							if v, ok := data[head]; ok {
+								r[i] = fmt.Sprint(v)
+							} else {
+								r[i] = "None"
+							}
+						}
+						table.Append(r)
 					}
 					table.Render()
 				default:

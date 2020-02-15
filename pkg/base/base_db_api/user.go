@@ -11,7 +11,7 @@ import (
 
 	"github.com/syunkitada/goapp/pkg/base/base_const"
 	"github.com/syunkitada/goapp/pkg/base/base_db_model"
-	"github.com/syunkitada/goapp/pkg/base/base_model"
+	"github.com/syunkitada/goapp/pkg/base/base_protocol"
 	"github.com/syunkitada/goapp/pkg/base/base_spec"
 	"github.com/syunkitada/goapp/pkg/lib/error_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
@@ -140,7 +140,7 @@ func (api *Api) generateHashFromPassword(password string) (string, error) {
 }
 
 func (api *Api) IssueToken(userName string) (string, error) {
-	claims := base_model.JwtClaims{
+	claims := base_protocol.JwtClaims{
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(time.Hour * 24).Unix(),
 			Issuer:    userName,

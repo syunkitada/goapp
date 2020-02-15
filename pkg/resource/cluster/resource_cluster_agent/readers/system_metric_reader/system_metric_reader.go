@@ -111,7 +111,7 @@ func (reader *SystemMetricReader) Read(tctx *logger.TraceContext) error {
 	// Read /proc/uptime
 	// uptime(s)  idle(s)
 	// 2906.26 5507.43
-	fmt.Println("READ /proc/uptime")
+	// fmt.Println("READ /proc/uptime")
 	procUptime, _ := os.Open("/proc/uptime")
 	defer procUptime.Close()
 	scanner := bufio.NewScanner(procUptime)
@@ -178,7 +178,7 @@ func (reader *SystemMetricReader) Read(tctx *logger.TraceContext) error {
 		// procs_blocked 0
 		// softirq 11650881 ...
 
-		fmt.Println("READ /proc/stat")
+		// fmt.Println("READ /proc/stat")
 		f, _ := os.Open("/proc/stat")
 		defer f.Close()
 		scanner = bufio.NewScanner(f)
@@ -206,7 +206,7 @@ func (reader *SystemMetricReader) Read(tctx *logger.TraceContext) error {
 		procs_running, _ := strconv.ParseInt(strings.Split(lines[lastIndex+4], " ")[1], 10, 64)
 		procs_blocked, _ := strconv.ParseInt(strings.Split(lines[lastIndex+5], " ")[1], 10, 64)
 		softirq, _ := strconv.ParseInt(strings.Split(lines[lastIndex+6], " ")[1], 10, 64)
-		fmt.Println("procs_running", procs_running)
+		// fmt.Println("procs_running", procs_running)
 		stat := CpuStat{
 			reportStatus:  0,
 			timestamp:     timestamp,
@@ -228,10 +228,11 @@ func (reader *SystemMetricReader) Read(tctx *logger.TraceContext) error {
 
 	if reader.enableMemory {
 		// Read /proc/vmstat
+		// TODO READ Memory
 		fmt.Println("READ Memory")
 	}
 
-	fmt.Println(reader.cpuStats)
+	// fmt.Println(reader.cpuStats)
 	return nil
 }
 
@@ -239,9 +240,9 @@ func (reader *SystemMetricReader) GetName() string {
 	return reader.name
 }
 
-func (reader *SystemMetricReader) Report() ([]spec.ResourceMetric, []spec.ResourceAlert) {
+func (reader *SystemMetricReader) Report() ([]spec.ResourceMetric, []spec.ResourceEvent) {
 	metrics := make([]spec.ResourceMetric, 0, 100)
-	alerts := make([]spec.ResourceAlert, 0, 100)
+	events := make([]spec.ResourceEvent, 0, 100)
 
 	for _, stat := range reader.uptimeStats {
 		timestamp := strconv.FormatInt(stat.timestamp.UnixNano(), 10)
@@ -311,9 +312,9 @@ func (reader *SystemMetricReader) Report() ([]spec.ResourceMetric, []spec.Resour
 		stat.reportStatus = 1
 	}
 
-	// TODO check metrics and issue alerts
+	// TODO check metrics and issue events
 
-	return metrics, alerts
+	return metrics, events
 }
 
 func (reader *SystemMetricReader) Reported() {

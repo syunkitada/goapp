@@ -17,14 +17,38 @@ import (
 	"github.com/syunkitada/goapp/pkg/resource/resource_model"
 )
 
-func (api *Api) GetCompute(tctx *logger.TraceContext, name string, user *base_spec.UserAuthority) (data *spec.Compute, err error) {
+func (api *Api) GetCompute(tctx *logger.TraceContext, input *spec.GetCompute, user *base_spec.UserAuthority) (data *spec.Compute, err error) {
 	data = &spec.Compute{}
-	err = api.DB.Where("name = ?", name).First(data).Error
+	var dbData db_model.Compute
+	err = api.DB.Where("name = ? AND deleted_at IS NULL", input.Name).First(&dbData).Error
+
+	data = &spec.Compute{
+		Region:        dbData.Region,
+		Cluster:       dbData.Cluster,
+		RegionService: dbData.RegionService,
+		Name:          dbData.Name,
+		Kind:          dbData.Kind,
+		Project:       dbData.Project,
+		Status:        dbData.Status,
+		StatusReason:  dbData.StatusReason,
+	}
+
+	data = &spec.Compute{}
+	err = api.DB.Where("name = ?", input.Name).First(data).Error
+
+	var specData spec.RegionServiceComputeSpec
+	if err = json_utils.Unmarshal(dbData.Spec, &specData); err != nil {
+		return
+	}
+	data.Spec = &specData
+
 	return
 }
 
-func (api *Api) GetComputes(tctx *logger.TraceContext, db *gorm.DB, user *base_spec.UserAuthority) (data []spec.Compute, err error) {
-	err = api.DB.Find(&data).Error
+func (api *Api) GetComputes(tctx *logger.TraceContext, input *spec.GetComputes, user *base_spec.UserAuthority) (data []spec.Compute, err error) {
+	err = api.DB.Table("computes").
+		Select("region, cluster, region_service, project, name, kind, status, status_reason, updated_at, created_at").
+		Where("region = ? AND deleted_at IS NULL", input.Region).Scan(&data).Error
 	return
 }
 

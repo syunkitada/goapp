@@ -121,6 +121,8 @@ func (api *Api) DeleteComputes(tctx *logger.TraceContext, specs []spec.RegionSer
 
 func (api *Api) SyncCompute(tctx *logger.TraceContext) (err error) {
 	fmt.Println("SyncCompute")
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
 	var computes []db_model.Compute
 	var nodes []db_model.NodeServiceWithMeta
@@ -132,7 +134,7 @@ func (api *Api) SyncCompute(tctx *logger.TraceContext) (err error) {
 
 		// TODO filter by resource driver
 		if err = tx.Table("node_services as n").Select("*").
-			Joins("INNER JOIN node_meta as nm ON n.id = nm.node_service_id").
+			Joins("INNER JOIN node_service_meta as nm ON n.id = nm.node_service_id").
 			Where("n.kind = ?", consts.KindResourceClusterAgent).Scan(&nodes).Error; err != nil {
 			return
 		}
@@ -190,11 +192,11 @@ func (api *Api) GetComputeAssignments(tctx *logger.TraceContext, db *gorm.DB,
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
 	query := db.Table("compute_assignments as ca").
-		Select("ca.id, ca.status, ca.updated_at, ca.compute_id, c.name as compute_name, c.spec as compute_spec, ca.node_id, n.name as node_name").
+		Select("ca.id, ca.status, ca.updated_at, ca.compute_id, c.name as compute_name, c.spec as compute_spec, ca.node_service_id, ns.name as node_name").
 		Joins("INNER JOIN computes AS c ON c.id = ca.compute_id").
-		Joins("INNER JOIN nodes AS n ON n.id = ca.node_id")
+		Joins("INNER JOIN node_services AS ns ON ns.id = ca.node_service_id")
 	if nodeName != "" {
-		query = query.Where("n.name = ?", nodeName)
+		query = query.Where("ns.name = ?", nodeName)
 	}
 
 	err = query.Find(&assignments).Error

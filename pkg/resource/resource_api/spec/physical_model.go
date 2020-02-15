@@ -1,6 +1,6 @@
 package spec
 
-import "github.com/syunkitada/goapp/pkg/authproxy/index_model"
+import "github.com/syunkitada/goapp/pkg/base/base_index_model"
 
 type PhysicalModel struct {
 	Kind        string `validate:"required"`
@@ -48,20 +48,20 @@ type DeletePhysicalModels struct {
 
 type DeletePhysicalModelsData struct{}
 
-var PhysicalModelsTable = index_model.Table{
+var PhysicalModelsTable = base_index_model.Table{
 	Name:    "Models",
 	Route:   "/Models",
 	Kind:    "Table",
 	DataKey: "PhysicalModels",
-	Actions: []index_model.Action{
-		index_model.Action{
+	Actions: []base_index_model.Action{
+		base_index_model.Action{
 			Name: "Create", Icon: "Create", Kind: "Form",
 			DataKind: "PhysicalModel",
-			Fields: []index_model.Field{
-				index_model.Field{Name: "Name", Kind: "text", Require: true,
+			Fields: []base_index_model.Field{
+				base_index_model.Field{Name: "Name", Kind: "text", Require: true,
 					Min: 5, Max: 200, RegExp: "^[0-9a-zA-Z]+$",
 					RegExpMsg: "Please enter alphanumeric characters."},
-				index_model.Field{Name: "Kind", Kind: "select", Require: true,
+				base_index_model.Field{Name: "Kind", Kind: "select", Require: true,
 					Options: []string{
 						"Server", "Pdu", "RackSpineRouter",
 						"FloorLeafRouter", "FloorSpineRouter", "GatewayRouter",
@@ -69,68 +69,68 @@ var PhysicalModelsTable = index_model.Table{
 			},
 		},
 	},
-	SelectActions: []index_model.Action{
-		index_model.Action{
+	SelectActions: []base_index_model.Action{
+		base_index_model.Action{
 			Name: "Delete", Icon: "Delete",
 			Kind:      "Form",
 			DataKind:  "PhysicalModel",
 			SelectKey: "Name",
 		},
 	},
-	ColumnActions: []index_model.Action{
-		index_model.Action{Name: "Detail", Icon: "Detail"},
+	ColumnActions: []base_index_model.Action{
+		base_index_model.Action{Name: "Detail", Icon: "Detail"},
 	},
-	Columns: []index_model.TableColumn{
-		index_model.TableColumn{
+	Columns: []base_index_model.TableColumn{
+		base_index_model.TableColumn{
 			Name:           "Name",
 			IsSearch:       true,
 			Link:           "Datacenters/:Datacenter/Resources/Models/Detail/:0/View",
-			LinkParam:      "resource",
+			LinkKey:      "resource",
 			LinkSync:       false,
-			LinkGetQueries: []string{"GetPhysicalModel"}},
-		index_model.TableColumn{Name: "Kind"},
-		index_model.TableColumn{Name: "UpdatedAt", Kind: "Time", Sort: "desc"},
-		index_model.TableColumn{Name: "CreatedAt", Kind: "Time"},
-		index_model.TableColumn{Name: "Action", Kind: "Action"},
+			LinkDataQueries: []string{"GetPhysicalModel"}},
+		base_index_model.TableColumn{Name: "Kind"},
+		base_index_model.TableColumn{Name: "UpdatedAt", Kind: "Time", Sort: "desc"},
+		base_index_model.TableColumn{Name: "CreatedAt", Kind: "Time"},
+		base_index_model.TableColumn{Name: "Action", Kind: "Action"},
 	},
 }
 
-var PhysicalModelsDetail = index_model.Tabs{
+var PhysicalModelsDetail = base_index_model.Tabs{
 	Name:            "Models",
 	Kind:            "RouteTabs",
 	RouteParamKey:   "Kind",
 	RouteParamValue: "Models",
 	Route:           "/Datacenters/:Datacenter/Resources/Models/Detail/:Name/:Subkind",
 	TabParam:        "Subkind",
-	GetQueries: []string{
+	DataQueries: []string{
 		"GetPhysicalModel",
 		"GetPhysicalResources", "GetRacks", "GetFloors", "GetPhysicalModels"},
 	ExpectedDataKeys: []string{"PhysicalModel"},
 	IsSync:           true,
 	Tabs: []interface{}{
-		index_model.View{
+		base_index_model.View{
 			Name:    "View",
 			Route:   "/View",
 			Kind:    "View",
 			DataKey: "PhysicalModel",
-			Fields: []index_model.Field{
-				index_model.Field{Name: "Name", Kind: "text"},
-				index_model.Field{Name: "Kind", Kind: "select"},
+			Fields: []base_index_model.Field{
+				base_index_model.Field{Name: "Name", Kind: "text"},
+				base_index_model.Field{Name: "Kind", Kind: "select"},
 			},
 		},
-		index_model.Form{
+		base_index_model.Form{
 			Name:         "Edit",
 			Route:        "/Edit",
 			Kind:         "Form",
 			DataKey:      "PhysicalModel",
 			SubmitAction: "UpdatePhysicalModel",
 			Icon:         "Update",
-			Fields: []index_model.Field{
-				index_model.Field{Name: "Name", Kind: "text", Require: true,
+			Fields: []base_index_model.Field{
+				base_index_model.Field{Name: "Name", Kind: "text", Require: true,
 					Updatable: false,
 					Min:       5, Max: 200, RegExp: "^[0-9a-zA-Z]+$",
 					RegExpMsg: "Please enter alphanumeric characters."},
-				index_model.Field{Name: "Kind", Kind: "select", Require: true,
+				base_index_model.Field{Name: "Kind", Kind: "select", Require: true,
 					Updatable: true,
 					Options: []string{
 						"Server", "Pdu", "RackSpineRouter",

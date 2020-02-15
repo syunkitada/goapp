@@ -83,20 +83,21 @@ func (srv *Server) SubTask(tctx *logger.TraceContext) (err error) {
 }
 
 func (srv *Server) Report(tctx *logger.TraceContext) (err error) {
-	alerts := make([]resource_api_spec.ResourceAlert, 0, 10)
+	events := make([]resource_api_spec.ResourceEvent, 0, 10)
 	metrics := make([]resource_api_spec.ResourceMetric, 0, 100)
 	logs := make([]resource_api_spec.ResourceLog, 0, 100)
 
 	for _, metricReader := range srv.metricReaderMap {
-		tmpMetrics, tmpAlerts := metricReader.Report()
+		tmpMetrics, tmpEvents := metricReader.Report()
 		metrics = append(metrics, tmpMetrics...)
-		alerts = append(alerts, tmpAlerts...)
+		events = append(events, tmpEvents...)
 	}
+	logger.Error(tctx, fmt.Errorf("UnknownError"), "HOGEPIYO")
 
 	for _, logReader := range srv.logReaderMap {
-		tmpLogs, tmpAlerts := logReader.Report()
+		tmpLogs, tmpEvents := logReader.Report()
 		logs = append(logs, tmpLogs...)
-		alerts = append(alerts, tmpAlerts...)
+		events = append(events, tmpEvents...)
 	}
 
 	queries := []base_client.Query{
@@ -111,7 +112,7 @@ func (srv *Server) Report(tctx *logger.TraceContext) (err error) {
 				Errors:   0,
 				Logs:     logs,
 				Metrics:  metrics,
-				Alerts:   alerts,
+				Events:   events,
 			},
 		},
 	}
@@ -126,5 +127,7 @@ func (srv *Server) Report(tctx *logger.TraceContext) (err error) {
 	for _, logReader := range srv.logReaderMap {
 		logReader.Reported()
 	}
+	fmt.Println("DEBUG events", events)
+
 	return
 }

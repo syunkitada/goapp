@@ -3,7 +3,7 @@ package spec
 import (
 	"time"
 
-	"github.com/syunkitada/goapp/pkg/authproxy/index_model"
+	"github.com/syunkitada/goapp/pkg/base/base_index_model"
 )
 
 type Cluster struct {
@@ -69,24 +69,55 @@ type DeleteClusters struct {
 
 type DeleteClustersData struct{}
 
-var ClustersTable = index_model.Table{
+var ClustersTable = base_index_model.Table{
 	Name:    "Clusters",
 	Kind:    "Table",
 	Route:   "",
 	Subname: "cluster",
 	DataKey: "Clusters",
-	Columns: []index_model.TableColumn{
-		index_model.TableColumn{
-			Name:      "Name",
-			IsSearch:  true,
-			Link:      "Clusters/:0/Resources/Computes",
-			LinkParam: "cluster",
-			LinkSync:  true,
-			LinkGetQueries: []string{
+	Columns: []base_index_model.TableColumn{
+		base_index_model.TableColumn{
+			Name:     "Name",
+			IsSearch: true,
+			Link:     "Clusters/:0/Resources/Computes",
+			LinkKey:  "cluster",
+			LinkSync: true,
+			LinkDataQueries: []string{
 				"GetPhysicalResources", "GetRacks", "GetFloors", "GetPhysicalModels"},
 		},
-		index_model.TableColumn{Name: "Datacenter", IsSearch: true},
-		index_model.TableColumn{Name: "UpdatedAt", Kind: "Time", Sort: "asc"},
-		index_model.TableColumn{Name: "CreatedAt", Kind: "Time"},
+		base_index_model.TableColumn{Name: "Datacenter", IsSearch: true},
+		base_index_model.TableColumn{Name: "UpdatedAt", Kind: "Time", Sort: "asc"},
+		base_index_model.TableColumn{Name: "CreatedAt", Kind: "Time"},
+	},
+}
+
+var VirtualAdminClustersTable = base_index_model.Table{
+	Name:        "Clusters",
+	Kind:        "Table",
+	Route:       "",
+	Subname:     "cluster",
+	DataKey:     "Clusters",
+	DataQueries: []string{"GetClusters"},
+	Columns: []base_index_model.TableColumn{
+		base_index_model.TableColumn{
+			Name:            "Name",
+			IsSearch:        true,
+			Align:           "left",
+			Link:            "Regions/:Region/RegionResources/Clusters/:Cluster/Resources/Computes",
+			LinkKey:         "Name",
+			LinkParam:       "Cluster",
+			LinkSync:        true,
+			LinkDataQueries: []string{"GetComputes"},
+		},
+		base_index_model.TableColumn{Name: "Datacenter", IsSearch: true},
+		base_index_model.TableColumn{Name: "UpdatedAt", Kind: "Time", Sort: "asc"},
+		base_index_model.TableColumn{Name: "CreatedAt", Kind: "Time"},
+	},
+	SelectActions: []base_index_model.Action{
+		base_index_model.Action{Name: "Delete", Icon: "Delete",
+			Kind:      "Form",
+			DataKind:  "Region",
+			SelectKey: "Name",
+		},
 	},
 }

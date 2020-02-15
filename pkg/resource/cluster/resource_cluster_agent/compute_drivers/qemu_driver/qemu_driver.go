@@ -45,7 +45,7 @@ func (driver *QemuDriver) ConfirmActivatingAssignmentMap(tctx *logger.TraceConte
 
 func (driver *QemuDriver) SyncDeletingAssignmentMap(tctx *logger.TraceContext,
 	assignmentMap map[uint]spec.ComputeAssignmentEx) error {
-	return nil
+	return driver.syncDeletingAssignmentMap(tctx, assignmentMap)
 }
 
 func (driver *QemuDriver) ConfirmDeletingAssignmentMap(tctx *logger.TraceContext,

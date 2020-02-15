@@ -28,19 +28,20 @@ func (api *Api) SyncNodeService(tctx *logger.TraceContext, input *api_spec.SyncN
 				State:        node.State,
 				StateReason:  node.StateReason,
 			}
-			if err = tx.Create(&tmpNodeService).Error; err != nil {
+			if err = tx.Debug().Create(&tmpNodeService).Error; err != nil {
 				return
 			}
 		} else {
-			tmpNodeService.State = node.State
-			tmpNodeService.StateReason = node.StateReason
-			if err = tx.Save(&tmpNodeService).Error; err != nil {
+			if err = tx.Table("node_services").Updates(map[string]interface{}{
+				"State":       node.State,
+				"StateReason": node.StatusReason,
+			}).Error; err != nil {
 				return
 			}
 		}
 
 		var tmpNodeServiceMeta db_model.NodeServiceMeta
-		if err = tx.Table("node_meta").Where(
+		if err = tx.Table("node_service_meta").Where(
 			"node_service_id = ?", tmpNodeService.ID).First(&tmpNodeServiceMeta).Error; err != nil {
 			if !gorm.IsRecordNotFoundError(err) {
 				return

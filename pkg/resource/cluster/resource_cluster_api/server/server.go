@@ -17,6 +17,7 @@ type Server struct {
 	clusterConf  *config.ResourceClusterConfig
 	queryHandler *genpkg.QueryHandler
 	dbApi        *db_api.Api
+	resolver     *resolver.Resolver
 	rootClient   *resource_api.Client
 	clusterName  string
 }
@@ -39,6 +40,7 @@ func New(baseConf *base_config.Config, mainConf *config.Config) *Server {
 		clusterConf:  &clusterConf,
 		queryHandler: queryHandler,
 		dbApi:        dbApi,
+		resolver:     resolver,
 		rootClient:   resource_api.NewClient(&clusterConf.Api.RootClient),
 		clusterName:  mainConf.Resource.ClusterName,
 	}

@@ -20,12 +20,32 @@ import (
 
 func (api *Api) GetRegionService(tctx *logger.TraceContext, input *spec.GetRegionService, user *base_spec.UserAuthority) (data *spec.RegionService, err error) {
 	data = &spec.RegionService{}
-	err = api.DB.Where("name = ? AND deleted_at IS NULL", input.Name).First(data).Error
+	var dbData db_model.RegionService
+	err = api.DB.Where("name = ? AND deleted_at IS NULL", input.Name).First(&dbData).Error
+
+	data = &spec.RegionService{
+		Region:       dbData.Region,
+		Name:         dbData.Name,
+		Kind:         dbData.Kind,
+		Status:       dbData.Status,
+		StatusReason: dbData.StatusReason,
+	}
+	switch dbData.Kind {
+	case consts.KindCompute:
+		var specData spec.RegionServiceComputeSpec
+		if err = json_utils.Unmarshal(dbData.Spec, &specData); err != nil {
+			return
+		}
+		data.Spec = &specData
+	}
+
 	return
 }
 
 func (api *Api) GetRegionServices(tctx *logger.TraceContext, input *spec.GetRegionServices, user *base_spec.UserAuthority) (data []spec.RegionService, err error) {
-	err = api.DB.Where("region = ? AND deleted_at IS NULL", input.Region).Find(&data).Error
+	err = api.DB.Table("region_services").
+		Select("region, name, project, kind, status, status_reason, updated_at, created_at").
+		Where("region = ? AND deleted_at IS NULL", input.Region).Scan(&data).Error
 	return
 }
 
@@ -86,7 +106,7 @@ func (api *Api) UpdateRegionServices(tctx *logger.TraceContext, input []spec.Reg
 
 func (api *Api) DeleteRegionService(tctx *logger.TraceContext, input *spec.DeleteRegionService, user *base_spec.UserAuthority) (err error) {
 	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
-		err = tx.Where("name = ? AND region = ? AND project = ?", input.Name, input.Region, user.ProjectName).
+		err = tx.Table("region_services").Where("name = ? AND region = ? AND project = ?", input.Name, input.Region, user.ProjectName).
 			Updates(&db_model.RegionService{
 				Status:       db_model.StatusDeleting,
 				StatusReason: "DeleteRegionService",
@@ -197,7 +217,7 @@ func (api *Api) SyncRegionService(tctx *logger.TraceContext) (err error) {
 				api.ConfirmDeletingRegionServiceCompute(tctx, &service)
 			}
 		}
-		tctx.Metadata = map[string]string{}
+		tctx.ResetMetadata()
 	}
 
 	clusterComputeMap := map[string]map[string]spec.Compute{}
@@ -233,7 +253,7 @@ func (api *Api) SyncRegionService(tctx *logger.TraceContext) (err error) {
 	}
 
 	for _, compute := range computes {
-		tctx.Metadata["ComputeId"] = strconv.FormatUint(uint64(compute.ID), 10)
+		tctx.SetMetadata(map[string]string{"ComputeId": strconv.FormatUint(uint64(compute.ID), 10)})
 		switch compute.Status {
 		case db_model.StatusCreating:
 			api.CreateClusterCompute(tctx, &compute, clusterComputeMap)
@@ -248,7 +268,7 @@ func (api *Api) SyncRegionService(tctx *logger.TraceContext) (err error) {
 		case db_model.StatusDeletingScheduled:
 			api.ConfirmDeletingScheduledCompute(tctx, &compute, clusterComputeMap)
 		}
-		tctx.Metadata = map[string]string{}
+		tctx.ResetMetadata()
 	}
 
 	return
@@ -409,7 +429,8 @@ func (api *Api) ConfirmCreatingOrUpdatingRegionServiceCompute(tctx *logger.Trace
 		}
 		for _, compute := range computes {
 			if compute.Status != base_const.StatusActive {
-				logger.Infof(tctx, "Wating to be activated: status=%s", compute.Status)
+				logger.Infof(tctx, "Wating to compute is activated: status=%s", compute.Status)
+				return
 			}
 		}
 		if err = tx.Table("region_services").Where("id = ?", service.ID).Updates(map[string]interface{}{

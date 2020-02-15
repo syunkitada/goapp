@@ -29,6 +29,7 @@ func (srv *Server) MainTask(tctx *logger.TraceContext) (err error) {
 
 	wg := sync.WaitGroup{}
 	go srv.SyncCompute(tctx, &wg)
+	go srv.MonitorEvents(tctx, &wg)
 	wg.Wait()
 
 	return
@@ -43,4 +44,15 @@ func (srv *Server) SyncCompute(tctx *logger.TraceContext, wg *sync.WaitGroup) {
 		wg.Done()
 	}()
 	err = srv.dbApi.SyncCompute(tctx)
+}
+
+func (srv *Server) MonitorEvents(tctx *logger.TraceContext, wg *sync.WaitGroup) {
+	wg.Add(1)
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() {
+		logger.EndTrace(tctx, startTime, err, 1)
+		wg.Done()
+	}()
+	err = srv.dbApi.MonitorEvents(tctx)
 }

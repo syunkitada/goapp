@@ -31,12 +31,12 @@ func (resolver *Resolver) Login(tctx *logger.TraceContext, input *base_spec.Logi
 }
 
 func (resolver *Resolver) LoginWithToken(tctx *logger.TraceContext, input *base_spec.LoginWithToken, user *base_spec.UserAuthority) (data *base_spec.LoginWithTokenData, code uint8, err error) {
-	data = &base_spec.LoginWithTokenData{Authority: *user}
 	if user == nil {
 		code = base_const.CodeClientInvalidAuth
-		err = error_utils.NewInvalidAuthError("Invalid Token")
+		err = error_utils.NewInvalidAuthError("Invalid Token: Please Login")
 		return
 	}
+	data = &base_spec.LoginWithTokenData{Authority: *user}
 	code = base_const.CodeOk
 	return
 }

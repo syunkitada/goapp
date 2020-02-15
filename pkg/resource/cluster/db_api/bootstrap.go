@@ -28,5 +28,9 @@ func (api *Api) BootstrapResource(tctx *logger.TraceContext, isRecreate bool) (e
 		return
 	}
 
+	if err = api.DB.AutoMigrate(&db_model.EventRule{}).Error; err != nil {
+		return
+	}
+
 	return
 }

@@ -6,32 +6,46 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/resource/config"
+	"github.com/syunkitada/goapp/pkg/resource/db_model"
+	"github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
 	api_spec "github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
 )
 
+type FilterEventRule struct {
+	ReNode  *regexp.Regexp
+	ReMsg   *regexp.Regexp
+	ReCheck *regexp.Regexp
+	ReLevel *regexp.Regexp
+	Until   *time.Time
+}
+
 type InfluxdbDriver struct {
-	clusterConf   *config.ResourceClusterConfig
-	alertClients  []*Client
-	logClients    []*Client
-	metricClients []*Client
+	clusterConf      *config.ResourceClusterConfig
+	eventClients     []*Client
+	logClients       []*Client
+	metricClients    []*Client
+	mtx              *sync.Mutex
+	filterEventRules []FilterEventRule
 }
 
 func New(clusterConf *config.ResourceClusterConfig) *InfluxdbDriver {
 	tsdbConf := clusterConf.TimeSeriesDatabase
 
-	alertClients := []*Client{}
-	for _, connection := range tsdbConf.AlertDatabases {
+	eventClients := []*Client{}
+	for _, connection := range tsdbConf.EventDatabases {
 		client, err := NewClient(connection)
 		if err != nil {
 			logger.StdoutFatalf("Failed init client: %v", err)
 		}
-		alertClients = append(alertClients, client)
+		eventClients = append(eventClients, client)
 	}
 
 	logClients := []*Client{}
@@ -54,10 +68,59 @@ func New(clusterConf *config.ResourceClusterConfig) *InfluxdbDriver {
 
 	return &InfluxdbDriver{
 		clusterConf:   clusterConf,
-		alertClients:  alertClients,
+		eventClients:  eventClients,
 		logClients:    logClients,
 		metricClients: metricClients,
+		mtx:           new(sync.Mutex),
 	}
+}
+
+func (driver *InfluxdbDriver) SetFilterEventRules(tctx *logger.TraceContext, eventRules []db_model.EventRule) {
+	// Project string     `gorm:"not null;size:50;"`
+	// Node    string     `gorm:"not null;size:255;"`
+	// Msg     string     `gorm:"not null;size:255;"`
+	// Check   string     `gorm:"not null;size:255;"`
+	// Level   string     `gorm:"not null;size:50;"`
+	// Until   *time.Time `gorm:""`
+
+	var filterEventRules []FilterEventRule
+	for _, rule := range eventRules {
+		filter := FilterEventRule{}
+		if rule.Node != "" {
+			re, tmpErr := regexp.Compile(rule.Node)
+			if tmpErr != nil {
+				logger.Errorf(tctx, tmpErr, "Failed compile rule: %s", rule.Node)
+			}
+			filter.ReNode = re
+		}
+		if rule.Check != "" {
+			re, tmpErr := regexp.Compile(rule.Check)
+			if tmpErr != nil {
+				logger.Errorf(tctx, tmpErr, "Failed compile rule: %s", rule.Check)
+			}
+			filter.ReCheck = re
+		}
+		if rule.Msg != "" {
+			re, tmpErr := regexp.Compile(rule.Msg)
+			if tmpErr != nil {
+				logger.Errorf(tctx, tmpErr, "Failed compile rule: %s", rule.Msg)
+			}
+			filter.ReMsg = re
+		}
+		if rule.Level != "" {
+			re, tmpErr := regexp.Compile(rule.Level)
+			if tmpErr != nil {
+				logger.Errorf(tctx, tmpErr, "Failed compile rule: %s", rule.Level)
+			}
+			filter.ReLevel = re
+		}
+		filter.Until = rule.Until
+		filterEventRules = append(filterEventRules, filter)
+	}
+	driver.mtx.Lock()
+	driver.filterEventRules = filterEventRules
+	driver.mtx.Unlock()
+	return
 }
 
 func (driver *InfluxdbDriver) Report(tctx *logger.TraceContext, input *api_spec.ReportNode) error {
@@ -65,10 +128,43 @@ func (driver *InfluxdbDriver) Report(tctx *logger.TraceContext, input *api_spec.
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
-	alertsData := ""
-	for _, alert := range input.Alerts {
-		tags := ",Project=" + input.Project + ",Node=" + input.Name
-		for key, value := range alert.Tag {
+	filterEventRules := driver.filterEventRules
+	eventsData := ""
+	filterEvent := false
+	for _, event := range input.Events {
+		filterEvent = false
+		for _, filter := range filterEventRules {
+			if filter.ReCheck != nil {
+				if filter.ReCheck.MatchString(event.Name) {
+					filterEvent = true
+				}
+			}
+			if filter.ReNode != nil {
+				if filter.ReNode.MatchString(input.Name) {
+					filterEvent = true
+				} else {
+					filterEvent = false
+				}
+			}
+			if filter.ReMsg != nil {
+				if msg, ok := event.Tag["Msg"]; ok {
+					if filter.ReMsg.MatchString(msg) {
+						filterEvent = true
+					} else {
+						filterEvent = false
+					}
+				}
+			}
+			if filterEvent {
+				break
+			}
+		}
+		if filterEvent {
+			continue
+		}
+
+		tags := ",Check=" + event.Name + ",Level=" + event.Level + ",Project=" + input.Project + ",Node=" + input.Name
+		for key, value := range event.Tag {
 			switch key {
 			case "Project":
 				continue
@@ -79,13 +175,13 @@ func (driver *InfluxdbDriver) Report(tctx *logger.TraceContext, input *api_spec.
 			}
 		}
 
-		alertsData += alert.Name + tags + " Msg=\"" + alert.Msg + "\" " + alert.Time + "\n"
+		eventsData += "events" + tags + " ReissueDuration=" + strconv.Itoa(event.ReissueDuration) + ",Msg=\"" + event.Msg + "\" " + event.Time + "\n"
 	}
 
-	for _, client := range driver.alertClients {
-		err := client.Write(alertsData)
+	for _, client := range driver.eventClients {
+		err := client.Write(eventsData)
 		if err != nil {
-			logger.Warning(tctx, err, "Failed Write alerts")
+			logger.Warning(tctx, err, "Failed Write events")
 		}
 	}
 
@@ -111,13 +207,10 @@ func (driver *InfluxdbDriver) Report(tctx *logger.TraceContext, input *api_spec.
 		metricsData += metric.Name + tags + " " + values + " " + metric.Time + "\n"
 	}
 
-	fmt.Println("debug metrics", metricsData)
-
 	for _, client := range driver.metricClients {
 		err := client.Write(metricsData)
 		if err != nil {
 			logger.Warning(tctx, err, "Failed Write")
-			fmt.Println("DEBUG Failed Write metrics", err)
 		}
 	}
 
@@ -165,25 +258,34 @@ func (driver *InfluxdbDriver) Report(tctx *logger.TraceContext, input *api_spec.
 	return nil
 }
 
-func (driver *InfluxdbDriver) GetNode(tctx *logger.TraceContext, input *api_spec.GetNode) (data []api_spec.MetricsGroup, err error) {
+func (driver *InfluxdbDriver) GetNode(tctx *logger.TraceContext, input *api_spec.GetNodeMetrics) (data []api_spec.MetricsGroup, err error) {
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
-	fmt.Println("DEBUG GetNode")
-	// query := "show tag values from \"system_cpu\" with key = \"Host\""
-	// query := "select State, Warning, Warnings, Error, Errors, Timestamp from agent where Project = 'admin' group by Host,Kind"
-	var systemMetrics []api_spec.Metric
+	until := "now()"
+	if input.UntilTime != nil {
+		until = fmt.Sprintf("'%s'", input.UntilTime.Format(time.RFC3339))
+	}
+	from := "-6h"
+	if input.FromTime != "" {
+		from = input.FromTime
+	}
 
+	whereStr := fmt.Sprintf("WHERE Node = '%s' AND time < %s AND time > %s %s",
+		input.Name, until, until, from)
+	suffixQuery := fmt.Sprintf("%s GROUP BY time(1m)", whereStr)
+
+	var systemMetrics []api_spec.Metric
 	driver.GetMetrics(tctx,
 		&systemMetrics,
 		"ProcsRunning",
-		fmt.Sprintf("select procs_running, procs_blocked from system_cpu where Node = '%s'", input.Name),
+		fmt.Sprintf("SELECT MEAN(procs_running), MEAN(procs_blocked) FROM system_cpu %s", suffixQuery),
 		[]string{"procs_running", "procs_blocked"})
 
 	driver.GetMetrics(tctx,
 		&systemMetrics,
 		"Processes",
-		fmt.Sprintf("select processes from system_cpu where Node = '%s'", input.Name),
+		fmt.Sprintf("SELECT MEAN(processes) FROM system_cpu %s", suffixQuery),
 		[]string{"processes"})
 
 	data = append(data, api_spec.MetricsGroup{
@@ -195,9 +297,12 @@ func (driver *InfluxdbDriver) GetNode(tctx *logger.TraceContext, input *api_spec
 }
 
 func (driver *InfluxdbDriver) GetMetrics(tctx *logger.TraceContext, metrics *[]api_spec.Metric, name string, query string, keys []string) {
+	fmt.Println("DEBUG GetMetrics")
+	fmt.Println(query)
 	for _, client := range driver.metricClients {
 		queryResult, tmpErr := client.Query(query)
 		if tmpErr != nil {
+			fmt.Println("DEBUG FaledQuery", tmpErr)
 			logger.Warningf(tctx, "Failed Query: %s", tmpErr.Error())
 			continue
 		}
@@ -261,36 +366,149 @@ func (driver *InfluxdbDriver) GetLogParams(tctx *logger.TraceContext, input *api
 	return
 }
 
-func (driver *InfluxdbDriver) GetHost(tctx *logger.TraceContext, projectName string) error {
-	// hosts
-	// query := "show tag values from \"agent\" with key = \"Host\""
-	// query := "select State, Warning, Warnings, Error, Errors, Timestamp from agent where Project = 'admin' group by Host,Kind"
-	// for _, client := range indexer.percistentClients {
-	// 	result, err := client.Query(query)
-	// 	if err != nil {
-	// 		logger.Warning(tctx, err, "Failed Query")
-	// 		continue
-	// 	}
+func (driver *InfluxdbDriver) GetLogs(tctx *logger.TraceContext, input *api_spec.GetLogs) (data *api_spec.GetLogsData, err error) {
+	logs := []map[string]interface{}{}
 
-	// 	for _, s := range result.Results[0].Series {
-	// 		fmt.Println(s.Values)
-	// 		hostMap[s.Tags["Host"]] = &monitor_api_grpc_pb.Host{
-	// 			Index:     indexer.index,
-	// 			Name:      s.Tags["Host"],
-	// 			Kind:      s.Tags["Kind"],
-	// 			State:     s.Values[0][1].(float64),
-	// 			Warning:   s.Values[0][2].(string),
-	// 			Warnings:  s.Values[0][3].(float64),
-	// 			Error:     s.Values[0][4].(string),
-	// 			Errors:    s.Values[0][5].(float64),
-	// 			Timestamp: s.Values[0][6].(float64),
-	// 		}
-	// 	}
-	// }
+	query := "SELECT App, Func, Level, Node, Project, TraceId, Msg FROM \"goapp-resource-cluster-agent\" WHERE"
+	whereApps := []string{}
+	if len(input.Apps) > 0 {
+		for _, app := range input.Apps {
+			whereApps = append(whereApps, fmt.Sprintf("App = '%s'", app))
+		}
+		whereAppsStr := strings.Join(whereApps, " OR ")
+		query += " (" + whereAppsStr + ")"
+	}
 
-	// fmt.Println(hostMap)
+	if len(input.Nodes) > 0 {
+		whereNodes := []string{}
+		for _, node := range input.Nodes {
+			whereNodes = append(whereNodes, fmt.Sprintf("Node = '%s'", node))
+		}
+		whereNodesStr := strings.Join(whereNodes, " OR ")
+		if len(whereApps) > 0 {
+			query += " AND"
+		}
+		query += " (" + whereNodesStr + ")"
+	}
 
-	return nil
+	query += " AND time > now() - 20d"
+	query += " limit 10000"
+	keys := []string{"App", "Func", "Level", "Node", "Project", "TraceId", "Msg"}
+	for _, client := range driver.logClients {
+		queryResult, tmpErr := client.Query(query)
+		if tmpErr != nil {
+			logger.Warningf(tctx, "Failed Query: %s", tmpErr.Error())
+			continue
+		}
+		for _, result := range queryResult.Results {
+			for _, series := range result.Series {
+				for _, value := range series.Values {
+					v := map[string]interface{}{
+						"Time": value[0],
+					}
+					for i, key := range keys {
+						v[key] = value[i+1]
+					}
+					logs = append(logs, v)
+				}
+			}
+		}
+	}
+
+	data = &api_spec.GetLogsData{Logs: logs}
+	return
+}
+
+func (driver *InfluxdbDriver) GetEvents(tctx *logger.TraceContext, input *api_spec.GetEvents) (data *api_spec.GetEventsData, err error) {
+	events := []spec.Event{}
+
+	query := "SELECT Check, Level, ReissueDuration, Node, Project, last(Msg) FROM \"events\" WHERE"
+	query += " time > now() - 1d"
+	query += " group by Node,Check"
+	for _, client := range driver.eventClients {
+		queryResult, tmpErr := client.Query(query)
+		if tmpErr != nil {
+			logger.Warningf(tctx, "Failed Query: %s", tmpErr.Error())
+			continue
+		}
+		for _, result := range queryResult.Results {
+			for _, series := range result.Series {
+				for _, value := range series.Values {
+					sec := int64(value[0].(float64) / 1000)
+					v := spec.Event{
+						Time:            time.Unix(sec, 0),
+						Check:           value[1].(string),
+						Level:           value[2].(string),
+						ReissueDuration: int(value[3].(float64)),
+						Node:            value[4].(string),
+						Project:         value[5].(string),
+						Msg:             value[6].(string),
+					}
+					events = append(events, v)
+				}
+			}
+		}
+	}
+
+	data = &api_spec.GetEventsData{Events: events}
+	return
+}
+
+func (driver *InfluxdbDriver) IssueEvent(tctx *logger.TraceContext, input *api_spec.IssueEvent) (err error) {
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	eventsData := ""
+
+	event := input.Event
+	tags := ",Check=" + event.Check + ",Level=" + event.Level + ",Project=" + event.Project + ",Node=" + event.Node
+	eventsData += "issued_events" + tags + " Msg=\"" + event.Msg + "\" " + strconv.FormatInt(event.Time.UnixNano(), 10) + "\n"
+	fmt.Println("DEBUG IssueEvent", eventsData)
+
+	for _, client := range driver.eventClients {
+		tmpErr := client.Write(eventsData)
+		if tmpErr != nil {
+			logger.Warning(tctx, tmpErr, "Failed Write events")
+		}
+	}
+	return
+}
+
+func (driver *InfluxdbDriver) GetIssuedEvents(tctx *logger.TraceContext, input *api_spec.GetIssuedEvents) (data *api_spec.GetIssuedEventsData, err error) {
+	events := []spec.Event{}
+
+	query := "SELECT Check, Level, Node, Project, last(Msg) FROM \"issued_events\" WHERE"
+	if input.Node != "" {
+		query += " Node = \"" + input.Node + "\""
+	}
+	query += " time > now() - 1d"
+	query += " group by Node,Check"
+	for _, client := range driver.eventClients {
+		queryResult, tmpErr := client.Query(query)
+		if tmpErr != nil {
+			logger.Warningf(tctx, "Failed Query: %s", tmpErr.Error())
+			continue
+		}
+		for _, result := range queryResult.Results {
+			for _, series := range result.Series {
+				for _, value := range series.Values {
+					sec := int64(value[0].(float64) / 1000)
+					v := spec.Event{
+						Time:    time.Unix(sec, 0),
+						Check:   value[1].(string),
+						Level:   value[2].(string),
+						Node:    value[3].(string),
+						Project: value[4].(string),
+						Msg:     value[5].(string),
+					}
+					events = append(events, v)
+				}
+			}
+		}
+	}
+
+	data = &api_spec.GetIssuedEventsData{Events: events}
+	return
 }
 
 type Client struct {
@@ -359,8 +577,6 @@ func (c *Client) Query(data string) (*QueryResult, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("DEBUG")
-	fmt.Println(string(body))
 
 	var result *QueryResult
 	if err := json.Unmarshal(body, &result); err != nil {
@@ -388,8 +604,6 @@ func (c *Client) Write(data string) error {
 	if resp.StatusCode == 204 {
 		return nil
 	}
-
-	fmt.Println("DEBUG data", data)
 
 	return fmt.Errorf("InvalidStatusCode: %v", resp.StatusCode)
 }

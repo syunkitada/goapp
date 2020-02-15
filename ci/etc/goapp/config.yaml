@@ -1,200 +1,201 @@
 authproxy:
   api:
-    listen: '0.0.0.0:8000'
-    allowedHosts: ['127.0.0.1:8000']
-    accessControlAllowOrigin: '127.0.0.1:3000'
-    certFile: 'tls-assets/server.pem'
-    keyFile: 'tls-assets/server.key'
+    listen: "0.0.0.0:8000"
+    allowedHosts: ["127.0.0.1:8000"]
+    accessControlAllowOrigin: "127.0.0.1:3000"
+    certFile: "tls-assets/server.pem"
+    keyFile: "tls-assets/server.key"
     gracefulTimeout: 10
     database:
-      connection: 'goapp:goapppass@tcp(127.0.0.1:3306)/goapp_authproxy?charset=utf8&parseTime=true'
+      connection: "goapp:goapppass@tcp(127.0.0.1:3306)/goapp_authproxy?charset=utf8&parseTime=true"
     auth:
-      secrets: ['changeme1', 'changeme2']
+      secrets: ["changeme1", "changeme2"]
       defaultUsers:
-        - {name: 'admin', password: 'admin', roles: ['admin']}
-        - {name: 'service', password: 'service', roles: ['service']}
-        - {name: 'guest', password: 'guest', roles: ['guestpj-member']}
+        - { name: "admin", password: "admin", roles: ["admin"] }
+        - { name: "service", password: "service", roles: ["service"] }
+        - { name: "guest", password: "guest", roles: ["guestpj-member"] }
       defaultRoles:
-        - {name: 'admin', project: 'admin'}
-        - {name: 'service', project: 'service'}
-        - {name: 'guestpj-member', project: 'guestpj'}
+        - { name: "admin", project: "admin" }
+        - { name: "service", project: "service" }
+        - { name: "guestpj-member", project: "guestpj" }
       defaultProjects:
-        - {name: 'admin', projectRole: 'admin'}
-        - {name: 'service', projectRole: 'service'}
-        - {name: 'guestpj', projectRole: 'tenant'}
+        - { name: "admin", projectRole: "admin" }
+        - { name: "service", projectRole: "service" }
+        - { name: "guestpj", projectRole: "tenant" }
       defaultProjectRoles:
-        - {name: 'admin'}
-        - {name: 'service'}
-        - {name: 'tenant'}
+        - { name: "admin" }
+        - { name: "service" }
+        - { name: "tenant" }
       defaultServices:
-        - name: 'Home'
-          scope: 'user'
-          projectRoles: ['admin', 'tenant']
-        - name: 'HomeProject'
-          scope: 'project'
-          projectRoles: ['admin', 'tenant']
+        - name: "Home"
+          scope: "user"
+          projectRoles: ["admin", "tenant"]
+        - name: "HomeProject"
+          scope: "project"
+          projectRoles: ["admin", "tenant"]
   controller:
-    listen: '0.0.0.0:8000'
-    allowedHosts: ['127.0.0.1:8000']
-    accessControlAllowOrigin: '127.0.0.1:3000'
-    certFile: 'tls-assets/server.pem'
-    keyFile: 'tls-assets/server.key'
+    listen: "0.0.0.0:8000"
+    allowedHosts: ["127.0.0.1:8000"]
+    accessControlAllowOrigin: "127.0.0.1:3000"
+    certFile: "tls-assets/server.pem"
+    keyFile: "tls-assets/server.key"
     gracefulTimeout: 10
 
 resource:
   api:
-    listen: '0.0.0.0:13300'
-    endpoints: ['https://127.0.0.1:13300']
-    allowedHosts: ['127.0.0.1:13300']
-    accessControlAllowOrigin: '127.0.0.1:13300'
-    certFile: 'tls-assets/server.pem'
-    keyFile: 'tls-assets/server.key'
+    listen: "0.0.0.0:13300"
+    endpoints: ["https://127.0.0.1:13300"]
+    allowedHosts: ["127.0.0.1:13300"]
+    accessControlAllowOrigin: "127.0.0.1:13300"
+    certFile: "tls-assets/server.pem"
+    keyFile: "tls-assets/server.key"
     gracefulTimeout: 10
     database:
-      connection: 'goapp:goapppass@tcp(127.0.0.1:3306)/goapp_resource?charset=utf8&parseTime=true'
+      connection: "goapp:goapppass@tcp(127.0.0.1:3306)/goapp_resource?charset=utf8&parseTime=true"
     auth:
-      secrets: ['changeme1', 'changeme2']
+      secrets: ["changeme1", "changeme2"]
       defaultUsers:
-        - {name: 'admin', password: 'admin', roles: ['admin']}
-        - {name: 'service', password: 'service', roles: ['service']}
-        - {name: 'guest', password: 'guest', roles: ['guestpj-member']}
+        - { name: "admin", password: "admin", roles: ["admin"] }
+        - { name: "service", password: "service", roles: ["service"] }
+        - { name: "guest", password: "guest", roles: ["guestpj-member"] }
       defaultRoles:
-        - {name: 'admin', project: 'admin'}
-        - {name: 'service', project: 'service'}
-        - {name: 'guestpj-member', project: 'guestpj'}
+        - { name: "admin", project: "admin" }
+        - { name: "service", project: "service" }
+        - { name: "guestpj-member", project: "guestpj" }
       defaultProjects:
-        - {name: 'admin', projectRole: 'admin'}
-        - {name: 'service', projectRole: 'service'}
-        - {name: 'guestpj', projectRole: 'tenant'}
+        - { name: "admin", projectRole: "admin" }
+        - { name: "service", projectRole: "service" }
+        - { name: "guestpj", projectRole: "tenant" }
       defaultProjectRoles:
-        - {name: 'admin'}
-        - {name: 'service'}
-        - {name: 'tenant'}
+        - { name: "admin" }
+        - { name: "service" }
+        - { name: "tenant" }
       defaultServices:
-        - name: 'ResourcePhysicalAdmin'
-          scope: 'project'
-          projectRoles: ['admin', 'service']
+        - name: "ResourcePhysicalAdmin"
+          scope: "project"
+          projectRoles: ["admin", "service"]
           syncRootCluster: true
-        - name: 'ResourceVirtualAdmin'
-          scope: 'project'
-          projectRoles: ['admin', 'service']
+        - name: "ResourceVirtualAdmin"
+          scope: "project"
+          projectRoles: ["admin", "service"]
           syncRootCluster: true
-        - name: 'ResourcePhysical'
-          scope: 'project'
-          projectRoles: ['tenant']
+        - name: "ResourcePhysical"
+          scope: "project"
+          projectRoles: ["tenant"]
           syncRootCluster: true
-        - name: 'ResourceVirtual'
-          scope: 'project'
-          projectRoles: ['tenant']
+        - name: "ResourceVirtual"
+          scope: "project"
+          projectRoles: ["tenant"]
           syncRootCluster: true
-        - name: 'ResourceMonitor'
-          scope: 'project'
-          projectRoles: ['admin', 'tenant']
+        - name: "ResourceMonitor"
+          scope: "project"
+          projectRoles: ["admin", "tenant"]
           syncRootCluster: true
     rootClient:
-      user: 'service'
-      password: 'service'
+      user: "service"
+      password: "service"
       tlsInsecureSkipVerify: true
-      endpoints: ['https://127.0.0.1:8000']
+      endpoints: ["https://127.0.0.1:8000"]
   controller:
-    listen: '0.0.0.0:13305'
-    endpoints: ['https://127.0.0.1:13305']
-    allowedHosts: ['127.0.0.1:13305']
-    accessControlAllowOrigin: '127.0.0.1:13305'
-    certFile: 'tls-assets/server.pem'
-    keyFile: 'tls-assets/server.key'
+    listen: "0.0.0.0:13305"
+    endpoints: ["https://127.0.0.1:13305"]
+    allowedHosts: ["127.0.0.1:13305"]
+    accessControlAllowOrigin: "127.0.0.1:13305"
+    certFile: "tls-assets/server.pem"
+    keyFile: "tls-assets/server.key"
     gracefulTimeout: 10
-  clusterName: 'tokyo1'
+  clusterName: "tokyo1"
   clusterMap:
     tokyo1:
-      region: 'kanto'
-      datacenter: 'tokyo'
-      kind: 'public'
-      domainSuffix: 'tokyo1.example.com'
+      region: "kanto"
+      datacenter: "tokyo"
+      kind: "public"
+      domainSuffix: "tokyo1.example.com"
       timeSeriesDatabase:
-        driver: 'influxdb'
-        alertDatabases:
-          - 'goapp:goapppass@http://127.0.0.1:8086@goapp_monitor_alerts'
+        driver: "influxdb"
+        eventDatabases:
+          - "goapp:goapppass@http://127.0.0.1:8086@goapp_monitor_events"
         logDatabases:
-          - 'goapp:goapppass@http://127.0.0.1:8086@goapp_monitor_logs'
+          - "goapp:goapppass@http://127.0.0.1:8086@goapp_monitor_logs"
         metricDatabases:
-          - 'goapp:goapppass@http://127.0.0.1:8086@goapp_monitor_metrics'
+          - "goapp:goapppass@http://127.0.0.1:8086@goapp_monitor_metrics"
       api:
-        listen: '0.0.0.0:13400'
-        endpoints: ['https://127.0.0.1:13400']
-        allowedHosts: ['127.0.0.1:13400']
-        accessControlAllowOrigin: '127.0.0.1:13400'
-        certFile: 'tls-assets/server.pem'
-        keyFile: 'tls-assets/server.key'
+        listen: "0.0.0.0:13400"
+        endpoints: ["https://127.0.0.1:13400"]
+        allowedHosts: ["127.0.0.1:13400"]
+        accessControlAllowOrigin: "127.0.0.1:13400"
+        certFile: "tls-assets/server.pem"
+        keyFile: "tls-assets/server.key"
         nodeDownTimeDuration: 60
         gracefulTimeout: 10
         database:
-          connection: 'goapp:goapppass@tcp(127.0.0.1:3306)/goapp_resource_tokyo1?charset=utf8&parseTime=true'
+          connection: "goapp:goapppass@tcp(127.0.0.1:3306)/goapp_resource_tokyo1?charset=utf8&parseTime=true"
         rootClient:
-          user: 'service'
-          password: 'service'
-          project: 'service'
+          user: "service"
+          password: "service"
+          project: "service"
           tlsInsecureSkipVerify: true
-          endpoints: ['https://127.0.0.1:13300']
+          endpoints: ["https://127.0.0.1:13300"]
         auth:
-          secrets: ['changeme1', 'changeme2']
+          secrets: ["changeme1", "changeme2"]
           defaultUsers:
-            - {name: 'service', password: 'service', roles: ['service']}
+            - { name: "service", password: "service", roles: ["service"] }
           defaultRoles:
-            - {name: 'service', project: 'service'}
+            - { name: "service", project: "service" }
           defaultProjects:
-            - {name: 'service', projectRole: 'service'}
+            - { name: "service", projectRole: "service" }
           defaultProjectRoles:
-            - {name: 'service'}
+            - { name: "service" }
           defaultServices:
-            - name: 'ResourceVirtualAdmin'
-              scope: 'project'
-              projectRoles: ['service']
+            - name: "ResourceVirtualAdmin"
+              scope: "project"
+              projectRoles: ["service"]
       controller:
-        listen: '0.0.0.0:13405'
-        endpoints: ['https://127.0.0.1:13405']
-        allowedHosts: ['127.0.0.1:13405']
-        accessControlAllowOrigin: '127.0.0.1:13405'
-        certFile: 'tls-assets/server.pem'
-        keyFile: 'tls-assets/server.key'
+        listen: "0.0.0.0:13405"
+        endpoints: ["https://127.0.0.1:13405"]
+        allowedHosts: ["127.0.0.1:13405"]
+        accessControlAllowOrigin: "127.0.0.1:13405"
+        certFile: "tls-assets/server.pem"
+        keyFile: "tls-assets/server.key"
         gracefulTimeout: 10
       agent:
-        listen: '0.0.0.0:13410'
-        endpoints: ['https://127.0.0.1:13410']
-        allowedHosts: ['127.0.0.1:13410']
-        accessControlAllowOrigin: '127.0.0.1:13410'
-        certFile: 'tls-assets/server.pem'
-        keyFile: 'tls-assets/server.key'
+        listen: "0.0.0.0:13410"
+        endpoints: ["https://127.0.0.1:13410"]
+        allowedHosts: ["127.0.0.1:13410"]
+        accessControlAllowOrigin: "127.0.0.1:13410"
+        certFile: "tls-assets/server.pem"
+        keyFile: "tls-assets/server.key"
         gracefulTimeout: 10
         rootClient:
-          user: 'service'
-          password: 'service'
-          project: 'service'
+          user: "service"
+          password: "service"
+          project: "service"
           tlsInsecureSkipVerify: true
-          endpoints: ['https://127.0.0.1:13400']
+          endpoints: ["https://127.0.0.1:13400"]
         compute:
           enable: true
           confirmRetryCount: 2
           confirmRetryInterval: 10
-          vmNetnsGatewayStartIp: '169.254.1.1'
-          vmNetnsGatewayEndIp: '169.254.1.100'
-          vmNetnsServiceIp: '169.254.1.200'
-          vmNetnsStartIp: '169.254.32.1'
-          vmNetnsEndIp: '169.254.63.254'
-          configDir: '/home/owner/.goapp/etc/resource/compute/'
-          varDir: '/home/owner/.goapp/var/compute'
-          driver: 'mock'
-        reportProject: 'admin'
+          vmNetnsGatewayStartIp: "169.254.1.1"
+          vmNetnsGatewayEndIp: "169.254.1.100"
+          vmNetnsServiceIp: "169.254.1.200"
+          vmNetnsStartIp: "169.254.32.1"
+          vmNetnsEndIp: "169.254.63.254"
+          configDir: "/home/owner/.goapp/etc/resource/compute/"
+          varDir: "/home/owner/.goapp/var/compute"
+          driver: "qemu"
+        reportProject: "admin"
         logMap:
           goapp-resource-cluster-agent:
-            path: 'goapp-resource-cluster-agent.log'
+            path: "goapp-resource-cluster-agent.log"
             maxInitialReadSize: 1000
-            alertMap:
-              errorOccurd:
-                key: 'Level'
-                pattern: 'E'
-                level: 'E'
-                handler: 'Mail'
+            checkPrefix: "log-"
+            checkMap:
+              noerror:
+                key: "Level"
+                pattern: "E"
+                level: "Critical"
+                reissueDuration: 600
         metric:
           system:
             enable: true

@@ -9,7 +9,7 @@ import (
 	"github.com/olekukonko/tablewriter"
 	"github.com/syunkitada/goapp/pkg/base/base_client"
 	"github.com/syunkitada/goapp/pkg/base/base_const"
-	"github.com/syunkitada/goapp/pkg/base/base_model/index_model"
+	"github.com/syunkitada/goapp/pkg/base/base_index_model"
 	"github.com/syunkitada/goapp/pkg/base/base_spec"
 	"github.com/syunkitada/goapp/pkg/lib/json_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
@@ -132,7 +132,7 @@ func (ctl *Ctl) index(args []string) error {
 	}
 
 	cmdQuery := ""
-	var cmdInfo index_model.Cmd
+	var cmdInfo base_index_model.Cmd
 	lastArgs := []string{}
 	helpMsgs := [][]string{}
 	for query, cmd := range getServiceIndexData.Index.CmdMap {

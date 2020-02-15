@@ -8,7 +8,7 @@ import (
 	"github.com/syunkitada/goapp/pkg/base/base_client"
 	"github.com/syunkitada/goapp/pkg/base/base_config"
 	"github.com/syunkitada/goapp/pkg/base/base_const"
-	"github.com/syunkitada/goapp/pkg/base/base_model"
+	"github.com/syunkitada/goapp/pkg/base/base_protocol"
 	"github.com/syunkitada/goapp/pkg/base/base_spec"
 	"github.com/syunkitada/goapp/pkg/lib/error_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
@@ -30,7 +30,7 @@ func NewClient(conf *base_config.ClientConfig) *Client {
 
 {{- range $query := $spec.QuerySet }}
 type {{ $query.Name }}Response struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap {{ $query.Name }}ResultMap
 }
 

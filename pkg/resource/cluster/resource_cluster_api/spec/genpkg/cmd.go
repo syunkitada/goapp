@@ -4,44 +4,44 @@
 package genpkg
 
 import (
-	"github.com/syunkitada/goapp/pkg/base/base_model/index_model"
-	"github.com/syunkitada/goapp/pkg/base/base_model/spec_model"
+	"github.com/syunkitada/goapp/pkg/base/base_index_model"
+	"github.com/syunkitada/goapp/pkg/base/base_spec_model"
 )
 
-var ResourceVirtualAdminCmdMap = map[string]index_model.Cmd{
-	"get.compute": index_model.Cmd{
+var ResourceVirtualAdminCmdMap = map[string]base_index_model.Cmd{
+	"get.compute": base_index_model.Cmd{
 		QueryName: "GetCompute",
-		FlagMap: map[string]index_model.Flag{
-			"name,n": index_model.Flag{
+		FlagMap: map[string]base_index_model.Flag{
+			"name,n": base_index_model.Flag{
 				Required: true,
 				FlagType: "string",
 				FlagKind: "",
 			},
-			"region,r": index_model.Flag{
-				Required: true,
-				FlagType: "string",
-				FlagKind: "",
-			},
-		},
-		OutputKind:   "",
-		OutputFormat: "",
-	},
-	"get.computes": index_model.Cmd{
-		QueryName: "GetComputes",
-		FlagMap: map[string]index_model.Flag{
-			"region,r": index_model.Flag{
+			"region,r": base_index_model.Flag{
 				Required: true,
 				FlagType: "string",
 				FlagKind: "",
 			},
 		},
 		OutputKind:   "table",
-		OutputFormat: "Region,Cluster,RegionService,Name,Kind,Labels,Status,StatusReason,Project,Spec,LinkSpec,Image,Vcpus,Memory,Disk",
+		OutputFormat: "Region,Cluster,RegionService,Name,Kind,Labels,Status,StatusReason,Project,Spec,LinkSpec,Image,Vcpus,Memory,Disk,UpdatedAt,CreatedAt",
 	},
-	"create.compute": index_model.Cmd{
+	"get.computes": base_index_model.Cmd{
+		QueryName: "GetComputes",
+		FlagMap: map[string]base_index_model.Flag{
+			"region,r": base_index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+		},
+		OutputKind:   "table",
+		OutputFormat: "Region,Cluster,RegionService,Name,Kind,Labels,Status,StatusReason,Project,Spec,LinkSpec,Image,Vcpus,Memory,Disk,UpdatedAt,CreatedAt",
+	},
+	"create.compute": base_index_model.Cmd{
 		QueryName: "CreateCompute",
-		FlagMap: map[string]index_model.Flag{
-			"spec,s": index_model.Flag{
+		FlagMap: map[string]base_index_model.Flag{
+			"spec,s": base_index_model.Flag{
 				Required: true,
 				FlagType: "string",
 				FlagKind: "file",
@@ -50,10 +50,10 @@ var ResourceVirtualAdminCmdMap = map[string]index_model.Cmd{
 		OutputKind:   "",
 		OutputFormat: "",
 	},
-	"update.compute": index_model.Cmd{
+	"update.compute": base_index_model.Cmd{
 		QueryName: "UpdateCompute",
-		FlagMap: map[string]index_model.Flag{
-			"spec,s": index_model.Flag{
+		FlagMap: map[string]base_index_model.Flag{
+			"spec,s": base_index_model.Flag{
 				Required: true,
 				FlagType: "string",
 				FlagKind: "file",
@@ -62,10 +62,10 @@ var ResourceVirtualAdminCmdMap = map[string]index_model.Cmd{
 		OutputKind:   "",
 		OutputFormat: "",
 	},
-	"delete.compute": index_model.Cmd{
+	"delete.compute": base_index_model.Cmd{
 		QueryName: "DeleteCompute",
-		FlagMap: map[string]index_model.Flag{
-			"name,n": index_model.Flag{
+		FlagMap: map[string]base_index_model.Flag{
+			"name,n": base_index_model.Flag{
 				Required: true,
 				FlagType: "string",
 				FlagKind: "",
@@ -74,10 +74,10 @@ var ResourceVirtualAdminCmdMap = map[string]index_model.Cmd{
 		OutputKind:   "",
 		OutputFormat: "",
 	},
-	"delete.computes": index_model.Cmd{
+	"delete.computes": base_index_model.Cmd{
 		QueryName: "DeleteComputes",
-		FlagMap: map[string]index_model.Flag{
-			"spec,s": index_model.Flag{
+		FlagMap: map[string]base_index_model.Flag{
+			"spec,s": base_index_model.Flag{
 				Required: true,
 				FlagType: "string",
 				FlagKind: "file",
@@ -86,10 +86,10 @@ var ResourceVirtualAdminCmdMap = map[string]index_model.Cmd{
 		OutputKind:   "",
 		OutputFormat: "",
 	},
-	"get.node.services": index_model.Cmd{
+	"get.node.services": base_index_model.Cmd{
 		QueryName: "GetNodeServices",
-		FlagMap: map[string]index_model.Flag{
-			"cluster,c": index_model.Flag{
+		FlagMap: map[string]base_index_model.Flag{
+			"cluster,c": base_index_model.Flag{
 				Required: false,
 				FlagType: "string",
 				FlagKind: "",
@@ -98,22 +98,22 @@ var ResourceVirtualAdminCmdMap = map[string]index_model.Cmd{
 		OutputKind:   "table",
 		OutputFormat: "Name,Kind,Role,Status,StatusReason,State,StateReason,Labels,Spec",
 	},
-	"sync.node.service": index_model.Cmd{
+	"sync.node.service": base_index_model.Cmd{
 		QueryName: "SyncNodeService",
-		FlagMap: map[string]index_model.Flag{
-			"node.service,n": index_model.Flag{
+		FlagMap: map[string]base_index_model.Flag{
+			"node.service,n": base_index_model.Flag{
 				Required: false,
 				FlagType: "base_spec.NodeService",
 				FlagKind: "",
 			},
 		},
-		OutputKind:   "",
-		OutputFormat: "",
+		OutputKind:   "table",
+		OutputFormat: "ComputeAssignments",
 	},
-	"report.node.service.task": index_model.Cmd{
+	"report.node.service.task": base_index_model.Cmd{
 		QueryName: "ReportNodeServiceTask",
-		FlagMap: map[string]index_model.Flag{
-			"compute.assignment.reports,c": index_model.Flag{
+		FlagMap: map[string]base_index_model.Flag{
+			"compute.assignment.reports,c": base_index_model.Flag{
 				Required: false,
 				FlagType: "[]spec.AssignmentReport",
 				FlagKind: "",
@@ -122,102 +122,164 @@ var ResourceVirtualAdminCmdMap = map[string]index_model.Cmd{
 		OutputKind:   "",
 		OutputFormat: "",
 	},
-	"get.nodes": index_model.Cmd{
+	"get.nodes": base_index_model.Cmd{
 		QueryName: "GetNodes",
-		FlagMap: map[string]index_model.Flag{
-			"cluster,c": index_model.Flag{
+		FlagMap: map[string]base_index_model.Flag{
+			"cluster,c": base_index_model.Flag{
 				Required: true,
 				FlagType: "string",
 				FlagKind: "",
 			},
 		},
 		OutputKind:   "table",
-		OutputFormat: "Name,State,Warnings,Errors,Labels,MetricsGroups",
+		OutputFormat: "Name,DisabledServices,ActiveServices,CriticalServices,DisabledServicesData,ActiveServicesData,CriticalServicesData,SuccessEvents,CriticalEvents,WarningEvents,SilencedEvents,SuccessEventsData,CriticalEventsData,WarningEventsData,SilencedEventsData,MetricsGroups,Labels,UpdatedAt",
 	},
-	"get.node": index_model.Cmd{
+	"get.node": base_index_model.Cmd{
 		QueryName: "GetNode",
-		FlagMap: map[string]index_model.Flag{
-			"cluster,c": index_model.Flag{
+		FlagMap: map[string]base_index_model.Flag{
+			"cluster,c": base_index_model.Flag{
 				Required: true,
 				FlagType: "string",
 				FlagKind: "",
 			},
-			"name,n": index_model.Flag{
+			"name,n": base_index_model.Flag{
 				Required: true,
 				FlagType: "string",
 				FlagKind: "",
 			},
 		},
-		OutputKind:   "",
-		OutputFormat: "",
+		OutputKind:   "table",
+		OutputFormat: "Name,DisabledServices,ActiveServices,CriticalServices,DisabledServicesData,ActiveServicesData,CriticalServicesData,SuccessEvents,CriticalEvents,WarningEvents,SilencedEvents,SuccessEventsData,CriticalEventsData,WarningEventsData,SilencedEventsData,MetricsGroups,Labels,UpdatedAt",
 	},
-	"report.node": index_model.Cmd{
+	"get.node.metrics": base_index_model.Cmd{
+		QueryName: "GetNodeMetrics",
+		FlagMap: map[string]base_index_model.Flag{
+			"cluster,c": base_index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+			"name,n": base_index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+			"from.time,f": base_index_model.Flag{
+				Required: false,
+				FlagType: "string",
+				FlagKind: "",
+			},
+			"until.time,u": base_index_model.Flag{
+				Required: false,
+				FlagType: "*time.Time",
+				FlagKind: "",
+			},
+		},
+		OutputKind:   "table",
+		OutputFormat: "Name,DisabledServices,ActiveServices,CriticalServices,DisabledServicesData,ActiveServicesData,CriticalServicesData,SuccessEvents,CriticalEvents,WarningEvents,SilencedEvents,SuccessEventsData,CriticalEventsData,WarningEventsData,SilencedEventsData,MetricsGroups,Labels,UpdatedAt",
+	},
+	"report.node": base_index_model.Cmd{
 		QueryName: "ReportNode",
-		FlagMap: map[string]index_model.Flag{
-			"project,p": index_model.Flag{
+		FlagMap: map[string]base_index_model.Flag{
+			"project,p": base_index_model.Flag{
 				Required: false,
 				FlagType: "string",
 				FlagKind: "",
 			},
-			"name,n": index_model.Flag{
+			"name,n": base_index_model.Flag{
 				Required: false,
 				FlagType: "string",
 				FlagKind: "",
 			},
-			"state,s": index_model.Flag{
+			"state,s": base_index_model.Flag{
 				Required: false,
 				FlagType: "string",
 				FlagKind: "",
 			},
-			"warning,w": index_model.Flag{
+			"warning,w": base_index_model.Flag{
 				Required: false,
 				FlagType: "string",
 				FlagKind: "",
 			},
-			"warnings,w": index_model.Flag{
+			"warnings,w": base_index_model.Flag{
 				Required: false,
 				FlagType: "int",
 				FlagKind: "",
 			},
-			"error,e": index_model.Flag{
+			"error,e": base_index_model.Flag{
 				Required: false,
 				FlagType: "string",
 				FlagKind: "",
 			},
-			"errors,e": index_model.Flag{
+			"errors,e": base_index_model.Flag{
 				Required: false,
 				FlagType: "int",
 				FlagKind: "",
 			},
-			"timestate,t": index_model.Flag{
+			"timestate,t": base_index_model.Flag{
 				Required: false,
 				FlagType: "time.Time",
 				FlagKind: "",
 			},
-			"logs,l": index_model.Flag{
+			"logs,l": base_index_model.Flag{
 				Required: false,
 				FlagType: "[]spec.ResourceLog",
 				FlagKind: "",
 			},
-			"metrics,m": index_model.Flag{
+			"metrics,m": base_index_model.Flag{
 				Required: false,
 				FlagType: "[]spec.ResourceMetric",
 				FlagKind: "",
 			},
-			"alerts,a": index_model.Flag{
+			"events,e": base_index_model.Flag{
 				Required: false,
-				FlagType: "[]spec.ResourceAlert",
+				FlagType: "[]spec.ResourceEvent",
 				FlagKind: "",
 			},
 		},
 		OutputKind:   "",
 		OutputFormat: "",
 	},
-	"get.logs": index_model.Cmd{
+	"get.logs": base_index_model.Cmd{
 		QueryName: "GetLogs",
-		FlagMap: map[string]index_model.Flag{
-			"cluster,c": index_model.Flag{
+		FlagMap: map[string]base_index_model.Flag{
+			"cluster,c": base_index_model.Flag{
 				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+			"project,p": base_index_model.Flag{
+				Required: false,
+				FlagType: "string",
+				FlagKind: "",
+			},
+			"limit.logs,l": base_index_model.Flag{
+				Required: false,
+				FlagType: "string",
+				FlagKind: "",
+			},
+			"from.time,f": base_index_model.Flag{
+				Required: false,
+				FlagType: "string",
+				FlagKind: "",
+			},
+			"until.time,u": base_index_model.Flag{
+				Required: false,
+				FlagType: "time.Time",
+				FlagKind: "",
+			},
+			"apps,a": base_index_model.Flag{
+				Required: false,
+				FlagType: "[]string",
+				FlagKind: "",
+			},
+			"nodes,n": base_index_model.Flag{
+				Required: false,
+				FlagType: "[]string",
+				FlagKind: "",
+			},
+			"trace.id,t": base_index_model.Flag{
+				Required: false,
 				FlagType: "string",
 				FlagKind: "",
 			},
@@ -225,10 +287,10 @@ var ResourceVirtualAdminCmdMap = map[string]index_model.Cmd{
 		OutputKind:   "",
 		OutputFormat: "",
 	},
-	"get.log.params": index_model.Cmd{
+	"get.log.params": base_index_model.Cmd{
 		QueryName: "GetLogParams",
-		FlagMap: map[string]index_model.Flag{
-			"cluster,c": index_model.Flag{
+		FlagMap: map[string]base_index_model.Flag{
+			"cluster,c": base_index_model.Flag{
 				Required: true,
 				FlagType: "string",
 				FlagKind: "",
@@ -237,67 +299,187 @@ var ResourceVirtualAdminCmdMap = map[string]index_model.Cmd{
 		OutputKind:   "string",
 		OutputFormat: "string",
 	},
+	"get.events": base_index_model.Cmd{
+		QueryName: "GetEvents",
+		FlagMap: map[string]base_index_model.Flag{
+			"cluster,c": base_index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+		},
+		OutputKind:   "table",
+		OutputFormat: "Check,Level,Project,Node,Msg,ReissueDuration,Silenced,Time",
+	},
+	"get.event.rule": base_index_model.Cmd{
+		QueryName: "GetEventRule",
+		FlagMap: map[string]base_index_model.Flag{
+			"cluster,c": base_index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+			"name,n": base_index_model.Flag{
+				Required: false,
+				FlagType: "string",
+				FlagKind: "",
+			},
+		},
+		OutputKind:   "table",
+		OutputFormat: "Project,Node,Name,Msg,Check,Level,Kind,Until,Spec",
+	},
+	"get.event.rules": base_index_model.Cmd{
+		QueryName: "GetEventRules",
+		FlagMap: map[string]base_index_model.Flag{
+			"cluster,c": base_index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+		},
+		OutputKind:   "table",
+		OutputFormat: "Project,Node,Name,Msg,Check,Level,Kind,Until,Spec",
+	},
+	"create.event.rules": base_index_model.Cmd{
+		QueryName: "CreateEventRules",
+		FlagMap: map[string]base_index_model.Flag{
+			"cluster,c": base_index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+			"specs,s": base_index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "file",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
+	"update.event.rules": base_index_model.Cmd{
+		QueryName: "UpdateEventRules",
+		FlagMap: map[string]base_index_model.Flag{
+			"cluster,c": base_index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+			"specs,s": base_index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "file",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
+	"delete.event.rules": base_index_model.Cmd{
+		QueryName: "DeleteEventRules",
+		FlagMap: map[string]base_index_model.Flag{
+			"cluster,c": base_index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+			"specs,s": base_index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "file",
+			},
+		},
+		OutputKind:   "",
+		OutputFormat: "",
+	},
 }
 
-var ApiQueryMap = map[string]map[string]spec_model.QueryModel{
-	"Auth": map[string]spec_model.QueryModel{
-		"Login":         spec_model.QueryModel{},
-		"UpdateService": spec_model.QueryModel{},
+var ApiQueryMap = map[string]map[string]base_spec_model.QueryModel{
+	"Auth": map[string]base_spec_model.QueryModel{
+		"Login":         base_spec_model.QueryModel{},
+		"UpdateService": base_spec_model.QueryModel{},
 	},
-	"ResourceVirtualAdmin": map[string]spec_model.QueryModel{
-		"GetCompute": spec_model.QueryModel{
+	"ResourceVirtualAdmin": map[string]base_spec_model.QueryModel{
+		"GetCompute": base_spec_model.QueryModel{
 			RequiredAuth:    true,
 			RequiredProject: true,
 		},
-		"GetComputes": spec_model.QueryModel{
+		"GetComputes": base_spec_model.QueryModel{
 			RequiredAuth:    true,
 			RequiredProject: true,
 		},
-		"CreateCompute": spec_model.QueryModel{
+		"CreateCompute": base_spec_model.QueryModel{
 			RequiredAuth:    true,
 			RequiredProject: true,
 		},
-		"UpdateCompute": spec_model.QueryModel{
+		"UpdateCompute": base_spec_model.QueryModel{
 			RequiredAuth:    true,
 			RequiredProject: true,
 		},
-		"DeleteCompute": spec_model.QueryModel{
+		"DeleteCompute": base_spec_model.QueryModel{
 			RequiredAuth:    true,
 			RequiredProject: true,
 		},
-		"DeleteComputes": spec_model.QueryModel{
+		"DeleteComputes": base_spec_model.QueryModel{
 			RequiredAuth:    true,
 			RequiredProject: true,
 		},
-		"GetNodeServices": spec_model.QueryModel{
+		"GetNodeServices": base_spec_model.QueryModel{
 			RequiredAuth:    true,
 			RequiredProject: true,
 		},
-		"SyncNodeService": spec_model.QueryModel{
+		"SyncNodeService": base_spec_model.QueryModel{
 			RequiredAuth:    true,
 			RequiredProject: true,
 		},
-		"ReportNodeServiceTask": spec_model.QueryModel{
+		"ReportNodeServiceTask": base_spec_model.QueryModel{
 			RequiredAuth:    true,
 			RequiredProject: true,
 		},
-		"GetNodes": spec_model.QueryModel{
+		"GetNodes": base_spec_model.QueryModel{
 			RequiredAuth:    true,
 			RequiredProject: true,
 		},
-		"GetNode": spec_model.QueryModel{
+		"GetNode": base_spec_model.QueryModel{
 			RequiredAuth:    true,
 			RequiredProject: true,
 		},
-		"ReportNode": spec_model.QueryModel{
+		"GetNodeMetrics": base_spec_model.QueryModel{
 			RequiredAuth:    true,
 			RequiredProject: true,
 		},
-		"GetLogs": spec_model.QueryModel{
+		"ReportNode": base_spec_model.QueryModel{
 			RequiredAuth:    true,
 			RequiredProject: true,
 		},
-		"GetLogParams": spec_model.QueryModel{
+		"GetLogs": base_spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"GetLogParams": base_spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"GetEvents": base_spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"GetEventRule": base_spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"GetEventRules": base_spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"CreateEventRules": base_spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"UpdateEventRules": base_spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"DeleteEventRules": base_spec_model.QueryModel{
 			RequiredAuth:    true,
 			RequiredProject: true,
 		},

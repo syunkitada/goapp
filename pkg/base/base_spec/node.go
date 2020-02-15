@@ -21,7 +21,10 @@ type GetNodeServiceData struct {
 	NodeService NodeService
 }
 
-type GetNodeServices struct{}
+type GetNodeServices struct {
+	Name string
+	Kind string
+}
 
 type GetNodeServicesData struct {
 	NodeServices []NodeService
