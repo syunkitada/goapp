@@ -1,6 +1,6 @@
 package spec
 
-import "github.com/syunkitada/goapp/pkg/authproxy/index_model"
+import "github.com/syunkitada/goapp/pkg/base/base_index_model"
 
 type NetworkV4 struct {
 	Kind        string `validate:"required"`
@@ -80,13 +80,13 @@ type Network struct {
 	Spec         string
 }
 
-var NetworkV4sTable = index_model.Table{
+var NetworkV4sTable = base_index_model.Table{
 	Name:    "NetworkV4s",
 	Route:   "/NetworkV4s",
 	Kind:    "Table",
 	DataKey: "NetworkV4s",
-	SelectActions: []index_model.Action{
-		index_model.Action{
+	SelectActions: []base_index_model.Action{
+		base_index_model.Action{
 			Name:      "Delete",
 			Icon:      "Delete",
 			Kind:      "Form",
@@ -94,16 +94,16 @@ var NetworkV4sTable = index_model.Table{
 			SelectKey: "Name",
 		},
 	},
-	Columns: []index_model.TableColumn{
-		index_model.TableColumn{
+	Columns: []base_index_model.TableColumn{
+		base_index_model.TableColumn{
 			Name: "Name", IsSearch: true,
 			Link:           "Regions/:Region/Resources/NetworkV4s/Detail/:0/View",
 			LinkKey:        "Name",
 			LinkSync:       false,
-			LinkGetQueries: []string{"GetNetworkV4"},
+			LinkDataQueries: []string{"GetNetworkV4"},
 		},
-		index_model.TableColumn{Name: "Kind"},
-		index_model.TableColumn{Name: "UpdatedAt", Kind: "Time"},
-		index_model.TableColumn{Name: "CreatedAt", Kind: "Time"},
+		base_index_model.TableColumn{Name: "Kind"},
+		base_index_model.TableColumn{Name: "UpdatedAt", Kind: "Time"},
+		base_index_model.TableColumn{Name: "CreatedAt", Kind: "Time"},
 	},
 }

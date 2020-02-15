@@ -2,32 +2,32 @@ package spec
 
 import (
 	"github.com/syunkitada/goapp/pkg/base/base_const"
-	"github.com/syunkitada/goapp/pkg/base/base_model/spec_model"
 	"github.com/syunkitada/goapp/pkg/base/base_spec"
+	"github.com/syunkitada/goapp/pkg/base/base_spec_model"
 )
 
 type Meta struct{}
 
-var Spec = spec_model.Spec{
+var Spec = base_spec_model.Spec{
 	Meta: Meta{},
 	Name: "AuthproxyApi",
 	Kind: base_const.KindApi,
-	Apis: []spec_model.Api{
-		spec_model.Api{
+	Apis: []base_spec_model.Api{
+		base_spec_model.Api{
 			Name:            "Home",
 			RequiredAuth:    true,
 			RequiredProject: false,
-			QueryModels: []spec_model.QueryModel{
-				spec_model.QueryModel{Req: base_spec.GetAllUsers{}, Rep: base_spec.GetAllUsersData{}},
-				spec_model.QueryModel{Req: base_spec.GetUser{}, Rep: base_spec.GetUserData{}},
+			QueryModels: []base_spec_model.QueryModel{
+				base_spec_model.QueryModel{Req: base_spec.GetAllUsers{}, Rep: base_spec.GetAllUsersData{}},
+				base_spec_model.QueryModel{Req: base_spec.GetUser{}, Rep: base_spec.GetUserData{}},
 			},
 		},
-		spec_model.Api{
+		base_spec_model.Api{
 			Name:            "HomeProject",
 			RequiredAuth:    true,
 			RequiredProject: true,
-			QueryModels: []spec_model.QueryModel{
-				spec_model.QueryModel{Req: base_spec.GetUsers{}, Rep: base_spec.GetUsersData{}},
+			QueryModels: []base_spec_model.QueryModel{
+				base_spec_model.QueryModel{Req: base_spec.GetUsers{}, Rep: base_spec.GetUsersData{}},
 			},
 		},
 	},

@@ -11,9 +11,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/syunkitada/goapp/pkg/base/base_const"
-	"github.com/syunkitada/goapp/pkg/base/base_model"
-	"github.com/syunkitada/goapp/pkg/base/base_model/spec_model"
+	"github.com/syunkitada/goapp/pkg/base/base_protocol"
 	"github.com/syunkitada/goapp/pkg/base/base_spec"
+	"github.com/syunkitada/goapp/pkg/base/base_spec_model"
 	"github.com/syunkitada/goapp/pkg/lib/error_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
@@ -93,11 +93,11 @@ func (app *BaseApp) NewHandler() http.Handler {
 	return handler
 }
 
-func (app *BaseApp) Start(tctx *logger.TraceContext, httpReq *http.Request, isProxy bool) (service *spec_model.ServiceRouter,
-	userAuthority *base_spec.UserAuthority, rawReq []byte, req *base_model.Request, res *base_model.Response, err error) {
-	res = &base_model.Response{TraceId: tctx.GetTraceId(), ResultMap: map[string]base_model.Result{}}
+func (app *BaseApp) Start(tctx *logger.TraceContext, httpReq *http.Request, isProxy bool) (service *base_spec_model.ServiceRouter,
+	userAuthority *base_spec.UserAuthority, rawReq []byte, req *base_protocol.Request, res *base_protocol.Response, err error) {
+	res = &base_protocol.Response{TraceId: tctx.GetTraceId(), ResultMap: map[string]base_protocol.Result{}}
 
-	req = &base_model.Request{}
+	req = &base_protocol.Request{}
 	bufbody := new(bytes.Buffer)
 	bufbody.ReadFrom(httpReq.Body)
 	rawReq = bufbody.Bytes()
@@ -232,7 +232,7 @@ func (app *BaseApp) ValidateHeaders() gin.HandlerFunc {
 	}
 }
 
-func (app *BaseApp) Proxy(tctx *logger.TraceContext, service *spec_model.ServiceRouter, endpoint string, rawReq []byte) (repBytes []byte, statusCode int, err error) {
+func (app *BaseApp) Proxy(tctx *logger.TraceContext, service *base_spec_model.ServiceRouter, endpoint string, rawReq []byte) (repBytes []byte, statusCode int, err error) {
 	var httpResp *http.Response
 	reqBuffer := bytes.NewBuffer(rawReq)
 	var httpReq *http.Request

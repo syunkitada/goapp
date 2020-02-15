@@ -14,7 +14,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/syunkitada/goapp/pkg/base/base_config"
 	"github.com/syunkitada/goapp/pkg/base/base_const"
-	"github.com/syunkitada/goapp/pkg/base/base_model"
+	"github.com/syunkitada/goapp/pkg/base/base_protocol"
 	"github.com/syunkitada/goapp/pkg/base/base_spec"
 	"github.com/syunkitada/goapp/pkg/lib/error_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
@@ -74,20 +74,20 @@ func (client *Client) Request(tctx *logger.TraceContext, service string, queries
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
-	reqQueries := []base_model.ReqQuery{}
+	reqQueries := []base_protocol.ReqQuery{}
 	var queryBytes []byte
 	for _, query := range queries {
 		if queryBytes, err = json.Marshal(query.Data); err != nil {
 			return err
 		} else {
-			reqQueries = append(reqQueries, base_model.ReqQuery{
+			reqQueries = append(reqQueries, base_protocol.ReqQuery{
 				Name: query.Name,
 				Data: string(queryBytes),
 			})
 		}
 	}
 
-	req := base_model.Request{
+	req := base_protocol.Request{
 		Tctx:    tctx,
 		Service: service,
 		Project: client.project,
@@ -157,7 +157,7 @@ func (client *Client) Request(tctx *logger.TraceContext, service string, queries
 	}
 
 	if statusCode != 200 {
-		var baseResponse base_model.Response
+		var baseResponse base_protocol.Response
 		if err = json.Unmarshal(body, &baseResponse); err != nil {
 			return fmt.Errorf("Invalid StatusCode: got=%d, want=%d", statusCode, 200)
 		}
@@ -200,7 +200,7 @@ func (client *Client) Auth(tctx *logger.TraceContext) (err error) {
 }
 
 type LoginResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap LoginResultMap
 }
 
@@ -238,7 +238,7 @@ func (client *Client) Login(tctx *logger.TraceContext, input *base_spec.Login) (
 }
 
 type GetServiceIndexResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap GetServiceIndexResultMap
 }
 type GetServiceIndexResultMap struct {
@@ -275,7 +275,7 @@ func (client *Client) GetServiceIndex(tctx *logger.TraceContext, input *base_spe
 }
 
 type UpdateServiceResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap UpdateServiceResultMap
 }
 

@@ -1,4 +1,4 @@
-package base_model
+package base_protocol
 
 import "github.com/dgrijalva/jwt-go"
 

@@ -199,6 +199,7 @@ class BasicView extends React.Component<IBasicView> {
           switch (card.Kind) {
             case "Fields":
               const fields: JSX.Element[] = [];
+              console.log("TODO renderPanels2");
               for (let x = 0, xlen = card.Fields.length; x < xlen; x++) {
                 const field = card.Fields[x];
                 const value = rawData[field.Name];
@@ -217,6 +218,7 @@ class BasicView extends React.Component<IBasicView> {
                   </Table>
                 </Grid>
               );
+              console.log("TODO renderPanels3");
 
               break;
             case "Tables":

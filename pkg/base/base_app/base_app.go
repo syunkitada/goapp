@@ -13,9 +13,9 @@ import (
 	"github.com/syunkitada/goapp/pkg/base/base_client"
 	"github.com/syunkitada/goapp/pkg/base/base_config"
 	"github.com/syunkitada/goapp/pkg/base/base_db_api"
-	"github.com/syunkitada/goapp/pkg/base/base_model"
-	"github.com/syunkitada/goapp/pkg/base/base_model/spec_model"
+	"github.com/syunkitada/goapp/pkg/base/base_protocol"
 	"github.com/syunkitada/goapp/pkg/base/base_spec"
+	"github.com/syunkitada/goapp/pkg/base/base_spec_model"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
 
@@ -35,12 +35,12 @@ type BaseApp struct {
 	shutdownTimeout    time.Duration
 	rootClient         *base_client.Client
 	dbApi              base_db_api.IApi
-	serviceMap         map[string]spec_model.ServiceRouter
+	serviceMap         map[string]base_spec_model.ServiceRouter
 	queryHandler       IQueryHandler
 }
 
 type IQueryHandler interface {
-	Exec(tctx *logger.TraceContext, userAuthority *base_spec.UserAuthority, httpReq *http.Request, rw http.ResponseWriter, req *base_model.Request, rep *base_model.Response) error
+	Exec(tctx *logger.TraceContext, userAuthority *base_spec.UserAuthority, httpReq *http.Request, rw http.ResponseWriter, req *base_protocol.Request, rep *base_protocol.Response) error
 }
 
 func New(conf *base_config.Config, appConf *base_config.AppConfig, dbApi base_db_api.IApi, queryHandler IQueryHandler) BaseApp {

@@ -2,14 +2,14 @@ package resolver
 
 import (
 	"github.com/syunkitada/goapp/pkg/base/base_const"
-	"github.com/syunkitada/goapp/pkg/base/base_model/index_model"
+	"github.com/syunkitada/goapp/pkg/base/base_index_model"
 	"github.com/syunkitada/goapp/pkg/base/base_spec"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
 
 func (resolver *Resolver) GetServiceIndex(tctx *logger.TraceContext, input *base_spec.GetServiceIndex, user *base_spec.UserAuthority) (data *base_spec.GetServiceIndexData, code uint8, err error) {
-	cmdMap := map[string]index_model.Cmd{}
-	cmdMaps := []map[string]index_model.Cmd{
+	cmdMap := map[string]base_index_model.Cmd{}
+	cmdMaps := []map[string]base_index_model.Cmd{
 		base_spec.UserCmd,
 	}
 	for _, tmpCmdMap := range cmdMaps {
@@ -20,7 +20,7 @@ func (resolver *Resolver) GetServiceIndex(tctx *logger.TraceContext, input *base
 
 	code = base_const.CodeOk
 	data = &base_spec.GetServiceIndexData{
-		Index: index_model.Index{
+		Index: base_index_model.Index{
 			CmdMap: cmdMap,
 		},
 	}
@@ -30,8 +30,8 @@ func (resolver *Resolver) GetServiceIndex(tctx *logger.TraceContext, input *base
 
 func (resolver *Resolver) GetServiceDashboardIndex(tctx *logger.TraceContext, input *base_spec.GetServiceDashboardIndex, user *base_spec.UserAuthority) (data *base_spec.GetServiceDashboardIndexData, code uint8, err error) {
 	data = &base_spec.GetServiceDashboardIndexData{
-		Index: index_model.DashboardIndex{
-			View: index_model.Panels{
+		Index: base_index_model.DashboardIndex{
+			View: base_index_model.Panels{
 				Name: "Root",
 				Kind: "RoutePanels",
 				Panels: []interface{}{

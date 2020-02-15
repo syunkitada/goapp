@@ -7,8 +7,8 @@ import (
 
 	"github.com/syunkitada/goapp/pkg/base/base_config"
 	"github.com/syunkitada/goapp/pkg/base/base_db_model"
-	"github.com/syunkitada/goapp/pkg/base/base_model/spec_model"
 	"github.com/syunkitada/goapp/pkg/base/base_spec"
+	"github.com/syunkitada/goapp/pkg/base/base_spec_model"
 	"github.com/syunkitada/goapp/pkg/lib/error_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
@@ -34,10 +34,10 @@ type Api struct {
 	databaseConf         base_config.DatabaseConfig
 	nodeDownTimeDuration time.Duration
 	secrets              []string
-	apiQueryMap          map[string]map[string]spec_model.QueryModel
+	apiQueryMap          map[string]map[string]base_spec_model.QueryModel
 }
 
-func New(baseConf *base_config.Config, appConf *base_config.AppConfig, apiQueryMap map[string]map[string]spec_model.QueryModel) *Api {
+func New(baseConf *base_config.Config, appConf *base_config.AppConfig, apiQueryMap map[string]map[string]base_spec_model.QueryModel) *Api {
 	api := Api{
 		baseConf:             baseConf,
 		appConf:              appConf,

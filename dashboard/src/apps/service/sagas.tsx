@@ -30,7 +30,7 @@ function* post(action) {
 
   console.log("DEBUG TODO post", index, state, route);
   if (!route.match) {
-    console.error("FIXME Invalid route", index, state, route);
+    logger.error("Invalid route", index, state, route);
     return;
   }
   const params = route.match.params;

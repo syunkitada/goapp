@@ -490,12 +490,7 @@ class IndexTable extends React.Component<IIndexTable> {
                     const splitedLink = link.split("/");
                     const splitedNextLink: any[] = [];
                     let baseUrl = beforeRoute.match.url;
-                    console.log(
-                      "DEBUG TODO base",
-                      baseUrl,
-                      rawValue,
-                      splitedLink
-                    );
+                    console.log("DEBUG base", baseUrl, rawValue, splitedLink);
                     for (
                       let j = 0, linkLen = splitedLink.length;
                       j < linkLen;
@@ -509,10 +504,8 @@ class IndexTable extends React.Component<IIndexTable> {
                         } else {
                           const tmppath = currentRoute.match.params[pathKey];
                           if (tmppath) {
-                            console.log("DEBUG splited tmppath", tmppath);
                             path = tmppath;
                           } else {
-                            console.log("DEBUG splited none", pathKey);
                             path = rawValue[column.LinkKey];
                           }
                         }
@@ -526,7 +519,7 @@ class IndexTable extends React.Component<IIndexTable> {
                       baseUrl = "";
                     }
                     link = baseUrl + "/" + splitedNextLink.join("/");
-                    console.log("DEBUG TODO link", link);
+                    console.log("DEBUG link", link);
                     cells.push(
                       <TableCell
                         align={align}

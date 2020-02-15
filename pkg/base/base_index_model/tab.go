@@ -1,4 +1,4 @@
-package index_model
+package base_index_model
 
 type Tabs struct {
 	Name             string
@@ -8,7 +8,6 @@ type Tabs struct {
 	RouteParamKey    string
 	RouteParamValue  string
 	TabParam         string
-	GetQueries       []string
 	DataQueries      []string
 	ExpectedDataKeys []string
 	IsSync           bool

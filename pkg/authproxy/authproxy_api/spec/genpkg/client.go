@@ -6,7 +6,7 @@ package genpkg
 import (
 	"github.com/syunkitada/goapp/pkg/base/base_client"
 	"github.com/syunkitada/goapp/pkg/base/base_config"
-	"github.com/syunkitada/goapp/pkg/base/base_model"
+	"github.com/syunkitada/goapp/pkg/base/base_protocol"
 	"github.com/syunkitada/goapp/pkg/base/base_spec"
 	"github.com/syunkitada/goapp/pkg/lib/error_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
@@ -24,7 +24,7 @@ func NewClient(conf *base_config.ClientConfig) *Client {
 }
 
 type GetAllUsersResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap GetAllUsersResultMap
 }
 
@@ -38,7 +38,7 @@ type GetAllUsersResult struct {
 	Data  base_spec.GetAllUsersData
 }
 type GetUserResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap GetUserResultMap
 }
 
@@ -52,7 +52,7 @@ type GetUserResult struct {
 	Data  base_spec.GetUserData
 }
 type GetUsersResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap GetUsersResultMap
 }
 

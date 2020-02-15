@@ -1,9 +1,9 @@
-import * as React from 'react';
-import { connect } from 'react-redux';
+import * as React from "react";
+import { connect } from "react-redux";
 
-import OriginTablePagination from '@material-ui/core/TablePagination';
+import OriginTablePagination from "@material-ui/core/TablePagination";
 
-import TablePaginationActions from './TablePaginationActions';
+import TablePaginationActions from "./TablePaginationActions";
 
 interface ITablePagination {
   count;
@@ -20,10 +20,8 @@ class TablePagination extends React.Component<ITablePagination> {
       rowsPerPage,
       page,
       onChangePage,
-      onChangeRowsPerPage,
+      onChangeRowsPerPage
     } = this.props;
-
-    console.log("DEBUG TODO PAGE", count, rowsPerPage, page)
 
     return (
       <OriginTablePagination
@@ -33,10 +31,10 @@ class TablePagination extends React.Component<ITablePagination> {
         rowsPerPage={rowsPerPage}
         page={page}
         backIconButtonProps={{
-          'aria-label': 'Previous Page',
+          "aria-label": "Previous Page"
         }}
         nextIconButtonProps={{
-          'aria-label': 'Next Page',
+          "aria-label": "Next Page"
         }}
         onChangePage={onChangePage}
         onChangeRowsPerPage={onChangeRowsPerPage}
@@ -54,7 +52,4 @@ function mapDispatchToProps(dispatch, ownProps) {
   return {};
 }
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(TablePagination);
+export default connect(mapStateToProps, mapDispatchToProps)(TablePagination);

@@ -1,6 +1,6 @@
 package spec
 
-import "github.com/syunkitada/goapp/pkg/authproxy/index_model"
+import "github.com/syunkitada/goapp/pkg/base/base_index_model"
 
 type Floor struct {
 	Kind       string `validate:"required"`
@@ -52,13 +52,13 @@ type DeleteFloors struct {
 
 type DeleteFloorsData struct{}
 
-var FloorsTable = index_model.Table{
+var FloorsTable = base_index_model.Table{
 	Name:    "Floors",
 	Route:   "/Floors",
 	Kind:    "Table",
 	DataKey: "Floors",
-	SelectActions: []index_model.Action{
-		index_model.Action{
+	SelectActions: []base_index_model.Action{
+		base_index_model.Action{
 			Name:      "Delete",
 			Icon:      "Delete",
 			Kind:      "Form",
@@ -66,16 +66,16 @@ var FloorsTable = index_model.Table{
 			SelectKey: "Name",
 		},
 	},
-	Columns: []index_model.TableColumn{
-		index_model.TableColumn{
+	Columns: []base_index_model.TableColumn{
+		base_index_model.TableColumn{
 			Name: "Name", IsSearch: true,
 			Link:           "Datacenters/:Datacenter/Resources/Floors/Detail/:0/View",
-			LinkKey:      "Name",
+			LinkKey:        "Name",
 			LinkSync:       false,
-			LinkGetQueries: []string{"GetFloor"},
+			LinkDataQueries: []string{"GetFloor"},
 		},
-		index_model.TableColumn{Name: "Kind"},
-		index_model.TableColumn{Name: "UpdatedAt", Kind: "Time"},
-		index_model.TableColumn{Name: "CreatedAt", Kind: "Time"},
+		base_index_model.TableColumn{Name: "Kind"},
+		base_index_model.TableColumn{Name: "UpdatedAt", Kind: "Time"},
+		base_index_model.TableColumn{Name: "CreatedAt", Kind: "Time"},
 	},
 }

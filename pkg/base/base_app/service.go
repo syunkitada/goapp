@@ -5,8 +5,8 @@ import (
 	"strings"
 
 	"github.com/syunkitada/goapp/pkg/base/base_client"
-	"github.com/syunkitada/goapp/pkg/base/base_model/spec_model"
 	"github.com/syunkitada/goapp/pkg/base/base_spec"
+	"github.com/syunkitada/goapp/pkg/base/base_spec_model"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
 
@@ -17,13 +17,13 @@ func (app *BaseApp) SyncService(tctx *logger.TraceContext) (err error) {
 		return
 	}
 
-	serviceMap := map[string]spec_model.ServiceRouter{}
+	serviceMap := map[string]base_spec_model.ServiceRouter{}
 	for _, service := range data.Services {
-		var queryMap map[string]spec_model.QueryModel
+		var queryMap map[string]base_spec_model.QueryModel
 		if err = json.Unmarshal([]byte(service.QueryMap), &queryMap); err != nil {
 			return
 		}
-		serviceMap[service.Name] = spec_model.ServiceRouter{
+		serviceMap[service.Name] = base_spec_model.ServiceRouter{
 			Token:     service.Token,
 			Endpoints: strings.Split(service.Endpoints, ","),
 			QueryMap:  queryMap,

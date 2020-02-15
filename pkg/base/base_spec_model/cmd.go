@@ -1,4 +1,4 @@
-package spec_model
+package base_spec_model
 
 type Cmd struct {
 	Arg         string

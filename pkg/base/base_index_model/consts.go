@@ -1,4 +1,4 @@
-package index_model
+package base_index_model
 
 const ArgRequired = "required"
 const ArgOptional = "optional"

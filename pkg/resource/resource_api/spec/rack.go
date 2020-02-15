@@ -1,6 +1,6 @@
 package spec
 
-import "github.com/syunkitada/goapp/pkg/authproxy/index_model"
+import "github.com/syunkitada/goapp/pkg/base/base_index_model"
 
 type Rack struct {
 	Kind       string `validate:"required"`
@@ -52,13 +52,13 @@ type DeleteRacks struct {
 
 type DeleteRacksData struct{}
 
-var RacksTable = index_model.Table{
+var RacksTable = base_index_model.Table{
 	Name:    "Racks",
 	Route:   "/Racks",
 	Kind:    "Table",
 	DataKey: "Racks",
-	SelectActions: []index_model.Action{
-		index_model.Action{
+	SelectActions: []base_index_model.Action{
+		base_index_model.Action{
 			Name:      "Delete",
 			Icon:      "Delete",
 			Kind:      "Form",
@@ -66,16 +66,16 @@ var RacksTable = index_model.Table{
 			SelectKey: "Name",
 		},
 	},
-	Columns: []index_model.TableColumn{
-		index_model.TableColumn{
+	Columns: []base_index_model.TableColumn{
+		base_index_model.TableColumn{
 			Name: "Name", IsSearch: true,
 			Link:           "Datacenters/:Datacenter/Resources/Racks/Detail/:0/View",
 			LinkKey:      "Name",
 			LinkSync:       false,
-			LinkGetQueries: []string{"GetRack"},
+			LinkDataQueries: []string{"GetRack"},
 		},
-		index_model.TableColumn{Name: "Kind"},
-		index_model.TableColumn{Name: "UpdatedAt", Kind: "Time"},
-		index_model.TableColumn{Name: "CreatedAt", Kind: "Time"},
+		base_index_model.TableColumn{Name: "Kind"},
+		base_index_model.TableColumn{Name: "UpdatedAt", Kind: "Time"},
+		base_index_model.TableColumn{Name: "CreatedAt", Kind: "Time"},
 	},
 }

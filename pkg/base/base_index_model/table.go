@@ -1,4 +1,4 @@
-package index_model
+package base_index_model
 
 type Table struct {
 	Name           string
@@ -39,7 +39,6 @@ type TableColumn struct {
 	LinkParam       string
 	LinkKey         string
 	LinkSync        bool
-	LinkGetQueries  []string
 	LinkDataQueries []string
 	RowColoringMap  map[string]string
 	FilterValues    []map[string]string

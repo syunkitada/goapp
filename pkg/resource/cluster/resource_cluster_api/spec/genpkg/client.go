@@ -6,7 +6,7 @@ package genpkg
 import (
 	"github.com/syunkitada/goapp/pkg/base/base_client"
 	"github.com/syunkitada/goapp/pkg/base/base_config"
-	"github.com/syunkitada/goapp/pkg/base/base_model"
+	"github.com/syunkitada/goapp/pkg/base/base_protocol"
 	"github.com/syunkitada/goapp/pkg/lib/error_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
@@ -24,7 +24,7 @@ func NewClient(conf *base_config.ClientConfig) *Client {
 }
 
 type CreateComputeResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap CreateComputeResultMap
 }
 
@@ -38,7 +38,7 @@ type CreateComputeResult struct {
 	Data  spec.CreateComputeData
 }
 type CreateEventRulesResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap CreateEventRulesResultMap
 }
 
@@ -52,7 +52,7 @@ type CreateEventRulesResult struct {
 	Data  spec.CreateEventRulesData
 }
 type DeleteComputeResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap DeleteComputeResultMap
 }
 
@@ -66,7 +66,7 @@ type DeleteComputeResult struct {
 	Data  spec.DeleteComputeData
 }
 type DeleteComputesResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap DeleteComputesResultMap
 }
 
@@ -80,7 +80,7 @@ type DeleteComputesResult struct {
 	Data  spec.DeleteComputesData
 }
 type DeleteEventRulesResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap DeleteEventRulesResultMap
 }
 
@@ -94,7 +94,7 @@ type DeleteEventRulesResult struct {
 	Data  spec.DeleteEventRulesData
 }
 type GetComputeResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap GetComputeResultMap
 }
 
@@ -108,7 +108,7 @@ type GetComputeResult struct {
 	Data  spec.GetComputeData
 }
 type GetComputesResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap GetComputesResultMap
 }
 
@@ -122,7 +122,7 @@ type GetComputesResult struct {
 	Data  spec.GetComputesData
 }
 type GetEventRuleResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap GetEventRuleResultMap
 }
 
@@ -136,7 +136,7 @@ type GetEventRuleResult struct {
 	Data  spec.GetEventRuleData
 }
 type GetEventRulesResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap GetEventRulesResultMap
 }
 
@@ -150,7 +150,7 @@ type GetEventRulesResult struct {
 	Data  spec.GetEventRulesData
 }
 type GetEventsResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap GetEventsResultMap
 }
 
@@ -164,7 +164,7 @@ type GetEventsResult struct {
 	Data  spec.GetEventsData
 }
 type GetLogParamsResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap GetLogParamsResultMap
 }
 
@@ -178,7 +178,7 @@ type GetLogParamsResult struct {
 	Data  spec.GetLogParamsData
 }
 type GetLogsResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap GetLogsResultMap
 }
 
@@ -192,7 +192,7 @@ type GetLogsResult struct {
 	Data  spec.GetLogsData
 }
 type GetNodeResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap GetNodeResultMap
 }
 
@@ -206,7 +206,7 @@ type GetNodeResult struct {
 	Data  spec.GetNodeData
 }
 type GetNodeMetricsResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap GetNodeMetricsResultMap
 }
 
@@ -220,7 +220,7 @@ type GetNodeMetricsResult struct {
 	Data  spec.GetNodeMetricsData
 }
 type GetNodeServicesResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap GetNodeServicesResultMap
 }
 
@@ -234,7 +234,7 @@ type GetNodeServicesResult struct {
 	Data  spec.GetNodeServicesData
 }
 type GetNodesResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap GetNodesResultMap
 }
 
@@ -248,7 +248,7 @@ type GetNodesResult struct {
 	Data  spec.GetNodesData
 }
 type ReportNodeResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap ReportNodeResultMap
 }
 
@@ -262,7 +262,7 @@ type ReportNodeResult struct {
 	Data  spec.ReportNodeData
 }
 type ReportNodeServiceTaskResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap ReportNodeServiceTaskResultMap
 }
 
@@ -276,7 +276,7 @@ type ReportNodeServiceTaskResult struct {
 	Data  spec.ReportNodeServiceTaskData
 }
 type SyncNodeServiceResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap SyncNodeServiceResultMap
 }
 
@@ -290,7 +290,7 @@ type SyncNodeServiceResult struct {
 	Data  spec.SyncNodeServiceData
 }
 type UpdateComputeResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap UpdateComputeResultMap
 }
 
@@ -304,7 +304,7 @@ type UpdateComputeResult struct {
 	Data  spec.UpdateComputeData
 }
 type UpdateEventRulesResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap UpdateEventRulesResultMap
 }
 

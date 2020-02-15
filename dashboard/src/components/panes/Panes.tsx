@@ -41,7 +41,7 @@ class Panes extends React.Component<IPanes> {
     const { routes, index, data } = this.props;
     const route = routes.slice(-1)[0];
     const beforeRoute = routes.slice(-2)[0];
-    console.log("DEBUG: Panes.componentWillMount");
+    console.log("TODO DEBUG: Panes.componentWillMount");
 
     const location = route.location;
     const queryStr = decodeURIComponent(location.search);
@@ -57,10 +57,16 @@ class Panes extends React.Component<IPanes> {
 
     for (let i = 0, len = index.Panes.length; i < len; i++) {
       const pane = index.Panes[i];
-      console.log("DEBUG pane", pane);
-      console.log(route.match.path, beforeRoute.match.path, pane.Route);
+      console.log("DEBUG TODO pane", pane);
+      console.log(
+        "DEBUG TODO route1",
+        route.match.path,
+        beforeRoute.match.path,
+        pane.Route
+      );
 
       console.log(
+        "DEBUG TODO route2",
         route.match.params[pane.RouteParamKey],
         pane.RouteParamKey,
         pane.RouteParamValue
@@ -69,9 +75,10 @@ class Panes extends React.Component<IPanes> {
       if (
         pane.RouteParamKey &&
         pane.ExpectedDataKeys &&
-        pane.GetQueries &&
+        pane.DataQueries &&
         route.match.params[pane.RouteParamKey] === pane.RouteParamValue
       ) {
+        console.log("DEBUG TODO HOGE");
         let isInit = false;
         for (
           let j = 0, keysLen = pane.ExpectedDataKeys.length;
@@ -83,16 +90,17 @@ class Panes extends React.Component<IPanes> {
             break;
           }
         }
-        if (isInit && pane.GetQueries) {
-          console.log("DEBUG isInit", isInit, pane.GetQueries);
+        if (isInit && pane.DataQueries) {
+          console.log("DEBUG isInit", isInit, pane.DataQueries);
           this.props.getQueries(pane, this.state, route, searchQueries);
         }
         break;
       } else if (
         pane.ExpectedDataKeys &&
-        pane.GetQueries &&
+        pane.DataQueries &&
         route.match.path === beforeRoute.match.path + pane.Route
       ) {
+        console.log("DEBUG TODO HOGE2");
         let isInit = false;
         for (
           let j = 0, keysLen = pane.ExpectedDataKeys.length;
@@ -104,7 +112,7 @@ class Panes extends React.Component<IPanes> {
             break;
           }
         }
-        if (isInit && pane.GetQueries) {
+        if (isInit && pane.DataQueries) {
           this.props.getQueries(pane, this.state, route, searchQueries);
         }
         break;
@@ -121,7 +129,9 @@ class Panes extends React.Component<IPanes> {
     let tabContainer: any = null;
     for (let i = 0, len = index.Panes.length; i < len; i++) {
       const pane = index.Panes[i];
+      console.log("TODO Panes", index.PaneParam, route.match.params, pane.Name);
       if (route.match.params[index.PaneParam] === pane.Name) {
+        console.log("TODO Panes2");
         tabContainer = (
           <Typography component="div">{render(routes, data, pane)}</Typography>
         );
@@ -141,6 +151,7 @@ function mapStateToProps(state, ownProps) {
 function mapDispatchToProps(dispatch, ownProps) {
   return {
     getQueries: (index, route, searchQueries) => {
+      console.log("DEBUG TODO getQueries panes", index, route, searchQueries);
       dispatch(
         actions.service.serviceGetQueries({
           index,

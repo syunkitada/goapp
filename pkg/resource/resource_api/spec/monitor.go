@@ -3,7 +3,7 @@ package spec
 import (
 	"time"
 
-	"github.com/syunkitada/goapp/pkg/base/base_model/index_model"
+	"github.com/syunkitada/goapp/pkg/base/base_index_model"
 )
 
 type ResourceLog struct {
@@ -58,14 +58,14 @@ type GetTrace struct {
 type GetTraceData struct {
 }
 
-var LogsTable = index_model.Table{
+var LogsTable = base_index_model.Table{
 	Name:        "Logs",
 	Route:       "/Logs",
 	Kind:        "Table",
 	DataQueries: []string{"GetLogParams"},
 	DataKey:     "Logs",
-	SelectActions: []index_model.Action{
-		index_model.Action{
+	SelectActions: []base_index_model.Action{
+		base_index_model.Action{
 			Name:      "Delete",
 			Icon:      "Delete",
 			Kind:      "Form",
@@ -73,63 +73,63 @@ var LogsTable = index_model.Table{
 			SelectKey: "Name",
 		},
 	},
-	SearchForm: index_model.SearchForm{
+	SearchForm: base_index_model.SearchForm{
 		Kind: "SearchForm",
-		Inputs: []index_model.TableInputField{
-			index_model.TableInputField{
+		Inputs: []base_index_model.TableInputField{
+			base_index_model.TableInputField{
 				Name:     "Apps",
 				Type:     "Selector",
 				DataKey:  "LogApps",
 				Multiple: true,
 			},
-			index_model.TableInputField{
+			base_index_model.TableInputField{
 				Name:     "Nodes",
 				Type:     "Selector",
 				DataKey:  "LogNodes",
 				Multiple: true,
 			},
-			index_model.TableInputField{
+			base_index_model.TableInputField{
 				Name: "TraceId",
 				Type: "Text",
 			},
-			index_model.TableInputField{
+			base_index_model.TableInputField{
 				Name:     "LimitLogs",
 				Type:     "Selector",
 				Data:     []string{"5k", "10k", "20k", "30k", "40k", "50k"},
 				Default:  "10k",
 				Multiple: false,
 			},
-			index_model.TableInputField{
+			base_index_model.TableInputField{
 				Name:     "FromTime",
 				Type:     "Selector",
 				Data:     []string{"-6h", "-1d", "-3d"},
 				Default:  "-6h",
 				Multiple: false,
 			},
-			index_model.TableInputField{
+			base_index_model.TableInputField{
 				Name: "UntilTime",
 				Type: "DateTime",
 			},
 		},
 	},
-	Columns: []index_model.TableColumn{
-		index_model.TableColumn{Name: "App"},
-		index_model.TableColumn{Name: "Node"},
-		index_model.TableColumn{Name: "Msg", IsSearch: true},
-		index_model.TableColumn{Name: "Func"},
-		index_model.TableColumn{Name: "Level"},
-		index_model.TableColumn{Name: "TraceId"},
-		index_model.TableColumn{Name: "Time", Kind: "Time"},
+	Columns: []base_index_model.TableColumn{
+		base_index_model.TableColumn{Name: "App"},
+		base_index_model.TableColumn{Name: "Node"},
+		base_index_model.TableColumn{Name: "Msg", IsSearch: true},
+		base_index_model.TableColumn{Name: "Func"},
+		base_index_model.TableColumn{Name: "Level"},
+		base_index_model.TableColumn{Name: "TraceId"},
+		base_index_model.TableColumn{Name: "Time", Kind: "Time"},
 	},
 }
 
-var StatisticsTable = index_model.Table{
+var StatisticsTable = base_index_model.Table{
 	Name:    "Statistics",
 	Route:   "/Statistics",
 	Kind:    "Table",
 	DataKey: "Statistics",
-	SelectActions: []index_model.Action{
-		index_model.Action{
+	SelectActions: []base_index_model.Action{
+		base_index_model.Action{
 			Name:      "Delete",
 			Icon:      "Delete",
 			Kind:      "Form",
@@ -137,12 +137,12 @@ var StatisticsTable = index_model.Table{
 			SelectKey: "Name",
 		},
 	},
-	Columns: []index_model.TableColumn{
-		index_model.TableColumn{
+	Columns: []base_index_model.TableColumn{
+		base_index_model.TableColumn{
 			Name: "Name", IsSearch: true,
 		},
-		index_model.TableColumn{Name: "Kind"},
-		index_model.TableColumn{Name: "UpdatedAt", Kind: "Time"},
-		index_model.TableColumn{Name: "CreatedAt", Kind: "Time"},
+		base_index_model.TableColumn{Name: "Kind"},
+		base_index_model.TableColumn{Name: "UpdatedAt", Kind: "Time"},
+		base_index_model.TableColumn{Name: "CreatedAt", Kind: "Time"},
 	},
 }

@@ -3,7 +3,7 @@ package spec
 import (
 	"time"
 
-	"github.com/syunkitada/goapp/pkg/base/base_model/index_model"
+	"github.com/syunkitada/goapp/pkg/base/base_index_model"
 )
 
 type ResourceEvent struct {
@@ -117,14 +117,14 @@ type EventRuleActionSpec struct {
 	ContinueNext bool
 }
 
-var EventsTable = index_model.Table{
+var EventsTable = base_index_model.Table{
 	Name:        "Events",
 	Route:       "/Events",
 	Kind:        "Table",
 	DataQueries: []string{"GetEvents"},
 	DataKey:     "Events",
-	SelectActions: []index_model.Action{
-		index_model.Action{
+	SelectActions: []base_index_model.Action{
+		base_index_model.Action{
 			Name:      "Delete",
 			Icon:      "Delete",
 			Kind:      "Form",
@@ -132,14 +132,14 @@ var EventsTable = index_model.Table{
 			SelectKey: "Name",
 		},
 	},
-	Columns: []index_model.TableColumn{
-		index_model.TableColumn{
+	Columns: []base_index_model.TableColumn{
+		base_index_model.TableColumn{
 			Name: "Check", IsSearch: true,
 		},
-		index_model.TableColumn{
+		base_index_model.TableColumn{
 			Name: "Node", IsSearch: true,
 		},
-		index_model.TableColumn{
+		base_index_model.TableColumn{
 			Name:           "Level",
 			RowColoringMap: map[string]string{"Warning": "Warning", "Critical": "Critical"},
 			FilterValues: []map[string]string{
@@ -153,19 +153,19 @@ var EventsTable = index_model.Table{
 				},
 			},
 		},
-		index_model.TableColumn{Name: "Msg"},
-		index_model.TableColumn{Name: "Time", Kind: "Time"},
+		base_index_model.TableColumn{Name: "Msg"},
+		base_index_model.TableColumn{Name: "Time", Kind: "Time"},
 	},
 }
 
-var EventRulesTable = index_model.Table{
+var EventRulesTable = base_index_model.Table{
 	Name:        "EventRules",
 	Route:       "/EventRules",
 	Kind:        "Table",
 	DataQueries: []string{"GetEventRules"},
 	DataKey:     "EventRules",
-	SelectActions: []index_model.Action{
-		index_model.Action{
+	SelectActions: []base_index_model.Action{
+		base_index_model.Action{
 			Name:      "Delete",
 			Icon:      "Delete",
 			Kind:      "Form",
@@ -173,14 +173,14 @@ var EventRulesTable = index_model.Table{
 			SelectKey: "Name",
 		},
 	},
-	Columns: []index_model.TableColumn{
-		index_model.TableColumn{
+	Columns: []base_index_model.TableColumn{
+		base_index_model.TableColumn{
 			Name: "Name", IsSearch: true,
 		},
-		index_model.TableColumn{Name: "Kind"},
-		index_model.TableColumn{Name: "Node"},
-		index_model.TableColumn{Name: "Check"},
-		index_model.TableColumn{Name: "Msg"},
-		index_model.TableColumn{Name: "Until", Kind: "Time"},
+		base_index_model.TableColumn{Name: "Kind"},
+		base_index_model.TableColumn{Name: "Node"},
+		base_index_model.TableColumn{Name: "Check"},
+		base_index_model.TableColumn{Name: "Msg"},
+		base_index_model.TableColumn{Name: "Until", Kind: "Time"},
 	},
 }

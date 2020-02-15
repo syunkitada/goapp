@@ -3,7 +3,7 @@ package spec
 import (
 	"time"
 
-	"github.com/syunkitada/goapp/pkg/base/base_model/index_model"
+	"github.com/syunkitada/goapp/pkg/base/base_index_model"
 )
 
 type Compute struct {
@@ -67,14 +67,14 @@ type DeleteComputes struct {
 
 type DeleteComputesData struct{}
 
-var ComputesTable = index_model.Table{
+var ComputesTable = base_index_model.Table{
 	Name:        "Computes",
 	Route:       "/Computes",
 	Kind:        "Table",
 	DataKey:     "Computes",
 	DataQueries: []string{"GetComputes"},
-	SelectActions: []index_model.Action{
-		index_model.Action{
+	SelectActions: []base_index_model.Action{
+		base_index_model.Action{
 			Name:      "Delete",
 			Icon:      "Delete",
 			Kind:      "Form",
@@ -82,64 +82,99 @@ var ComputesTable = index_model.Table{
 			SelectKey: "Name",
 		},
 	},
-	Columns: []index_model.TableColumn{
-		index_model.TableColumn{
+	Columns: []base_index_model.TableColumn{
+		base_index_model.TableColumn{
 			Name: "Name", IsSearch: true,
-			Align:          "left",
-			Link:           "Datacenters/:Datacenter/Resources/Computes/Detail/:0/View",
-			LinkKey:        "Name",
-			LinkSync:       false,
-			LinkGetQueries: []string{"GetCompute"},
+			Align:           "left",
+			Link:            "Regions/:Region/RegionResources/Clusters/:Cluster/Resources/Computes/:Name/View",
+			LinkKey:         "Name",
+			LinkParam:       "Name",
+			LinkSync:        false,
+			LinkDataQueries: []string{"GetCompute"},
 		},
-		index_model.TableColumn{Name: "Kind"},
-		index_model.TableColumn{Name: "Status"},
-		index_model.TableColumn{Name: "StatusReason"},
-		index_model.TableColumn{Name: "UpdatedAt", Kind: "Time"},
-		index_model.TableColumn{Name: "CreatedAt", Kind: "Time"},
+		base_index_model.TableColumn{Name: "Kind"},
+		base_index_model.TableColumn{Name: "Status"},
+		base_index_model.TableColumn{Name: "StatusReason"},
+		base_index_model.TableColumn{Name: "UpdatedAt", Kind: "Time"},
+		base_index_model.TableColumn{Name: "CreatedAt", Kind: "Time"},
 	},
 }
 
-var ComputesDetail = index_model.Tabs{
-	Name:            "Computes",
-	Kind:            "RouteTabs",
-	RouteParamKey:   "Kind",
-	RouteParamValue: "Computes",
-	Route:           "/Clusters/:Cluster/Resources/Computes/Detail/:Name/:Subkind",
-	TabParam:        "Subkind",
-	GetQueries: []string{
-		"GetCompute",
-		"GetComputes", "GetImages"},
+var ComputesDetail = base_index_model.Tabs{
+	Name:             "Computes",
+	Kind:             "RouteTabs",
+	RouteParamKey:    "ClusterKind",
+	RouteParamValue:  "Computes",
+	Route:            "/Regions/:Region/RegionResources/Clusters/:Cluster/Resources/Computes/:Name/:Subkind",
+	TabParam:         "Subkind",
 	ExpectedDataKeys: []string{"Compute"},
+	DataQueries:      []string{"GetCompute"},
 	IsSync:           true,
 	Tabs: []interface{}{
-		index_model.View{
-			Name:    "View",
-			Route:   "/View",
-			Kind:    "View",
-			DataKey: "Compute",
-			Fields: []index_model.Field{
-				index_model.Field{Name: "Name", Kind: "text"},
-				index_model.Field{Name: "Kind", Kind: "select"},
+		base_index_model.View{
+			Name:        "View",
+			Route:       "/View",
+			Kind:        "View",
+			DataKey:     "Compute",
+			DataQueries: []string{"GetCompute"},
+			PanelsGroups: []interface{}{
+				map[string]interface{}{
+					"Name": "Detail",
+					"Kind": "Cards",
+					"Cards": []interface{}{
+						map[string]interface{}{
+							"Name": "Detail",
+							"Kind": "Fields",
+							"Fields": []base_index_model.Field{
+								base_index_model.Field{Name: "Name", Kind: "text"},
+								base_index_model.Field{Name: "Kind", Kind: "select"},
+							},
+						},
+					},
+				},
 			},
 		},
-		index_model.Form{
+		base_index_model.Form{
 			Name:         "Edit",
 			Route:        "/Edit",
 			Kind:         "Form",
 			DataKey:      "Compute",
 			SubmitAction: "update compute",
 			Icon:         "Update",
-			Fields: []index_model.Field{
-				index_model.Field{Name: "Name", Kind: "text", Require: true,
+			Fields: []base_index_model.Field{
+				base_index_model.Field{Name: "Name", Kind: "text", Require: true,
 					Updatable: false,
 					Min:       5, Max: 200, RegExp: "^[0-9a-zA-Z]+$",
 					RegExpMsg: "Please enter alphanumeric characters."},
-				index_model.Field{Name: "Kind", Kind: "select", Require: true,
+				base_index_model.Field{Name: "Kind", Kind: "select", Require: true,
 					Updatable: true,
 					Options: []string{
 						"Server", "Pdu", "RackSpineRouter",
 						"FloorLeafRouter", "FloorSpineRouter", "GatewayRouter",
 					}},
+			},
+		},
+		base_index_model.View{
+			Name:        "Console",
+			Route:       "/Console",
+			Kind:        "View",
+			DataKey:     "Compute",
+			DataQueries: []string{"GetCompute"},
+			PanelsGroups: []interface{}{
+				map[string]interface{}{
+					"Name": "Detail",
+					"Kind": "Cards",
+					"Cards": []interface{}{
+						map[string]interface{}{
+							"Name": "Detail",
+							"Kind": "Fields",
+							"Fields": []base_index_model.Field{
+								base_index_model.Field{Name: "Name", Kind: "text"},
+								base_index_model.Field{Name: "Kind", Kind: "select"},
+							},
+						},
+					},
+				},
 			},
 		},
 	},

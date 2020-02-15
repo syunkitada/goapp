@@ -3,7 +3,7 @@ package spec
 import (
 	"time"
 
-	"github.com/syunkitada/goapp/pkg/base/base_model/index_model"
+	"github.com/syunkitada/goapp/pkg/base/base_index_model"
 )
 
 type Image struct {
@@ -65,14 +65,14 @@ type DeleteImages struct {
 
 type DeleteImagesData struct{}
 
-var ImagesTable = index_model.Table{
+var ImagesTable = base_index_model.Table{
 	Name:        "Images",
 	Route:       "/Images",
 	Kind:        "Table",
 	DataKey:     "Images",
 	DataQueries: []string{"GetImages"},
-	SelectActions: []index_model.Action{
-		index_model.Action{
+	SelectActions: []base_index_model.Action{
+		base_index_model.Action{
 			Name:      "Delete",
 			Icon:      "Delete",
 			Kind:      "Form",
@@ -80,57 +80,57 @@ var ImagesTable = index_model.Table{
 			SelectKey: "Name",
 		},
 	},
-	Columns: []index_model.TableColumn{
-		index_model.TableColumn{
+	Columns: []base_index_model.TableColumn{
+		base_index_model.TableColumn{
 			Name: "Name", IsSearch: true,
 			Align:          "left",
 			Link:           "Regions/:Region/RegionResources/Images/Detail/:0/View",
 			LinkKey:        "Name",
 			LinkSync:       false,
-			LinkGetQueries: []string{"GetImage"},
+			LinkDataQueries: []string{"GetImage"},
 		},
-		index_model.TableColumn{Name: "Kind"},
-		index_model.TableColumn{Name: "UpdatedAt", Kind: "Time"},
-		index_model.TableColumn{Name: "CreatedAt", Kind: "Time"},
+		base_index_model.TableColumn{Name: "Kind"},
+		base_index_model.TableColumn{Name: "UpdatedAt", Kind: "Time"},
+		base_index_model.TableColumn{Name: "CreatedAt", Kind: "Time"},
 	},
 }
 
-var ImagesDetail = index_model.Tabs{
+var ImagesDetail = base_index_model.Tabs{
 	Name:            "Images",
 	Kind:            "RouteTabs",
 	RouteParamKey:   "kind",
 	RouteParamValue: "Images",
 	Route:           "/Regions/:Region/Resources/Images/Detail/:Name/:Subkind",
 	TabParam:        "Subkind",
-	GetQueries: []string{
+	DataQueries: []string{
 		"GetImage",
 		"GetRegionServices", "GetImages"},
 	ExpectedDataKeys: []string{"Image"},
 	IsSync:           true,
 	Tabs: []interface{}{
-		index_model.View{
+		base_index_model.View{
 			Name:    "View",
 			Route:   "/View",
 			Kind:    "View",
 			DataKey: "Image",
-			Fields: []index_model.Field{
-				index_model.Field{Name: "Name", Kind: "text"},
-				index_model.Field{Name: "Kind", Kind: "select"},
+			Fields: []base_index_model.Field{
+				base_index_model.Field{Name: "Name", Kind: "text"},
+				base_index_model.Field{Name: "Kind", Kind: "select"},
 			},
 		},
-		index_model.Form{
+		base_index_model.Form{
 			Name:         "Edit",
 			Route:        "/Edit",
 			Kind:         "Form",
 			DataKey:      "Image",
 			SubmitAction: "update image",
 			Icon:         "Update",
-			Fields: []index_model.Field{
-				index_model.Field{Name: "Name", Kind: "text", Require: true,
+			Fields: []base_index_model.Field{
+				base_index_model.Field{Name: "Name", Kind: "text", Require: true,
 					Updatable: false,
 					Min:       5, Max: 200, RegExp: "^[0-9a-zA-Z]+$",
 					RegExpMsg: "Please enter alphanumeric characters."},
-				index_model.Field{Name: "Kind", Kind: "select", Require: true,
+				base_index_model.Field{Name: "Kind", Kind: "select", Require: true,
 					Updatable: true,
 					Options: []string{
 						"Url",
