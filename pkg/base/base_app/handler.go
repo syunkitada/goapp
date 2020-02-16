@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/gorilla/websocket"
+
 	"github.com/gin-gonic/gin"
 	"github.com/syunkitada/goapp/pkg/base/base_const"
 	"github.com/syunkitada/goapp/pkg/base/base_protocol"
@@ -81,6 +83,47 @@ func (app *BaseApp) ExecQuery(w http.ResponseWriter, r *http.Request, isProxy bo
 	w.Write(repBytes)
 }
 
+func checkSameOrigin(r *http.Request) bool {
+	// https://github.com/gorilla/websocket/blob/master/server.go#L87
+	return true
+}
+
+var upgrader = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
+}
+
+func (app *BaseApp) Ws(w http.ResponseWriter, r *http.Request, isProxy bool) {
+	fmt.Println("DEBUG Ws")
+	w.Header().Set("Access-Control-Allow-Origin", "http://192.168.10.121:3000") // TODO FIXME
+	w.Header().Set("Access-Control-Allow-Credentials", "true")                  // TODO FIXME
+	w.Header().Set("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization")
+	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+
+	c, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		fmt.Print("upgrade:", err)
+		return
+	}
+	defer func() { err = c.Close() }()
+	for {
+		mt, message, err := c.ReadMessage()
+		if err != nil {
+			fmt.Println("read:", err)
+			break
+		}
+		fmt.Printf("recv: %s", message)
+		err = c.WriteMessage(mt, message)
+		if err != nil {
+			fmt.Println("write:", err)
+			break
+		}
+	}
+}
+
 func (app *BaseApp) NewHandler() http.Handler {
 	handler := http.NewServeMux()
 	handler.HandleFunc("/q", func(w http.ResponseWriter, r *http.Request) {
@@ -88,6 +131,9 @@ func (app *BaseApp) NewHandler() http.Handler {
 	})
 	handler.HandleFunc("/p", func(w http.ResponseWriter, r *http.Request) {
 		app.ExecQuery(w, r, true)
+	})
+	handler.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
+		app.Ws(w, r, false)
 	})
 
 	return handler
