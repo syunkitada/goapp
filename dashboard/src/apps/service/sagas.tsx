@@ -19,10 +19,11 @@ import store from "../../store";
 function createWebSocketConnection() {
   const url: any = process.env.REACT_APP_AUTHPROXY_URL;
   const wsUrl: any = url.replace("http", "ws");
+  logger.info("TODO DEBUG wsUrl", wsUrl);
   const socket = new WebSocket(wsUrl + "/ws");
   return new Promise(resolve => {
     socket.onopen = event => {
-      logger.info("websocket.onopen", event);
+      logger.info("TODO websocket.onopen", event);
       resolve(socket);
     };
   });
@@ -144,6 +145,15 @@ function* post(action) {
     yield put(actions.service.servicePostFailure({ action, payload, error }));
   } else {
     yield put(actions.service.servicePostSuccess({ action, payload, result }));
+
+    switch (action.type) {
+      case "SERVICE_GET_QUERIES":
+        if (index.EnableWebSocket) {
+          yield put(
+            actions.service.serviceStartWebSocket({ action, payload, result })
+          );
+        }
+    }
   }
   return {};
 }
@@ -219,14 +229,16 @@ function createSocketChannel(socket) {
   // the subscriber function takes an `emit` argument to put messages onto the channel
   return eventChannel(emit => {
     const pingHandler = event => {
+      console.log("TODO handlerevent", event);
       // puts event payload into the channel
       // this allows a Saga to take this payload from the returned channel
-      emit(event.payload);
+      // emit(event.payload);
     };
 
     const errorHandler = errorEvent => {
+      console.log("TODO errorHandler", errorEvent);
       // create an Error object and put it into the channel
-      emit(new Error(errorEvent.reason));
+      // emit(new Error(errorEvent.reason));
     };
 
     // setup the subscription
@@ -250,15 +262,27 @@ function* pong(socket) {
   // yield apply(socket, socket.emit, ["pong"]); // call `emit` as a method with `socket` as context
 }
 
-function* watchWebSocket() {
+function* startWebSocket(action) {
+  console.log("TODO init watchWebSocket", action);
   const socket = yield call(createWebSocketConnection);
   const socketChannel = yield call(createSocketChannel, socket);
+  const { projectName, serviceName, queries } = action.payload.payload;
+  console.log("TODO DEBUG ", projectName, serviceName, queries);
+
+  const body = JSON.stringify({
+    Project: projectName,
+    Queries: queries,
+    Service: serviceName
+  });
+
+  socket.send(body);
+  console.log("TODO sended");
 
   while (true) {
     try {
       // An error from socketChannel will cause the saga jump to the catch block
       const payload = yield take(socketChannel);
-      console.log("DEBUG payload", payload);
+      console.log("TODO taked payload", payload);
       // yield put({ type: INCOMING_PONG_PAYLOAD, payload });
       yield fork(pong, socket);
     } catch (err) {
@@ -297,10 +321,14 @@ function* watchSubmitQueries() {
   yield takeEvery(actions.service.serviceSubmitQueries, post);
 }
 
+function* watchStartWebSocket() {
+  yield takeEvery(actions.service.serviceStartWebSocket, startWebSocket);
+}
+
 export default {
   watchGetIndex,
   watchGetQueries,
   watchStartBackgroundSync,
-  watchSubmitQueries,
-  watchWebSocket
+  watchStartWebSocket,
+  watchSubmitQueries
 };

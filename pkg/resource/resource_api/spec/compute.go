@@ -155,11 +155,12 @@ var ComputesDetail = base_index_model.Tabs{
 			},
 		},
 		base_index_model.View{
-			Name:        "Console",
-			Route:       "/Console",
-			Kind:        "View",
-			DataKey:     "Compute",
-			DataQueries: []string{"GetCompute"},
+			Name:            "Console",
+			Route:           "/Console",
+			Kind:            "View",
+			DataKey:         "Compute",
+			DataQueries:     []string{"GetCompute"},
+			EnableWebSocket: true,
 			PanelsGroups: []interface{}{
 				map[string]interface{}{
 					"Name": "Detail",

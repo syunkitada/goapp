@@ -15,6 +15,6 @@ export default function* rootSaga() {
     service.watchGetQueries(),
     service.watchSubmitQueries(),
     service.watchStartBackgroundSync(),
-    service.watchWebSocket()
+    service.watchStartWebSocket()
   ]);
 }

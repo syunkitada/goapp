@@ -5,6 +5,13 @@ const actionCreator = actionCreatorFactory();
 export const serviceGetIndex = actionCreator<{ route: any }>(
   "SERVICE_GET_INDEX"
 );
+
+export const serviceStartWebSocket = actionCreator<{
+  action: any;
+  payload: any;
+  result: any;
+}>("SERVICE_START_WEB_SOCKET");
+
 export const serviceStartBackgroundSync = actionCreator(
   "SERVICE_START_BACKGROUND_SYNC"
 );

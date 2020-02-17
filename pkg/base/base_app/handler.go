@@ -36,7 +36,10 @@ func (app *BaseApp) ExecQuery(w http.ResponseWriter, r *http.Request, isProxy bo
 	w.Header().Set("Access-Control-Allow-Origin", "http://192.168.10.121:3000") // TODO FIXME
 	w.Header().Set("Access-Control-Allow-Credentials", "true")                  // TODO FIXME
 
-	service, userAuthority, rawReq, req, rep, err := app.Start(tctx, r, isProxy)
+	bufbody := new(bytes.Buffer)
+	bufbody.ReadFrom(r.Body)
+	rawReq := bufbody.Bytes()
+	service, userAuthority, req, rep, err := app.Start(tctx, r, rawReq, isProxy)
 
 	defer func() { app.End(tctx, startTime, err) }()
 	if err != nil {
@@ -98,28 +101,85 @@ var upgrader = websocket.Upgrader{
 
 func (app *BaseApp) Ws(w http.ResponseWriter, r *http.Request, isProxy bool) {
 	fmt.Println("DEBUG Ws")
+	var err error
+	tctx := logger.NewTraceContext(app.host, app.name)
+	startTime := logger.StartTrace(tctx)
+	defer func() {
+		if p := recover(); p != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			err = error_utils.NewRecoveredError(p)
+			logger.Errorf(tctx, err, "Panic occured")
+			fmt.Println("panic occured", err)
+		}
+	}()
+
 	w.Header().Set("Access-Control-Allow-Origin", "http://192.168.10.121:3000") // TODO FIXME
 	w.Header().Set("Access-Control-Allow-Credentials", "true")                  // TODO FIXME
-	w.Header().Set("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization")
-	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 
-	c, err := upgrader.Upgrade(w, r, nil)
+	defer func() { app.End(tctx, startTime, err) }()
+
+	var conn *websocket.Conn
+	conn, err = upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		fmt.Print("upgrade:", err)
 		return
 	}
-	defer func() { err = c.Close() }()
+	defer func() { err = conn.Close() }()
+	isInit := true
 	for {
-		mt, message, err := c.ReadMessage()
+		fmt.Println("Wating ReadMessage")
+		mt, message, err := conn.ReadMessage()
 		if err != nil {
 			fmt.Println("read:", err)
 			break
 		}
-		fmt.Printf("recv: %s", message)
-		err = c.WriteMessage(mt, message)
+
+		var statusCode int
+		var service *base_spec_model.ServiceRouter
+		var userAuthority *base_spec.UserAuthority
+		var req *base_protocol.Request
+		var res *base_protocol.Response
+		rawReq := []byte(message)
+		if isInit {
+			var bytes []byte
+			service, userAuthority, req, res, err = app.Start(tctx, r, rawReq, isProxy)
+			if err != nil {
+				bytes, err = json.Marshal(&res)
+				if err != nil {
+					logger.Error(tctx, err, "Failed json.Marshal")
+					continue
+				}
+				err = conn.WriteMessage(mt, bytes)
+				continue
+			}
+		}
+
+		var repBytes []byte
+		for _, endpoint := range service.Endpoints {
+			if endpoint == "" {
+				if err = app.queryHandler.Exec(tctx, userAuthority, r, w, req, res); err != nil {
+					break
+				}
+				repBytes, err = json.Marshal(&res)
+				break
+			}
+
+			if repBytes, statusCode, err = app.Proxy(tctx, service, endpoint, rawReq); err != nil {
+				fmt.Println("DEBUG proxy failed", err, req.Queries, statusCode)
+				continue
+			} else {
+				fmt.Println("DEBUG proxy success", endpoint, req.Queries, statusCode)
+				break
+			}
+		}
+
+		err = conn.WriteMessage(mt, repBytes)
 		if err != nil {
 			fmt.Println("write:", err)
 			break
+		}
+
+		if isInit {
+			isInit = false
 		}
 	}
 }
@@ -139,14 +199,11 @@ func (app *BaseApp) NewHandler() http.Handler {
 	return handler
 }
 
-func (app *BaseApp) Start(tctx *logger.TraceContext, httpReq *http.Request, isProxy bool) (service *base_spec_model.ServiceRouter,
-	userAuthority *base_spec.UserAuthority, rawReq []byte, req *base_protocol.Request, res *base_protocol.Response, err error) {
+func (app *BaseApp) Start(tctx *logger.TraceContext, httpReq *http.Request, rawReq []byte, isProxy bool) (service *base_spec_model.ServiceRouter,
+	userAuthority *base_spec.UserAuthority, req *base_protocol.Request, res *base_protocol.Response, err error) {
 	res = &base_protocol.Response{TraceId: tctx.GetTraceId(), ResultMap: map[string]base_protocol.Result{}}
 
 	req = &base_protocol.Request{}
-	bufbody := new(bytes.Buffer)
-	bufbody.ReadFrom(httpReq.Body)
-	rawReq = bufbody.Bytes()
 	if err = json.Unmarshal(rawReq, &req); err != nil {
 		res.Code = base_const.CodeServerInternalError
 		res.Error = err.Error()

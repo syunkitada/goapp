@@ -68,6 +68,10 @@ export default reducerWithInitialState(defaultState)
 
     return newState;
   })
+  .case(actions.service.serviceStartWebSocket, state => {
+    logger.info("reducers", "serviceStartWebSocket");
+    return Object.assign({}, state, {});
+  })
   .case(actions.service.serviceStartBackgroundSync, state => {
     logger.info("reducers", "serviceStartBackgroundSync");
     return Object.assign({}, state, {});
