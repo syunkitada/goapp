@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/gorilla/websocket"
+
 	"github.com/syunkitada/goapp/pkg/base/base_config"
 	"github.com/syunkitada/goapp/pkg/base/base_protocol"
 	"github.com/syunkitada/goapp/pkg/base/base_spec"
@@ -31,8 +33,7 @@ func NewQueryHandler(baseConf *base_config.Config, appConf *base_config.AppConfi
 }
 
 func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.UserAuthority, httpReq *http.Request, rw http.ResponseWriter,
-	req *base_protocol.Request, rep *base_protocol.Response) error {
-	var err error
+	req *base_protocol.Request, rep *base_protocol.Response) (err error) {
 	for _, query := range req.Queries {
 		switch query.Name {
 
@@ -42,4 +43,17 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 		}
 	}
 	return nil
+}
+
+func (handler *QueryHandler) ExecWs(tctx *logger.TraceContext, user *base_spec.UserAuthority, httpReq *http.Request, rw http.ResponseWriter,
+	req *base_protocol.Request, rep *base_protocol.Response, conn *websocket.Conn) (err error) {
+	for _, query := range req.Queries {
+		switch query.Name {
+
+		default:
+			err = fmt.Errorf("InvalidQueryName: %s", query.Name)
+			return err
+		}
+	}
+	return
 }

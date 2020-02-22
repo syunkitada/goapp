@@ -178,6 +178,7 @@ func convertApi(api *base_spec_model.Api) {
 		queries = append(queries, base_spec_model.Query{
 			RequiredAuth:    queryModel.RequiredAuth,
 			RequiredProject: queryModel.RequiredProject,
+			Ws:              queryModel.Ws,
 			PkgPath:         pkgPath,
 			PkgName:         pkgName,
 			Name:            name,

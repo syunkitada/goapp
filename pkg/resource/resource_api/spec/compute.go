@@ -35,6 +35,15 @@ type GetComputeData struct {
 	Compute Compute
 }
 
+type GetComputeConsole struct {
+	Name   string `validate:"required"`
+	Region string `validate:"required"`
+}
+
+type GetComputeConsoleData struct {
+	Compute Compute
+}
+
 type GetComputes struct {
 	Region string `validate:"required"`
 }

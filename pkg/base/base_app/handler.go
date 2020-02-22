@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -124,63 +125,84 @@ func (app *BaseApp) Ws(w http.ResponseWriter, r *http.Request, isProxy bool) {
 		return
 	}
 	defer func() { err = conn.Close() }()
-	isInit := true
-	for {
-		fmt.Println("Wating ReadMessage")
-		mt, message, err := conn.ReadMessage()
-		if err != nil {
-			fmt.Println("read:", err)
-			break
-		}
 
-		var statusCode int
-		var service *base_spec_model.ServiceRouter
-		var userAuthority *base_spec.UserAuthority
-		var req *base_protocol.Request
-		var res *base_protocol.Response
-		rawReq := []byte(message)
-		if isInit {
-			var bytes []byte
-			service, userAuthority, req, res, err = app.Start(tctx, r, rawReq, isProxy)
-			if err != nil {
+	var proxyConn *websocket.Conn
+	defer func() {
+		if proxyConn != nil {
+			proxyConn.Close()
+		}
+	}()
+
+	var service *base_spec_model.ServiceRouter
+	var userAuthority *base_spec.UserAuthority
+	var repBytes []byte
+
+	// 初回のQueryにより認証を行う
+	mt, message, err := conn.ReadMessage()
+	if err != nil {
+		return
+	}
+	rawReq := []byte(message)
+
+	var req *base_protocol.Request
+	var res *base_protocol.Response
+	var bytes []byte
+	service, userAuthority, req, res, err = app.Start(tctx, r, rawReq, isProxy)
+	if err != nil {
+		bytes, err = json.Marshal(&res)
+		if err != nil {
+			logger.Error(tctx, err, "Failed json.Marshal")
+			return
+		}
+		err = conn.WriteMessage(mt, bytes)
+		return
+	}
+
+	for _, endpoint := range service.Endpoints {
+		if endpoint == "" {
+			if err = app.queryHandler.ExecWs(tctx, userAuthority, r, w, req, res, nil); err != nil {
 				bytes, err = json.Marshal(&res)
 				if err != nil {
 					logger.Error(tctx, err, "Failed json.Marshal")
-					continue
+					return
 				}
 				err = conn.WriteMessage(mt, bytes)
-				continue
+				return
 			}
-		}
-
-		var repBytes []byte
-		for _, endpoint := range service.Endpoints {
-			if endpoint == "" {
-				if err = app.queryHandler.Exec(tctx, userAuthority, r, w, req, res); err != nil {
-					break
-				}
-				repBytes, err = json.Marshal(&res)
-				break
+			repBytes, err = json.Marshal(&res)
+			err = conn.WriteMessage(mt, repBytes)
+			if err != nil {
+				fmt.Println("write:", err)
 			}
-
-			if repBytes, statusCode, err = app.Proxy(tctx, service, endpoint, rawReq); err != nil {
-				fmt.Println("DEBUG proxy failed", err, req.Queries, statusCode)
-				continue
-			} else {
-				fmt.Println("DEBUG proxy success", endpoint, req.Queries, statusCode)
-				break
-			}
-		}
-
-		err = conn.WriteMessage(mt, repBytes)
-		if err != nil {
-			fmt.Println("write:", err)
 			break
 		}
 
-		if isInit {
-			isInit = false
+		endpoint := strings.Replace(endpoint, "http", "ws", -1)
+		proxyConn, _, err = websocket.DefaultDialer.Dial(endpoint, nil)
+		if err != nil {
+			logger.Errorf(tctx, err, "Failed dial to %s", endpoint)
+			continue
 		}
+		break
+	}
+
+	// 認証後、proxyConnが有効の場合は、メッセージをそのままWriteする
+	if proxyConn != nil {
+		for {
+			mt, message, err := conn.ReadMessage()
+			if err != nil {
+				return
+			}
+			rawReq := []byte(message)
+			if err = proxyConn.WriteMessage(mt, rawReq); err != nil {
+				logger.Warningf(tctx, "Failed WriteMessage: %s", err.Error())
+			}
+			continue
+		}
+	}
+
+	if err = app.queryHandler.ExecWs(tctx, userAuthority, r, w, req, res, conn); err != nil {
+		return
 	}
 }
 

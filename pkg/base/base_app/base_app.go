@@ -10,6 +10,7 @@ import (
 
 	"golang.org/x/net/context"
 
+	"github.com/gorilla/websocket"
 	"github.com/syunkitada/goapp/pkg/base/base_client"
 	"github.com/syunkitada/goapp/pkg/base/base_config"
 	"github.com/syunkitada/goapp/pkg/base/base_db_api"
@@ -41,6 +42,7 @@ type BaseApp struct {
 
 type IQueryHandler interface {
 	Exec(tctx *logger.TraceContext, userAuthority *base_spec.UserAuthority, httpReq *http.Request, rw http.ResponseWriter, req *base_protocol.Request, rep *base_protocol.Response) error
+	ExecWs(tctx *logger.TraceContext, userAuthority *base_spec.UserAuthority, httpReq *http.Request, rw http.ResponseWriter, req *base_protocol.Request, rep *base_protocol.Response, conn *websocket.Conn) error
 }
 
 func New(conf *base_config.Config, appConf *base_config.AppConfig, dbApi base_db_api.IApi, queryHandler IQueryHandler) BaseApp {

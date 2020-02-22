@@ -9,6 +9,7 @@ type ServiceRouter struct {
 type QueryModel struct {
 	RequiredAuth    bool
 	RequiredProject bool
+	Ws              bool
 	Cmd             string
 	Help            string
 	ProjectRoles    []string
@@ -20,6 +21,7 @@ type QueryModel struct {
 type Query struct {
 	RequiredAuth    bool
 	RequiredProject bool
+	Ws              bool
 	PkgPath         string
 	PkgName         string
 	Name            string

@@ -126,6 +126,7 @@ var Spec = base_spec_model.Spec{
 
 				base_spec_model.QueryModel{Req: GetCompute{}, Rep: GetComputeData{}},
 				base_spec_model.QueryModel{Req: GetComputes{}, Rep: GetComputesData{}},
+				base_spec_model.QueryModel{Req: GetComputeConsole{}, Rep: GetComputeConsoleData{}, Ws: true},
 			},
 		},
 		base_spec_model.Api{

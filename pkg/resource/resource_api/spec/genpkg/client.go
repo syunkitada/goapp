@@ -513,6 +513,20 @@ type GetComputeResult struct {
 	Error string
 	Data  spec.GetComputeData
 }
+type GetComputeConsoleResponse struct {
+	base_protocol.Response
+	ResultMap GetComputeConsoleResultMap
+}
+
+type GetComputeConsoleResultMap struct {
+	GetComputeConsole GetComputeConsoleResult
+}
+
+type GetComputeConsoleResult struct {
+	Code  uint8
+	Error string
+	Data  spec.GetComputeConsoleData
+}
 type GetComputesResponse struct {
 	base_protocol.Response
 	ResultMap GetComputesResultMap
@@ -2280,6 +2294,21 @@ func (client *Client) ResourceVirtualAdminGetComputes(tctx *logger.TraceContext,
 		return
 	}
 	result := res.ResultMap.GetComputes
+	if result.Code >= 100 || result.Error != "" {
+		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
+		return
+	}
+
+	data = &result.Data
+	return
+}
+func (client *Client) ResourceVirtualAdminGetComputeConsole(tctx *logger.TraceContext, queries []base_client.Query) (data *spec.GetComputeConsoleData, err error) {
+	var res GetComputeConsoleResponse
+	err = client.Request(tctx, "ResourceVirtualAdmin", queries, &res, true)
+	if err != nil {
+		return
+	}
+	result := res.ResultMap.GetComputeConsole
 	if result.Code >= 100 || result.Error != "" {
 		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
 		return
