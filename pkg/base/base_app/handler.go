@@ -138,17 +138,20 @@ func (app *BaseApp) Ws(w http.ResponseWriter, r *http.Request, isProxy bool) {
 	var repBytes []byte
 
 	// 初回のQueryにより認証を行う
+	fmt.Println("Waiiting for first msg")
 	mt, message, err := conn.ReadMessage()
 	if err != nil {
 		return
 	}
 	rawReq := []byte(message)
 
+	fmt.Println("DEBUG Ws2")
 	var req *base_protocol.Request
 	var res *base_protocol.Response
 	var bytes []byte
 	service, userAuthority, req, res, err = app.Start(tctx, r, rawReq, isProxy)
 	if err != nil {
+		fmt.Println("DEBUG err", err)
 		bytes, err = json.Marshal(&res)
 		if err != nil {
 			logger.Error(tctx, err, "Failed json.Marshal")
@@ -157,6 +160,7 @@ func (app *BaseApp) Ws(w http.ResponseWriter, r *http.Request, isProxy bool) {
 		err = conn.WriteMessage(mt, bytes)
 		return
 	}
+	fmt.Println("DEBUG Ws3")
 
 	for _, endpoint := range service.Endpoints {
 		if endpoint == "" {
@@ -171,14 +175,25 @@ func (app *BaseApp) Ws(w http.ResponseWriter, r *http.Request, isProxy bool) {
 			}
 			repBytes, err = json.Marshal(&res)
 			err = conn.WriteMessage(mt, repBytes)
+			fmt.Println("WriteMessage ", err)
 			if err != nil {
 				fmt.Println("write:", err)
 			}
 			break
 		}
 
-		endpoint := strings.Replace(endpoint, "http", "ws", -1)
-		proxyConn, _, err = websocket.DefaultDialer.Dial(endpoint, nil)
+		// プロキシ先とWsをつなげる
+		endpoint := strings.Replace(endpoint, "http", "ws", -1) + "/wp"
+		dialer := websocket.Dialer{
+			Proxy:            http.ProxyFromEnvironment,
+			HandshakeTimeout: 45 * time.Second,
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: true,
+			},
+		}
+		header := http.Header{}
+		header.Add("X-Service-Token", service.Token)
+		proxyConn, _, err = dialer.Dial(endpoint, header)
 		if err != nil {
 			logger.Errorf(tctx, err, "Failed dial to %s", endpoint)
 			continue
@@ -186,10 +201,31 @@ func (app *BaseApp) Ws(w http.ResponseWriter, r *http.Request, isProxy bool) {
 		break
 	}
 
-	// 認証後、proxyConnが有効の場合は、メッセージをそのままWriteする
-	if proxyConn != nil {
+	fmt.Println("DEBUG initialized auth")
+
+	if proxyConn != nil { // Proxy
+		isInitProxy := true
 		for {
+			if isInitProxy {
+				if err = proxyConn.WriteMessage(mt, rawReq); err != nil {
+					logger.Warningf(tctx, "Failed WriteMessage: %s", err.Error())
+					return
+				}
+				go func() {
+					for {
+						mt, message, err := proxyConn.ReadMessage()
+						if err != nil {
+							fmt.Println("Failed ReadMessage", err)
+						}
+						conn.WriteMessage(mt, message)
+					}
+				}()
+				isInitProxy = false
+			}
+
+			fmt.Println("Proxy: Waining Message from client")
 			mt, message, err := conn.ReadMessage()
+			fmt.Println("Proxy: Recieved Message", string(message))
 			if err != nil {
 				return
 			}
@@ -199,10 +235,10 @@ func (app *BaseApp) Ws(w http.ResponseWriter, r *http.Request, isProxy bool) {
 			}
 			continue
 		}
-	}
-
-	if err = app.queryHandler.ExecWs(tctx, userAuthority, r, w, req, res, conn); err != nil {
-		return
+	} else { // App handle ws
+		if err = app.queryHandler.ExecWs(tctx, userAuthority, r, w, req, res, conn); err != nil {
+			return
+		}
 	}
 }
 
@@ -216,6 +252,9 @@ func (app *BaseApp) NewHandler() http.Handler {
 	})
 	handler.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		app.Ws(w, r, false)
+	})
+	handler.HandleFunc("/wp", func(w http.ResponseWriter, r *http.Request) {
+		app.Ws(w, r, true)
 	})
 
 	return handler

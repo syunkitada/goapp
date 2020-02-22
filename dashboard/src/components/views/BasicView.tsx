@@ -249,6 +249,15 @@ class BasicView extends React.Component<IBasicView> {
                 </Grid>
               );
               break;
+
+            case "Console":
+              cards.push(
+                <Grid key={card.Name} item={true} xs={6}>
+                  console
+                </Grid>
+              );
+
+              break;
           }
         }
 

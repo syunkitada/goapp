@@ -168,20 +168,16 @@ var ComputesDetail = base_index_model.Tabs{
 			Route:           "/Console",
 			Kind:            "View",
 			DataKey:         "Compute",
-			DataQueries:     []string{"GetCompute"},
+			DataQueries:     []string{"GetComputeConsole"},
 			EnableWebSocket: true,
 			PanelsGroups: []interface{}{
 				map[string]interface{}{
-					"Name": "Detail",
+					"Name": "Console",
 					"Kind": "Cards",
 					"Cards": []interface{}{
 						map[string]interface{}{
-							"Name": "Detail",
-							"Kind": "Fields",
-							"Fields": []base_index_model.Field{
-								base_index_model.Field{Name: "Name", Kind: "text"},
-								base_index_model.Field{Name: "Kind", Kind: "select"},
-							},
+							"Name": "Console",
+							"Kind": "Console",
 						},
 					},
 				},

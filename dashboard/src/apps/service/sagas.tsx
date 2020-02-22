@@ -137,22 +137,20 @@ function* post(action) {
       return {};
   }
 
-  console.log("DEBUG TODO post", payload);
-  const { result, error } = yield call(modules.service.post, payload);
-  console.log("DEBUG TODO post", payload, result, error);
-
-  if (error) {
-    yield put(actions.service.servicePostFailure({ action, payload, error }));
+  if (index && index.EnableWebSocket) {
+    yield put(actions.service.serviceStartWebSocket({ action, payload }));
+    return;
   } else {
-    yield put(actions.service.servicePostSuccess({ action, payload, result }));
+    console.log("DEBUG TODO post", payload);
+    const { result, error } = yield call(modules.service.post, payload);
+    console.log("DEBUG TODO post", payload, result, error);
 
-    switch (action.type) {
-      case "SERVICE_GET_QUERIES":
-        if (index.EnableWebSocket) {
-          yield put(
-            actions.service.serviceStartWebSocket({ action, payload, result })
-          );
-        }
+    if (error) {
+      yield put(actions.service.servicePostFailure({ action, payload, error }));
+    } else {
+      yield put(
+        actions.service.servicePostSuccess({ action, payload, result })
+      );
     }
   }
   return {};
@@ -256,11 +254,11 @@ function createSocketChannel(socket) {
 }
 
 // reply with a `pong` message by invoking `socket.emit('pong')`
-function* pong(socket) {
-  yield delay(5000);
-  console.log("pong");
-  // yield apply(socket, socket.emit, ["pong"]); // call `emit` as a method with `socket` as context
-}
+// function* pong(socket) {
+//   yield delay(5000);
+//   console.log("pong");
+//   // yield apply(socket, socket.emit, ["pong"]); // call `emit` as a method with `socket` as context
+// }
 
 function* startWebSocket(action) {
   console.log("TODO init watchWebSocket", action);
@@ -275,6 +273,7 @@ function* startWebSocket(action) {
     Service: serviceName
   });
 
+  // コネクション確立後の初回メッセージにより認証が行われる
   socket.send(body);
   console.log("TODO sended");
 
@@ -284,7 +283,7 @@ function* startWebSocket(action) {
       const payload = yield take(socketChannel);
       console.log("TODO taked payload", payload);
       // yield put({ type: INCOMING_PONG_PAYLOAD, payload });
-      yield fork(pong, socket);
+      // yield fork(pong, socket);
     } catch (err) {
       console.error("socket error:", err);
       // socketChannel is still open in catch block

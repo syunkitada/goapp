@@ -9,7 +9,6 @@ export const serviceGetIndex = actionCreator<{ route: any }>(
 export const serviceStartWebSocket = actionCreator<{
   action: any;
   payload: any;
-  result: any;
 }>("SERVICE_START_WEB_SOCKET");
 
 export const serviceStartBackgroundSync = actionCreator(
