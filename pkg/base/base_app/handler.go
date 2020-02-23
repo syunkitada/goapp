@@ -213,11 +213,21 @@ func (app *BaseApp) Ws(w http.ResponseWriter, r *http.Request, isProxy bool) {
 				}
 				go func() {
 					for {
-						mt, message, err := proxyConn.ReadMessage()
-						if err != nil {
-							fmt.Println("Failed ReadMessage", err)
+						mt, message, tmpErr := proxyConn.ReadMessage()
+						if tmpErr != nil {
+							logger.Warningf(tctx, "Failed proxyConn.ReadMessage: err=%s", tmpErr.Error())
+							if tmpErr := proxyConn.Close(); tmpErr != nil {
+								logger.Warningf(tctx, "Failed proxyConn.Close: err=%s", tmpErr.Error())
+							}
+							return
 						}
-						conn.WriteMessage(mt, message)
+						if tmpErr := conn.WriteMessage(mt, message); tmpErr != nil {
+							logger.Warningf(tctx, "Failed proxyConn.WriteMessage: err=%s", tmpErr.Error())
+							if tmpErr := proxyConn.Close(); tmpErr != nil {
+								logger.Warningf(tctx, "Failed proxyConn.Close: err=%s", tmpErr.Error())
+							}
+							return
+						}
 					}
 				}()
 				isInitProxy = false

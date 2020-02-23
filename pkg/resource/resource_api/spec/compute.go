@@ -170,6 +170,7 @@ var ComputesDetail = base_index_model.Tabs{
 			DataKey:         "Compute",
 			DataQueries:     []string{"GetComputeConsole"},
 			EnableWebSocket: true,
+			WebSocketKey:    "ComputeConsole",
 			PanelsGroups: []interface{}{
 				map[string]interface{}{
 					"Name": "Console",

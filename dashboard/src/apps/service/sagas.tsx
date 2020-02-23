@@ -149,7 +149,12 @@ function* post(action) {
       yield put(actions.service.servicePostFailure({ action, payload, error }));
     } else {
       yield put(
-        actions.service.servicePostSuccess({ action, payload, result })
+        actions.service.servicePostSuccess({
+          action,
+          payload,
+          result,
+          websocket: null
+        })
       );
     }
   }
@@ -220,35 +225,25 @@ function* sync(action) {
   }
 }
 
-// this function creates an event channel from a given socket
-// Setup subscription to incoming `ping` events
 function createSocketChannel(socket) {
-  // `eventChannel` takes a subscriber function
-  // the subscriber function takes an `emit` argument to put messages onto the channel
+  // eventChannelは、WebSocketなどからの外部イベントを受けて、ActionとしてChannelに積むためのもの
   return eventChannel(emit => {
-    const pingHandler = event => {
-      console.log("TODO handlerevent", event);
-      // puts event payload into the channel
-      // this allows a Saga to take this payload from the returned channel
-      // emit(event.payload);
+    // subscriptionを設定
+    // socketから受け取ったメッセージをactionデータとしてchannelに入れる(emit)
+    const messageHandler = event => {
+      emit(actions.service.serviceWebSocketOnMessage({ event }));
     };
-
-    const errorHandler = errorEvent => {
-      console.log("TODO errorHandler", errorEvent);
-      // create an Error object and put it into the channel
-      // emit(new Error(errorEvent.reason));
+    const errorHandler = event => {
+      emit(actions.service.serviceWebSocketOnError({ event }));
     };
-
-    // setup the subscription
-    socket.onmessage = pingHandler;
+    socket.onmessage = messageHandler;
     socket.onerror = errorHandler;
 
-    // the subscriber must return an unsubscribe function
-    // this will be invoked when the saga calls `channel.close` method
+    // 最後にunsubscribeを返す
+    // unsubscribeは、sagaが `channel.close`メソッドを実行したときに呼び出されるので、後処理を行う
     const unsubscribe = () => {
-      socket.off("ping", pingHandler);
+      socket.close();
     };
-
     return unsubscribe;
   });
 }
@@ -261,7 +256,7 @@ function createSocketChannel(socket) {
 // }
 
 function* startWebSocket(action) {
-  console.log("TODO init watchWebSocket", action);
+  logger.info("startWebSocket", action);
   const socket = yield call(createWebSocketConnection);
   const socketChannel = yield call(createSocketChannel, socket);
   const { projectName, serviceName, queries } = action.payload.payload;
@@ -275,20 +270,42 @@ function* startWebSocket(action) {
 
   // コネクション確立後の初回メッセージにより認証が行われる
   socket.send(body);
-  console.log("TODO sended");
+  let isInit = true;
 
   while (true) {
     try {
-      // An error from socketChannel will cause the saga jump to the catch block
       const payload = yield take(socketChannel);
-      console.log("TODO taked payload", payload);
+      switch (payload.type) {
+        case "SERVICE_WEB_SOCKET_ON_MESSAGE":
+          console.log("TODO taked on message", payload);
+          const data = JSON.parse(payload.payload.event.data);
+          if (isInit) {
+            const result = data;
+            yield put(
+              actions.service.servicePostSuccess({
+                action: action.payload.action,
+                payload: action.payload.payload,
+                result,
+                websocket: socket
+              })
+            );
+            isInit = false;
+          }
+          break;
+        case "SERVICE_WEB_SOCKET_ON_ERROR":
+          console.log("TODO taked on error", payload);
+          break;
+        default:
+          logger.error(
+            "take(socketChannel): Invalid action.type",
+            payload.type
+          );
+          break;
+      }
       // yield put({ type: INCOMING_PONG_PAYLOAD, payload });
       // yield fork(pong, socket);
     } catch (err) {
-      console.error("socket error:", err);
-      // socketChannel is still open in catch block
-      // if we want end the socketChannel, we need close it explicitly
-      // socketChannel.close()
+      logger.error("TODO handle socket err", err);
     }
   }
 }

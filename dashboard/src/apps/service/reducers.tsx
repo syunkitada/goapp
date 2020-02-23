@@ -120,7 +120,7 @@ export default reducerWithInitialState(defaultState)
   })
   .case(actions.service.servicePostSuccess, (state, payload) => {
     logger.info("reducers", "servicePostSuccess", payload.action.type, payload);
-    const { route } = payload.action.payload;
+    const { index, route } = payload.action.payload;
     const newState = Object.assign({}, state, {
       isFetching: false,
       redirectToReferrer: true
@@ -224,21 +224,27 @@ export default reducerWithInitialState(defaultState)
       }
     }
 
-    let index: any = null;
+    let dashboardIndex: any = null;
     if (isGetIndex) {
-      index = payload.result.ResultMap.GetServiceDashboardIndex.Data.Index;
-      if (index.SyncDelay && index.SyncDelay > 1000) {
-        newState.syncDelay = index.SyncDelay;
+      dashboardIndex =
+        payload.result.ResultMap.GetServiceDashboardIndex.Data.Index;
+      if (dashboardIndex.SyncDelay && dashboardIndex.SyncDelay > 1000) {
+        newState.syncDelay = dashboardIndex.SyncDelay;
       }
     }
 
+    console.log("TODO DEBUG index", index, payload.websocket);
+    const { websocket } = payload;
     const service = route.match.params.service;
     const project = route.match.params.project;
+    // set data, and websocket
     if (project) {
       newState.projectServiceMap[project][service].isFetching = false;
       if (isGetIndex) {
-        newState.projectServiceMap[project][service].Index = index;
+        newState.projectServiceMap[project][service].Index = dashboardIndex;
       }
+
+      // Set Data
       if (newState.projectServiceMap[project][service].Data) {
         for (const key of Object.keys(data)) {
           newState.projectServiceMap[project][service].Data[key] = data[key];
@@ -246,17 +252,41 @@ export default reducerWithInitialState(defaultState)
       } else {
         newState.projectServiceMap[project][service].Data = data;
       }
+
+      // Set WebSocket
+      if (index && index.EnableWebSocket) {
+        if (!newState.projectServiceMap[project][service].WebSocketMap) {
+          newState.projectServiceMap[project][service].WebSocketMap = {};
+        }
+        // TODO check exists websocket
+        newState.projectServiceMap[project][service].WebSocketMap[
+          index.WebSocketKey
+        ] = websocket;
+      }
     } else {
       newState.serviceMap[service].isFetching = false;
       if (isGetIndex) {
-        newState.serviceMap[service].Index = index;
+        newState.serviceMap[service].Index = dashboardIndex;
       }
+
+      // Set Data
       if (newState.serviceMap[service].Data) {
         for (const key of Object.keys(data)) {
           newState.serviceMap[service].Data[key] = data[key];
         }
       } else {
         newState.serviceMap[service].Data = data;
+      }
+
+      // Set WebSocket
+      if (index && index.EnableWebSocket) {
+        if (!newState.serviceMap[service].WebSocketMap) {
+          newState.serviceMap[service].WebSocketMap = {};
+        }
+        // TODO check exists websocket
+        newState.serviceMap[service].WebSocketMap[
+          index.WebSocketKey
+        ] = websocket;
       }
     }
 

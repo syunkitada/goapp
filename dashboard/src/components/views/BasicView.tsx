@@ -14,7 +14,9 @@ import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogContentText from "@material-ui/core/DialogContentText";
 import DialogTitle from "@material-ui/core/DialogTitle";
+import FormControl from "@material-ui/core/FormControl";
 import Grid from "@material-ui/core/Grid";
+import TextField from "@material-ui/core/TextField";
 import Typography from "@material-ui/core/Typography";
 
 import Table from "@material-ui/core/Table";
@@ -61,6 +63,7 @@ interface IBasicView extends WithStyles<typeof styles> {
   rawData;
   submitQueries;
   handleChange;
+  webSocket;
 }
 
 class BasicView extends React.Component<IBasicView> {
@@ -252,8 +255,20 @@ class BasicView extends React.Component<IBasicView> {
 
             case "Console":
               cards.push(
-                <Grid key={card.Name} item={true} xs={6}>
-                  console
+                <Grid key={card.Name} item={true} xs={12}>
+                  <FormControl fullWidth={true} variant="filled">
+                    <TextField
+                      defaultValue="Default Value"
+                      disabled={true}
+                      multiline={true}
+                      rows="4"
+                      variant="filled"
+                    />
+                    <TextField
+                      name="console-input"
+                      onChange={this.handleChangeTextForm}
+                    />
+                  </FormControl>
                 </Grid>
               );
 
@@ -364,6 +379,21 @@ class BasicView extends React.Component<IBasicView> {
     return <div>{panelsGroups}</div>;
   };
 
+  private handleChangeTextForm = event => {
+    const { webSocket } = this.props;
+    console.log(
+      "TODO handleChangeTextForm",
+      event.target.name,
+      event.target.value,
+      webSocket
+    );
+    const body = JSON.stringify({
+      Name: event.target.name,
+      Value: event.target.value
+    });
+    webSocket.send(body);
+  };
+
   private handleChangeOnSearchForm = (event, searchQuery) => {
     console.log("TODO handleChangeOnSearchForm");
   };
@@ -399,8 +429,22 @@ class BasicView extends React.Component<IBasicView> {
 }
 
 function mapStateToProps(state, ownProps) {
-  const auth = state.auth;
-  return { auth };
+  const { auth, service } = state;
+  const { projectName, serviceName } = service;
+  let serviceState: any;
+  if (projectName) {
+    serviceState = service.projectServiceMap[projectName][serviceName];
+  } else {
+    serviceState = service.serviceMap[serviceName];
+  }
+  const { WebSocketMap } = serviceState;
+  const { index } = ownProps;
+  let webSocket: any;
+  if (index.EnableWebSocket) {
+    webSocket = WebSocketMap[index.WebSocketKey];
+  }
+
+  return { auth, webSocket };
 }
 
 function mapDispatchToProps(dispatch, ownProps) {
