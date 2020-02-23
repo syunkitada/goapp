@@ -25,6 +25,7 @@ var Spec = base_spec_model.Spec{
 				base_spec_model.QueryModel{Req: api_spec.UpdateCompute{}, Rep: api_spec.UpdateComputeData{}},
 				base_spec_model.QueryModel{Req: api_spec.DeleteCompute{}, Rep: api_spec.DeleteComputeData{}},
 				base_spec_model.QueryModel{Req: api_spec.DeleteComputes{}, Rep: api_spec.DeleteComputesData{}},
+				base_spec_model.QueryModel{Req: api_spec.GetComputeConsole{}, Rep: api_spec.GetComputeConsoleData{}, Ws: true},
 
 				base_spec_model.QueryModel{Req: api_spec.GetNodeServices{}, Rep: api_spec.GetNodeServicesData{}},
 				base_spec_model.QueryModel{Req: api_spec.SyncNodeService{}, Rep: api_spec.SyncNodeServiceData{}},

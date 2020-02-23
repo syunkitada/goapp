@@ -4,6 +4,7 @@
 package genpkg
 
 import (
+	"github.com/gorilla/websocket"
 	"github.com/syunkitada/goapp/pkg/base/base_client"
 	"github.com/syunkitada/goapp/pkg/base/base_config"
 	"github.com/syunkitada/goapp/pkg/base/base_protocol"
@@ -2302,9 +2303,9 @@ func (client *Client) ResourceVirtualAdminGetComputes(tctx *logger.TraceContext,
 	data = &result.Data
 	return
 }
-func (client *Client) ResourceVirtualAdminGetComputeConsole(tctx *logger.TraceContext, queries []base_client.Query) (data *spec.GetComputeConsoleData, err error) {
+func (client *Client) ResourceVirtualAdminGetComputeConsole(tctx *logger.TraceContext, queries []base_client.Query) (data *spec.GetComputeConsoleData, conn *websocket.Conn, err error) {
 	var res GetComputeConsoleResponse
-	err = client.Request(tctx, "ResourceVirtualAdmin", queries, &res, true)
+	conn, err = client.RequestWs(tctx, "ResourceVirtualAdmin", queries, &res, true)
 	if err != nil {
 		return
 	}

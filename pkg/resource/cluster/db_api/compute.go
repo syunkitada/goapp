@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/gorilla/websocket"
 	"github.com/jinzhu/gorm"
 	"github.com/syunkitada/goapp/pkg/base/base_const"
 	"github.com/syunkitada/goapp/pkg/lib/error_utils"
@@ -24,6 +25,91 @@ func (api *Api) GetCompute(tctx *logger.TraceContext, input *spec.GetCompute) (d
 func (api *Api) GetComputes(tctx *logger.TraceContext, input *spec.GetComputes) (data []spec.Compute, err error) {
 	err = api.DB.Find(&data).Error
 	return
+}
+
+func (api *Api) ProxyComputeConsole(tctx *logger.TraceContext, input *spec.GetComputeConsole, conn *websocket.Conn) (err error) {
+	var compute db_model.Compute
+	err = api.DB.Where("name = ? AND deleted_at IS NULL", input.Name).First(&compute).Error
+	fmt.Println("DEBUG compute", input.Name, compute)
+
+	var messageType int
+	var message []byte
+	for {
+		fmt.Println("Waiting Messages on WebSocket")
+		messageType, message, err = conn.ReadMessage()
+		if err != nil {
+			logger.Warningf(tctx, "Faild ReadMessage: %s", err.Error())
+			return
+		}
+		fmt.Println("DEBUG message", messageType, string(message))
+		if err = conn.WriteMessage(messageType, message); err != nil {
+			logger.Warningf(tctx, "Faild WriteMessage: %s", err.Error())
+			return
+		}
+	}
+
+	// var clusters []db_model.Cluster
+	// if err = api.DB.Where("name = ?", compute.Cluster).Find(&clusters).Error; err != nil {
+	// 	return
+	// }
+	// if len(clusters) != 1 {
+	// 	err = fmt.Errorf("Invalid Cluster: %s", compute.Cluster)
+	// 	return
+	// }
+	// cluster := clusters[0]
+	// endpoints := strings.Split(cluster.Endpoints, ",")
+
+	// client := resource_cluster_api.NewClient(&base_config.ClientConfig{
+	// 	Endpoints:             endpoints,
+	// 	Token:                 cluster.Token,
+	// 	Project:               cluster.Project,
+	// 	TlsInsecureSkipVerify: true,
+	// })
+
+	// queries := []base_client.Query{
+	// 	base_client.Query{
+	// 		Name: "GetComputeConsole",
+	// 		Data: resource_api_spec.GetComputeConsole{},
+	// 	},
+	// }
+	// res, wsConn, tmpErr := client.ResourceVirtualAdminGetComputeConsole(tctx, queries)
+	// if tmpErr != nil {
+	// 	logger.Warningf(tctx, "Failed GetNodeServices: %s", tmpErr.Error())
+	// 	return
+	// }
+	// fmt.Println("DEBUG res", res)
+
+	// go func() {
+	// 	var messageType int
+	// 	var message []byte
+	// 	for {
+	// 		fmt.Println("Waiting Messages on client WebSocket")
+	// 		messageType, message, err = conn.ReadMessage()
+	// 		if err != nil {
+	// 			logger.Warningf(tctx, "Faild ReadMessage: %s", err.Error())
+	// 			return
+	// 		}
+	// 		if err = wsConn.WriteMessage(messageType, message); err != nil {
+	// 			logger.Warningf(tctx, "Faild WriteMessage: %s", err.Error())
+	// 			return
+	// 		}
+	// 	}
+	// }()
+
+	// var messageType int
+	// var message []byte
+	// for {
+	// 	fmt.Println("Waiting Messages on proxy WebSocket")
+	// 	messageType, message, err = wsConn.ReadMessage()
+	// 	if err != nil {
+	// 		logger.Warningf(tctx, "Faild ReadMessage: %s", err.Error())
+	// 		return
+	// 	}
+	// 	if err = conn.WriteMessage(messageType, message); err != nil {
+	// 		logger.Warningf(tctx, "Faild WriteMessage: %s", err.Error())
+	// 		return
+	// 	}
+	// }
 }
 
 func (api *Api) CreateComputes(tctx *logger.TraceContext, specs []spec.RegionServiceComputeSpec) (err error) {

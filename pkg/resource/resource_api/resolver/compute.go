@@ -1,8 +1,6 @@
 package resolver
 
 import (
-	"fmt"
-
 	"github.com/gorilla/websocket"
 	"github.com/jinzhu/gorm"
 
@@ -44,19 +42,6 @@ func (resolver *Resolver) GetComputeConsole(tctx *logger.TraceContext, input *sp
 	if conn == nil {
 		return
 	}
-	var messageType int
-	var message []byte
-	for {
-		fmt.Println("Waiting Messages on WebSocket")
-		messageType, message, err = conn.ReadMessage()
-		if err != nil {
-			logger.Warningf(tctx, "Faild ReadMessage: %s", err.Error())
-			return
-		}
-		fmt.Println("DEBUG message", messageType, string(message))
-		if err = conn.WriteMessage(messageType, message); err != nil {
-			logger.Warningf(tctx, "Faild WriteMessage: %s", err.Error())
-			return
-		}
-	}
+	err = resolver.dbApi.ProxyComputeConsole(tctx, input, user, conn)
+	return
 }

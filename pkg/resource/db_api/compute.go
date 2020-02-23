@@ -2,15 +2,19 @@ package db_api
 
 import (
 	"fmt"
+	"strings"
 
+	"github.com/gorilla/websocket"
 	"github.com/jinzhu/gorm"
 
 	"github.com/syunkitada/goapp/pkg/base/base_client"
+	"github.com/syunkitada/goapp/pkg/base/base_config"
 	"github.com/syunkitada/goapp/pkg/base/base_const"
 	"github.com/syunkitada/goapp/pkg/base/base_spec"
 	"github.com/syunkitada/goapp/pkg/lib/error_utils"
 	"github.com/syunkitada/goapp/pkg/lib/json_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
+	resource_cluster_api "github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_api/spec/genpkg"
 	"github.com/syunkitada/goapp/pkg/resource/consts"
 	"github.com/syunkitada/goapp/pkg/resource/db_model"
 	"github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
@@ -121,6 +125,74 @@ func (api *Api) CreateOrUpdateCompute(tctx *logger.TraceContext, tx *gorm.DB,
 	}
 
 	return
+}
+
+func (api *Api) ProxyComputeConsole(tctx *logger.TraceContext, input *spec.GetComputeConsole, user *base_spec.UserAuthority, conn *websocket.Conn) (err error) {
+	var compute db_model.Compute
+	err = api.DB.Where("name = ? AND deleted_at IS NULL", input.Name).First(&compute).Error
+
+	var clusters []db_model.Cluster
+	if err = api.DB.Where("name = ?", compute.Cluster).Find(&clusters).Error; err != nil {
+		return
+	}
+	if len(clusters) != 1 {
+		err = fmt.Errorf("Invalid Cluster: %s", compute.Cluster)
+		return
+	}
+	cluster := clusters[0]
+	endpoints := strings.Split(cluster.Endpoints, ",")
+
+	client := resource_cluster_api.NewClient(&base_config.ClientConfig{
+		Endpoints:             endpoints,
+		Token:                 cluster.Token,
+		Project:               cluster.Project,
+		TlsInsecureSkipVerify: true,
+	})
+
+	queries := []base_client.Query{
+		base_client.Query{
+			Name: "GetComputeConsole",
+			Data: *input,
+		},
+	}
+	res, wsConn, tmpErr := client.ResourceVirtualAdminGetComputeConsole(tctx, queries)
+	if tmpErr != nil {
+		logger.Warningf(tctx, "Failed GetNodeServices: %s", tmpErr.Error())
+		return
+	}
+	fmt.Println("DEBUG res", res)
+
+	go func() {
+		var messageType int
+		var message []byte
+		for {
+			fmt.Println("Waiting Messages on client WebSocket")
+			messageType, message, err = conn.ReadMessage()
+			if err != nil {
+				logger.Warningf(tctx, "Faild ReadMessage: %s", err.Error())
+				return
+			}
+			if err = wsConn.WriteMessage(messageType, message); err != nil {
+				logger.Warningf(tctx, "Faild WriteMessage: %s", err.Error())
+				return
+			}
+		}
+	}()
+
+	var messageType int
+	var message []byte
+	for {
+		fmt.Println("Waiting Messages on proxy WebSocket")
+		messageType, message, err = wsConn.ReadMessage()
+		if err != nil {
+			logger.Warningf(tctx, "Faild ReadMessage: %s", err.Error())
+			return
+		}
+		if err = conn.WriteMessage(messageType, message); err != nil {
+			logger.Warningf(tctx, "Faild WriteMessage: %s", err.Error())
+			return
+		}
+	}
 }
 
 func (api *Api) DeleteCompute(tctx *logger.TraceContext, name string) (err error) {

@@ -86,6 +86,23 @@ var ResourceVirtualAdminCmdMap = map[string]base_index_model.Cmd{
 		OutputKind:   "",
 		OutputFormat: "",
 	},
+	"get.compute.console": base_index_model.Cmd{
+		QueryName: "GetComputeConsole",
+		FlagMap: map[string]base_index_model.Flag{
+			"name,n": base_index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+			"region,r": base_index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+		},
+		OutputKind:   "table",
+		OutputFormat: "Region,Cluster,RegionService,Name,Kind,Labels,Status,StatusReason,Project,Spec,LinkSpec,Image,Vcpus,Memory,Disk,UpdatedAt,CreatedAt",
+	},
 	"get.node.services": base_index_model.Cmd{
 		QueryName: "GetNodeServices",
 		FlagMap: map[string]base_index_model.Flag{
@@ -420,6 +437,10 @@ var ApiQueryMap = map[string]map[string]base_spec_model.QueryModel{
 			RequiredProject: true,
 		},
 		"DeleteComputes": base_spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: true,
+		},
+		"GetComputeConsole": base_spec_model.QueryModel{
 			RequiredAuth:    true,
 			RequiredProject: true,
 		},
