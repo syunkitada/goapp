@@ -266,7 +266,7 @@ class BasicView extends React.Component<IBasicView> {
                     />
                     <TextField
                       name="console-input"
-                      onChange={this.handleChangeTextForm}
+                      onKeyUp={this.handleChangeTextForm}
                     />
                   </FormControl>
                 </Grid>
@@ -381,15 +381,26 @@ class BasicView extends React.Component<IBasicView> {
 
   private handleChangeTextForm = event => {
     const { webSocket } = this.props;
+    let value = String.fromCharCode(event.which);
+    if (event.shiftKey) {
+      value = value.toUpperCase();
+    } else {
+      value = value.toLowerCase();
+    }
     console.log(
       "TODO handleChangeTextForm",
-      event.target.name,
-      event.target.value,
-      webSocket
+      String.fromCharCode(event.which),
+      event.which,
+      value
     );
+
     const body = JSON.stringify({
+      Alt: event.altKey,
+      Code: event.which,
+      Ctrl: event.ctlKey,
       Name: event.target.name,
-      Value: event.target.value
+      Shift: event.shiftKey,
+      Value: value
     });
     webSocket.send(body);
   };

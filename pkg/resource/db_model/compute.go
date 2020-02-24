@@ -31,25 +31,27 @@ type Compute struct {
 
 type ComputeAssignment struct {
 	gorm.Model
-	Compute      Compute            `gorm:"foreignkey:ComputeID;association_foreignkey:Refer;"`
-	ComputeID    uint               `gorm:"not null;"`
-	NodeService         base_db_model.NodeService `gorm:"foreignkey:NodeServiceID;association_foreignkey:Refer;"`
-	NodeServiceID       uint               `gorm:"not null;"`
-	Status       string             `gorm:"not null;size:25;"`
-	StatusReason string             `gorm:"not null;size:50;"`
+	Compute       Compute                   `gorm:"foreignkey:ComputeID;association_foreignkey:Refer;"`
+	ComputeID     uint                      `gorm:"not null;"`
+	NodeService   base_db_model.NodeService `gorm:"foreignkey:NodeServiceID;association_foreignkey:Refer;"`
+	NodeServiceID uint                      `gorm:"not null;"`
+	Status        string                    `gorm:"not null;size:25;"`
+	StatusReason  string                    `gorm:"not null;size:50;"`
 }
 
 type ComputeAssignmentWithComputeAndNodeService struct {
-	ID           uint
-	UpdatedAt    time.Time
-	ComputeID    uint
-	ComputeSpec  string
-	ComputeName  string
-	NodeServiceID       uint
-	NodeServiceName     string
-	Status       string
-	StatusReason string
-	Cost         int // calcurated by vcpu, memory, disk
+	ID               uint
+	UpdatedAt        time.Time
+	ComputeID        uint
+	ComputeSpec      string
+	ComputeName      string
+	NodeServiceID    uint
+	NodeServiceName  string
+	Status           string
+	StatusReason     string
+	Cost             int // calcurated by vcpu, memory, disk
+	ServiceToken     string
+	ServiceEndpoints string
 }
 
 type ComputeAssignmentEx struct {

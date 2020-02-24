@@ -6,13 +6,17 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/jinzhu/gorm"
+	"github.com/syunkitada/goapp/pkg/base/base_client"
+	"github.com/syunkitada/goapp/pkg/base/base_config"
 	"github.com/syunkitada/goapp/pkg/base/base_const"
 	"github.com/syunkitada/goapp/pkg/lib/error_utils"
 	"github.com/syunkitada/goapp/pkg/lib/json_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
+	resource_cluster_agent "github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_agent/spec/genpkg"
 	"github.com/syunkitada/goapp/pkg/resource/consts"
 	"github.com/syunkitada/goapp/pkg/resource/db_model"
 	"github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
+	resource_api_spec "github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
 	"github.com/syunkitada/goapp/pkg/resource/resource_model"
 )
 
@@ -27,89 +31,73 @@ func (api *Api) GetComputes(tctx *logger.TraceContext, input *spec.GetComputes) 
 	return
 }
 
-func (api *Api) ProxyComputeConsole(tctx *logger.TraceContext, input *spec.GetComputeConsole, conn *websocket.Conn) (err error) {
-	var compute db_model.Compute
-	err = api.DB.Where("name = ? AND deleted_at IS NULL", input.Name).First(&compute).Error
-	fmt.Println("DEBUG compute", input.Name, compute)
+func (api *Api) ProxyComputeConsole(tctx *logger.TraceContext, input *spec.GetComputeConsole,
+	conn *websocket.Conn) (err error) {
+	var assignments []db_model.ComputeAssignmentWithComputeAndNodeService
+	query := api.DB.Table("compute_assignments as ca").
+		Select("ca.id, ca.status, ca.updated_at, ca.compute_id, c.name as compute_name, c.spec as compute_spec, ca.node_service_id, ns.name as node_name, ns.endpoints as service_endpoints, ns.token as service_token").
+		Joins("INNER JOIN computes AS c ON c.id = ca.compute_id").
+		Joins("INNER JOIN node_services AS ns ON ns.id = ca.node_service_id").
+		Where("c.name = ?", input.Name)
+	err = query.Find(&assignments).Error
+	if len(assignments) != 1 {
+		err = fmt.Errorf("Invalid compute length: %d", len(assignments))
+		return
+	}
+	assignment := assignments[0]
+	endpoints := strings.Split(assignment.ServiceEndpoints, ",")
+
+	client := resource_cluster_agent.NewClient(&base_config.ClientConfig{
+		Endpoints:             endpoints,
+		Token:                 assignment.ServiceToken,
+		Project:               "service",
+		TlsInsecureSkipVerify: true,
+	})
+
+	queries := []base_client.Query{
+		base_client.Query{
+			Name: "GetComputeConsole",
+			Data: resource_api_spec.GetComputeConsole{Name: input.Name},
+		},
+	}
+	res, wsConn, tmpErr := client.ResourceVirtualAdminGetComputeConsole(tctx, queries)
+	if tmpErr != nil {
+		logger.Warningf(tctx, "Failed GetNodeServices: %s", tmpErr.Error())
+		return
+	}
+	fmt.Println("DEBUG res", res)
+
+	go func() {
+		var messageType int
+		var message []byte
+		for {
+			fmt.Println("Waiting Messages on client WebSocket")
+			messageType, message, err = conn.ReadMessage()
+			if err != nil {
+				logger.Warningf(tctx, "Faild ReadMessage: %s", err.Error())
+				return
+			}
+			if err = wsConn.WriteMessage(messageType, message); err != nil {
+				logger.Warningf(tctx, "Faild WriteMessage: %s", err.Error())
+				return
+			}
+		}
+	}()
 
 	var messageType int
 	var message []byte
 	for {
-		fmt.Println("Waiting Messages on WebSocket")
-		messageType, message, err = conn.ReadMessage()
+		fmt.Println("Waiting Messages on proxy WebSocket")
+		messageType, message, err = wsConn.ReadMessage()
 		if err != nil {
 			logger.Warningf(tctx, "Faild ReadMessage: %s", err.Error())
 			return
 		}
-		fmt.Println("DEBUG message", messageType, string(message))
 		if err = conn.WriteMessage(messageType, message); err != nil {
 			logger.Warningf(tctx, "Faild WriteMessage: %s", err.Error())
 			return
 		}
 	}
-
-	// var clusters []db_model.Cluster
-	// if err = api.DB.Where("name = ?", compute.Cluster).Find(&clusters).Error; err != nil {
-	// 	return
-	// }
-	// if len(clusters) != 1 {
-	// 	err = fmt.Errorf("Invalid Cluster: %s", compute.Cluster)
-	// 	return
-	// }
-	// cluster := clusters[0]
-	// endpoints := strings.Split(cluster.Endpoints, ",")
-
-	// client := resource_cluster_api.NewClient(&base_config.ClientConfig{
-	// 	Endpoints:             endpoints,
-	// 	Token:                 cluster.Token,
-	// 	Project:               cluster.Project,
-	// 	TlsInsecureSkipVerify: true,
-	// })
-
-	// queries := []base_client.Query{
-	// 	base_client.Query{
-	// 		Name: "GetComputeConsole",
-	// 		Data: resource_api_spec.GetComputeConsole{},
-	// 	},
-	// }
-	// res, wsConn, tmpErr := client.ResourceVirtualAdminGetComputeConsole(tctx, queries)
-	// if tmpErr != nil {
-	// 	logger.Warningf(tctx, "Failed GetNodeServices: %s", tmpErr.Error())
-	// 	return
-	// }
-	// fmt.Println("DEBUG res", res)
-
-	// go func() {
-	// 	var messageType int
-	// 	var message []byte
-	// 	for {
-	// 		fmt.Println("Waiting Messages on client WebSocket")
-	// 		messageType, message, err = conn.ReadMessage()
-	// 		if err != nil {
-	// 			logger.Warningf(tctx, "Faild ReadMessage: %s", err.Error())
-	// 			return
-	// 		}
-	// 		if err = wsConn.WriteMessage(messageType, message); err != nil {
-	// 			logger.Warningf(tctx, "Faild WriteMessage: %s", err.Error())
-	// 			return
-	// 		}
-	// 	}
-	// }()
-
-	// var messageType int
-	// var message []byte
-	// for {
-	// 	fmt.Println("Waiting Messages on proxy WebSocket")
-	// 	messageType, message, err = wsConn.ReadMessage()
-	// 	if err != nil {
-	// 		logger.Warningf(tctx, "Faild ReadMessage: %s", err.Error())
-	// 		return
-	// 	}
-	// 	if err = conn.WriteMessage(messageType, message); err != nil {
-	// 		logger.Warningf(tctx, "Faild WriteMessage: %s", err.Error())
-	// 		return
-	// 	}
-	// }
 }
 
 func (api *Api) CreateComputes(tctx *logger.TraceContext, specs []spec.RegionServiceComputeSpec) (err error) {

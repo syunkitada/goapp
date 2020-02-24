@@ -10,6 +10,7 @@ import (
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/lib/os_utils"
 	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_agent/compute_drivers"
+	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_agent/db_api"
 	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_agent/readers"
 	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_agent/readers/log_reader"
 	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_agent/readers/system_metric_reader"
@@ -33,6 +34,8 @@ type Server struct {
 	reportCount int
 	reportSpan  int
 
+	dbApi *db_api.Api
+
 	metricReaderMap map[string]readers.MetricReader
 
 	logMap                map[string]config.ResourceLogConfig
@@ -46,11 +49,13 @@ func New(baseConf *base_config.Config, mainConf *config.Config) *Server {
 	if !ok {
 		logger.StdoutFatalf("cluster config is not found: cluster=%s", mainConf.Resource.ClusterName)
 	}
+	tctx := logger.NewTraceContext(baseConf.Host, "init")
 
 	clusterConf.Agent.Name = consts.KindResourceClusterAgent
 	resolver := resolver.New(baseConf, &clusterConf)
 	queryHandler := genpkg.NewQueryHandler(baseConf, &clusterConf.Agent.AppConfig, resolver)
-	baseApp := base_app.New(baseConf, &clusterConf.Agent.AppConfig, nil, queryHandler)
+	dbApi := db_api.New(baseConf, &clusterConf)
+	baseApp := base_app.New(baseConf, &clusterConf.Agent.AppConfig, dbApi, queryHandler)
 	apiClient := resource_cluster_api.NewClient(&clusterConf.Agent.RootClient)
 
 	srv := &Server{
@@ -59,11 +64,29 @@ func New(baseConf *base_config.Config, mainConf *config.Config) *Server {
 		clusterConf:  &clusterConf,
 		queryHandler: queryHandler,
 		apiClient:    apiClient,
+		dbApi:        dbApi,
 	}
+	srv.initDb(tctx)
 	srv.initReader()
 	srv.initComputeDriver()
+	resolver.SetComputeDriver(srv.computeDriver)
+
 	srv.SetDriver(srv)
 	return srv
+}
+
+func (srv *Server) initDb(tctx *logger.TraceContext) {
+	var err error
+	if err = srv.dbApi.Bootstrap(tctx, false); err != nil {
+		logger.Fatalf(tctx, "Failed bootstrap: %s", err.Error())
+	}
+	if err = srv.dbApi.BootstrapResource(tctx, false); err != nil {
+		logger.Fatalf(tctx, "Failed bootstrap: %s", err.Error())
+	}
+	srv.dbApi.MustOpen()
+	if err = srv.SyncService(tctx, false); err != nil {
+		logger.Fatalf(tctx, "Failed SyncService: %s", err.Error())
+	}
 }
 
 func (srv *Server) initReader() {

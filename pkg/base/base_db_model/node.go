@@ -11,6 +11,8 @@ type NodeService struct {
 	StatusReason string `gorm:"not null;size:50;"`
 	State        string `gorm:"not null;size:25;"`
 	StateReason  string `gorm:"not null;size:50;"`
+	Token        string `gorm:"not null;size:255;"`
+	Endpoints    string `gorm:"not null;size:255;"`
 	Labels       string `gorm:"not null;size:500;"`
 	Spec         string `gorm:"not null;size:5000;"`
 }

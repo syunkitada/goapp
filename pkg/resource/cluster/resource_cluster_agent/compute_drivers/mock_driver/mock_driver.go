@@ -1,6 +1,7 @@
 package mock_driver
 
 import (
+	"github.com/gorilla/websocket"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_agent/compute_models"
 	"github.com/syunkitada/goapp/pkg/resource/config"
@@ -51,4 +52,8 @@ func (driver *MockDriver) SyncDeletingAssignmentMap(tctx *logger.TraceContext,
 func (driver *MockDriver) ConfirmDeletingAssignmentMap(tctx *logger.TraceContext,
 	assignmentMap map[uint]spec.ComputeAssignmentEx) (bool, error) {
 	return true, nil
+}
+
+func (driver *MockDriver) ProxyConsole(tctx *logger.TraceContext, input *spec.GetComputeConsole, conn *websocket.Conn) (err error) {
+	return
 }

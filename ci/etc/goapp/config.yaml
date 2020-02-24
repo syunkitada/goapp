@@ -166,6 +166,22 @@ resource:
         certFile: "tls-assets/server.pem"
         keyFile: "tls-assets/server.key"
         gracefulTimeout: 10
+        database:
+          connection: "goapp:goapppass@tcp(127.0.0.1:3306)/goapp_resource_node1?charset=utf8&parseTime=true"
+        auth:
+          secrets: ["changeme1", "changeme2"]
+          defaultUsers:
+            - { name: "service", password: "service", roles: ["service"] }
+          defaultRoles:
+            - { name: "service", project: "service" }
+          defaultProjects:
+            - { name: "service", projectRole: "service" }
+          defaultProjectRoles:
+            - { name: "service" }
+          defaultServices:
+            - name: "ResourceVirtualAdmin"
+              scope: "project"
+              projectRoles: ["service"]
         rootClient:
           user: "service"
           password: "service"
