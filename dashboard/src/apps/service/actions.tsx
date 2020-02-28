@@ -16,6 +16,11 @@ export const serviceWebSocketOnMessage = actionCreator<{
 export const serviceWebSocketOnError = actionCreator<{
   event: any;
 }>("SERVICE_WEB_SOCKET_ON_ERROR");
+export const serviceWebSocketEmitMessage = actionCreator<{
+  action: any;
+  payload: any;
+  result: any;
+}>("SERVICE_WEB_SOCKET_EMIT_MESSAGE");
 
 export const serviceStartBackgroundSync = actionCreator(
   "SERVICE_START_BACKGROUND_SYNC"

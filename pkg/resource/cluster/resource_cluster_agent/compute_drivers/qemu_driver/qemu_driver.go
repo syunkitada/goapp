@@ -92,6 +92,7 @@ func (driver *QemuDriver) ProxyConsole(tctx *logger.TraceContext, input *spec.Ge
 		return
 	}
 	defer c.Close()
+
 	go func() {
 		buf := make([]byte, 1024)
 		for {

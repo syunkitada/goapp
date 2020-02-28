@@ -257,6 +257,7 @@ export default reducerWithInitialState(defaultState)
       if (index && index.EnableWebSocket) {
         if (!newState.projectServiceMap[project][service].WebSocketMap) {
           newState.projectServiceMap[project][service].WebSocketMap = {};
+          newState.projectServiceMap[project][service].WebSocketDataMap = {};
         }
         // TODO check exists websocket
         newState.projectServiceMap[project][service].WebSocketMap[
@@ -282,6 +283,7 @@ export default reducerWithInitialState(defaultState)
       if (index && index.EnableWebSocket) {
         if (!newState.serviceMap[service].WebSocketMap) {
           newState.serviceMap[service].WebSocketMap = {};
+          newState.serviceMap[service].WebSocketDataMap = {};
         }
         // TODO check exists websocket
         newState.serviceMap[service].WebSocketMap[
@@ -319,5 +321,60 @@ export default reducerWithInitialState(defaultState)
       payload.action.type,
       newState
     );
+    return newState;
+  })
+  .case(actions.service.serviceWebSocketEmitMessage, (state, payload) => {
+    logger.info("reducers", "servicePostSuccess", payload.action.type, payload);
+    const { index, route } = payload.action.payload;
+    const newState = Object.assign({}, state);
+    const data = payload.result;
+
+    const service = route.match.params.service;
+    const project = route.match.params.project;
+    // set websocket data
+    if (project) {
+      // Set WebSocket
+      if (index && index.EnableWebSocket) {
+        if (
+          index.WebSocketKey in
+          newState.projectServiceMap[project][service].WebSocketDataMap
+        ) {
+          let value =
+            newState.projectServiceMap[project][service].WebSocketDataMap[
+              index.WebSocketKey
+            ];
+          value += data.Value;
+          newState.projectServiceMap[project][service].WebSocketDataMap[
+            index.WebSocketKey
+          ] = value;
+        } else {
+          const value = data.Value;
+          newState.projectServiceMap[project][service].WebSocketDataMap[
+            index.WebSocketKey
+          ] = value;
+        }
+      }
+    } else {
+      // Set WebSocketData
+      if (index && index.EnableWebSocket) {
+        if (
+          index.WebSocketKey in newState.serviceMap[service].WebSocketDataMap
+        ) {
+          let value =
+            newState.serviceMap[service].WebSocketDataMap[index.WebSocketKey];
+          value += data.Value;
+          newState.serviceMap[service].WebSocketDataMap[
+            index.WebSocketKey
+          ] = value;
+        } else {
+          const value = data.Value;
+          newState.serviceMap[service].WebSocketDataMap[
+            index.WebSocketKey
+          ] = value;
+        }
+      }
+    }
+
+    logger.info("reducers", "serviceWebSocketEmitSuccess: newState", newState);
     return newState;
   });

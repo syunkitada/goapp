@@ -64,6 +64,7 @@ interface IBasicView extends WithStyles<typeof styles> {
   submitQueries;
   handleChange;
   webSocket;
+  webSocketData;
 }
 
 class BasicView extends React.Component<IBasicView> {
@@ -187,7 +188,14 @@ class BasicView extends React.Component<IBasicView> {
   };
 
   private renderPanels = () => {
-    const { render, routes, classes, index, rawData } = this.props;
+    const {
+      render,
+      routes,
+      classes,
+      index,
+      rawData,
+      webSocketData
+    } = this.props;
 
     const panelsGroups: JSX.Element[] = [];
     for (let i = 0, len = index.PanelsGroups.length; i < len; i++) {
@@ -258,16 +266,18 @@ class BasicView extends React.Component<IBasicView> {
                 <Grid key={card.Name} item={true} xs={12}>
                   <FormControl fullWidth={true} variant="filled">
                     <TextField
-                      defaultValue="Default Value"
-                      disabled={true}
-                      multiline={true}
-                      rows="4"
                       variant="filled"
-                    />
-                    <TextField
-                      name="console-input"
                       onKeyUp={this.handleChangeTextForm}
                     />
+                    <pre
+                      style={{
+                        backgroundColor: "#333",
+                        height: 500,
+                        width: "100%"
+                      }}
+                    >
+                      {webSocketData}
+                    </pre>
                   </FormControl>
                 </Grid>
               );
@@ -381,6 +391,7 @@ class BasicView extends React.Component<IBasicView> {
 
   private handleChangeTextForm = event => {
     const { webSocket } = this.props;
+    event.stopPropagation();
     let value = String.fromCharCode(event.which);
     if (event.shiftKey) {
       value = value.toUpperCase();
@@ -391,7 +402,8 @@ class BasicView extends React.Component<IBasicView> {
       "TODO handleChangeTextForm",
       String.fromCharCode(event.which),
       event.which,
-      value
+      value,
+      webSocket
     );
 
     const body = JSON.stringify({
@@ -448,14 +460,17 @@ function mapStateToProps(state, ownProps) {
   } else {
     serviceState = service.serviceMap[serviceName];
   }
-  const { WebSocketMap } = serviceState;
+  const { WebSocketMap, WebSocketDataMap } = serviceState;
   const { index } = ownProps;
   let webSocket: any;
+  let webSocketData: any;
   if (index.EnableWebSocket) {
     webSocket = WebSocketMap[index.WebSocketKey];
+    webSocketData = WebSocketDataMap[index.WebSocketKey];
+    console.log("TODO DEBUG websocket", webSocketData);
   }
 
-  return { auth, webSocket };
+  return { auth, webSocket, webSocketData };
 }
 
 function mapDispatchToProps(dispatch, ownProps) {

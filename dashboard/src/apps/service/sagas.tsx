@@ -290,7 +290,17 @@ function* startWebSocket(action) {
               })
             );
             isInit = false;
+            break;
           }
+
+          yield put(
+            actions.service.serviceWebSocketEmitMessage({
+              action: action.payload.action,
+              payload: action.payload.payload,
+              result: data
+            })
+          );
+
           break;
         case "SERVICE_WEB_SOCKET_ON_ERROR":
           console.log("TODO taked on error", payload);
