@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -101,11 +102,12 @@ var upgrader = websocket.Upgrader{
 }
 
 func (app *BaseApp) Ws(w http.ResponseWriter, r *http.Request, isProxy bool) {
-	fmt.Println("DEBUG Ws")
 	var err error
+	conMutex := sync.Mutex{}
 	tctx := logger.NewTraceContext(app.host, app.name)
 	startTime := logger.StartTrace(tctx)
 	defer func() {
+		fmt.Println("DEBUG End Ws")
 		if p := recover(); p != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			err = error_utils.NewRecoveredError(p)
@@ -124,13 +126,27 @@ func (app *BaseApp) Ws(w http.ResponseWriter, r *http.Request, isProxy bool) {
 	if err != nil {
 		return
 	}
-	defer func() { err = conn.Close() }()
 
 	var proxyConn *websocket.Conn
+	wsDone := false
 	defer func() {
-		if proxyConn != nil {
-			proxyConn.Close()
+		conMutex.Lock()
+		if conn != nil {
+			if tmpErr := conn.Close(); tmpErr != nil {
+				logger.Warningf(tctx, "Failed  proxyConn.Close: err=%s", tmpErr.Error())
+			} else {
+				logger.Info(tctx, "Success proxyConn.Close")
+			}
 		}
+		if proxyConn != nil {
+			if tmpErr := proxyConn.Close(); tmpErr != nil {
+				logger.Warningf(tctx, "Failed  proxyConn.Close: err=%s", tmpErr.Error())
+			} else {
+				logger.Info(tctx, "Success proxyConn.Close")
+			}
+		}
+		wsDone = true
+		conMutex.Unlock()
 	}()
 
 	var service *base_spec_model.ServiceRouter
@@ -138,20 +154,17 @@ func (app *BaseApp) Ws(w http.ResponseWriter, r *http.Request, isProxy bool) {
 	var repBytes []byte
 
 	// 初回のQueryにより認証を行う
-	fmt.Println("Waiiting for first msg")
 	mt, message, err := conn.ReadMessage()
 	if err != nil {
 		return
 	}
 	rawReq := []byte(message)
 
-	fmt.Println("DEBUG Ws2")
 	var req *base_protocol.Request
 	var res *base_protocol.Response
 	var bytes []byte
 	service, userAuthority, req, res, err = app.Start(tctx, r, rawReq, isProxy)
 	if err != nil {
-		fmt.Println("DEBUG err", err)
 		bytes, err = json.Marshal(&res)
 		if err != nil {
 			logger.Error(tctx, err, "Failed json.Marshal")
@@ -160,7 +173,6 @@ func (app *BaseApp) Ws(w http.ResponseWriter, r *http.Request, isProxy bool) {
 		err = conn.WriteMessage(mt, bytes)
 		return
 	}
-	fmt.Println("DEBUG Ws3")
 
 	for _, endpoint := range service.Endpoints {
 		if endpoint == "" {
@@ -215,17 +227,19 @@ func (app *BaseApp) Ws(w http.ResponseWriter, r *http.Request, isProxy bool) {
 					for {
 						mt, message, tmpErr := proxyConn.ReadMessage()
 						if tmpErr != nil {
-							logger.Warningf(tctx, "Failed proxyConn.ReadMessage: err=%s", tmpErr.Error())
-							if tmpErr := proxyConn.Close(); tmpErr != nil {
-								logger.Warningf(tctx, "Failed proxyConn.Close: err=%s", tmpErr.Error())
+							conMutex.Lock()
+							if !wsDone {
+								logger.Warningf(tctx, "Failed proxyConn.ReadMessage: err=%s", tmpErr.Error())
 							}
+							conMutex.Unlock()
 							return
 						}
 						if tmpErr := conn.WriteMessage(mt, message); tmpErr != nil {
-							logger.Warningf(tctx, "Failed proxyConn.WriteMessage: err=%s", tmpErr.Error())
-							if tmpErr := proxyConn.Close(); tmpErr != nil {
-								logger.Warningf(tctx, "Failed proxyConn.Close: err=%s", tmpErr.Error())
+							conMutex.Lock()
+							if !wsDone {
+								logger.Warningf(tctx, "Failed proxyConn.WriteMessage: err=%s", tmpErr.Error())
 							}
+							conMutex.Unlock()
 							return
 						}
 					}

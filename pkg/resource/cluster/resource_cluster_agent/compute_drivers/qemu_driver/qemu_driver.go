@@ -1,11 +1,14 @@
 package qemu_driver
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net"
 	"path/filepath"
+	"sync"
+	"time"
 
 	"github.com/gorilla/websocket"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
@@ -74,6 +77,7 @@ type ConsoleOutput struct {
 	Ctrl  bool
 	Alt   bool
 	Value string
+	Bytes [][]int
 }
 
 func (driver *QemuDriver) ProxyConsole(tctx *logger.TraceContext, input *spec.GetComputeConsole, conn *websocket.Conn) (err error) {
@@ -91,19 +95,124 @@ func (driver *QemuDriver) ProxyConsole(tctx *logger.TraceContext, input *spec.Ge
 	if err != nil {
 		return
 	}
-	defer c.Close()
+	defer func() {
+		// This is not closed when websocket closed
+		err = c.Close()
+		fmt.Println("DEBUG Serial Socket CLOSED", err)
+	}()
 
+	chMutex := sync.Mutex{}
+	isDone := false
+	doneCh := make(chan bool, 2)
+	readCh := make(chan []byte, 10)
+
+	defer func() {
+		chMutex.Lock()
+		isDone = true
+		close(doneCh)
+		close(readCh)
+		chMutex.Unlock()
+	}()
+
+	var message []byte
 	go func() {
-		buf := make([]byte, 1024)
 		for {
-			n, err := c.Read(buf[:])
+			fmt.Println("Waiting Messages on WebSocket: ", input.Name)
+			_, message, err = conn.ReadMessage()
 			if err != nil {
+				chMutex.Lock()
+				if !isDone {
+					logger.Warningf(tctx, "Faild ReadMessage: %s", err.Error())
+					doneCh <- true
+				}
+				chMutex.Unlock()
 				return
 			}
-			println("Client got:", string(buf[0:n]))
+			var i ConsoleInput
+			if err = json.Unmarshal(message, &i); err != nil {
+				chMutex.Lock()
+				if !isDone {
+					logger.Warningf(tctx, "Faild Unmarshal: %s", err.Error())
+					doneCh <- true
+				}
+				chMutex.Unlock()
+				return
+			}
+			fmt.Println("DEBUG message", i, i.Value)
 
+			_, err = c.Write([]byte(i.Value))
+			if err != nil {
+				chMutex.Lock()
+				if !isDone {
+					logger.Warningf(tctx, "Faild Write SerialSocket: %s", err.Error())
+					doneCh <- true
+				}
+				chMutex.Unlock()
+				return
+			}
+		}
+	}()
+
+	go func() {
+		for {
+			buf := make([]byte, 1024)
+			n, tmpErr := c.Read(buf[:])
+			if tmpErr != nil {
+				chMutex.Lock()
+				if !isDone {
+					err = fmt.Errorf("Failed Read: err=%s", tmpErr.Error())
+					doneCh <- true
+				}
+				chMutex.Unlock()
+				return
+			}
+			fmt.Println("DEBUG READ", string(buf[0:n]))
+			fmt.Println("DEBUG READ2", buf[0:n])
+			// stringではなくbyteで管理して、js側で制御させたほうがよさそう
+			// 8, 27, 91, 74
+			// ここでとっても分割される[8, 27], [91, 74]
+			// if string(buf[0:n]) == string([]byte{8, 27, 91, 74}) {
+			// 	fmt.Println("DEBUG backspace")
+			// 	readCh <- "\\d"
+			// 	continue
+			// }
+			// fmt.Fprint(outputLogfile, string(buf[0:n]))
+			readCh <- buf[0:n]
+		}
+	}()
+
+	// 逐次出力せずに、バッファしてから出力する
+	// 10msec 出力が途切れたら(timeoutしたら 、まとめて出力する
+	var strs [][]byte
+	timeout := time.Duration(60 * time.Second)
+	for {
+		ctx, cancel := context.WithTimeout(context.Background(), timeout)
+		select {
+		case <-doneCh:
+			cancel()
+			log.Printf("\nExit by doneCh\n")
+			return
+		case str := <-readCh:
+			cancel()
+			strs = append(strs, str)
+			timeout = time.Duration(10 * time.Millisecond)
+		case <-ctx.Done():
+			cancel()
+			value := ""
+			var outbytes [][]int
+			for _, str := range strs {
+				value += string(str)
+				var ibyte []int
+				for _, st := range str {
+					ibyte = append(ibyte, int(st))
+				}
+				fmt.Println("DEBUG strs", str)
+				fmt.Println("DEBUG byte", ibyte)
+				outbytes = append(outbytes, ibyte)
+			}
 			output := ConsoleOutput{
-				Value: string(buf[0:n]),
+				Value: value,
+				Bytes: outbytes,
 			}
 			var bytes []byte
 			bytes, err = json.Marshal(&output)
@@ -111,35 +220,9 @@ func (driver *QemuDriver) ProxyConsole(tctx *logger.TraceContext, input *spec.Ge
 				logger.Warningf(tctx, "Faild WriteMessage: %s", err.Error())
 				return
 			}
-		}
-	}()
 
-	var message []byte
-	for {
-		fmt.Println("Waiting Messages on WebSocket: ", input.Name)
-		_, message, err = conn.ReadMessage()
-		if err != nil {
-			logger.Warningf(tctx, "Faild ReadMessage: %s", err.Error())
-			return
+			strs = [][]byte{}
+			timeout = time.Duration(60 * time.Second)
 		}
-		var i ConsoleInput
-		if err = json.Unmarshal(message, &i); err != nil {
-			return
-		}
-		fmt.Println("DEBUG message", i, i.Value)
-
-		_, err = c.Write([]byte(i.Value))
-		if err != nil {
-			log.Fatal("Write error:", err)
-			break
-		}
-
-		// fmt.Println("DEBUG message", messageType, string(message))
-		// if err = conn.WriteMessage(messageType, message); err != nil {
-		// 	logger.Warningf(tctx, "Faild WriteMessage: %s", err.Error())
-		// 	return
-		// }
 	}
-
-	return
 }

@@ -406,6 +406,45 @@ class BasicView extends React.Component<IBasicView> {
       webSocket
     );
 
+    value = event.target.value;
+    console.log("TODO debug key", event.which);
+    // $ stty -a
+    // speed 38400 baud; rows 15; columns 120; line = 0;
+    // intr = ^C; quit = ^\; erase = ^?; kill = ^U; eof = ^D; eol = M-^?; eol2 = M-^?; swtch = <undef>; start = ^Q; stop = ^S;
+    // susp = ^Z; rprnt = ^R; werase = ^W; lnext = ^V; discard = ^O; min = 1; time = 0;
+    // -
+    if (event.which === 13) {
+      // enter // 13
+      value = "\n";
+    } else if (event.which === 8) {
+      // backspace // 8
+      value = "\b";
+    } else if (event.which === 9) {
+      // tab // 9
+      value = "\t";
+    } else if (event.which === 37) {
+      // left // 27 91 68 \x1b[D
+      value = "\x1b[D";
+    } else if (event.which === 38) {
+      // top // 27 91 65 \x1b[A
+      value = "\x1b[A";
+    } else if (event.which === 39) {
+      // right // 27 91 67 \x1b[C
+      value = "\x1b[C";
+    } else if (event.which === 40) {
+      // down // 27 91 66 \x1b[B
+      value = "\x1b[B";
+    } else if (event.which === 46) {
+      // delete // 4
+      value = "\x7f";
+    }
+    // ^C 3
+    // 37 left
+    // 38 up
+    // 39 right
+    // 40 down
+    // 46 delete
+
     const body = JSON.stringify({
       Alt: event.altKey,
       Code: event.which,
@@ -414,6 +453,7 @@ class BasicView extends React.Component<IBasicView> {
       Shift: event.shiftKey,
       Value: value
     });
+    event.target.value = "";
     webSocket.send(body);
   };
 
