@@ -10,6 +10,7 @@ type QueryModel struct {
 	RequiredAuth    bool
 	RequiredProject bool
 	Ws              bool
+	Kind            string
 	Cmd             string
 	Help            string
 	ProjectRoles    []string
@@ -22,6 +23,7 @@ type Query struct {
 	RequiredAuth    bool
 	RequiredProject bool
 	Ws              bool
+	Kind            string
 	PkgPath         string
 	PkgName         string
 	Name            string

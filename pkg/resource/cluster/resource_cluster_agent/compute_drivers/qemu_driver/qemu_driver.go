@@ -63,23 +63,6 @@ func (driver *QemuDriver) ConfirmDeletingAssignmentMap(tctx *logger.TraceContext
 	return true, nil
 }
 
-type ConsoleInput struct {
-	Code  int
-	Shift bool
-	Ctrl  bool
-	Alt   bool
-	Value string
-}
-
-type ConsoleOutput struct {
-	Code  int
-	Shift bool
-	Ctrl  bool
-	Alt   bool
-	Value string
-	Bytes [][]int
-}
-
 func (driver *QemuDriver) ProxyConsole(tctx *logger.TraceContext, input *spec.GetComputeConsole, conn *websocket.Conn) (err error) {
 	defer func() {
 		if tmpErr := conn.Close(); tmpErr != nil {
@@ -128,8 +111,8 @@ func (driver *QemuDriver) ProxyConsole(tctx *logger.TraceContext, input *spec.Ge
 				chMutex.Unlock()
 				return
 			}
-			var i ConsoleInput
-			if err = json.Unmarshal(message, &i); err != nil {
+			var input spec.WsComputeConsoleInput
+			if err = json.Unmarshal(message, &input); err != nil {
 				chMutex.Lock()
 				if !isDone {
 					logger.Warningf(tctx, "Faild Unmarshal: %s", err.Error())
@@ -138,9 +121,9 @@ func (driver *QemuDriver) ProxyConsole(tctx *logger.TraceContext, input *spec.Ge
 				chMutex.Unlock()
 				return
 			}
-			fmt.Println("DEBUG message", i, i.Value)
+			fmt.Println("DEBUG message", string(input.Bytes), input.Bytes)
 
-			_, err = c.Write([]byte(i.Value))
+			_, err = c.Write(input.Bytes)
 			if err != nil {
 				chMutex.Lock()
 				if !isDone {
@@ -183,7 +166,7 @@ func (driver *QemuDriver) ProxyConsole(tctx *logger.TraceContext, input *spec.Ge
 
 	// 逐次出力せずに、バッファしてから出力する
 	// 10msec 出力が途切れたら(timeoutしたら 、まとめて出力する
-	var strs [][]byte
+	var outputBytes []byte
 	timeout := time.Duration(60 * time.Second)
 	for {
 		ctx, cancel := context.WithTimeout(context.Background(), timeout)
@@ -192,36 +175,22 @@ func (driver *QemuDriver) ProxyConsole(tctx *logger.TraceContext, input *spec.Ge
 			cancel()
 			log.Printf("\nExit by doneCh\n")
 			return
-		case str := <-readCh:
+		case bytes := <-readCh:
 			cancel()
-			strs = append(strs, str)
+			outputBytes = append(outputBytes, bytes...)
 			timeout = time.Duration(10 * time.Millisecond)
 		case <-ctx.Done():
 			cancel()
-			value := ""
-			var outbytes [][]int
-			for _, str := range strs {
-				value += string(str)
-				var ibyte []int
-				for _, st := range str {
-					ibyte = append(ibyte, int(st))
-				}
-				fmt.Println("DEBUG strs", str)
-				fmt.Println("DEBUG byte", ibyte)
-				outbytes = append(outbytes, ibyte)
+			output := spec.WsComputeConsoleOutput{
+				Bytes: outputBytes,
 			}
-			output := ConsoleOutput{
-				Value: value,
-				Bytes: outbytes,
-			}
-			var bytes []byte
-			bytes, err = json.Marshal(&output)
-			if err = conn.WriteMessage(websocket.TextMessage, bytes); err != nil {
+			var outputJson []byte
+			outputJson, err = json.Marshal(&output)
+			if err = conn.WriteMessage(websocket.TextMessage, outputJson); err != nil {
 				logger.Warningf(tctx, "Faild WriteMessage: %s", err.Error())
 				return
 			}
-
-			strs = [][]byte{}
+			outputBytes = []byte{}
 			timeout = time.Duration(60 * time.Second)
 		}
 	}

@@ -20,6 +20,8 @@ type Cmd struct {
 	OutputKind   string
 	OutputFormat string
 	Help         string
+	Ws           bool
+	Kind         string
 }
 
 type Flag struct {

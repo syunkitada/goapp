@@ -103,6 +103,7 @@ var upgrader = websocket.Upgrader{
 
 func (app *BaseApp) Ws(w http.ResponseWriter, r *http.Request, isProxy bool) {
 	var err error
+	var tmpErr error
 	conMutex := sync.Mutex{}
 	tctx := logger.NewTraceContext(app.host, app.name)
 	startTime := logger.StartTrace(tctx)
@@ -132,14 +133,14 @@ func (app *BaseApp) Ws(w http.ResponseWriter, r *http.Request, isProxy bool) {
 	defer func() {
 		conMutex.Lock()
 		if conn != nil {
-			if tmpErr := conn.Close(); tmpErr != nil {
+			if tmpErr = conn.Close(); tmpErr != nil {
 				logger.Warningf(tctx, "Failed  proxyConn.Close: err=%s", tmpErr.Error())
 			} else {
 				logger.Info(tctx, "Success proxyConn.Close")
 			}
 		}
 		if proxyConn != nil {
-			if tmpErr := proxyConn.Close(); tmpErr != nil {
+			if tmpErr = proxyConn.Close(); tmpErr != nil {
 				logger.Warningf(tctx, "Failed  proxyConn.Close: err=%s", tmpErr.Error())
 			} else {
 				logger.Info(tctx, "Success proxyConn.Close")

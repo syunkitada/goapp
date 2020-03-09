@@ -44,6 +44,14 @@ type GetComputeConsoleData struct {
 	Compute Compute
 }
 
+type WsComputeConsoleInput struct {
+	Bytes []byte
+}
+
+type WsComputeConsoleOutput struct {
+	Bytes []byte
+}
+
 type GetComputes struct {
 	Region string `validate:"required"`
 }
