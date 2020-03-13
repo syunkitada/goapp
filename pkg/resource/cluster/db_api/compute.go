@@ -381,7 +381,7 @@ func (api *Api) AssignCompute(tctx *logger.TraceContext,
 		if enableLabelFilters {
 			ok = false
 			for _, label := range policy.NodeServiceLabelFilters {
-				if strings.Index(node.Labels, label) >= 0 {
+				if strings.Contains(node.Labels, label) {
 					ok = true
 					break
 				}
@@ -394,7 +394,7 @@ func (api *Api) AssignCompute(tctx *logger.TraceContext,
 		if enableHardAffinites {
 			ok = false
 			for _, label := range policy.NodeServiceLabelHardAffinities {
-				if strings.Index(node.Labels, label) >= 0 {
+				if strings.Contains(node.Labels, label) {
 					ok = true
 					labels = append(labels, label)
 					break
@@ -408,7 +408,7 @@ func (api *Api) AssignCompute(tctx *logger.TraceContext,
 		if enableHardAntiAffinites {
 			ok = false
 			for _, label := range policy.NodeServiceLabelHardAntiAffinities {
-				if strings.Index(node.Labels, label) >= 0 {
+				if strings.Contains(node.Labels, label) {
 					ok = true
 					labels = append(labels, label)
 					break
@@ -422,7 +422,7 @@ func (api *Api) AssignCompute(tctx *logger.TraceContext,
 		if enableSoftAffinites {
 			ok = false
 			for _, label := range policy.NodeServiceLabelSoftAffinities {
-				if strings.Index(node.Labels, label) >= 0 {
+				if strings.Contains(node.Labels, label) {
 					ok = true
 					labels = append(labels, label)
 					break
@@ -436,7 +436,7 @@ func (api *Api) AssignCompute(tctx *logger.TraceContext,
 		if enableSoftAntiAffinites {
 			ok = false
 			for _, label := range policy.NodeServiceLabelSoftAntiAffinities {
-				if strings.Index(node.Labels, label) >= 0 {
+				if strings.Contains(node.Labels, label) {
 					ok = true
 					labels = append(labels, label)
 					break
@@ -538,9 +538,7 @@ func (api *Api) AssignCompute(tctx *logger.TraceContext,
 				tmpCandidates := []*db_model.NodeServiceWithMeta{}
 				nodes := labelNodeServicesMap[label]
 				if len(candidates) == 0 && len(assignNodeServices) == 0 && len(updateNodeServices) == 0 {
-					for _, node := range nodes {
-						tmpCandidates = append(tmpCandidates, node)
-					}
+					tmpCandidates = append(tmpCandidates, nodes...)
 					candidates = tmpCandidates
 					break
 				} else if len(assignNodeServices) > 0 {
@@ -568,9 +566,7 @@ func (api *Api) AssignCompute(tctx *logger.TraceContext,
 
 			if !enableNodeServiceFilters && !enableLabelFilters && !enableHardAffinites && !enableHardAntiAffinites {
 				if len(candidates) == 0 {
-					for _, node := range filteredNodeServices {
-						candidates = append(candidates, node)
-					}
+					candidates = append(candidates, filteredNodeServices...)
 				}
 			}
 
@@ -719,10 +715,12 @@ func (api *Api) DeleteComputeAssignments(tctx *logger.TraceContext, compute *db_
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
-		err = tx.Table("computes").Where("id = ?", compute.ID).Updates(map[string]interface{}{
+		if err = tx.Table("computes").Where("id = ?", compute.ID).Updates(map[string]interface{}{
 			"status":        base_const.StatusDeletingScheduled,
 			"status_reason": "DeleteComputeAssignments",
-		}).Error
+		}).Error; err != nil {
+			return
+		}
 
 		err = tx.Table("compute_assignments").Where("compute_id = ?", compute.ID).
 			Updates(map[string]interface{}{
@@ -731,7 +729,6 @@ func (api *Api) DeleteComputeAssignments(tctx *logger.TraceContext, compute *db_
 			}).Error
 		return
 	})
-	return
 }
 
 func (api *Api) ConfirmDeletingScheduledCompute(tctx *logger.TraceContext,

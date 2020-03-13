@@ -70,6 +70,9 @@ func (api *Api) SyncNodeService(tctx *logger.TraceContext, input *api_spec.SyncN
 		}
 		return
 	})
+	if err != nil {
+		return
+	}
 
 	// generate node tasks
 	var computeAssignments []db_model.ComputeAssignmentWithComputeAndNodeService
