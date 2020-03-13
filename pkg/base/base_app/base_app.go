@@ -91,30 +91,35 @@ func (app *BaseApp) StartMainLoop() {
 
 func (app *BaseApp) mainLoop() {
 	var tctx *logger.TraceContext
-	var startTime time.Time
-	var err error
 	logger.StdoutInfof("Start mainLoop")
 	for {
 		tctx = logger.NewTraceContext(app.host, app.name)
 		app.mainTask(tctx)
 		if app.isGracefulShutdown {
-			logger.Info(tctx, "Completed graceful shutdown mainTask")
-			logger.Info(tctx, "Starting graceful shutdown server")
-			startTime = logger.StartTrace(tctx)
-
-			ctx, cancel := context.WithTimeout(context.Background(), app.shutdownTimeout)
-			defer cancel()
-			if err = app.server.Shutdown(ctx); err != nil {
-				logger.Fatalf(tctx, "Failed graceful shutdown: %v", err)
-			}
-
-			app.dbApi.MustClose()
-			logger.Info(tctx, "Completed graceful shutdown")
-			logger.EndTrace(tctx, startTime, nil, 0)
-			os.Exit(0)
+			app.gracefulShutdownMainLoop(tctx)
 		}
 		time.Sleep(app.loopInterval)
+		if app.isGracefulShutdown {
+			app.gracefulShutdownMainLoop(tctx)
+		}
 	}
+}
+
+func (app *BaseApp) gracefulShutdownMainLoop(tctx *logger.TraceContext) {
+	logger.Info(tctx, "Completed graceful shutdown mainTask")
+	logger.Info(tctx, "Starting graceful shutdown server")
+	startTime := logger.StartTrace(tctx)
+
+	ctx, cancel := context.WithTimeout(context.Background(), app.shutdownTimeout)
+	if err := app.server.Shutdown(ctx); err != nil {
+		logger.Fatalf(tctx, "Failed graceful shutdown: %v", err)
+	}
+	cancel()
+
+	app.dbApi.MustClose()
+	logger.Info(tctx, "Completed graceful shutdown")
+	logger.EndTrace(tctx, startTime, nil, 0)
+	os.Exit(0)
 }
 
 func (app *BaseApp) mainTask(tctx *logger.TraceContext) {
@@ -181,11 +186,8 @@ func (app *BaseApp) gracefulShutdown(ctx context.Context) error {
 
 	app.isGracefulShutdown = true
 
-	select {
-	case <-ctx.Done():
-		err = ctx.Err()
-		os.Exit(1)
-	}
-
+	<-ctx.Done()
+	err = ctx.Err()
+	os.Exit(1)
 	return nil
 }

@@ -39,7 +39,9 @@ func (app *BaseApp) ExecQuery(w http.ResponseWriter, r *http.Request, isProxy bo
 	w.Header().Set("Access-Control-Allow-Credentials", "true")                  // TODO FIXME
 
 	bufbody := new(bytes.Buffer)
-	bufbody.ReadFrom(r.Body)
+	if _, err = bufbody.ReadFrom(r.Body); err != nil {
+		return
+	}
 	rawReq := bufbody.Bytes()
 	service, userAuthority, req, rep, err := app.Start(tctx, r, rawReq, isProxy)
 
@@ -52,7 +54,9 @@ func (app *BaseApp) ExecQuery(w http.ResponseWriter, r *http.Request, isProxy bo
 			logger.Error(tctx, err, "Failed json.Marshal")
 			return
 		}
-		w.Write(bytes)
+		if _, err = w.Write(bytes); err != nil {
+			return
+		}
 		return
 	}
 
@@ -85,12 +89,9 @@ func (app *BaseApp) ExecQuery(w http.ResponseWriter, r *http.Request, isProxy bo
 			w.WriteHeader(http.StatusInternalServerError)
 		}
 	}
-	w.Write(repBytes)
-}
-
-func checkSameOrigin(r *http.Request) bool {
-	// https://github.com/gorilla/websocket/blob/master/server.go#L87
-	return true
+	if _, err = w.Write(repBytes); err != nil {
+		return
+	}
 }
 
 var upgrader = websocket.Upgrader{

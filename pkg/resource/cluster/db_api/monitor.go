@@ -117,10 +117,10 @@ func (api *Api) MonitorEvents(tctx *logger.TraceContext) (err error) {
 	checkEventsMap := map[string][]api_spec.Event{}
 	nonAggregatedEvents := []api_spec.Event{}
 
-	silenceEvent := false
-	aggregateEvent := false
-	aggregateNode := false
-	aggregateCheck := false
+	var silenceEvent bool
+	var aggregateEvent bool
+	var aggregateNode bool
+	var aggregateCheck bool
 	for _, event := range getEventsData.Events {
 		key := event.Node + "@" + event.Check
 		issuedEvent, ok := issuedEventMap[key]
@@ -218,7 +218,7 @@ func (api *Api) MonitorEvents(tctx *logger.TraceContext) (err error) {
 		}
 	}
 
-	actionEvent := false
+	var actionEvent bool
 	for _, event := range nonAggregatedEvents {
 		for i, rule := range actionEventRules {
 			actionEvent = false

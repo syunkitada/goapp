@@ -70,7 +70,7 @@ func (ctl *Ctl) index(args []string) (err error) {
 		for s := range loginData.Authority.ServiceMap {
 			snames = append(snames, str_utils.ConvertToLowerFormat(s))
 		}
-		sort.Sort(sort.StringSlice(snames))
+		sort.Strings(snames)
 		for _, s := range snames {
 			fmt.Println(s)
 		}
@@ -78,10 +78,10 @@ func (ctl *Ctl) index(args []string) (err error) {
 		if project, ok := loginData.Authority.ProjectServiceMap[appProject]; ok {
 			fmt.Println("\n--- Available Project Services ---")
 			snames := make([]string, 0, len(loginData.Authority.ServiceMap))
-			for s, _ := range project.ServiceMap {
+			for s := range project.ServiceMap {
 				snames = append(snames, str_utils.ConvertToLowerFormat(s))
 			}
-			sort.Sort(sort.StringSlice(snames))
+			sort.Strings(snames)
 			for _, s := range snames {
 				fmt.Println(s)
 			}
@@ -155,7 +155,7 @@ func (ctl *Ctl) index(args []string) (err error) {
 			}
 		}
 
-		sort.Sort(sort.StringSlice(flags))
+		sort.Strings(flags)
 		helpMsg = append(helpMsg, strings.Join(flags, "\n"))
 		helpMsgs = append(helpMsgs, helpMsg)
 
@@ -310,7 +310,7 @@ func startTerminal(tctx *logger.TraceContext, cmdInfo *base_index_model.Cmd, wsC
 		return
 	}
 
-	signal.Notify(sigCh, syscall.SIGTERM, syscall.SIGKILL)
+	signal.Notify(sigCh, syscall.SIGTERM)
 
 	defer func() {
 		chMutex.Lock()
@@ -407,11 +407,15 @@ func startTerminal(tctx *logger.TraceContext, cmdInfo *base_index_model.Cmd, wsC
 	for {
 		select {
 		case ch := <-sigCh:
-			terminal.Restore(fd, state)
+			if tmpErr := terminal.Restore(fd, state); tmpErr != nil {
+				fmt.Printf("\nFailed terminal.Restore: err=%s\n", tmpErr.Error())
+			}
 			fmt.Printf("\nExit by %s\n", ch.String())
 			return
 		case <-doneCh:
-			terminal.Restore(fd, state)
+			if tmpErr := terminal.Restore(fd, state); tmpErr != nil {
+				fmt.Printf("\nFailed terminal.Restore: err=%s\n", tmpErr.Error())
+			}
 			fmt.Printf("\nExit by doneCh\n")
 			return
 		case str := <-readCh:

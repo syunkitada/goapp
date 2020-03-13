@@ -174,7 +174,6 @@ func (api *Api) UpdateComputes(tctx *logger.TraceContext, specs []spec.RegionSer
 				err = fmt.Errorf("updated rows is nothing: count=%d", rows)
 				return
 			}
-			return
 		}
 		return
 	})
@@ -366,7 +365,6 @@ func (api *Api) AssignCompute(tctx *logger.TraceContext,
 	labelNodeServicesMap := map[string][]*db_model.NodeServiceWithMeta{} // LabelごとのNodeService候補
 	for _, node := range nodeMap {
 		labels := []string{}
-		ok := true
 		if enableNodeServiceFilters {
 			ok = false
 			for _, nodeName := range policy.NodeServiceFilters {
@@ -716,7 +714,10 @@ func (api *Api) ConfirmCreatingOrUpdatingScheduledCompute(tctx *logger.TraceCont
 	})
 }
 
-func (api *Api) DeleteComputeAssignments(tctx *logger.TraceContext, compute *db_model.Compute) (err error) {
+func (api *Api) DeleteComputeAssignments(tctx *logger.TraceContext, compute *db_model.Compute) {
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
 		err = tx.Table("computes").Where("id = ?", compute.ID).Updates(map[string]interface{}{
 			"status":        base_const.StatusDeletingScheduled,

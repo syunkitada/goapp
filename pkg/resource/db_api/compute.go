@@ -23,9 +23,11 @@ import (
 )
 
 func (api *Api) GetCompute(tctx *logger.TraceContext, input *spec.GetCompute, user *base_spec.UserAuthority) (data *spec.Compute, err error) {
-	data = &spec.Compute{}
 	var dbData db_model.Compute
-	err = api.DB.Where("name = ? AND deleted_at IS NULL", input.Name).First(&dbData).Error
+	if err = api.DB.Where("name = ? AND deleted_at IS NULL", input.Name).First(&dbData).Error; err != nil {
+		data = &spec.Compute{}
+		return
+	}
 
 	data = &spec.Compute{
 		Region:        dbData.Region,
@@ -37,10 +39,6 @@ func (api *Api) GetCompute(tctx *logger.TraceContext, input *spec.GetCompute, us
 		Status:        dbData.Status,
 		StatusReason:  dbData.StatusReason,
 	}
-
-	data = &spec.Compute{}
-	err = api.DB.Where("name = ?", input.Name).First(data).Error
-
 	var specData spec.RegionServiceComputeSpec
 	if err = json_utils.Unmarshal(dbData.Spec, &specData); err != nil {
 		return
@@ -170,7 +168,7 @@ func (api *Api) ProxyComputeConsole(tctx *logger.TraceContext, input *spec.GetCo
 		if tmpErr = wsConn.Close(); tmpErr != nil {
 			logger.Warningf(tctx, "Failed wsConn.Close: err=%s", tmpErr.Error())
 		} else {
-			logger.Info(tctx, "Success wsConn.Close: err=%s")
+			logger.Info(tctx, "Success wsConn.Close")
 		}
 		wsDone = true
 		conMutex.Unlock()
@@ -279,7 +277,6 @@ func (api *Api) CreateClusterCompute(tctx *logger.TraceContext,
 		}).Error
 		return
 	})
-	return
 }
 
 func (api *Api) ConfirmCreatingOrUpdatingScheduledCompute(tctx *logger.TraceContext,
@@ -312,7 +309,6 @@ func (api *Api) ConfirmCreatingOrUpdatingScheduledCompute(tctx *logger.TraceCont
 		}).Error
 		return
 	})
-	return
 }
 
 func (api *Api) UpdateClusterCompute(tctx *logger.TraceContext,
@@ -350,7 +346,6 @@ func (api *Api) UpdateClusterCompute(tctx *logger.TraceContext,
 		}).Error
 		return
 	})
-	return
 }
 
 func (api *Api) DeleteClusterCompute(tctx *logger.TraceContext,
@@ -387,7 +382,6 @@ func (api *Api) DeleteClusterCompute(tctx *logger.TraceContext,
 		}).Error
 		return
 	})
-	return
 }
 
 func (api *Api) ConfirmDeletingScheduledCompute(tctx *logger.TraceContext,
@@ -415,5 +409,4 @@ func (api *Api) ConfirmDeletingScheduledCompute(tctx *logger.TraceContext,
 		err = tx.Where("id = ?", compute.ID).Unscoped().Delete(&db_model.Compute{}).Error
 		return
 	})
-	return
 }

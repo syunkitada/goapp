@@ -78,39 +78,36 @@ func New(baseConf *base_config.Config, name string, logConf *config.ResourceLogC
 	return reader, err
 }
 
-func (reader *LogReader) Init() error {
-	var err error
+func (reader *LogReader) Init() (err error) {
 	var file *os.File
 	var ioreader *bufio.Reader
 
 	file, err = os.Open(reader.path)
-	defer file.Close()
 	if err != nil {
 		return err
 	}
+	defer func() {
+		err = file.Close()
+	}()
 
 	ioreader = bufio.NewReaderSize(file, 1024)
 
 	if reader.maxInitialReadSize > 0 {
 		var endOffset int64
-		endOffset, err = file.Seek(0, os.SEEK_END)
-		if err != nil {
-			return err
+		if endOffset, err = file.Seek(0, os.SEEK_END); err != nil {
+			return
 		}
 		if reader.maxInitialReadSize > endOffset {
 			reader.offset = 0
 		} else {
-			_, err = file.Seek(-1*reader.maxInitialReadSize, os.SEEK_END)
-			if err != nil {
-				return err
+			if _, err = file.Seek(-1*reader.maxInitialReadSize, os.SEEK_END); err != nil {
+				return
 			}
-			_, err = ioreader.ReadString('\n')
-			if err != nil {
-				return err
+			if _, err = ioreader.ReadString('\n'); err != nil {
+				return
 			}
-			reader.offset, err = file.Seek(0, os.SEEK_CUR)
-			if err != nil {
-				return err
+			if reader.offset, err = file.Seek(0, os.SEEK_CUR); err != nil {
+				return
 			}
 		}
 	} else {
@@ -118,8 +115,7 @@ func (reader *LogReader) Init() error {
 	}
 
 	reader.ClearLogs()
-
-	return nil
+	return
 }
 
 func (reader *LogReader) Report() ([]spec.ResourceLog, []spec.ResourceEvent) {
@@ -151,11 +147,14 @@ func (reader *LogReader) ReadUntilEOF(tctx *logger.TraceContext) error {
 	fmt.Println("DEBUG ReadUntil", reader.path)
 
 	// Open file each time, because of the file may be deleted or replaced
-	file, err = os.Open(reader.path)
-	defer file.Close()
-	if err != nil {
+	if file, err = os.Open(reader.path); err != nil {
 		return err
 	}
+	defer func() {
+		if tmpErr := file.Close(); tmpErr != nil {
+			logger.Warningf(tctx, "Failed file.Close")
+		}
+	}()
 
 	ioreader = bufio.NewReaderSize(file, 10240)
 

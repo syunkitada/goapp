@@ -90,7 +90,6 @@ func (srv *Server) SyncComputeAssignments(tctx *logger.TraceContext,
 		return nil, err
 	}
 
-	ok = false
 	retryCount = srv.computeConf.ConfirmRetryCount
 	for {
 		if ok, err = srv.computeDriver.ConfirmActivatingAssignmentMap(tctx, activatingAssignmentMap); err != nil {
@@ -111,7 +110,6 @@ func (srv *Server) SyncComputeAssignments(tctx *logger.TraceContext,
 		return nil, err
 	}
 
-	ok = false
 	retryCount = srv.computeConf.ConfirmRetryCount
 	for {
 		if ok, err = srv.computeDriver.ConfirmDeletingAssignmentMap(tctx, deletingAssignmentMap); err != nil {

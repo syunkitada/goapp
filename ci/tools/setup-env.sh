@@ -8,13 +8,8 @@ cp -r ci/etc/goapp/* ~/.goapp/etc/
 
 GO111MODULE=off
 go get -u gopkg.in/godo.v2/cmd/godo
+go get -u github.com/golangci/golangci-lint/cmd/golangci-lint
 
-# GO111MODULE=off
-# go get github.com/golangci/golangci-lint
-# 
-# go get golang.org/x/lint/golint
-# go get github.com/alecthomas/gometalinter
-# GO111MODULE=on
 
 OS_RELEASE=""
 if grep "Ubuntu" /etc/os-release > /dev/null; then

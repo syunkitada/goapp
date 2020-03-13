@@ -12,30 +12,14 @@ import (
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
 
-func (ctl *Ctl) outputCmdHelp(cmd string, cmdInfo base_index_model.Cmd) {
-	cmdHelp := cmd
-	if cmdInfo.Arg != "" {
-		cmdHelp += fmt.Sprintf(" [%s:%s]", cmdInfo.ArgType, cmdInfo.Arg)
-	}
-	table := tablewriter.NewWriter(os.Stdout)
-	table.SetBorder(false)
-	table.SetRowLine(false)
-	table.SetColumnSeparator("")
-	table.SetCenterSeparator("")
-	for key, flag := range cmdInfo.FlagMap {
-		table.Append([]string{cmdHelp, cmdInfo.Help})
-		table.Append([]string{fmt.Sprintf("--%s [%s:%s]", key, flag.FlagType, flag.Flag), flag.Help})
-	}
-	table.Render()
-
-	// fmt.Printf("Invalid args: %s %s %v :%s\n", cmd, cmdInfo.Arg, cmdInfo.FlagMap, cmdInfo.Help)
-}
-
 func (ctl *Ctl) output(cmdInfo *base_index_model.Cmd, resp *Response,
 	flagMap map[string]interface{}, shortFlagMap map[string]interface{}) {
 	outputFormat, ok := flagMap["out"]
 	if !ok {
 		outputFormat, ok = shortFlagMap["o"]
+		if !ok {
+			outputFormat = "json"
+		}
 	}
 
 	switch outputFormat {

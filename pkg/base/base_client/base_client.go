@@ -136,8 +136,9 @@ func (client *Client) Request(tctx *logger.TraceContext, service string, queries
 			httpResp, err = client.httpClient.Do(httpReq)
 			if err != nil {
 				return err
+			} else {
+				break
 			}
-			break
 		}
 
 		defer func() {
