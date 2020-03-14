@@ -106,6 +106,7 @@ func InitFlags(rootCmd *cobra.Command, conf *Config) {
 	rootCmd.PersistentFlags().StringVar(&conf.TmpDir, "tmp-dir", "", "tmp directory")
 	rootCmd.PersistentFlags().StringVar(&conf.VarDir, "var-dir", "", "var directory")
 	rootCmd.PersistentFlags().BoolVar(&conf.EnableDebug, "debug", false, "enable debug mode")
+	rootCmd.PersistentFlags().BoolVar(&conf.EnableTest, "test", false, "enable test mode")
 	rootCmd.PersistentFlags().BoolVar(&conf.EnableDevelop, "develop", false, "enable develop mode")
 	rootCmd.PersistentFlags().BoolVar(&conf.EnableDatabaseLog, "database-log", false, "enable database logging")
 }
@@ -120,6 +121,8 @@ func InitConfig(conf *Config, appConf interface{}) {
 
 	if conf.ConfigFile == "" {
 		conf.ConfigFile = filepath.Join(conf.ConfigDir, "config.yaml")
+	} else {
+		conf.ConfigFile = filepath.Join(conf.ConfigDir, conf.ConfigFile)
 	}
 
 	if conf.TmpDir == "" {
