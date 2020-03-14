@@ -1,0 +1,32 @@
+# Packaging
+
+- main パッケージは、cmd/ 配下に格納される
+- main 以外のパッケージは、pkg/ 配下に格納される
+- パッケージ名から中身が想像できるよう意識する
+- 衝突の恐れがある名前は避ける
+- ファイル名は必ず lowercase, snake_case を使う
+  - 無理に単語をつなげるよりは、snake_case を使う
+  - NG
+    - pkg/resource/api
+    - pkg/resource/controller
+    - pkg/resourceapi
+    - pkg/resourcecontroller
+  - OK
+    - pkg/resource/resource_api
+    - pkg/resource/resource_controller
+- pkg/ 直下は極力汚さないようにする
+  - 各サービスを示す大枠の namespace を切って、その中で機能を拡張していく
+    - pkg/authproxy/...
+    - pkg/resource/...
+  - 各サービスが共通で使うアプリケーション実装は pkg/base に含める
+    - pkg/base/base_app
+    - pkg/base/base_client
+    - pkg/base/base_config
+  - 各サービスが共通で使うライブラリは pkg/lib に含める
+    - pkg/lib/logger
+    - pkg/lib/os_utils
+    - pkg/lib/str_utils
+- type 名や変数名は省略文字も含めてすべて CamelCase を利用する
+  - lowercase と CamelCase を自動変換する場合に、省略語かどうかを考慮させないため
+  - HTTPClient ではなく HttpClient とする
+  - メモ: 一般的には、HTTPClient のように省略語はそのまま利用されることが多い

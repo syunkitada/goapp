@@ -8,8 +8,17 @@ gen:
 	go run cmd/goapp-resource/main.go ctl generate-code
 	go run cmd/goapp-authproxy/main.go ctl generate-code
 
+# tests
 lint-test:
 	golangci-lint run pkg/...
+unit-test:
+	go test --cover ./pkg/...
+unit-test-v:
+	go test -v --cover ./pkg/...
+senario-test:
+	go test --parallel 1 ./ci/senario_test/...
+senario-test-v:
+	go test -v --parallel 1 ./ci/senario_test/...
 
 # services
 start-all:
