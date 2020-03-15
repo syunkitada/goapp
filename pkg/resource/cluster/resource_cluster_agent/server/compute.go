@@ -63,6 +63,7 @@ func (srv *Server) SyncComputeAssignments(tctx *logger.TraceContext,
 					NetnsIp:      netnsIp.String(),
 					VmIp:         port.Ip,
 					VmMac:        port.Mac,
+					VmSubnet:     port.Subnet,
 					Kind:         port.Kind,
 				}
 

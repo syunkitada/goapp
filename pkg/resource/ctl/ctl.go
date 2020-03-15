@@ -7,8 +7,6 @@ import (
 	"github.com/syunkitada/goapp/pkg/resource/config"
 )
 
-var baseConf base_config.Config
-
 var RootCmd = &cobra.Command{
 	Use: "ctl",
 }
