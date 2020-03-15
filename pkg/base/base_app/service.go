@@ -10,7 +10,7 @@ import (
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
 
-func (app *BaseApp) SyncService(tctx *logger.TraceContext) (err error) {
+func (app *BaseApp) SyncService(tctx *logger.TraceContext, syncRoot bool) (err error) {
 	queries := []base_client.Query{}
 	var data *base_spec.GetServicesData
 	if data, err = app.dbApi.GetServices(tctx, &base_spec.GetServices{}); err != nil {
@@ -51,7 +51,7 @@ func (app *BaseApp) SyncService(tctx *logger.TraceContext) (err error) {
 	}
 	app.serviceMap = serviceMap
 
-	if len(queries) > 0 {
+	if syncRoot && len(queries) > 0 {
 		if _, err = app.rootClient.UpdateServices(tctx, queries); err != nil {
 			return
 		}

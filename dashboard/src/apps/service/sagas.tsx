@@ -1,4 +1,6 @@
+import { eventChannel } from "redux-saga";
 import {
+  // apply,
   call,
   cancel,
   cancelled,
@@ -13,6 +15,19 @@ import actions from "../../actions";
 import logger from "../../lib/logger";
 import modules from "../../modules";
 import store from "../../store";
+
+function createWebSocketConnection() {
+  const url: any = process.env.REACT_APP_AUTHPROXY_URL;
+  const wsUrl: any = url.replace("http", "ws");
+  logger.info("TODO DEBUG wsUrl", wsUrl);
+  const socket = new WebSocket(wsUrl + "/ws");
+  return new Promise(resolve => {
+    socket.onopen = event => {
+      logger.info("TODO websocket.onopen", event);
+      resolve(socket);
+    };
+  });
+}
 
 function* post(action) {
   const dataQueries: any[] = [];
@@ -122,14 +137,26 @@ function* post(action) {
       return {};
   }
 
-  console.log("DEBUG TODO post", payload);
-  const { result, error } = yield call(modules.service.post, payload);
-  console.log("DEBUG TODO post", payload, result, error);
-
-  if (error) {
-    yield put(actions.service.servicePostFailure({ action, payload, error }));
+  if (index && index.EnableWebSocket) {
+    yield put(actions.service.serviceStartWebSocket({ action, payload }));
+    return;
   } else {
-    yield put(actions.service.servicePostSuccess({ action, payload, result }));
+    console.log("DEBUG TODO post", payload);
+    const { result, error } = yield call(modules.service.post, payload);
+    console.log("DEBUG TODO post", payload, result, error);
+
+    if (error) {
+      yield put(actions.service.servicePostFailure({ action, payload, error }));
+    } else {
+      yield put(
+        actions.service.servicePostSuccess({
+          action,
+          payload,
+          result,
+          websocket: null
+        })
+      );
+    }
   }
   return {};
 }
@@ -198,6 +225,101 @@ function* sync(action) {
   }
 }
 
+function createSocketChannel(socket) {
+  // eventChannelは、WebSocketなどからの外部イベントを受けて、ActionとしてChannelに積むためのもの
+  return eventChannel(emit => {
+    // subscriptionを設定
+    // socketから受け取ったメッセージをactionデータとしてchannelに入れる(emit)
+    const messageHandler = event => {
+      emit(actions.service.serviceWebSocketOnMessage({ event }));
+    };
+    const errorHandler = event => {
+      emit(actions.service.serviceWebSocketOnError({ event }));
+    };
+    socket.onmessage = messageHandler;
+    socket.onerror = errorHandler;
+
+    // 最後にunsubscribeを返す
+    // unsubscribeは、sagaが `channel.close`メソッドを実行したときに呼び出されるので、後処理を行う
+    const unsubscribe = () => {
+      socket.close();
+    };
+    return unsubscribe;
+  });
+}
+
+// reply with a `pong` message by invoking `socket.emit('pong')`
+// function* pong(socket) {
+//   yield delay(5000);
+//   console.log("pong");
+//   // yield apply(socket, socket.emit, ["pong"]); // call `emit` as a method with `socket` as context
+// }
+
+function* startWebSocket(action) {
+  logger.info("startWebSocket", action);
+  const socket = yield call(createWebSocketConnection);
+  const socketChannel = yield call(createSocketChannel, socket);
+  const { projectName, serviceName, queries } = action.payload.payload;
+  console.log("TODO DEBUG ", projectName, serviceName, queries);
+
+  const body = JSON.stringify({
+    Project: projectName,
+    Queries: queries,
+    Service: serviceName
+  });
+
+  // コネクション確立後の初回メッセージにより認証が行われる
+  socket.send(body);
+  let isInit = true;
+
+  while (true) {
+    try {
+      const payload = yield take(socketChannel);
+      switch (payload.type) {
+        case "SERVICE_WEB_SOCKET_ON_MESSAGE":
+          console.log("TODO taked on message", payload);
+          const data = JSON.parse(payload.payload.event.data);
+          if (isInit) {
+            const result = data;
+            yield put(
+              actions.service.servicePostSuccess({
+                action: action.payload.action,
+                payload: action.payload.payload,
+                result,
+                websocket: socket
+              })
+            );
+            isInit = false;
+            break;
+          }
+
+          yield put(
+            actions.service.serviceWebSocketEmitMessage({
+              action: action.payload.action,
+              payload: action.payload.payload,
+              result: data
+            })
+          );
+
+          break;
+        case "SERVICE_WEB_SOCKET_ON_ERROR":
+          console.log("TODO taked on error", payload);
+          break;
+        default:
+          logger.error(
+            "take(socketChannel): Invalid action.type",
+            payload.type
+          );
+          break;
+      }
+      // yield put({ type: INCOMING_PONG_PAYLOAD, payload });
+      // yield fork(pong, socket);
+    } catch (err) {
+      logger.error("TODO handle socket err", err);
+    }
+  }
+}
+
 function* bgSync(action) {
   // starts the task in the background
   const bgSyncTask = yield fork(sync, action);
@@ -225,9 +347,14 @@ function* watchSubmitQueries() {
   yield takeEvery(actions.service.serviceSubmitQueries, post);
 }
 
+function* watchStartWebSocket() {
+  yield takeEvery(actions.service.serviceStartWebSocket, startWebSocket);
+}
+
 export default {
   watchGetIndex,
   watchGetQueries,
   watchStartBackgroundSync,
+  watchStartWebSocket,
   watchSubmitQueries
 };

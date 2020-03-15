@@ -4,6 +4,7 @@
 package genpkg
 
 import (
+	"github.com/gorilla/websocket"
 	"github.com/syunkitada/goapp/pkg/base/base_client"
 	"github.com/syunkitada/goapp/pkg/base/base_config"
 	"github.com/syunkitada/goapp/pkg/base/base_protocol"
@@ -512,6 +513,20 @@ type GetComputeResult struct {
 	Code  uint8
 	Error string
 	Data  spec.GetComputeData
+}
+type GetComputeConsoleResponse struct {
+	base_protocol.Response
+	ResultMap GetComputeConsoleResultMap
+}
+
+type GetComputeConsoleResultMap struct {
+	GetComputeConsole GetComputeConsoleResult
+}
+
+type GetComputeConsoleResult struct {
+	Code  uint8
+	Error string
+	Data  spec.GetComputeConsoleData
 }
 type GetComputesResponse struct {
 	base_protocol.Response
@@ -2280,6 +2295,21 @@ func (client *Client) ResourceVirtualAdminGetComputes(tctx *logger.TraceContext,
 		return
 	}
 	result := res.ResultMap.GetComputes
+	if result.Code >= 100 || result.Error != "" {
+		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
+		return
+	}
+
+	data = &result.Data
+	return
+}
+func (client *Client) ResourceVirtualAdminGetComputeConsole(tctx *logger.TraceContext, queries []base_client.Query) (data *spec.GetComputeConsoleData, conn *websocket.Conn, err error) {
+	var res GetComputeConsoleResponse
+	conn, err = client.RequestWs(tctx, "ResourceVirtualAdmin", queries, &res, true)
+	if err != nil {
+		return
+	}
+	result := res.ResultMap.GetComputeConsole
 	if result.Code >= 100 || result.Error != "" {
 		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
 		return

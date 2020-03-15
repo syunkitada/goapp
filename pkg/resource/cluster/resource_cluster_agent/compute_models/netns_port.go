@@ -9,6 +9,7 @@ type NetnsPort struct {
 	NetnsIp            string
 	VmIp               string
 	VmMac              string
+	VmSubnet           string
 	Kind               string
 	NetworkV4LocalSpec spec.NetworkV4LocalSpec
 }

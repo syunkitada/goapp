@@ -24,7 +24,7 @@ func CreateDatabase(tctx *logger.TraceContext, baseConf *base_config.Config, con
 
 	mysqlCmd := fmt.Sprintf("mysql -u%s -p%s -h%s -P%s", user, password, host, port)
 	if isRecreate {
-		if !baseConf.EnableDevelop {
+		if !baseConf.EnableDevelop && !baseConf.EnableTest {
 			return fmt.Errorf("Recreate database is not available on except develop mode")
 		}
 

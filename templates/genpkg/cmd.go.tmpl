@@ -23,8 +23,10 @@ var {{ $api.Name }}CmdMap = map[string]base_index_model.Cmd{
             },
         {{- end }}
         },
+        Kind: "{{ $query.Kind }}",
         OutputKind: "{{ $query.CmdOutputKind }}",
         OutputFormat: "{{ $query.CmdOutputFormat }}",
+        Ws: {{ $query.Ws }},
     },
 {{- end }}
 }

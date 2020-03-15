@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/gorilla/websocket"
 	"github.com/syunkitada/goapp/pkg/base/base_config"
 	"github.com/syunkitada/goapp/pkg/base/base_const"
 	"github.com/syunkitada/goapp/pkg/base/base_protocol"
@@ -135,8 +136,9 @@ func (client *Client) Request(tctx *logger.TraceContext, service string, queries
 			httpResp, err = client.httpClient.Do(httpReq)
 			if err != nil {
 				return err
+			} else {
+				break
 			}
-			break
 		}
 
 		defer func() {
@@ -165,6 +167,83 @@ func (client *Client) Request(tctx *logger.TraceContext, service string, queries
 	}
 
 	return nil
+}
+
+func (client *Client) RequestWs(tctx *logger.TraceContext, service string, queries []Query, resp interface{}, requiredAuth bool) (wsConn *websocket.Conn, err error) {
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	reqQueries := []base_protocol.ReqQuery{}
+	var queryBytes []byte
+	for _, query := range queries {
+		if queryBytes, err = json.Marshal(query.Data); err != nil {
+			return
+		} else {
+			reqQueries = append(reqQueries, base_protocol.ReqQuery{
+				Name: query.Name,
+				Data: string(queryBytes),
+			})
+		}
+	}
+
+	req := base_protocol.Request{
+		Tctx:    tctx,
+		Service: service,
+		Project: client.project,
+		Queries: reqQueries,
+	}
+
+	var reqJson []byte
+	if reqJson, err = json.Marshal(req); err != nil {
+		return
+	}
+
+	var body []byte
+	dialer := websocket.Dialer{
+		Proxy:            http.ProxyFromEnvironment,
+		HandshakeTimeout: 45 * time.Second,
+		TLSClientConfig: &tls.Config{
+			InsecureSkipVerify: true,
+		},
+	}
+
+	if client.localHandler != nil {
+		fmt.Println("TODO not supported")
+	} else {
+		for _, target := range client.endpoints {
+			endpoint := strings.Replace(target, "http", "ws", -1) + "/ws"
+			header := http.Header{}
+			if requiredAuth {
+				if err = client.Auth(tctx); err != nil {
+					return
+				}
+
+				header.Add("X-Auth-Token", client.token)
+			}
+			wsConn, _, err = dialer.Dial(endpoint, header)
+			if err != nil {
+				logger.Errorf(tctx, err, "Failed dial to %s", endpoint)
+				continue
+			}
+			break
+		}
+
+		if err = wsConn.WriteMessage(websocket.TextMessage, reqJson); err != nil {
+			logger.Warningf(tctx, "Failed WriteMessage: %s", err.Error())
+			return
+		}
+
+	}
+
+	_, body, err = wsConn.ReadMessage()
+	if err != nil {
+		return
+	}
+
+	if err = json.Unmarshal(body, resp); err != nil {
+		return
+	}
+	return
 }
 
 func (client *Client) Auth(tctx *logger.TraceContext) (err error) {

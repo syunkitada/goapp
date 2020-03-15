@@ -120,7 +120,6 @@ func (driver *InfluxdbDriver) SetFilterEventRules(tctx *logger.TraceContext, eve
 	driver.mtx.Lock()
 	driver.filterEventRules = filterEventRules
 	driver.mtx.Unlock()
-	return
 }
 
 func (driver *InfluxdbDriver) Report(tctx *logger.TraceContext, input *api_spec.ReportNode) error {
@@ -130,7 +129,7 @@ func (driver *InfluxdbDriver) Report(tctx *logger.TraceContext, input *api_spec.
 
 	filterEventRules := driver.filterEventRules
 	eventsData := ""
-	filterEvent := false
+	var filterEvent bool
 	for _, event := range input.Events {
 		filterEvent = false
 		for _, filter := range filterEventRules {
@@ -333,7 +332,7 @@ func (driver *InfluxdbDriver) GetLogParams(tctx *logger.TraceContext, input *api
 	nodes := []string{}
 	for _, client := range driver.logClients {
 		result, tmpErr := client.Query(nodesQuery)
-		if err != nil {
+		if tmpErr != nil {
 			logger.Warningf(tctx, "Failed Query: %s", tmpErr.Error())
 			continue
 		}
@@ -348,7 +347,7 @@ func (driver *InfluxdbDriver) GetLogParams(tctx *logger.TraceContext, input *api
 	apps := []string{}
 	for _, client := range driver.logClients {
 		result, tmpErr := client.Query(appsQuery)
-		if err != nil {
+		if tmpErr != nil {
 			logger.Warningf(tctx, "Failed Query: %s", tmpErr.Error())
 			continue
 		}

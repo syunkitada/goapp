@@ -18,8 +18,10 @@ var HomeCmdMap = map[string]base_index_model.Cmd{
 				FlagKind: "",
 			},
 		},
+		Kind:         "",
 		OutputKind:   "",
 		OutputFormat: "",
+		Ws:           false,
 	},
 	"get.user": base_index_model.Cmd{
 		QueryName: "GetUser",
@@ -30,8 +32,10 @@ var HomeCmdMap = map[string]base_index_model.Cmd{
 				FlagKind: "",
 			},
 		},
+		Kind:         "",
 		OutputKind:   "",
 		OutputFormat: "",
+		Ws:           false,
 	},
 }
 var HomeProjectCmdMap = map[string]base_index_model.Cmd{
@@ -44,8 +48,10 @@ var HomeProjectCmdMap = map[string]base_index_model.Cmd{
 				FlagKind: "",
 			},
 		},
+		Kind:         "",
 		OutputKind:   "",
 		OutputFormat: "",
+		Ws:           false,
 	},
 }
 

@@ -1,6 +1,8 @@
 package db_api
 
 import (
+	"fmt"
+
 	"github.com/jinzhu/gorm"
 	"github.com/syunkitada/goapp/pkg/base/base_const"
 	"github.com/syunkitada/goapp/pkg/base/base_spec"
@@ -145,7 +147,10 @@ func (api *Api) AssignNetworkV4Port(tctx *logger.TraceContext, tx *gorm.DB,
 			return
 		}
 
-		portMap, _ := netPortMap[net.ID]
+		portMap, ok := netPortMap[net.ID]
+		if !ok {
+			continue
+		}
 		availableIps := []string{}
 		for {
 			ipStr := network.StartIp.String()
@@ -186,8 +191,9 @@ func (api *Api) AssignNetworkV4Port(tctx *logger.TraceContext, tx *gorm.DB,
 					Ip:        port.Ip,
 					Mac:       port.Mac,
 				})
+			} else {
+				break
 			}
-			break
 		}
 	}
 
@@ -209,7 +215,11 @@ func (api *Api) AssignNetworkV4Port(tctx *logger.TraceContext, tx *gorm.DB,
 
 			ip := net.AvailableIps[i]
 			var mac string
-			macMap, _ := netMacMap[net.Id]
+			macMap, ok := netMacMap[net.Id]
+			if !ok {
+				err = fmt.Errorf("NotFound Mac: net.Id=%d", net.Id)
+				return
+			}
 			mac, err = ip_utils.GenerateUniqueRandomMac(macMap, 100)
 			if err != nil {
 				return

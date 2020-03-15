@@ -7,7 +7,11 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
+	"sync"
 	"time"
+
+	"github.com/gorilla/websocket"
 
 	"github.com/gin-gonic/gin"
 	"github.com/syunkitada/goapp/pkg/base/base_const"
@@ -34,7 +38,12 @@ func (app *BaseApp) ExecQuery(w http.ResponseWriter, r *http.Request, isProxy bo
 	w.Header().Set("Access-Control-Allow-Origin", "http://192.168.10.121:3000") // TODO FIXME
 	w.Header().Set("Access-Control-Allow-Credentials", "true")                  // TODO FIXME
 
-	service, userAuthority, rawReq, req, rep, err := app.Start(tctx, r, isProxy)
+	bufbody := new(bytes.Buffer)
+	if _, err = bufbody.ReadFrom(r.Body); err != nil {
+		return
+	}
+	rawReq := bufbody.Bytes()
+	service, userAuthority, req, rep, err := app.Start(tctx, r, rawReq, isProxy)
 
 	defer func() { app.End(tctx, startTime, err) }()
 	if err != nil {
@@ -45,7 +54,9 @@ func (app *BaseApp) ExecQuery(w http.ResponseWriter, r *http.Request, isProxy bo
 			logger.Error(tctx, err, "Failed json.Marshal")
 			return
 		}
-		w.Write(bytes)
+		if _, err = w.Write(bytes); err != nil {
+			return
+		}
 		return
 	}
 
@@ -78,7 +89,183 @@ func (app *BaseApp) ExecQuery(w http.ResponseWriter, r *http.Request, isProxy bo
 			w.WriteHeader(http.StatusInternalServerError)
 		}
 	}
-	w.Write(repBytes)
+	if _, err = w.Write(repBytes); err != nil {
+		return
+	}
+}
+
+var upgrader = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
+}
+
+func (app *BaseApp) Ws(w http.ResponseWriter, r *http.Request, isProxy bool) {
+	var err error
+	var tmpErr error
+	conMutex := sync.Mutex{}
+	tctx := logger.NewTraceContext(app.host, app.name)
+	startTime := logger.StartTrace(tctx)
+	defer func() {
+		fmt.Println("DEBUG End Ws")
+		if p := recover(); p != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			err = error_utils.NewRecoveredError(p)
+			logger.Errorf(tctx, err, "Panic occured")
+			fmt.Println("panic occured", err)
+		}
+	}()
+
+	w.Header().Set("Access-Control-Allow-Origin", "http://192.168.10.121:3000") // TODO FIXME
+	w.Header().Set("Access-Control-Allow-Credentials", "true")                  // TODO FIXME
+
+	defer func() { app.End(tctx, startTime, err) }()
+
+	var conn *websocket.Conn
+	conn, err = upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		return
+	}
+
+	var proxyConn *websocket.Conn
+	wsDone := false
+	defer func() {
+		conMutex.Lock()
+		if conn != nil {
+			if tmpErr = conn.Close(); tmpErr != nil {
+				logger.Warningf(tctx, "Failed  proxyConn.Close: err=%s", tmpErr.Error())
+			} else {
+				logger.Info(tctx, "Success proxyConn.Close")
+			}
+		}
+		if proxyConn != nil {
+			if tmpErr = proxyConn.Close(); tmpErr != nil {
+				logger.Warningf(tctx, "Failed  proxyConn.Close: err=%s", tmpErr.Error())
+			} else {
+				logger.Info(tctx, "Success proxyConn.Close")
+			}
+		}
+		wsDone = true
+		conMutex.Unlock()
+	}()
+
+	var service *base_spec_model.ServiceRouter
+	var userAuthority *base_spec.UserAuthority
+	var repBytes []byte
+
+	// 初回のQueryにより認証を行う
+	mt, message, err := conn.ReadMessage()
+	if err != nil {
+		return
+	}
+	rawReq := []byte(message)
+
+	var req *base_protocol.Request
+	var res *base_protocol.Response
+	var bytes []byte
+	service, userAuthority, req, res, err = app.Start(tctx, r, rawReq, isProxy)
+	if err != nil {
+		bytes, err = json.Marshal(&res)
+		if err != nil {
+			logger.Error(tctx, err, "Failed json.Marshal")
+			return
+		}
+		err = conn.WriteMessage(mt, bytes)
+		return
+	}
+
+	for _, endpoint := range service.Endpoints {
+		if endpoint == "" {
+			if err = app.queryHandler.ExecWs(tctx, userAuthority, r, w, req, res, nil); err != nil {
+				bytes, err = json.Marshal(&res)
+				if err != nil {
+					logger.Error(tctx, err, "Failed json.Marshal")
+					return
+				}
+				err = conn.WriteMessage(mt, bytes)
+				return
+			}
+			repBytes, err = json.Marshal(&res)
+			err = conn.WriteMessage(mt, repBytes)
+			fmt.Println("WriteMessage ", err)
+			if err != nil {
+				fmt.Println("write:", err)
+			}
+			break
+		}
+
+		// プロキシ先とWsをつなげる
+		endpoint := strings.Replace(endpoint, "http", "ws", -1) + "/wp"
+		dialer := websocket.Dialer{
+			Proxy:            http.ProxyFromEnvironment,
+			HandshakeTimeout: 45 * time.Second,
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: true,
+			},
+		}
+		header := http.Header{}
+		header.Add("X-Service-Token", service.Token)
+		proxyConn, _, err = dialer.Dial(endpoint, header)
+		if err != nil {
+			logger.Errorf(tctx, err, "Failed dial to %s", endpoint)
+			continue
+		}
+		break
+	}
+
+	fmt.Println("DEBUG initialized auth")
+
+	if proxyConn != nil { // Proxy
+		isInitProxy := true
+		for {
+			if isInitProxy {
+				if err = proxyConn.WriteMessage(mt, rawReq); err != nil {
+					logger.Warningf(tctx, "Failed WriteMessage: %s", err.Error())
+					return
+				}
+				go func() {
+					for {
+						mt, message, tmpErr := proxyConn.ReadMessage()
+						if tmpErr != nil {
+							conMutex.Lock()
+							if !wsDone {
+								logger.Warningf(tctx, "Failed proxyConn.ReadMessage: err=%s", tmpErr.Error())
+							}
+							conMutex.Unlock()
+							return
+						}
+						if tmpErr := conn.WriteMessage(mt, message); tmpErr != nil {
+							conMutex.Lock()
+							if !wsDone {
+								logger.Warningf(tctx, "Failed proxyConn.WriteMessage: err=%s", tmpErr.Error())
+							}
+							conMutex.Unlock()
+							return
+						}
+					}
+				}()
+				isInitProxy = false
+			}
+
+			fmt.Println("Proxy: Waining Message from client")
+			mt, message, err := conn.ReadMessage()
+			fmt.Println("Proxy: Recieved Message", string(message))
+			if err != nil {
+				return
+			}
+			rawReq := []byte(message)
+			if err = proxyConn.WriteMessage(mt, rawReq); err != nil {
+				logger.Warningf(tctx, "Failed WriteMessage: %s", err.Error())
+			}
+			continue
+		}
+	} else { // App handle ws
+		if err = app.queryHandler.ExecWs(tctx, userAuthority, r, w, req, res, conn); err != nil {
+			return
+		}
+	}
 }
 
 func (app *BaseApp) NewHandler() http.Handler {
@@ -89,18 +276,21 @@ func (app *BaseApp) NewHandler() http.Handler {
 	handler.HandleFunc("/p", func(w http.ResponseWriter, r *http.Request) {
 		app.ExecQuery(w, r, true)
 	})
+	handler.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
+		app.Ws(w, r, false)
+	})
+	handler.HandleFunc("/wp", func(w http.ResponseWriter, r *http.Request) {
+		app.Ws(w, r, true)
+	})
 
 	return handler
 }
 
-func (app *BaseApp) Start(tctx *logger.TraceContext, httpReq *http.Request, isProxy bool) (service *base_spec_model.ServiceRouter,
-	userAuthority *base_spec.UserAuthority, rawReq []byte, req *base_protocol.Request, res *base_protocol.Response, err error) {
+func (app *BaseApp) Start(tctx *logger.TraceContext, httpReq *http.Request, rawReq []byte, isProxy bool) (service *base_spec_model.ServiceRouter,
+	userAuthority *base_spec.UserAuthority, req *base_protocol.Request, res *base_protocol.Response, err error) {
 	res = &base_protocol.Response{TraceId: tctx.GetTraceId(), ResultMap: map[string]base_protocol.Result{}}
 
 	req = &base_protocol.Request{}
-	bufbody := new(bytes.Buffer)
-	bufbody.ReadFrom(httpReq.Body)
-	rawReq = bufbody.Bytes()
 	if err = json.Unmarshal(rawReq, &req); err != nil {
 		res.Code = base_const.CodeServerInternalError
 		res.Error = err.Error()

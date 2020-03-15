@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/gorilla/websocket"
 	"github.com/jinzhu/gorm"
 	"github.com/syunkitada/goapp/pkg/base/base_const"
 	"github.com/syunkitada/goapp/pkg/base/base_spec"
@@ -95,5 +96,17 @@ func (resolver *Resolver) DeleteComputes(tctx *logger.TraceContext, input *spec.
 
 func (resolver *Resolver) ConvertToComputeSpecs(specStr string) (specs []spec.RegionServiceComputeSpec, err error) {
 	err = json.Unmarshal([]byte(specStr), &specs)
+	return
+}
+
+func (resolver *Resolver) GetComputeConsole(tctx *logger.TraceContext, input *spec.GetComputeConsole, user *base_spec.UserAuthority, conn *websocket.Conn) (data *spec.GetComputeConsoleData, code uint8, err error) {
+	fmt.Println("DEBUG GetComputeConsole", input.Name)
+	code = base_const.CodeOk
+	data = &spec.GetComputeConsoleData{}
+	if conn == nil {
+		return
+	}
+
+	err = resolver.dbApi.ProxyComputeConsole(tctx, input, conn)
 	return
 }

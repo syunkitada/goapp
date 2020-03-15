@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 
 	"github.com/jinzhu/gorm"
+	"github.com/gorilla/websocket"
 
 	"github.com/syunkitada/goapp/pkg/authproxy/config"
 	"github.com/syunkitada/goapp/pkg/base/base_config"
@@ -30,11 +31,24 @@ type QueryResolver interface {
 	{{- end }}
 
 	{{- range $query := $spec.QuerySet }}
+
+	{{- if $query.Ws }}
+
+	{{- if $query.RequiredAuth }}
+	{{ $query.Name }}(tctx *logger.TraceContext, input *{{ $query.PkgName }}.{{ $query.Name }}, user *base_spec.UserAuthority, conn *websocket.Conn) (*{{ $query.PkgName }}.{{ $query.Name }}Data, uint8, error)
+	{{- else }}
+	{{ $query.Name }}(tctx *logger.TraceContext, input *{{ $query.PkgName }}.{{ $query.Name }}, conn *websocket.Conn) (*{{ $query.PkgName }}.{{ $query.Name }}Data, uint8, error)
+	{{- end }}
+
+	{{- else }}
+
 	{{- if $query.RequiredAuth }}
 	{{ $query.Name }}(tctx *logger.TraceContext, input *{{ $query.PkgName }}.{{ $query.Name }}, user *base_spec.UserAuthority) (*{{ $query.PkgName }}.{{ $query.Name }}Data, uint8, error)
 	{{- else }}
 	{{ $query.Name }}(tctx *logger.TraceContext, input *{{ $query.PkgName }}.{{ $query.Name }}) (*{{ $query.PkgName }}.{{ $query.Name }}Data, uint8, error)
 	{{- end }}
+	{{- end }}
+
 	{{- end }}
 }
 
@@ -53,8 +67,7 @@ func NewQueryHandler(baseConf *base_config.Config, appConf *base_config.AppConfi
 }
 
 func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.UserAuthority, httpReq *http.Request, rw http.ResponseWriter,
-	req *base_protocol.Request, rep *base_protocol.Response) error {
-	var err error
+	req *base_protocol.Request, rep *base_protocol.Response) (err error) {
 	for _, query := range req.Queries {
 		switch query.Name {
 		{{- if eq $spec.Kind "Api" }}
@@ -195,6 +208,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 		{{- end }}
 
 		{{- range $query := $spec.QuerySet }}
+		{{- if not $query.Ws }}
 		case "{{ $query.Name }}":
 			var input {{ $query.PkgName }}.{{ $query.Name }}
 			err = json.Unmarshal([]byte(query.Data), &input)
@@ -222,6 +236,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				Data: data,
 			}
 		{{- end }}
+		{{- end }}
 
 		default:
 			err = fmt.Errorf("InvalidQueryName: %s", query.Name)
@@ -229,4 +244,47 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 		}
 	}
 	return nil
+}
+
+func (handler *QueryHandler) ExecWs(tctx *logger.TraceContext, user *base_spec.UserAuthority, httpReq *http.Request, rw http.ResponseWriter,
+	req *base_protocol.Request, rep *base_protocol.Response, conn *websocket.Conn) (err error) {
+	for _, query := range req.Queries {
+		switch query.Name {
+		{{- range $query := $spec.QuerySet }}
+		{{- if $query.Ws }}
+		case "{{ $query.Name }}":
+			var input {{ $query.PkgName }}.{{ $query.Name }}
+			err = json.Unmarshal([]byte(query.Data), &input)
+			if err != nil {
+				return err
+			}
+
+			{{- if $query.RequiredAuth }}
+			data, code, tmpErr := handler.resolver.{{ $query.Name }}(tctx, &input, user, conn)
+			{{- else }}
+			data, code, tmpErr := handler.resolver.{{ $query.Name }}(tctx, &input, conn)
+			{{- end }}
+			if tmpErr != nil {
+				if code == 0 {
+					code = base_const.CodeServerInternalError
+				}
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code: code,
+					Error: tmpErr.Error(),
+				}
+				break
+			}
+			rep.ResultMap[query.Name] = base_protocol.Result{
+				Code: code,
+				Data: data,
+			}
+		{{- end }}
+		{{- end }}
+
+		default:
+			err = fmt.Errorf("InvalidQueryName: %s", query.Name)
+			return err
+		}
+	}
+	return
 }

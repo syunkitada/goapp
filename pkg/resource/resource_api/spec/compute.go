@@ -35,6 +35,23 @@ type GetComputeData struct {
 	Compute Compute
 }
 
+type GetComputeConsole struct {
+	Name   string `validate:"required"`
+	Region string `validate:"required"`
+}
+
+type GetComputeConsoleData struct {
+	Compute Compute
+}
+
+type WsComputeConsoleInput struct {
+	Bytes []byte
+}
+
+type WsComputeConsoleOutput struct {
+	Bytes []byte
+}
+
 type GetComputes struct {
 	Region string `validate:"required"`
 }
@@ -155,23 +172,21 @@ var ComputesDetail = base_index_model.Tabs{
 			},
 		},
 		base_index_model.View{
-			Name:        "Console",
-			Route:       "/Console",
-			Kind:        "View",
-			DataKey:     "Compute",
-			DataQueries: []string{"GetCompute"},
+			Name:            "Console",
+			Route:           "/Console",
+			Kind:            "View",
+			DataKey:         "Compute",
+			DataQueries:     []string{"GetComputeConsole"},
+			EnableWebSocket: true,
+			WebSocketKey:    "ComputeConsole",
 			PanelsGroups: []interface{}{
 				map[string]interface{}{
-					"Name": "Detail",
+					"Name": "Console",
 					"Kind": "Cards",
 					"Cards": []interface{}{
 						map[string]interface{}{
-							"Name": "Detail",
-							"Kind": "Fields",
-							"Fields": []base_index_model.Field{
-								base_index_model.Field{Name: "Name", Kind: "text"},
-								base_index_model.Field{Name: "Kind", Kind: "select"},
-							},
+							"Name": "Console",
+							"Kind": "Console",
 						},
 					},
 				},

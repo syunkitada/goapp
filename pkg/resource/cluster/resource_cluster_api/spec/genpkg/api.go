@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/gorilla/websocket"
+
 	"github.com/syunkitada/goapp/pkg/base/base_config"
 	"github.com/syunkitada/goapp/pkg/base/base_const"
 	"github.com/syunkitada/goapp/pkg/base/base_protocol"
@@ -29,6 +31,7 @@ type QueryResolver interface {
 	DeleteComputes(tctx *logger.TraceContext, input *spec.DeleteComputes, user *base_spec.UserAuthority) (*spec.DeleteComputesData, uint8, error)
 	DeleteEventRules(tctx *logger.TraceContext, input *spec.DeleteEventRules, user *base_spec.UserAuthority) (*spec.DeleteEventRulesData, uint8, error)
 	GetCompute(tctx *logger.TraceContext, input *spec.GetCompute, user *base_spec.UserAuthority) (*spec.GetComputeData, uint8, error)
+	GetComputeConsole(tctx *logger.TraceContext, input *spec.GetComputeConsole, user *base_spec.UserAuthority, conn *websocket.Conn) (*spec.GetComputeConsoleData, uint8, error)
 	GetComputes(tctx *logger.TraceContext, input *spec.GetComputes, user *base_spec.UserAuthority) (*spec.GetComputesData, uint8, error)
 	GetEventRule(tctx *logger.TraceContext, input *spec.GetEventRule, user *base_spec.UserAuthority) (*spec.GetEventRuleData, uint8, error)
 	GetEventRules(tctx *logger.TraceContext, input *spec.GetEventRules, user *base_spec.UserAuthority) (*spec.GetEventRulesData, uint8, error)
@@ -61,8 +64,7 @@ func NewQueryHandler(baseConf *base_config.Config, appConf *base_config.AppConfi
 }
 
 func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.UserAuthority, httpReq *http.Request, rw http.ResponseWriter,
-	req *base_protocol.Request, rep *base_protocol.Response) error {
-	var err error
+	req *base_protocol.Request, rep *base_protocol.Response) (err error) {
 	for _, query := range req.Queries {
 		switch query.Name {
 		case "Login":
@@ -647,4 +649,38 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 		}
 	}
 	return nil
+}
+
+func (handler *QueryHandler) ExecWs(tctx *logger.TraceContext, user *base_spec.UserAuthority, httpReq *http.Request, rw http.ResponseWriter,
+	req *base_protocol.Request, rep *base_protocol.Response, conn *websocket.Conn) (err error) {
+	for _, query := range req.Queries {
+		switch query.Name {
+		case "GetComputeConsole":
+			var input spec.GetComputeConsole
+			err = json.Unmarshal([]byte(query.Data), &input)
+			if err != nil {
+				return err
+			}
+			data, code, tmpErr := handler.resolver.GetComputeConsole(tctx, &input, user, conn)
+			if tmpErr != nil {
+				if code == 0 {
+					code = base_const.CodeServerInternalError
+				}
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  code,
+					Error: tmpErr.Error(),
+				}
+				break
+			}
+			rep.ResultMap[query.Name] = base_protocol.Result{
+				Code: code,
+				Data: data,
+			}
+
+		default:
+			err = fmt.Errorf("InvalidQueryName: %s", query.Name)
+			return err
+		}
+	}
+	return
 }

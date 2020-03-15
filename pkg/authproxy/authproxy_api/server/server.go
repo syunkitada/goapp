@@ -11,9 +11,8 @@ import (
 
 type Server struct {
 	base_app.BaseApp
-	baseConf     *base_config.Config
-	mainConf     *config.Config
-	queryHandler *genpkg.QueryHandler
+	baseConf *base_config.Config
+	mainConf *config.Config
 }
 
 func New(baseConf *base_config.Config, mainConf *config.Config) *Server {

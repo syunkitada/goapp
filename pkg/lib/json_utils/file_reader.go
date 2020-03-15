@@ -33,6 +33,9 @@ func ReadFiles(filePath string) ([]interface{}, error) {
 
 	if fileStat.IsDir() {
 		files, err := ioutil.ReadDir(filePath)
+		if err != nil {
+			return result, err
+		}
 		for _, file := range files {
 			path := filepath.Join(filePath, file.Name())
 			var tmpResult []interface{}

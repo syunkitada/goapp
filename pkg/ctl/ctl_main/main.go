@@ -12,8 +12,6 @@ import (
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
 
-var flagMap map[string]string
-
 var rootCmd = &cobra.Command{
 	Use:   "",
 	Short: "",

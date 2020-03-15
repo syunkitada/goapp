@@ -14,7 +14,9 @@ import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogContentText from "@material-ui/core/DialogContentText";
 import DialogTitle from "@material-ui/core/DialogTitle";
+import FormControl from "@material-ui/core/FormControl";
 import Grid from "@material-ui/core/Grid";
+import TextField from "@material-ui/core/TextField";
 import Typography from "@material-ui/core/Typography";
 
 import Table from "@material-ui/core/Table";
@@ -61,6 +63,8 @@ interface IBasicView extends WithStyles<typeof styles> {
   rawData;
   submitQueries;
   handleChange;
+  webSocket;
+  webSocketData;
 }
 
 class BasicView extends React.Component<IBasicView> {
@@ -184,7 +188,14 @@ class BasicView extends React.Component<IBasicView> {
   };
 
   private renderPanels = () => {
-    const { render, routes, classes, index, rawData } = this.props;
+    const {
+      render,
+      routes,
+      classes,
+      index,
+      rawData,
+      webSocketData
+    } = this.props;
 
     const panelsGroups: JSX.Element[] = [];
     for (let i = 0, len = index.PanelsGroups.length; i < len; i++) {
@@ -248,6 +259,29 @@ class BasicView extends React.Component<IBasicView> {
                   {render(routes, rawData, card)}
                 </Grid>
               );
+              break;
+
+            case "Console":
+              cards.push(
+                <Grid key={card.Name} item={true} xs={12}>
+                  <FormControl fullWidth={true} variant="filled">
+                    <TextField
+                      variant="filled"
+                      onKeyUp={this.handleChangeTextForm}
+                    />
+                    <pre
+                      style={{
+                        backgroundColor: "#333",
+                        height: 500,
+                        width: "100%"
+                      }}
+                    >
+                      {webSocketData}
+                    </pre>
+                  </FormControl>
+                </Grid>
+              );
+
               break;
           }
         }
@@ -355,6 +389,74 @@ class BasicView extends React.Component<IBasicView> {
     return <div>{panelsGroups}</div>;
   };
 
+  private handleChangeTextForm = event => {
+    const { webSocket } = this.props;
+    event.stopPropagation();
+    let value = String.fromCharCode(event.which);
+    if (event.shiftKey) {
+      value = value.toUpperCase();
+    } else {
+      value = value.toLowerCase();
+    }
+    console.log(
+      "TODO handleChangeTextForm",
+      String.fromCharCode(event.which),
+      event.which,
+      value,
+      webSocket
+    );
+
+    value = event.target.value;
+    console.log("TODO debug key", event.which);
+    // $ stty -a
+    // speed 38400 baud; rows 15; columns 120; line = 0;
+    // intr = ^C; quit = ^\; erase = ^?; kill = ^U; eof = ^D; eol = M-^?; eol2 = M-^?; swtch = <undef>; start = ^Q; stop = ^S;
+    // susp = ^Z; rprnt = ^R; werase = ^W; lnext = ^V; discard = ^O; min = 1; time = 0;
+    // -
+    if (event.which === 13) {
+      // enter // 13
+      value = "\n";
+    } else if (event.which === 8) {
+      // backspace // 8
+      value = "\b";
+    } else if (event.which === 9) {
+      // tab // 9
+      value = "\t";
+    } else if (event.which === 37) {
+      // left // 27 91 68 \x1b[D
+      value = "\x1b[D";
+    } else if (event.which === 38) {
+      // top // 27 91 65 \x1b[A
+      value = "\x1b[A";
+    } else if (event.which === 39) {
+      // right // 27 91 67 \x1b[C
+      value = "\x1b[C";
+    } else if (event.which === 40) {
+      // down // 27 91 66 \x1b[B
+      value = "\x1b[B";
+    } else if (event.which === 46) {
+      // delete // 4
+      value = "\x7f";
+    }
+    // ^C 3
+    // 37 left
+    // 38 up
+    // 39 right
+    // 40 down
+    // 46 delete
+
+    const body = JSON.stringify({
+      Alt: event.altKey,
+      Code: event.which,
+      Ctrl: event.ctlKey,
+      Name: event.target.name,
+      Shift: event.shiftKey,
+      Value: value
+    });
+    event.target.value = "";
+    webSocket.send(body);
+  };
+
   private handleChangeOnSearchForm = (event, searchQuery) => {
     console.log("TODO handleChangeOnSearchForm");
   };
@@ -390,8 +492,25 @@ class BasicView extends React.Component<IBasicView> {
 }
 
 function mapStateToProps(state, ownProps) {
-  const auth = state.auth;
-  return { auth };
+  const { auth, service } = state;
+  const { projectName, serviceName } = service;
+  let serviceState: any;
+  if (projectName) {
+    serviceState = service.projectServiceMap[projectName][serviceName];
+  } else {
+    serviceState = service.serviceMap[serviceName];
+  }
+  const { WebSocketMap, WebSocketDataMap } = serviceState;
+  const { index } = ownProps;
+  let webSocket: any;
+  let webSocketData: any;
+  if (index.EnableWebSocket) {
+    webSocket = WebSocketMap[index.WebSocketKey];
+    webSocketData = WebSocketDataMap[index.WebSocketKey];
+    console.log("TODO DEBUG websocket", webSocketData);
+  }
+
+  return { auth, webSocket, webSocketData };
 }
 
 function mapDispatchToProps(dispatch, ownProps) {

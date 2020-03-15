@@ -19,9 +19,11 @@ import (
 )
 
 func (api *Api) GetRegionService(tctx *logger.TraceContext, input *spec.GetRegionService, user *base_spec.UserAuthority) (data *spec.RegionService, err error) {
-	data = &spec.RegionService{}
 	var dbData db_model.RegionService
-	err = api.DB.Where("name = ? AND deleted_at IS NULL", input.Name).First(&dbData).Error
+	if err = api.DB.Where("name = ? AND deleted_at IS NULL", input.Name).First(&dbData).Error; err != nil {
+		data = &spec.RegionService{}
+		return
+	}
 
 	data = &spec.RegionService{
 		Region:       dbData.Region,
@@ -140,8 +142,9 @@ func (api *Api) SyncRegionService(tctx *logger.TraceContext) (err error) {
 		return
 	}
 	for _, network := range networks {
-		if networks, ok := clusterNetworkV4sMap[network.Cluster]; ok {
-			networks = append(networks, network)
+		if clusterNetworks, ok := clusterNetworkV4sMap[network.Cluster]; ok {
+			clusterNetworks = append(clusterNetworks, network)
+			clusterNetworkV4sMap[network.Cluster] = clusterNetworks
 		} else {
 			clusterNetworkV4sMap[network.Cluster] = []db_model.NetworkV4{network}
 		}
@@ -155,6 +158,7 @@ func (api *Api) SyncRegionService(tctx *logger.TraceContext) (err error) {
 	for _, cluster := range clusters {
 		if rclusters, ok := regionClustersMap[cluster.Region]; ok {
 			rclusters = append(rclusters, cluster)
+			regionClustersMap[cluster.Region] = rclusters
 		} else {
 			regionClustersMap[cluster.Region] = []db_model.Cluster{cluster}
 		}
@@ -236,7 +240,7 @@ func (api *Api) SyncRegionService(tctx *logger.TraceContext) (err error) {
 
 		res, tmpErr := clusterApiClient.ResourceVirtualAdminGetComputes(tctx, queries)
 		if tmpErr != nil {
-			err = fmt.Errorf("Failed GetComputes: %s", tmpErr.Error())
+			logger.Warningf(tctx, "Failed GetComputes: %s", tmpErr.Error())
 			continue
 		}
 
@@ -349,7 +353,6 @@ func (api *Api) InitializeRegionServiceCompute(tctx *logger.TraceContext,
 		}
 		return
 	})
-	return
 }
 
 func (api *Api) FilterClusters(tctx *logger.TraceContext,
@@ -394,7 +397,7 @@ func (api *Api) FilterClusters(tctx *logger.TraceContext,
 		if enableLabelFilters {
 			ok = false
 			for _, labelFilter := range policy.ClusterLabelFilters {
-				if strings.Index(cluster.Labels, labelFilter) >= 0 {
+				if strings.Contains(cluster.Labels, labelFilter) {
 					ok = true
 					break
 				}
@@ -441,7 +444,6 @@ func (api *Api) ConfirmCreatingOrUpdatingRegionServiceCompute(tctx *logger.Trace
 		}
 		return
 	})
-	return
 }
 
 func (api *Api) UpdateRegionServiceCompute(tctx *logger.TraceContext,
@@ -479,7 +481,6 @@ func (api *Api) UpdateRegionServiceCompute(tctx *logger.TraceContext,
 		}
 		return
 	})
-	return
 }
 
 func (api *Api) DeleteRegionServiceCompute(tctx *logger.TraceContext, service *db_model.RegionService) {
@@ -503,7 +504,6 @@ func (api *Api) DeleteRegionServiceCompute(tctx *logger.TraceContext, service *d
 		}
 		return
 	})
-	return
 }
 
 func (api *Api) ConfirmDeletingRegionServiceCompute(tctx *logger.TraceContext,
@@ -530,5 +530,4 @@ func (api *Api) ConfirmDeletingRegionServiceCompute(tctx *logger.TraceContext,
 		}
 		return
 	})
-	return
 }

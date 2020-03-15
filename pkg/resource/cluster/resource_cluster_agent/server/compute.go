@@ -63,6 +63,7 @@ func (srv *Server) SyncComputeAssignments(tctx *logger.TraceContext,
 					NetnsIp:      netnsIp.String(),
 					VmIp:         port.Ip,
 					VmMac:        port.Mac,
+					VmSubnet:     port.Subnet,
 					Kind:         port.Kind,
 				}
 
@@ -90,7 +91,6 @@ func (srv *Server) SyncComputeAssignments(tctx *logger.TraceContext,
 		return nil, err
 	}
 
-	ok = false
 	retryCount = srv.computeConf.ConfirmRetryCount
 	for {
 		if ok, err = srv.computeDriver.ConfirmActivatingAssignmentMap(tctx, activatingAssignmentMap); err != nil {
@@ -111,7 +111,6 @@ func (srv *Server) SyncComputeAssignments(tctx *logger.TraceContext,
 		return nil, err
 	}
 
-	ok = false
 	retryCount = srv.computeConf.ConfirmRetryCount
 	for {
 		if ok, err = srv.computeDriver.ConfirmDeletingAssignmentMap(tctx, deletingAssignmentMap); err != nil {

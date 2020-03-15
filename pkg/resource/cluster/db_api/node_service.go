@@ -1,6 +1,8 @@
 package db_api
 
 import (
+	"strings"
+
 	"github.com/jinzhu/gorm"
 	"github.com/syunkitada/goapp/pkg/base/base_db_model"
 	"github.com/syunkitada/goapp/pkg/lib/json_utils"
@@ -13,6 +15,7 @@ import (
 func (api *Api) SyncNodeService(tctx *logger.TraceContext, input *api_spec.SyncNodeService) (nodeTask *api_spec.NodeServiceTask, err error) {
 	node := input.NodeService
 	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
+		endpoints := strings.Join(node.Endpoints, ",")
 		var tmpNodeService base_db_model.NodeService
 		if err = tx.Table("node_services").Where(
 			"name = ? and kind = ?", node.Name, node.Kind).First(&tmpNodeService).Error; err != nil {
@@ -27,15 +30,21 @@ func (api *Api) SyncNodeService(tctx *logger.TraceContext, input *api_spec.SyncN
 				StatusReason: node.StatusReason,
 				State:        node.State,
 				StateReason:  node.StateReason,
+				Token:        node.Token,
+				Endpoints:    endpoints,
 			}
 			if err = tx.Debug().Create(&tmpNodeService).Error; err != nil {
 				return
 			}
 		} else {
-			if err = tx.Table("node_services").Updates(map[string]interface{}{
-				"State":       node.State,
-				"StateReason": node.StatusReason,
-			}).Error; err != nil {
+			if err = tx.Table("node_services").
+				Where("name = ? AND kind = ?", node.Name, node.Kind).
+				Updates(map[string]interface{}{
+					"state":        node.State,
+					"state_reason": node.StateReason,
+					"token":        node.Token,
+					"endpoints":    endpoints,
+				}).Error; err != nil {
 				return
 			}
 		}
@@ -61,6 +70,9 @@ func (api *Api) SyncNodeService(tctx *logger.TraceContext, input *api_spec.SyncN
 		}
 		return
 	})
+	if err != nil {
+		return
+	}
 
 	// generate node tasks
 	var computeAssignments []db_model.ComputeAssignmentWithComputeAndNodeService

@@ -1,11 +1,18 @@
 package ctl_main
 
 import (
+	"bufio"
+	"encoding/json"
 	"fmt"
+	"io"
 	"os"
+	"os/signal"
 	"sort"
 	"strings"
+	"sync"
+	"syscall"
 
+	"github.com/gorilla/websocket"
 	"github.com/olekukonko/tablewriter"
 	"github.com/syunkitada/goapp/pkg/base/base_client"
 	"github.com/syunkitada/goapp/pkg/base/base_const"
@@ -14,10 +21,10 @@ import (
 	"github.com/syunkitada/goapp/pkg/lib/json_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/lib/str_utils"
+	"golang.org/x/crypto/ssh/terminal"
 )
 
-func (ctl *Ctl) index(args []string) error {
-	var err error
+func (ctl *Ctl) index(args []string) (err error) {
 	tctx := logger.NewTraceContext(ctl.baseConf.Host, ctl.name)
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
@@ -63,7 +70,7 @@ func (ctl *Ctl) index(args []string) error {
 		for s := range loginData.Authority.ServiceMap {
 			snames = append(snames, str_utils.ConvertToLowerFormat(s))
 		}
-		sort.Sort(sort.StringSlice(snames))
+		sort.Strings(snames)
 		for _, s := range snames {
 			fmt.Println(s)
 		}
@@ -71,21 +78,21 @@ func (ctl *Ctl) index(args []string) error {
 		if project, ok := loginData.Authority.ProjectServiceMap[appProject]; ok {
 			fmt.Println("\n--- Available Project Services ---")
 			snames := make([]string, 0, len(loginData.Authority.ServiceMap))
-			for s, _ := range project.ServiceMap {
+			for s := range project.ServiceMap {
 				snames = append(snames, str_utils.ConvertToLowerFormat(s))
 			}
-			sort.Sort(sort.StringSlice(snames))
+			sort.Strings(snames)
 			for _, s := range snames {
 				fmt.Println(s)
 			}
 		}
-		return nil
+		return
 	}
 
 	// Get ServiceIndex, and exec cmd
 	var getServiceIndexData *base_spec.GetServiceIndexData
 	if getServiceIndexData, err = ctl.client.GetServiceIndex(tctx, &base_spec.GetServiceIndex{Name: serviceName}); err != nil {
-		return err
+		return
 	}
 
 	cmdArgs := []string{}
@@ -148,7 +155,7 @@ func (ctl *Ctl) index(args []string) error {
 			}
 		}
 
-		sort.Sort(sort.StringSlice(flags))
+		sort.Strings(flags)
 		helpMsg = append(helpMsg, strings.Join(flags, "\n"))
 		helpMsgs = append(helpMsgs, helpMsg)
 
@@ -243,14 +250,14 @@ func (ctl *Ctl) index(args []string) error {
 		table.SetRowLine(false)
 		table.AppendBulk(helpMsgs)
 		table.Render() // Send output
-
-		return nil
+		return
 	}
 
 	if len(lastArgs) > 0 {
-		specsBytes, err := json_utils.Marshal(lastArgs)
+		var specsBytes []byte
+		specsBytes, err = json_utils.Marshal(lastArgs)
 		if err != nil {
-			return err
+			return
 		}
 		params["Args"] = string(specsBytes)
 	}
@@ -267,11 +274,154 @@ func (ctl *Ctl) index(args []string) error {
 	}
 
 	var resp Response
-	if err = ctl.client.Request(tctx, serviceName, queries, &resp, true); err != nil {
-		return err
+	if !cmdInfo.Ws {
+		if err = ctl.client.Request(tctx, serviceName, queries, &resp, true); err != nil {
+			return
+		}
+		ctl.output(&cmdInfo, &resp, flagMap, shortFlagMap)
+	} else {
+		var wsConn *websocket.Conn
+		if wsConn, err = ctl.client.RequestWs(tctx, serviceName, queries, &resp, true); err != nil {
+			return
+		}
+		switch cmdInfo.Kind {
+		case "Terminal":
+			err = startTerminal(tctx, &cmdInfo, wsConn)
+		default:
+			fmt.Printf("Invalid Kind: %s\n", cmdInfo.Kind)
+		}
 	}
-	ctl.output(&cmdInfo, &resp, flagMap, shortFlagMap)
-	return nil
+	return
+}
+
+func startTerminal(tctx *logger.TraceContext, cmdInfo *base_index_model.Cmd, wsConn *websocket.Conn) (err error) {
+	fmt.Println("Start Terminal: If you want to stop terminal, input '^].'")
+	chMutex := sync.Mutex{}
+	isDone := false
+	doneCh := make(chan bool, 2)
+	readCh := make(chan string, 10)
+	sigCh := make(chan os.Signal, 1)
+
+	// enter raw mode
+	fd := int(os.Stdin.Fd())
+	state, tmpErr := terminal.MakeRaw(fd)
+	if tmpErr != nil {
+		err = fmt.Errorf("Failed MakeRaw: err=%s", tmpErr.Error())
+		return
+	}
+
+	signal.Notify(sigCh, syscall.SIGTERM)
+
+	defer func() {
+		chMutex.Lock()
+		if tmpErr := wsConn.Close(); tmpErr != nil {
+			logger.Warningf(tctx, "Failed wsConn.Close: err=%s", tmpErr.Error())
+		} else {
+			logger.Info(tctx, "Success wsConn.Close")
+		}
+		isDone = true
+		chMutex.Unlock()
+	}()
+
+	var isPreExitKey bool
+	stdin := bufio.NewReader(os.Stdin)
+	go func() {
+		for {
+			ch, tmpErr := stdin.ReadByte()
+			if tmpErr == io.EOF {
+				chMutex.Lock()
+				if !isDone {
+					err = fmt.Errorf("Failed ReadByte: EOF")
+					doneCh <- true
+				}
+				chMutex.Unlock()
+				return
+			}
+
+			// ^]. でexitする
+			if ch == 29 { // 29 == ^]
+				isPreExitKey = true
+			} else if isPreExitKey && ch == 46 { // 46 == .
+				chMutex.Lock()
+				if !isDone {
+					doneCh <- true
+				}
+				chMutex.Unlock()
+				return
+			} else {
+				isPreExitKey = false
+			}
+
+			input := TerminalInput{
+				Bytes: []byte(string(ch)),
+			}
+			outputJson, tmpErr := json.Marshal(&input)
+			if tmpErr != nil {
+				chMutex.Lock()
+				if !isDone {
+					err = fmt.Errorf("Failed json.Marshal: %s", tmpErr.Error())
+					doneCh <- true
+				}
+				chMutex.Unlock()
+				return
+			}
+			tmpErr = wsConn.WriteMessage(websocket.TextMessage, outputJson)
+			if tmpErr != nil {
+				chMutex.Lock()
+				if !isDone {
+					err = fmt.Errorf("Failed Write: %s", tmpErr.Error())
+					doneCh <- true
+				}
+				chMutex.Unlock()
+				return
+			}
+		}
+	}()
+
+	go func() {
+		for {
+			_, message, tmpErr := wsConn.ReadMessage()
+			if tmpErr != nil {
+				chMutex.Lock()
+				if !isDone {
+					err = fmt.Errorf("Failed ReadMessage: %s", tmpErr.Error())
+					doneCh <- true
+				}
+				chMutex.Unlock()
+				return
+			}
+			var output TerminalOutput
+			if tmpErr := json.Unmarshal(message, &output); tmpErr != nil {
+				chMutex.Lock()
+				if !isDone {
+					err = fmt.Errorf("Failed Unmarshal read message: %s", err.Error())
+					doneCh <- true
+				}
+				chMutex.Unlock()
+				return
+			}
+			readCh <- string(output.Bytes)
+		}
+	}()
+
+	for {
+		select {
+		case ch := <-sigCh:
+			if tmpErr := terminal.Restore(fd, state); tmpErr != nil {
+				fmt.Printf("\nFailed terminal.Restore: err=%s\n", tmpErr.Error())
+			}
+			fmt.Printf("\nExit by %s\n", ch.String())
+			return
+		case <-doneCh:
+			if tmpErr := terminal.Restore(fd, state); tmpErr != nil {
+				fmt.Printf("\nFailed terminal.Restore: err=%s\n", tmpErr.Error())
+			}
+			fmt.Printf("\nExit by doneCh\n")
+			return
+		case str := <-readCh:
+			fmt.Print(str)
+		}
+	}
 }
 
 type Response struct {
@@ -285,4 +435,12 @@ type Result struct {
 	Code  uint8
 	Error string
 	Data  map[string]interface{}
+}
+
+type TerminalInput struct {
+	Bytes []byte
+}
+
+type TerminalOutput struct {
+	Bytes []byte
 }

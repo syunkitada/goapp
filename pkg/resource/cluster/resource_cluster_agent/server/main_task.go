@@ -21,6 +21,10 @@ func (srv *Server) MainTask(tctx *logger.TraceContext) (err error) {
 
 func (srv *Server) SyncNodeService(tctx *logger.TraceContext) (err error) {
 	nodeSpec := resource_api_spec.NodeServiceSpec{}
+	var token string
+	if token, err = srv.dbApi.IssueToken("service"); err != nil {
+		return
+	}
 	queries := []base_client.Query{
 		base_client.Query{
 			Name: "SyncNodeService",
@@ -33,6 +37,8 @@ func (srv *Server) SyncNodeService(tctx *logger.TraceContext) (err error) {
 					StatusReason: "Default",
 					State:        base_const.StateUp,
 					StateReason:  "SyncNodeService",
+					Token:        token,
+					Endpoints:    srv.clusterConf.Agent.AppConfig.Endpoints,
 					Spec:         nodeSpec,
 				},
 			},

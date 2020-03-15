@@ -6,7 +6,7 @@ import (
 )
 
 func (srv *Server) MainTask(tctx *logger.TraceContext) (err error) {
-	if err = srv.SyncService(tctx); err != nil {
+	if err = srv.SyncService(tctx, true); err != nil {
 		return
 	}
 

@@ -1,7 +1,9 @@
 package resolver
 
 import (
+	"github.com/gorilla/websocket"
 	"github.com/jinzhu/gorm"
+
 	"github.com/syunkitada/goapp/pkg/base/base_const"
 	"github.com/syunkitada/goapp/pkg/base/base_spec"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
@@ -31,5 +33,15 @@ func (resolver *Resolver) GetComputes(tctx *logger.TraceContext, input *spec.Get
 	}
 	code = base_const.CodeOk
 	data = &spec.GetComputesData{Computes: computes}
+	return
+}
+
+func (resolver *Resolver) GetComputeConsole(tctx *logger.TraceContext, input *spec.GetComputeConsole, user *base_spec.UserAuthority, conn *websocket.Conn) (data *spec.GetComputeConsoleData, code uint8, err error) {
+	code = base_const.CodeOk
+	data = &spec.GetComputeConsoleData{}
+	if conn == nil {
+		return
+	}
+	err = resolver.dbApi.ProxyComputeConsole(tctx, input, user, conn)
 	return
 }

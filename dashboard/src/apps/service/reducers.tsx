@@ -68,6 +68,10 @@ export default reducerWithInitialState(defaultState)
 
     return newState;
   })
+  .case(actions.service.serviceStartWebSocket, state => {
+    logger.info("reducers", "serviceStartWebSocket");
+    return Object.assign({}, state, {});
+  })
   .case(actions.service.serviceStartBackgroundSync, state => {
     logger.info("reducers", "serviceStartBackgroundSync");
     return Object.assign({}, state, {});
@@ -116,7 +120,7 @@ export default reducerWithInitialState(defaultState)
   })
   .case(actions.service.servicePostSuccess, (state, payload) => {
     logger.info("reducers", "servicePostSuccess", payload.action.type, payload);
-    const { route } = payload.action.payload;
+    const { index, route } = payload.action.payload;
     const newState = Object.assign({}, state, {
       isFetching: false,
       redirectToReferrer: true
@@ -220,21 +224,27 @@ export default reducerWithInitialState(defaultState)
       }
     }
 
-    let index: any = null;
+    let dashboardIndex: any = null;
     if (isGetIndex) {
-      index = payload.result.ResultMap.GetServiceDashboardIndex.Data.Index;
-      if (index.SyncDelay && index.SyncDelay > 1000) {
-        newState.syncDelay = index.SyncDelay;
+      dashboardIndex =
+        payload.result.ResultMap.GetServiceDashboardIndex.Data.Index;
+      if (dashboardIndex.SyncDelay && dashboardIndex.SyncDelay > 1000) {
+        newState.syncDelay = dashboardIndex.SyncDelay;
       }
     }
 
+    console.log("TODO DEBUG index", index, payload.websocket);
+    const { websocket } = payload;
     const service = route.match.params.service;
     const project = route.match.params.project;
+    // set data, and websocket
     if (project) {
       newState.projectServiceMap[project][service].isFetching = false;
       if (isGetIndex) {
-        newState.projectServiceMap[project][service].Index = index;
+        newState.projectServiceMap[project][service].Index = dashboardIndex;
       }
+
+      // Set Data
       if (newState.projectServiceMap[project][service].Data) {
         for (const key of Object.keys(data)) {
           newState.projectServiceMap[project][service].Data[key] = data[key];
@@ -242,17 +252,43 @@ export default reducerWithInitialState(defaultState)
       } else {
         newState.projectServiceMap[project][service].Data = data;
       }
+
+      // Set WebSocket
+      if (index && index.EnableWebSocket) {
+        if (!newState.projectServiceMap[project][service].WebSocketMap) {
+          newState.projectServiceMap[project][service].WebSocketMap = {};
+          newState.projectServiceMap[project][service].WebSocketDataMap = {};
+        }
+        // TODO check exists websocket
+        newState.projectServiceMap[project][service].WebSocketMap[
+          index.WebSocketKey
+        ] = websocket;
+      }
     } else {
       newState.serviceMap[service].isFetching = false;
       if (isGetIndex) {
-        newState.serviceMap[service].Index = index;
+        newState.serviceMap[service].Index = dashboardIndex;
       }
+
+      // Set Data
       if (newState.serviceMap[service].Data) {
         for (const key of Object.keys(data)) {
           newState.serviceMap[service].Data[key] = data[key];
         }
       } else {
         newState.serviceMap[service].Data = data;
+      }
+
+      // Set WebSocket
+      if (index && index.EnableWebSocket) {
+        if (!newState.serviceMap[service].WebSocketMap) {
+          newState.serviceMap[service].WebSocketMap = {};
+          newState.serviceMap[service].WebSocketDataMap = {};
+        }
+        // TODO check exists websocket
+        newState.serviceMap[service].WebSocketMap[
+          index.WebSocketKey
+        ] = websocket;
       }
     }
 
@@ -285,5 +321,114 @@ export default reducerWithInitialState(defaultState)
       payload.action.type,
       newState
     );
+    return newState;
+  })
+  .case(actions.service.serviceWebSocketEmitMessage, (state, payload) => {
+    logger.info("reducers", "servicePostSuccess", payload.action.type, payload);
+    const { index, route } = payload.action.payload;
+    const newState = Object.assign({}, state);
+    const data = payload.result;
+
+    if (!index || !index.EnableWebSocket) {
+      return newState;
+    }
+    console.log("TODO value:", data.Value, data.Bytes);
+    if (!data.Bytes) {
+      return newState;
+    }
+
+    const service = route.match.params.service;
+    const project = route.match.params.project;
+    let value = "";
+    // get value
+    if (project) {
+      if (
+        index.WebSocketKey in
+        newState.projectServiceMap[project][service].WebSocketDataMap
+      ) {
+        value =
+          newState.projectServiceMap[project][service].WebSocketDataMap[
+            index.WebSocketKey
+          ];
+      } else {
+        value = "";
+      }
+    } else {
+      if (index.WebSocketKey in newState.serviceMap[service].WebSocketDataMap) {
+        value =
+          newState.serviceMap[service].WebSocketDataMap[index.WebSocketKey];
+      } else {
+        value = "";
+      }
+    }
+
+    console.log("TODO value:", data.Value, data.Bytes);
+    let specificPrefix = false;
+    const decoder = new TextDecoder();
+    for (let i = 0, len = data.Bytes.length; i < len; i++) {
+      const bytes = data.Bytes[i];
+      const lenbytes = bytes.length;
+      console.log("TODO byte:", bytes);
+      if (lenbytes === 1) {
+        if (specificPrefix) {
+          console.log("TODO byte2:", bytes);
+          if (bytes[0] === 8) {
+            value = value.slice(0, value.length - 1);
+          }
+          // up 75
+          // down 97
+          // left 67
+        } else {
+          specificPrefix = false;
+          // left 8
+          if (bytes[0] > 22) {
+            value += decoder.decode(Uint8Array.from(bytes));
+          }
+        }
+      } else if (lenbytes === 2) {
+        if (bytes[0] === 8 && bytes[1] === 27) {
+          specificPrefix = true;
+        } else if (specificPrefix && bytes[0] === 91) {
+          console.log("TODO byte2:", bytes[1]);
+          if (bytes[1] === 8) {
+            value = value.slice(0, value.length - 1);
+          }
+        } else {
+          specificPrefix = false;
+          value += decoder.decode(Uint8Array.from(bytes));
+        }
+      } else if (lenbytes === 3) {
+        specificPrefix = false;
+        if (bytes[0] === 8 && bytes[1] === 27 && bytes[2] === 91) {
+          value = value.slice(0, value.length - 2);
+        } else {
+          value += decoder.decode(Uint8Array.from(bytes));
+        }
+      } else if (lenbytes === 4) {
+        if (bytes[0] === 8 && bytes[1] === 27 && bytes[2] === 91) {
+          console.log("TODO byte2:", bytes[3]);
+          if (bytes[3] === 75) {
+            // bs
+            value = value.slice(0, value.length - 1);
+          }
+        } else {
+          value += decoder.decode(Uint8Array.from(bytes));
+        }
+      } else {
+        specificPrefix = false;
+        value += decoder.decode(Uint8Array.from(bytes));
+      }
+    }
+
+    // set websocket data
+    if (project) {
+      newState.projectServiceMap[project][service].WebSocketDataMap[
+        index.WebSocketKey
+      ] = value;
+    } else {
+      newState.serviceMap[service].WebSocketDataMap[index.WebSocketKey] = value;
+    }
+
+    logger.info("reducers", "serviceWebSocketEmitSuccess: newState", newState);
     return newState;
   });

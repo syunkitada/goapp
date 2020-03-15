@@ -1,6 +1,6 @@
-import {all} from 'redux-saga/effects';
-import auth from '../apps/auth/sagas';
-import service from '../apps/service/sagas';
+import { all } from "redux-saga/effects";
+import auth from "../apps/auth/sagas";
+import service from "../apps/service/sagas";
 
 // redux-sagaのMiddlewareが rootSaga タスクを起動する
 
@@ -15,5 +15,6 @@ export default function* rootSaga() {
     service.watchGetQueries(),
     service.watchSubmitQueries(),
     service.watchStartBackgroundSync(),
+    service.watchStartWebSocket()
   ]);
 }
