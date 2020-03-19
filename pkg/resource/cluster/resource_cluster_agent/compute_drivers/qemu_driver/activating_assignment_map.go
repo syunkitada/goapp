@@ -1,6 +1,7 @@
 package qemu_driver
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
@@ -47,19 +48,39 @@ func (driver *QemuDriver) syncActivatingAssignment(tctx *logger.TraceContext,
 		return err
 	}
 
+	fmt.Println("DEBUG IMAGE")
+
 	// Initialize Image
 	srcImagePath := filepath.Join(driver.conf.ImagesDir, compute.ImageSpec.Name)
+	tmpSrcImagePath := filepath.Join(driver.conf.ImagesDir, compute.ImageSpec.Name+".tmp")
 	if !os_utils.PathExists(srcImagePath) {
 		tctx.SetTimeout(3600)
-
+		var specBytes []byte
 		switch compute.ImageSpec.Kind {
 		case "Url":
-			imageUrlSpec := compute.ImageSpec.Spec.(spec.ImageUrlSpec)
-			if _, err = exec_utils.Cmdf(tctx, "wget -O %s %s", srcImagePath, imageUrlSpec.Url); err != nil {
+			specBytes, err = json.Marshal(&compute.ImageSpec.Spec)
+			if err != nil {
+				return err
+			}
+			var imageUrlSpec spec.ImageUrlSpec
+			if err = json.Unmarshal(specBytes, &imageUrlSpec); err != nil {
+				return err
+			}
+			if !os_utils.PathExists(tmpSrcImagePath) {
+				if _, err = exec_utils.Cmdf(tctx, "wget -O %s %s", tmpSrcImagePath, imageUrlSpec.Url); err != nil {
+					return err
+				}
+			}
+			var outputPath string
+			if outputPath, err = os_utils.UnArchiveFile(tctx, tmpSrcImagePath); err != nil {
+				return err
+			}
+			if _, err = exec_utils.Cmdf(tctx, "mv %s %s", outputPath, srcImagePath); err != nil {
 				return err
 			}
 		}
 	}
+
 	if !os_utils.PathExists(vmImagePath) {
 		if _, err = exec_utils.Cmdf(tctx, "cp %s %s", srcImagePath, vmImagePath); err != nil {
 			return err
