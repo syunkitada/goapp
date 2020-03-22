@@ -4,9 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/syunkitada/goapp/pkg/lib/exec_utils"
+	"github.com/syunkitada/goapp/pkg/lib/ip_utils"
 	"github.com/syunkitada/goapp/pkg/lib/json_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/lib/os_utils"
@@ -15,12 +18,93 @@ import (
 	"github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
 )
 
+type VmMetadata struct {
+	netnsPorts []compute_models.NetnsPort
+}
+
 func (driver *QemuDriver) syncActivatingAssignmentMap(tctx *logger.TraceContext,
 	assignmentMap map[uint]spec.ComputeAssignmentEx,
-	computeNetnsPortsMap map[uint][]compute_models.NetnsPort) error {
-	var err error
+	dummyComputeNetnsPortsMap map[uint][]compute_models.NetnsPort) (err error) {
+
+	// 既存のvmMetadataを集める
+	files, err := ioutil.ReadDir(driver.conf.VmsDir)
+	if err != nil {
+		return
+	}
+	assignedNetnsIds := make([]bool, 4096)
+	vmMetadataMap := map[string]VmMetadata{}
+	for _, file := range files {
+		if file.IsDir() {
+			metadataFilePath := filepath.Join(driver.conf.VmsDir, file.Name(), "metadata")
+			if _, tmpErr := os.Stat(metadataFilePath); tmpErr != nil {
+				logger.Warningf(tctx, "Invalid vm directory: %s", tmpErr.Error())
+				continue
+			}
+			var vmMetadata VmMetadata
+			os_utils.LoadDataFile(tctx, metadataFilePath, &vmMetadata)
+			vmMetadataMap[file.Name()] = vmMetadata
+			for i := range vmMetadata.netnsPorts {
+				port := vmMetadata.netnsPorts[i]
+				assignedNetnsIds[port.Id] = true
+			}
+		}
+	}
+
 	for _, assignment := range assignmentMap {
-		if err = driver.syncActivatingAssignment(tctx, assignment, computeNetnsPortsMap[assignment.ID]); err != nil {
+		vmMetadata, ok := vmMetadataMap[assignment.Spec.Name]
+		if !ok {
+			vmMetadata = VmMetadata{}
+		}
+
+		for j, port := range assignment.Spec.Ports {
+			existPort := false
+			for _, netnsPort := range vmMetadata.netnsPorts {
+				if netnsPort.VmIp == port.Ip {
+					existPort = true
+					break
+				}
+			}
+			if !existPort {
+				// インターフェイスの最大文字数が15なので、ベース文字数は12とする
+				var netnsId int
+				for id, assigned := range assignedNetnsIds {
+					if !assigned {
+						netnsId = id
+						assignedNetnsIds[id] = true
+						break
+					}
+				}
+
+				netnsName := fmt.Sprintf("com-%d", netnsId)
+				netnsGateway := ip_utils.AddIntToIp(driver.conf.VmNetnsGatewayStartIp, j)
+				netnsIp := ip_utils.AddIntToIp(driver.conf.VmNetnsStartIp, netnsId)
+				netnsPort := compute_models.NetnsPort{
+					Id:           netnsId,
+					Name:         netnsName,
+					NetnsGateway: netnsGateway.String(),
+					NetnsIp:      netnsIp.String(),
+					VmGateway:    port.Gateway,
+					VmIp:         port.Ip,
+					VmMac:        port.Mac,
+					VmSubnet:     port.Subnet,
+					Kind:         port.Kind,
+				}
+
+				switch port.Kind {
+				case "Local":
+					var netSpec spec.NetworkV4LocalSpec
+					if tmpErr := json_utils.Unmarshal(port.Spec, &netSpec); tmpErr != nil {
+						logger.Warningf(tctx, "Invalid port.Spec: %s", tmpErr.Error())
+						continue
+					}
+					netnsPort.NetworkV4LocalSpec = netSpec
+				}
+
+				vmMetadata.netnsPorts = append(vmMetadata.netnsPorts, netnsPort)
+			}
+		}
+
+		if err = driver.syncActivatingAssignment(tctx, assignment, &vmMetadata); err != nil {
 			return err
 		}
 	}
@@ -28,10 +112,9 @@ func (driver *QemuDriver) syncActivatingAssignmentMap(tctx *logger.TraceContext,
 }
 
 func (driver *QemuDriver) syncActivatingAssignment(tctx *logger.TraceContext,
-	assignment spec.ComputeAssignmentEx, netnsPorts []compute_models.NetnsPort) error {
+	assignment spec.ComputeAssignmentEx, vmMetadata *VmMetadata) error {
 	var err error
 	compute := assignment.Spec
-	fmt.Println("DEBUG QEMU syncActivatingAssignment")
 
 	vmDir := filepath.Join(driver.conf.VmsDir, compute.Name)
 	vmImagePath := filepath.Join(vmDir, "img")
@@ -39,6 +122,7 @@ func (driver *QemuDriver) syncActivatingAssignment(tctx *logger.TraceContext,
 	vmSerialSocketPath := filepath.Join(vmDir, "serial.sock")
 	vmConfigImagePath := filepath.Join(vmDir, "config.img")
 	configDir := filepath.Join(vmDir, "config")
+	vmMetadataFilePath := filepath.Join(vmDir, "metadata")
 	vmServiceShFilePath := filepath.Join(vmDir, "service.sh")
 	vmServiceFilePath := filepath.Join(driver.conf.SystemdDir, compute.Name+".service")
 	vmMetaDataConfigFilePath := filepath.Join(configDir, "meta-data")
@@ -48,11 +132,12 @@ func (driver *QemuDriver) syncActivatingAssignment(tctx *logger.TraceContext,
 		return err
 	}
 
-	fmt.Println("DEBUG IMAGE")
+	if err = os_utils.SaveDataFileIfNotExist(tctx, vmMetadataFilePath, &vmMetadata); err != nil {
+		return err
+	}
 
 	// Initialize Image
 	srcImagePath := filepath.Join(driver.conf.ImagesDir, compute.ImageSpec.Name)
-	tmpSrcImagePath := filepath.Join(driver.conf.ImagesDir, compute.ImageSpec.Name+".tmp")
 	if !os_utils.PathExists(srcImagePath) {
 		tctx.SetTimeout(3600)
 		var specBytes []byte
@@ -66,6 +151,8 @@ func (driver *QemuDriver) syncActivatingAssignment(tctx *logger.TraceContext,
 			if err = json.Unmarshal(specBytes, &imageUrlSpec); err != nil {
 				return err
 			}
+			splitedUrl := strings.Split(imageUrlSpec.Url, "/")
+			tmpSrcImagePath := filepath.Join(driver.conf.ImagesDir, splitedUrl[len(splitedUrl)-1])
 			if !os_utils.PathExists(tmpSrcImagePath) {
 				if _, err = exec_utils.Cmdf(tctx, "wget -O %s %s", tmpSrcImagePath, imageUrlSpec.Url); err != nil {
 					return err
@@ -104,7 +191,7 @@ func (driver *QemuDriver) syncActivatingAssignment(tctx *logger.TraceContext,
 	}
 
 	var resolvers []spec.Resolver
-	for _, port := range netnsPorts {
+	for _, port := range vmMetadata.netnsPorts {
 		switch port.Kind {
 		case "Local":
 			for _, resolver := range port.NetworkV4LocalSpec.Resolvers {
@@ -121,11 +208,11 @@ func (driver *QemuDriver) syncActivatingAssignment(tctx *logger.TraceContext,
 		}
 	}
 
-	defaultGateway := netnsPorts[0].NetnsGateway
-	if err = template_utils.Template(tctx, vmUserDataConfigFilePath, 0644, driver.conf.UserdataTmpl,
+	defaultGateway := vmMetadata.netnsPorts[0].VmGateway
+	if err = template_utils.ExecTemplate(tctx, driver.userDataTmpl, vmUserDataConfigFilePath, 0644,
 		map[string]interface{}{
 			"DefaultGateway": defaultGateway,
-			"Ports":          netnsPorts,
+			"Ports":          vmMetadata.netnsPorts,
 			"Resolvers":      resolvers,
 		}); err != nil {
 		return err
@@ -136,10 +223,10 @@ func (driver *QemuDriver) syncActivatingAssignment(tctx *logger.TraceContext,
 		return err
 	}
 
-	if err = template_utils.Template(tctx, vmServiceShFilePath, 0755, driver.conf.VmServiceShTmpl,
+	if err = template_utils.ExecTemplate(tctx, driver.vmServiceShTmpl, vmServiceShFilePath, 0755,
 		map[string]interface{}{
 			"Compute":           compute,
-			"Ports":             netnsPorts,
+			"Ports":             vmMetadata.netnsPorts,
 			"VmImagePath":       vmImagePath,
 			"VmConfigImagePath": vmConfigImagePath,
 			"MonitorSocketPath": vmMonitorSocketPath,
@@ -148,7 +235,7 @@ func (driver *QemuDriver) syncActivatingAssignment(tctx *logger.TraceContext,
 		return err
 	}
 
-	if err = template_utils.Template(tctx, vmServiceFilePath, 0755, driver.conf.VmServiceTmpl,
+	if err = template_utils.ExecTemplate(tctx, driver.vmServiceTmpl, vmServiceFilePath, 0755,
 		map[string]interface{}{
 			"Compute":             compute,
 			"VmServiceShFilePath": vmServiceShFilePath,

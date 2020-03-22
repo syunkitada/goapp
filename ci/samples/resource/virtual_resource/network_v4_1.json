@@ -2,7 +2,7 @@
   "Kind": "NetworkV4",
   "Spec": {
     "Kind": "Local",
-    "Name": "local-net1",
+    "Name": "local-net-1",
     "Cluster": "tokyo1",
     "Subnet": "192.168.100.0/24",
     "StartIp": "192.168.100.2",

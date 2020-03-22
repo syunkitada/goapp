@@ -1,7 +1,7 @@
 {
   "Kind": "RegionService",
   "Spec": {
-    "Name": "small-centos-service",
+    "Name": "small-centos7-service",
     "Kind": "Compute",
     "Region": "kanto",
     "ExpireDate": -1,
@@ -13,7 +13,7 @@
         "Version": 4,
         "Interfaces": 1,
         "AssignPolicy": "Affinity",
-        "StaticNetworks": []
+        "StaticNetworks": ["local-net-2"]
       },
       "Kind": "Qemu",
       "Restart": "Always",

@@ -1,7 +1,9 @@
 package os_utils
 
 import (
+	"encoding/gob"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/syunkitada/goapp/pkg/lib/exec_utils"
@@ -50,6 +52,41 @@ func UnArchiveFile(tctx *logger.TraceContext, filePath string) (outputPath strin
 		outputPath = strings.Split(filePath, ".xz")[0]
 	default:
 		outputPath = filePath
+	}
+	return
+}
+
+func SaveDataFileIfNotExist(tctx *logger.TraceContext, filePath string, data interface{}) (err error) {
+	if _, tmpErr := os.Stat(filePath); tmpErr != nil {
+		if os.IsNotExist(tmpErr) {
+			f, tmpErr := os.Create(filePath)
+			if tmpErr != nil {
+				err = tmpErr
+				return
+			}
+			defer f.Close()
+			enc := gob.NewEncoder(f)
+
+			if err = enc.Encode(data); err != nil {
+				return
+			}
+		} else {
+			err = tmpErr
+		}
+	}
+	return
+}
+
+func LoadDataFile(tctx *logger.TraceContext, filePath string, data interface{}) (err error) {
+	f, err := os.Open(filePath)
+	if err != nil {
+		return
+	}
+	defer f.Close()
+
+	dec := gob.NewDecoder(f)
+	if err = dec.Decode(data); err != nil {
+		return
 	}
 	return
 }

@@ -8,6 +8,7 @@ type NetnsPort struct {
 	NetnsGateway       string
 	NetnsIp            string
 	VmIp               string
+	VmGateway          string
 	VmMac              string
 	VmSubnet           string
 	Kind               string

@@ -8,10 +8,12 @@ import (
 	"net"
 	"path/filepath"
 	"sync"
+	"text/template"
 	"time"
 
 	"github.com/gorilla/websocket"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
+	"github.com/syunkitada/goapp/pkg/lib/template_utils"
 	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_agent/compute_models"
 	"github.com/syunkitada/goapp/pkg/resource/config"
 	"github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
@@ -20,12 +22,35 @@ import (
 type QemuDriver struct {
 	conf *config.ResourceComputeExConfig
 	name string
+
+	userDataTmpl    *template.Template
+	vmServiceShTmpl *template.Template
+	vmServiceTmpl   *template.Template
 }
 
 func New(conf *config.ResourceComputeExConfig) *QemuDriver {
+	tctx := logger.NewTraceContext("localhost", "init")
+
+	userDataTmpl, tmpErr := template_utils.NewTemplate(tctx, conf.UserdataTmpl)
+	if tmpErr != nil {
+		logger.StdoutFatalf("Failed NewTemplate: template=%s, err=%s", conf.UserdataTmpl, tmpErr.Error())
+	}
+	vmServiceShTmpl, tmpErr := template_utils.NewTemplate(tctx, conf.VmServiceShTmpl)
+	if tmpErr != nil {
+		logger.StdoutFatalf("Failed NewTemplate: template=%s, err=%s", conf.VmServiceShTmpl, tmpErr.Error())
+	}
+	vmServiceTmpl, tmpErr := template_utils.NewTemplate(tctx, conf.VmServiceTmpl)
+	if tmpErr != nil {
+		logger.StdoutFatalf("Failed NewTemplate: template=%s, err=%s", conf.VmServiceTmpl, tmpErr.Error())
+	}
+
 	driver := QemuDriver{
 		conf: conf,
 		name: "qemu",
+
+		userDataTmpl:    userDataTmpl,
+		vmServiceShTmpl: vmServiceShTmpl,
+		vmServiceTmpl:   vmServiceTmpl,
 	}
 	return &driver
 }

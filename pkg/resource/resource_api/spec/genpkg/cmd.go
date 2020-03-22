@@ -954,7 +954,7 @@ var ResourceVirtualAdminCmdMap = map[string]base_index_model.Cmd{
 				FlagType: "string",
 				FlagKind: "",
 			},
-			"region,r": base_index_model.Flag{
+			"cluster,c": base_index_model.Flag{
 				Required: true,
 				FlagType: "string",
 				FlagKind: "",
