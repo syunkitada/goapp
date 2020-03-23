@@ -37,10 +37,8 @@ echo "%goapp  ALL=(ALL:ALL) ALL" >> /etc/sudoers
 # Setup sshd for debug
 #
 sed -i 's/^PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config
-sudo systemctl enable ssh
-sudo systemctl restart ssh
-sudo systemctl enable sshd
-sudo systemctl restart sshd
+systemctl enable ssh || systemctl enable sshd
+systemctl restart ssh || systemctl restart sshd
 
 
 # Disable cloud-* services

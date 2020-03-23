@@ -19,7 +19,7 @@ import (
 )
 
 type VmMetadata struct {
-	netnsPorts []compute_models.NetnsPort
+	NetnsPorts []compute_models.NetnsPort
 }
 
 func (driver *QemuDriver) syncActivatingAssignmentMap(tctx *logger.TraceContext,
@@ -35,16 +35,20 @@ func (driver *QemuDriver) syncActivatingAssignmentMap(tctx *logger.TraceContext,
 	vmMetadataMap := map[string]VmMetadata{}
 	for _, file := range files {
 		if file.IsDir() {
-			metadataFilePath := filepath.Join(driver.conf.VmsDir, file.Name(), "metadata")
+			metadataFilePath := filepath.Join(driver.conf.VmsDir, file.Name(), "metadata.json")
 			if _, tmpErr := os.Stat(metadataFilePath); tmpErr != nil {
 				logger.Warningf(tctx, "Invalid vm directory: %s", tmpErr.Error())
 				continue
 			}
 			var vmMetadata VmMetadata
-			os_utils.LoadDataFile(tctx, metadataFilePath, &vmMetadata)
+			if tmpErr := json_utils.ReadFile(tctx, metadataFilePath, &vmMetadata); tmpErr != nil {
+				// ファイルが存在するのにFileを読めない場合は、Conflict回避のため処理を中断する
+				err = fmt.Errorf("Invalid vmMetadata exist: %s", tmpErr.Error())
+				return
+			}
 			vmMetadataMap[file.Name()] = vmMetadata
-			for i := range vmMetadata.netnsPorts {
-				port := vmMetadata.netnsPorts[i]
+			for i := range vmMetadata.NetnsPorts {
+				port := vmMetadata.NetnsPorts[i]
 				assignedNetnsIds[port.Id] = true
 			}
 		}
@@ -58,14 +62,14 @@ func (driver *QemuDriver) syncActivatingAssignmentMap(tctx *logger.TraceContext,
 
 		for j, port := range assignment.Spec.Ports {
 			existPort := false
-			for _, netnsPort := range vmMetadata.netnsPorts {
+			for _, netnsPort := range vmMetadata.NetnsPorts {
 				if netnsPort.VmIp == port.Ip {
 					existPort = true
 					break
 				}
 			}
-			if !existPort {
-				// インターフェイスの最大文字数が15なので、ベース文字数は12とする
+			if !existPort { // netnsを割り当てる
+				// メモ: インターフェイスの最大文字数は15
 				var netnsId int
 				for id, assigned := range assignedNetnsIds {
 					if !assigned {
@@ -100,7 +104,7 @@ func (driver *QemuDriver) syncActivatingAssignmentMap(tctx *logger.TraceContext,
 					netnsPort.NetworkV4LocalSpec = netSpec
 				}
 
-				vmMetadata.netnsPorts = append(vmMetadata.netnsPorts, netnsPort)
+				vmMetadata.NetnsPorts = append(vmMetadata.NetnsPorts, netnsPort)
 			}
 		}
 
@@ -122,7 +126,7 @@ func (driver *QemuDriver) syncActivatingAssignment(tctx *logger.TraceContext,
 	vmSerialSocketPath := filepath.Join(vmDir, "serial.sock")
 	vmConfigImagePath := filepath.Join(vmDir, "config.img")
 	configDir := filepath.Join(vmDir, "config")
-	vmMetadataFilePath := filepath.Join(vmDir, "metadata")
+	vmMetadataFilePath := filepath.Join(vmDir, "metadata.json")
 	vmServiceShFilePath := filepath.Join(vmDir, "service.sh")
 	vmServiceFilePath := filepath.Join(driver.conf.SystemdDir, compute.Name+".service")
 	vmMetaDataConfigFilePath := filepath.Join(configDir, "meta-data")
@@ -132,7 +136,7 @@ func (driver *QemuDriver) syncActivatingAssignment(tctx *logger.TraceContext,
 		return err
 	}
 
-	if err = os_utils.SaveDataFileIfNotExist(tctx, vmMetadataFilePath, &vmMetadata); err != nil {
+	if err = json_utils.WriteFile(tctx, vmMetadataFilePath, vmMetadata, 0644); err != nil {
 		return err
 	}
 
@@ -191,7 +195,7 @@ func (driver *QemuDriver) syncActivatingAssignment(tctx *logger.TraceContext,
 	}
 
 	var resolvers []spec.Resolver
-	for _, port := range vmMetadata.netnsPorts {
+	for _, port := range vmMetadata.NetnsPorts {
 		switch port.Kind {
 		case "Local":
 			for _, resolver := range port.NetworkV4LocalSpec.Resolvers {
@@ -208,11 +212,11 @@ func (driver *QemuDriver) syncActivatingAssignment(tctx *logger.TraceContext,
 		}
 	}
 
-	defaultGateway := vmMetadata.netnsPorts[0].VmGateway
+	defaultGateway := vmMetadata.NetnsPorts[0].VmGateway
 	if err = template_utils.ExecTemplate(tctx, driver.userDataTmpl, vmUserDataConfigFilePath, 0644,
 		map[string]interface{}{
 			"DefaultGateway": defaultGateway,
-			"Ports":          vmMetadata.netnsPorts,
+			"Ports":          vmMetadata.NetnsPorts,
 			"Resolvers":      resolvers,
 		}); err != nil {
 		return err
@@ -226,7 +230,7 @@ func (driver *QemuDriver) syncActivatingAssignment(tctx *logger.TraceContext,
 	if err = template_utils.ExecTemplate(tctx, driver.vmServiceShTmpl, vmServiceShFilePath, 0755,
 		map[string]interface{}{
 			"Compute":           compute,
-			"Ports":             vmMetadata.netnsPorts,
+			"Ports":             vmMetadata.NetnsPorts,
 			"VmImagePath":       vmImagePath,
 			"VmConfigImagePath": vmConfigImagePath,
 			"MonitorSocketPath": vmMonitorSocketPath,
