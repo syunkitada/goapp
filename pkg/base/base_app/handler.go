@@ -109,12 +109,10 @@ func (app *BaseApp) Ws(w http.ResponseWriter, r *http.Request, isProxy bool) {
 	tctx := logger.NewTraceContext(app.host, app.name)
 	startTime := logger.StartTrace(tctx)
 	defer func() {
-		fmt.Println("DEBUG End Ws")
 		if p := recover(); p != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			err = error_utils.NewRecoveredError(p)
 			logger.Errorf(tctx, err, "Panic occured")
-			fmt.Println("panic occured", err)
 		}
 	}()
 
@@ -123,28 +121,28 @@ func (app *BaseApp) Ws(w http.ResponseWriter, r *http.Request, isProxy bool) {
 
 	defer func() { app.End(tctx, startTime, err) }()
 
-	var conn *websocket.Conn
-	conn, err = upgrader.Upgrade(w, r, nil)
+	var wsConn *websocket.Conn
+	wsConn, err = upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		return
 	}
 
-	var proxyConn *websocket.Conn
+	var proxyWsConn *websocket.Conn
 	wsDone := false
 	defer func() {
 		conMutex.Lock()
-		if conn != nil {
-			if tmpErr = conn.Close(); tmpErr != nil {
-				logger.Warningf(tctx, "Failed  proxyConn.Close: err=%s", tmpErr.Error())
+		if wsConn != nil {
+			if tmpErr = wsConn.Close(); tmpErr != nil {
+				logger.Warningf(tctx, "Failed  proxyWsConn.Close: err=%s", tmpErr.Error())
 			} else {
-				logger.Info(tctx, "Success proxyConn.Close")
+				logger.Info(tctx, "Success proxyWsConn.Close")
 			}
 		}
-		if proxyConn != nil {
-			if tmpErr = proxyConn.Close(); tmpErr != nil {
-				logger.Warningf(tctx, "Failed  proxyConn.Close: err=%s", tmpErr.Error())
+		if proxyWsConn != nil {
+			if tmpErr = proxyWsConn.Close(); tmpErr != nil {
+				logger.Warningf(tctx, "Failed  proxyWsConn.Close: err=%s", tmpErr.Error())
 			} else {
-				logger.Info(tctx, "Success proxyConn.Close")
+				logger.Info(tctx, "Success proxyWsConn.Close")
 			}
 		}
 		wsDone = true
@@ -156,7 +154,7 @@ func (app *BaseApp) Ws(w http.ResponseWriter, r *http.Request, isProxy bool) {
 	var repBytes []byte
 
 	// 初回のQueryにより認証を行う
-	mt, message, err := conn.ReadMessage()
+	mt, message, err := wsConn.ReadMessage()
 	if err != nil {
 		return
 	}
@@ -172,7 +170,7 @@ func (app *BaseApp) Ws(w http.ResponseWriter, r *http.Request, isProxy bool) {
 			logger.Error(tctx, err, "Failed json.Marshal")
 			return
 		}
-		err = conn.WriteMessage(mt, bytes)
+		err = wsConn.WriteMessage(mt, bytes)
 		return
 	}
 
@@ -184,14 +182,14 @@ func (app *BaseApp) Ws(w http.ResponseWriter, r *http.Request, isProxy bool) {
 					logger.Error(tctx, err, "Failed json.Marshal")
 					return
 				}
-				err = conn.WriteMessage(mt, bytes)
+				err = wsConn.WriteMessage(mt, bytes)
 				return
 			}
 			repBytes, err = json.Marshal(&res)
-			err = conn.WriteMessage(mt, repBytes)
-			fmt.Println("WriteMessage ", err)
+			err = wsConn.WriteMessage(mt, repBytes)
 			if err != nil {
-				fmt.Println("write:", err)
+				logger.Error(tctx, err, "Failed Write First Message")
+				return
 			}
 			break
 		}
@@ -207,7 +205,7 @@ func (app *BaseApp) Ws(w http.ResponseWriter, r *http.Request, isProxy bool) {
 		}
 		header := http.Header{}
 		header.Add("X-Service-Token", service.Token)
-		proxyConn, _, err = dialer.Dial(endpoint, header)
+		proxyWsConn, _, err = dialer.Dial(endpoint, header)
 		if err != nil {
 			logger.Errorf(tctx, err, "Failed dial to %s", endpoint)
 			continue
@@ -215,31 +213,29 @@ func (app *BaseApp) Ws(w http.ResponseWriter, r *http.Request, isProxy bool) {
 		break
 	}
 
-	fmt.Println("DEBUG initialized auth")
-
-	if proxyConn != nil { // Proxy
+	if proxyWsConn != nil { // Proxy
 		isInitProxy := true
 		for {
 			if isInitProxy {
-				if err = proxyConn.WriteMessage(mt, rawReq); err != nil {
+				if err = proxyWsConn.WriteMessage(mt, rawReq); err != nil {
 					logger.Warningf(tctx, "Failed WriteMessage: %s", err.Error())
 					return
 				}
 				go func() {
 					for {
-						mt, message, tmpErr := proxyConn.ReadMessage()
+						mt, message, tmpErr := proxyWsConn.ReadMessage()
 						if tmpErr != nil {
 							conMutex.Lock()
 							if !wsDone {
-								logger.Warningf(tctx, "Failed proxyConn.ReadMessage: err=%s", tmpErr.Error())
+								logger.Warningf(tctx, "Failed proxyWsConn.ReadMessage: err=%s", tmpErr.Error())
 							}
 							conMutex.Unlock()
 							return
 						}
-						if tmpErr := conn.WriteMessage(mt, message); tmpErr != nil {
+						if tmpErr := wsConn.WriteMessage(mt, message); tmpErr != nil {
 							conMutex.Lock()
 							if !wsDone {
-								logger.Warningf(tctx, "Failed proxyConn.WriteMessage: err=%s", tmpErr.Error())
+								logger.Warningf(tctx, "Failed proxyWsConn.WriteMessage: err=%s", tmpErr.Error())
 							}
 							conMutex.Unlock()
 							return
@@ -250,19 +246,21 @@ func (app *BaseApp) Ws(w http.ResponseWriter, r *http.Request, isProxy bool) {
 			}
 
 			fmt.Println("Proxy: Waining Message from client")
-			mt, message, err := conn.ReadMessage()
+			mt, message, tmpErr := wsConn.ReadMessage()
 			fmt.Println("Proxy: Recieved Message", string(message))
-			if err != nil {
+			if tmpErr != nil {
+				logger.Warningf(tctx, "Failed ReadMessage: %s", tmpErr.Error())
+				fmt.Println("DEBUG Failed ReadMessage: ", tmpErr.Error())
 				return
 			}
 			rawReq := []byte(message)
-			if err = proxyConn.WriteMessage(mt, rawReq); err != nil {
+			if err = proxyWsConn.WriteMessage(mt, rawReq); err != nil {
 				logger.Warningf(tctx, "Failed WriteMessage: %s", err.Error())
 			}
 			continue
 		}
 	} else { // App handle ws
-		if err = app.queryHandler.ExecWs(tctx, userAuthority, r, w, req, res, conn); err != nil {
+		if err = app.queryHandler.ExecWs(tctx, userAuthority, r, w, req, res, wsConn); err != nil {
 			return
 		}
 	}

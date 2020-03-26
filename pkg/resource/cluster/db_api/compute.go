@@ -33,7 +33,7 @@ func (api *Api) GetComputes(tctx *logger.TraceContext, input *spec.GetComputes) 
 }
 
 func (api *Api) ProxyComputeConsole(tctx *logger.TraceContext, input *spec.GetComputeConsole,
-	conn *websocket.Conn) (err error) {
+	wsConn *websocket.Conn) (err error) {
 	var tmpErr error
 	var assignments []db_model.ComputeAssignmentWithComputeAndNodeService
 	query := api.DB.Table("compute_assignments as ca").
@@ -62,22 +62,24 @@ func (api *Api) ProxyComputeConsole(tctx *logger.TraceContext, input *spec.GetCo
 			Data: resource_api_spec.GetComputeConsole{Name: input.Name},
 		},
 	}
-	_, wsConn, tmpErr := client.ResourceVirtualAdminGetComputeConsole(tctx, queries)
+	_, proxyWsConn, tmpErr := client.ResourceVirtualAdminGetComputeConsole(tctx, queries)
 	if tmpErr != nil {
 		logger.Warningf(tctx, "Failed GetNodeServices: %s", tmpErr.Error())
 		return
 	}
 
 	conMutex := sync.Mutex{}
-	doneCh := false
+	doneCh := make(chan bool, 2)
+	var isDone bool
 	defer func() {
 		conMutex.Lock()
-		if tmpErr = wsConn.Close(); tmpErr != nil {
+		if tmpErr = proxyWsConn.Close(); tmpErr != nil {
 			logger.Warningf(tctx, "Failed wsConn.Close: err=%s", tmpErr.Error())
 		} else {
 			logger.Info(tctx, "Success wsConn.Close")
 		}
-		doneCh = true
+		isDone = true
+		close(doneCh)
 		conMutex.Unlock()
 	}()
 
@@ -86,19 +88,21 @@ func (api *Api) ProxyComputeConsole(tctx *logger.TraceContext, input *spec.GetCo
 		var message []byte
 		for {
 			fmt.Println("Waiting Messages on client WebSocket")
-			messageType, message, tmpErr = conn.ReadMessage()
+			messageType, message, tmpErr = wsConn.ReadMessage()
 			if tmpErr != nil {
 				conMutex.Lock()
-				if !doneCh {
+				if !isDone {
 					logger.Warningf(tctx, "Faild ReadMessage: %s", tmpErr.Error())
+					doneCh <- true
 				}
 				conMutex.Unlock()
 				return
 			}
-			if tmpErr = wsConn.WriteMessage(messageType, message); tmpErr != nil {
+			if tmpErr = proxyWsConn.WriteMessage(messageType, message); tmpErr != nil {
 				conMutex.Lock()
-				if !doneCh {
+				if !isDone {
 					logger.Warningf(tctx, "Faild WriteMessage: %s", tmpErr.Error())
+					doneCh <- true
 				}
 				conMutex.Unlock()
 				return
@@ -106,27 +110,34 @@ func (api *Api) ProxyComputeConsole(tctx *logger.TraceContext, input *spec.GetCo
 		}
 	}()
 
-	var messageType int
-	var message []byte
-	for {
-		fmt.Println("Waiting Messages on proxy WebSocket")
-		if messageType, message, tmpErr = wsConn.ReadMessage(); tmpErr != nil {
-			conMutex.Lock()
-			if !doneCh {
-				logger.Warningf(tctx, "Faild ReadMessage: %s", tmpErr.Error())
+	go func() {
+		var messageType int
+		var message []byte
+		for {
+			fmt.Println("Waiting Messages on proxy WebSocket")
+			if messageType, message, tmpErr = proxyWsConn.ReadMessage(); tmpErr != nil {
+				conMutex.Lock()
+				if !isDone {
+					logger.Warningf(tctx, "Faild ReadMessage: %s", tmpErr.Error())
+					doneCh <- true
+				}
+				conMutex.Unlock()
+				return
 			}
-			conMutex.Unlock()
-			return
-		}
-		if tmpErr = conn.WriteMessage(messageType, message); tmpErr != nil {
-			conMutex.Lock()
-			if !doneCh {
-				logger.Warningf(tctx, "Faild WriteMessage: %s", tmpErr.Error())
+			if tmpErr = wsConn.WriteMessage(messageType, message); tmpErr != nil {
+				conMutex.Lock()
+				if !isDone {
+					logger.Warningf(tctx, "Faild WriteMessage: %s", tmpErr.Error())
+					doneCh <- true
+				}
+				conMutex.Unlock()
+				return
 			}
-			conMutex.Unlock()
-			return
 		}
-	}
+	}()
+
+	<-doneCh
+	return
 }
 
 func (api *Api) CreateComputes(tctx *logger.TraceContext, specs []spec.RegionServiceComputeSpec) (err error) {
