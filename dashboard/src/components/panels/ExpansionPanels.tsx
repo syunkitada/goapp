@@ -104,6 +104,10 @@ class ExpansionPanels extends React.Component<IExpansionPanels> {
   private handleChange = (expandedPath, expandedUrl) => {
     const { routes, index } = this.props;
 
+    // http://192.168.10.121:3000/Project/admin/ResourceVirtualAdmin/Regions/kanto/RegionResources/Clusters/tokyo1/Resources/Computes
+    // expandedPath: /Project/:project/:service/Regions/:Region/RegionResources/:RegionKind
+    // expandedUrl: /Project/admin/ResourceVirtualAdmin/Regions/kanto/RegionResources/Clusters/tokyo1/Resources/Computes
+
     const beforeRoute = routes.slice(-2)[0];
     for (let i = 0, len = index.Panels.length; i < len; i++) {
       const panel = index.Panels[i];
@@ -142,7 +146,6 @@ function mapDispatchToProps(dispatch, ownProps) {
       const searchQueries = form_utils.getSearchQueries();
 
       if (index.DataQueries) {
-        console.log("TODO DEBUG ExpansionPanel getQueries", index, route);
         dispatch(
           actions.service.serviceGetQueries({
             index,
@@ -186,12 +189,8 @@ function mapDispatchToProps(dispatch, ownProps) {
         default:
           break;
       }
+
       if (subIndex.DataQueries) {
-        console.log(
-          "TODO DEBUG ExpansionPanel subIndex getQueries",
-          subIndex,
-          route
-        );
         dispatch(
           actions.service.serviceGetQueries({
             index: subIndex,

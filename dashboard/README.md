@@ -2,12 +2,15 @@
 
 
 ## Setup Development Environment
+
 * Install requirements
+
 ```
 yarn install
 ```
 
 * Start development server
+
 ```
 export REACT_APP_AUTHPROXY_URL="https://192.168.10.103:8000"; yarn start
 ```
