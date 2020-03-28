@@ -25,7 +25,7 @@ import {
   YAxis,
 } from 'recharts';
 
-import * as moment from 'moment';
+import dayjs from 'dayjs';
 
 interface IBasicView extends WithStyles<typeof styles> {
   targets;
@@ -81,7 +81,7 @@ class LineGraphCard extends React.Component<IBasicView> {
                   dataKey="time"
                   type="number"
                   domain={['dataMin', 'dataMax']}
-                  tickFormatter={t => moment(new Date(t)).format('MM/DD HH:mm')}
+                  tickFormatter={t => dayjs(new Date(t)).format('MM/DD HH:mm')}
                 />
                 <YAxis
                   tickFormatter={y => {
@@ -97,7 +97,7 @@ class LineGraphCard extends React.Component<IBasicView> {
                 />
                 <Tooltip
                   labelFormatter={t =>
-                    moment(new Date(t)).format('YYYY/MM/DD hh:mm')
+                    dayjs(new Date(t)).format('YYYY/MM/DD hh:mm')
                   }
                 />
                 <Legend />

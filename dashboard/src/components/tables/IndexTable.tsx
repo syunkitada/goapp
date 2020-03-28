@@ -602,7 +602,7 @@ class IndexTable extends React.Component<IIndexTable> {
                       }
                     }
                     if (!isShowCells) {
-                      return;
+                      return null;
                     }
                     cells.push(
                       <TableCell key={i} align={align} padding={padding}>

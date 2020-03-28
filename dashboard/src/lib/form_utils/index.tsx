@@ -1,7 +1,7 @@
 import logger from '../logger';
 
 function getSearchQueries() {
-  const queryStr = decodeURIComponent(location.search);
+  const queryStr = decodeURIComponent(window.location.search);
   let searchQueries = {};
   try {
     const value = queryStr.match(new RegExp('[?&]q=({.*?})(&|$|#)'));

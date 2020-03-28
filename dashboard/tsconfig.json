@@ -13,7 +13,6 @@
     "forceConsistentCasingInFileNames": true,
     "noImplicitReturns": true,
     "noImplicitThis": true,
-    "noImplicitAny": "false: 暗黙的Anyを許可する",
     "noImplicitAny": false,
     "importHelpers": true,
     "strictNullChecks": true,

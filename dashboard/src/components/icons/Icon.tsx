@@ -89,10 +89,6 @@ class Icon extends React.Component<IIcon> {
         return (
           <DetailsIcon key={name} className={classes[className]} {...props} />
         );
-      case 'Check':
-        return (
-          <DetailsIcon key={name} className={classes[className]} {...props} />
-        );
       case 'Update':
         return (
           <EditIcon key={name} className={classes[className]} {...props} />
