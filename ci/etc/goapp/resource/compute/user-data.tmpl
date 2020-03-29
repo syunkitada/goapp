@@ -1,5 +1,28 @@
 #!/bin/sh -x
 
+isCentos=false
+isCentos7=false
+grep 'CentOS' /etc/os-release
+if [ $? == 0 ]; then
+  isCentos=true
+  grep 'VERSION_ID="7"' /etc/os-release
+  if [ $? == 0 ]; then
+    isCentos7=true
+  fi
+fi
+
+isUbuntu=false
+isUbuntu18=false
+grep 'Ubuntu' /etc/os-release
+if [ $? == 0 ]; then
+  isUbuntu=true
+  grep 'VERSION_ID="18' /etc/os-release
+  if [ $? == 0 ]; then
+    isUbuntu18=true
+  fi
+fi
+
+
 
 #
 # Setup user for debug
@@ -14,8 +37,8 @@ echo "%goapp  ALL=(ALL:ALL) ALL" >> /etc/sudoers
 # Setup sshd for debug
 #
 sed -i 's/^PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config
-sudo systemctl enable ssh
-sudo systemctl restart ssh
+systemctl enable ssh || systemctl enable sshd
+systemctl restart ssh || systemctl restart sshd
 
 
 # Disable cloud-* services
@@ -41,12 +64,12 @@ cat << 'EOS' > /opt/goapp/bin/goapp-init
 {{- range $i, $port := .Ports }}
 
 dev{{ $i }}=`grep {{ $port.VmMac }} /sys/class/net/*/address -l | awk -F '/' '{print $5}'`
-ip addr add {{ $port.VmIp }}/32 dev $dev{{ $i }}
+ip addr add {{ $port.VmIp }}/{{ subnetmask $port.VmSubnet }} dev $dev{{ $i }}
 ip link set $dev{{ $i }} up
+ip route add {{ $port.NetnsIp }} via {{ $port.VmIp }}
 
 {{- end }}
 
-ip route add {{ .DefaultGateway }} dev $dev0
 ip route add default via {{ .DefaultGateway }}
 EOS
 
@@ -85,10 +108,41 @@ sudo systemctl start goapp-init
 
 
 # ------------------------------
-# Setup resolver
+# Setup resolver for Centos7
 # ------------------------------
-mkdir -p /etc/systemd/resolved.conf.d/
-cat << 'EOS' > /etc/systemd/resolved.conf.d/goapp.conf
+if "${isCentos7}"; then
+  rpm -qa | grep dnsmasq
+  if [ $? != 0 ]; then
+    cat << 'EOS' > /etc/resolv.conf
+{{- range $i, $resolver := .Resolvers }}
+nameserver {{ $resolver.Resolver }}
+{{- end }}
+EOS
+    yum install dnsmasq -y
+  fi
+
+  cat << 'EOS' > /etc/dnsmasq.conf
+nameserver 127.0.0.53
+options edns0
+
+listen-address=::1,127.0.0.1
+cache-size=150
+port=53
+{{- range $i, $resolver := .Resolvers }}
+server={{ $resolver.Resolver }}
+{{- end }}
+EOS
+
+fi
+# End isCentos7
+
+
+# ------------------------------
+# Setup resolver for Ubuntu18
+# ------------------------------
+if "${isUbuntu18}"; then
+  mkdir -p /etc/systemd/resolved.conf.d/
+  cat << 'EOS' > /etc/systemd/resolved.conf.d/goapp.conf
 {{- range $i, $resolver := .Resolvers }}
 [Resolve]
 DNS={{ $resolver.Resolver }}
@@ -101,5 +155,7 @@ Cache=yes
 DNSStubListener=yes
 {{- end }}
 EOS
-systemctl enable systemd-resolved
-systemctl restart systemd-resolved
+  systemctl enable systemd-resolved
+  systemctl restart systemd-resolved
+fi
+# End isUbuntu18

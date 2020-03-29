@@ -1,0 +1,11 @@
+{
+  "Kind": "Image",
+  "Spec": {
+    "Kind": "Url",
+    "Name": "centos-7",
+    "Region": "kanto",
+    "Spec": {
+      "Url": "https://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud.qcow2.xz"
+    }
+  }
+}

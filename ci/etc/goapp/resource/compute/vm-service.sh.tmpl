@@ -53,10 +53,11 @@ function start {
         -enable-kvm -machine q35,accel=kvm \
         -cpu host \
         -smp cores={{ .Compute.Vcpus }} \
-        -m slots=64,maxmem=1024G \
-        -object memory-backend-file,id=mem1,size={{ .Compute.Memory }}M,mem-path=/dev/hugepages \
-        -device pc-dimm,id=dimm1,memdev=mem1 \
-        -drive file={{ .VmImagePath }},if=virtio \
+        -m {{ .Compute.Memory }}M,slots=64,maxmem=1024G \
+        -object memory-backend-file,id=mem1,size={{ .Compute.Memory }}M,mem-path=/dev/hugepages/{{ .Compute.Name }} \
+        -numa node,nodeid=0,memdev=mem1 \
+        -drive id=bootdisk1,file={{ .VmImagePath }},if=none \
+        -device virtio-blk-pci,scsi=off,drive=bootdisk1,bootindex=1 \
         -drive file={{ .VmConfigImagePath }},format=raw,if=none,id=drive-ide0-1-0,readonly=on \
         -device amd-iommu \
         -device ide-cd,bus=ide.1,unit=0,drive=drive-ide0-1-0,id=ide0-1-0 \
@@ -82,7 +83,18 @@ function start {
 }
 
 function stop {
-    echo "stop"
+    {{- range $i, $port := .Ports }}
+
+    #
+    # Cleanup netns
+    #
+    netns={{ $port.Name }}
+    exLink={{ $port.Name }}-ex
+    inLink={{ $port.Name }}-in
+
+    ip netns | grep $netns && ip netns del $netns || echo "delete ip ${netns}"
+
+    {{- end }}
 }
 
 case "$1" in

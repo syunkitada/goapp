@@ -7,7 +7,7 @@ import logger from "../../lib/logger";
 interface IAuth {
   auth;
   children;
-  loginWithToken: () => null;
+  loginWithToken;
 }
 
 class Auth extends React.Component<IAuth> {

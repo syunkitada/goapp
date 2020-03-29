@@ -2,12 +2,12 @@ package json_utils
 
 import (
 	"bytes"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 
 	"github.com/ghodss/yaml"
+	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
 
 func ReadFilesFromMultiPath(filePaths []string) ([]interface{}, error) {
@@ -65,13 +65,11 @@ func ReadFiles(filePath string) ([]interface{}, error) {
 	return result, err
 }
 
-func ReadFile(filePath string, data interface{}) error {
-	bytes, err := ioutil.ReadFile(filePath)
-	if err != nil {
-		return err
+func ReadFile(tctx *logger.TraceContext, filePath string, data interface{}) (err error) {
+	var bytes []byte
+	if bytes, err = ioutil.ReadFile(filePath); err != nil {
+		return
 	}
-	fmt.Println(string(bytes))
-	fmt.Println(data)
 	err = yaml.Unmarshal(bytes, data)
-	return err
+	return
 }

@@ -8,13 +8,13 @@ import (
 	"github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
 )
 
-func (resolver *Resolver) GetComputeConsole(tctx *logger.TraceContext, input *spec.GetComputeConsole, user *base_spec.UserAuthority, conn *websocket.Conn) (data *spec.GetComputeConsoleData, code uint8, err error) {
+func (resolver *Resolver) GetComputeConsole(tctx *logger.TraceContext, input *spec.GetComputeConsole, user *base_spec.UserAuthority, wsConn *websocket.Conn) (data *spec.GetComputeConsoleData, code uint8, err error) {
 	code = base_const.CodeOk
 	data = &spec.GetComputeConsoleData{}
-	if conn == nil {
+	if wsConn == nil {
 		return
 	}
 
-	err = resolver.computeDriver.ProxyConsole(tctx, input, conn)
+	err = resolver.computeDriver.ProxyConsole(tctx, input, wsConn)
 	return
 }

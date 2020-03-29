@@ -2,6 +2,7 @@ package db_api
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/jinzhu/gorm"
 	"github.com/syunkitada/goapp/pkg/base/base_const"
@@ -93,7 +94,7 @@ func (api *Api) UpdateNetworkV4s(tctx *logger.TraceContext, input []spec.Network
 
 func (api *Api) DeleteNetworkV4(tctx *logger.TraceContext, input *spec.DeleteNetworkV4, user *base_spec.UserAuthority) (err error) {
 	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
-		err = tx.Where("name = ? AND region = ?", input.Name, input.Region).Delete(&db_model.NetworkV4{}).Error
+		err = tx.Where("name = ? AND cluster = ?", input.Name, input.Cluster).Delete(&db_model.NetworkV4{}).Error
 		return
 	})
 	return
@@ -118,15 +119,32 @@ func (api *Api) AssignNetworkV4Port(tctx *logger.TraceContext, tx *gorm.DB,
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
+	isStaticNetworks := len(npspec.StaticNetworks) > 0
 	netIds := []uint{}
 	netPortMap := map[uint]map[string]bool{}
 	netMacMap := map[uint]map[string]bool{}
+	staticNetworkCountMap := map[string]int{}
 	for _, network := range networks {
+		// StaticNetworksが定義されてる場合は、networkの候補をStaticNetworksのみに絞る
+		if isStaticNetworks {
+			isStaticNetwork := false
+			for _, snetwork := range npspec.StaticNetworks {
+				if snetwork == network.Name {
+					isStaticNetwork = true
+					staticNetworkCountMap[snetwork] = 0
+					break
+				}
+			}
+			if !isStaticNetwork {
+				continue
+			}
+		}
 		netIds = append(netIds, network.ID)
 		netPortMap[network.ID] = map[string]bool{}
 		netMacMap[network.ID] = map[string]bool{}
 	}
 
+	// 候補となるnetworkのportをすべて取得し、利用可能なportを洗い出す
 	var ports []db_model.NetworkV4Port
 	if err = tx.Table("network_v4_ports").
 		Select("network_v4_ports.*").
@@ -173,16 +191,18 @@ func (api *Api) AssignNetworkV4Port(tctx *logger.TraceContext, tx *gorm.DB,
 		})
 	}
 
-	// 既存portをチェック
+	// すでにAssignされてるPortを取得し、新規にAssignする必要がある場合はAssignする
 	var currentPorts []db_model.NetworkV4Port
 	if err = tx.Where("resource_kind = ? AND resource_name = ?", kind, name).
 		Find(&currentPorts).Error; err != nil {
 		return
 	}
-
 	for _, port := range currentPorts {
 		for _, net := range nets {
 			if net.Id == port.NetworkV4ID {
+				if count, ok := staticNetworkCountMap[net.Name]; ok {
+					staticNetworkCountMap[net.Name] = count + 1
+				}
 				sports = append(sports, spec.PortSpec{
 					NetworkID: net.Id,
 					Version:   4,
@@ -196,56 +216,103 @@ func (api *Api) AssignNetworkV4Port(tctx *logger.TraceContext, tx *gorm.DB,
 			}
 		}
 	}
-
 	interfaces := npspec.Interfaces - len(currentPorts)
+	if interfaces == 0 {
+		return
+	}
+
+	if !isStaticNetworks {
+		sort.Slice(nets, func(i, j int) bool {
+			return len(nets[i].AvailableIps) < len(nets[j].AvailableIps)
+		})
+	} else {
+		// StaticNetworksが定義されてる場合は、配列の定義順でNetworkをソートする
+		sort.SliceStable(nets, func(i, j int) bool {
+			// すでにAssign済みの場合は、Assign数が多いNetworkの優先度を下げる
+			icount, iok := staticNetworkCountMap[nets[i].Name]
+			jcount, jok := staticNetworkCountMap[nets[j].Name]
+			if iok {
+				if jok {
+					return icount > jcount
+				} else {
+					return true
+				}
+			}
+
+			ix := len(npspec.StaticNetworks)
+			jx := ix
+			for x, snet := range npspec.StaticNetworks {
+				if snet == nets[i].Name {
+					ix = x
+				}
+				if snet == nets[j].Name {
+					jx = x
+				}
+			}
+			return ix < jx
+		})
+	}
+
+	netid := 0
 	for i := 0; i < interfaces; i++ {
+		var net spec.Network
 		switch npspec.AssignPolicy {
 		case consts.SchedulePolicyAffinity:
-			var net spec.Network
-			if len(currentPorts) > 0 {
+			if len(currentPorts) > 0 { // CurrentPortsが存在する場合は、Networkを既存に合わせる
 				for _, n := range nets {
 					if n.Id == currentPorts[0].NetworkV4ID {
 						net = n
 						break
 					}
 				}
-			} else {
+			} else { // CurrentPortsが存在しない場合は、優先度の高いNetworkに固定する
 				net = nets[0]
 			}
-
-			ip := net.AvailableIps[i]
-			var mac string
-			macMap, ok := netMacMap[net.Id]
-			if !ok {
-				err = fmt.Errorf("NotFound Mac: net.Id=%d", net.Id)
-				return
+		case consts.SchedulePolicyAntiAffinity:
+			// 優先度の高い順にラウンドロビンで割り当てる
+			net = nets[netid]
+			if netid < len(nets)-1 {
+				netid += 1
+			} else {
+				netid = 0
 			}
-			mac, err = ip_utils.GenerateUniqueRandomMac(macMap, 100)
-			if err != nil {
-				return
-			}
-
-			port := db_model.NetworkV4Port{
-				NetworkV4ID:  net.Id,
-				Ip:           ip,
-				Mac:          mac,
-				ResourceKind: kind,
-				ResourceName: name,
-			}
-			if err = tx.Create(&port).Error; err != nil {
-				return
-			}
-			sports = append(sports, spec.PortSpec{
-				NetworkID: net.Id,
-				Version:   4,
-				Subnet:    net.Subnet,
-				Gateway:   net.Gateway,
-				Ip:        ip,
-				Mac:       mac,
-				Kind:      net.Kind,
-				Spec:      net.Spec,
-			})
+		default:
+			err = fmt.Errorf("Invalid AssignPolicy: %s", npspec.AssignPolicy)
+			return
 		}
+
+		ip := net.AvailableIps[i]
+		var mac string
+		macMap, ok := netMacMap[net.Id]
+		if !ok {
+			err = fmt.Errorf("NotFound Mac: net.Id=%d", net.Id)
+			return
+		}
+		mac, err = ip_utils.GenerateUniqueRandomMac(macMap, 100)
+		if err != nil {
+			return
+		}
+
+		port := db_model.NetworkV4Port{
+			NetworkV4ID:  net.Id,
+			Ip:           ip,
+			Mac:          mac,
+			ResourceKind: kind,
+			ResourceName: name,
+		}
+		if err = tx.Create(&port).Error; err != nil {
+			return
+		}
+		sports = append(sports, spec.PortSpec{
+			NetworkID: net.Id,
+			Version:   4,
+			Subnet:    net.Subnet,
+			Gateway:   net.Gateway,
+			Ip:        ip,
+			Mac:       mac,
+			Kind:      net.Kind,
+			Spec:      net.Spec,
+		})
 	}
 
 	return

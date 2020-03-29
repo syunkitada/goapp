@@ -7,8 +7,10 @@ After=syslog.target network.target auditd.service
 User=root
 Type=simple
 
+WatchdogSec=0
 ExecStartPre={{ .VmServiceShFilePath }} startpre
 ExecStart={{ .VmServiceShFilePath }} start
+ExecStopPost={{ .VmServiceShFilePath }} stop
 
 KillMode=control-group
 Restart=always

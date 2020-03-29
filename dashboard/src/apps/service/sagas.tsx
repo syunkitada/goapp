@@ -162,67 +162,67 @@ function* post(action) {
 }
 
 function* sync(action) {
-  return;
-  try {
-    while (true) {
-      const serviceState = Object.assign({}, store.getState().service);
-      if (serviceState.syncQueryMap) {
-        const queries: any[] = [];
-        for (const key of Object.keys(serviceState.syncQueryMap)) {
-          queries.push(serviceState.syncQueryMap[key]);
-        }
-        const route = {
-          match: {
-            params: {
-              project: serviceState.projectName,
-              service: serviceState.serviceName
-            }
+    try {
+      while (true) {
+        const serviceState = Object.assign({}, store.getState().service);
+        if (serviceState.syncQueryMap) {
+          const queries: any[] = [];
+          for (const key of Object.keys(serviceState.syncQueryMap)) {
+            queries.push(serviceState.syncQueryMap[key]);
           }
-        };
-        const postAction = {
-          payload: {
-            route
-          },
-          type: "SERVICE_GET_QUERIES"
-        };
-        const payload = {
-          actionName: "SERVICE_GET_QUERIES",
-          projectName: serviceState.projectName,
-          queries,
-          route,
-          serviceName: serviceState.serviceName
-        };
-        logger.info("saga", "sync", "syncAction", action, postAction, payload);
+          const route = {
+            match: {
+              params: {
+                project: serviceState.projectName,
+                service: serviceState.serviceName
+              }
+            }
+          };
+          const postAction = {
+            payload: {
+              route
+            },
+            type: "SERVICE_GET_QUERIES"
+          };
+          const payload = {
+            actionName: "SERVICE_GET_QUERIES",
+            projectName: serviceState.projectName,
+            queries,
+            route,
+            serviceName: serviceState.serviceName
+          };
+          logger.info("saga", "sync", "syncAction", action, postAction, payload);
 
-        // const { result, error } = yield call(modules.service.post, payload);
-        // if (error) {
-        //   yield put(
-        //     actions.service.servicePostFailure({
-        //       action: postAction,
-        //       error,
-        //       payload
-        //     })
-        //   );
-        // } else {
-        //   yield put(
-        //     actions.service.servicePostSuccess({
-        //       action: postAction,
-        //       payload,
-        //       result
-        //     })
-        //   );
-        // }
-      } else {
-        logger.info("saga", "sync", "syncAction is null");
+          // TODO
+          // const { result, error } = yield call(modules.service.post, payload);
+          // if (error) {
+          //   yield put(
+          //     actions.service.servicePostFailure({
+          //       action: postAction,
+          //       error,
+          //       payload
+          //     })
+          //   );
+          // } else {
+          //   yield put(
+          //     actions.service.servicePostSuccess({
+          //       action: postAction,
+          //       payload,
+          //       result
+          //     })
+          //   );
+          // }
+        } else {
+          logger.info("saga", "sync", "syncAction is null");
+        }
+        yield delay(serviceState.syncDelay);
       }
-      yield delay(serviceState.syncDelay);
+    } finally {
+      if (yield cancelled()) {
+        logger.info("saga", "sync", "finally");
+        // yield put(actions.requestFailure('Sync cancelled!'))
+      }
     }
-  } finally {
-    if (yield cancelled()) {
-      logger.info("saga", "sync", "finally");
-      // yield put(actions.requestFailure('Sync cancelled!'))
-    }
-  }
 }
 
 function createSocketChannel(socket) {

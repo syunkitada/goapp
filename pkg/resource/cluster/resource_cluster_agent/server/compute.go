@@ -2,6 +2,8 @@ package server
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/syunkitada/goapp/pkg/base/base_const"
@@ -9,6 +11,7 @@ import (
 	"github.com/syunkitada/goapp/pkg/lib/ip_utils"
 	"github.com/syunkitada/goapp/pkg/lib/json_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
+	"github.com/syunkitada/goapp/pkg/lib/os_utils"
 	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_agent/compute_models"
 	"github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
 	"github.com/syunkitada/goapp/pkg/resource/resource_model"
@@ -28,9 +31,24 @@ func (srv *Server) SyncComputeAssignments(tctx *logger.TraceContext,
 
 	assignmentReports := []spec.AssignmentReport{}
 
-	// ユニークなID管理用
-	// ファイルに保存しておく
+	// ユニークなnetns管理用
+	// TODO vm単位でnetnsを保存する
+	// 全vmのnetnsを取得する
 	assignedNetnsIds := make([]bool, 4096)
+	var netnsSet map[string]bool
+	if netnsSet, err = os_utils.GetNetnsSet(tctx); err != nil {
+		return nil, err
+	}
+	for netns := range netnsSet {
+		splitedNetns := strings.Split(netns, "com-")
+		if len(splitedNetns) == 2 {
+			if id, tmpErr := strconv.Atoi(splitedNetns[1]); tmpErr != nil {
+				continue
+			} else if id < 4096 {
+				assignedNetnsIds[id] = true
+			}
+		}
+	}
 
 	computeNetnsPortsMap := map[uint][]compute_models.NetnsPort{}
 	activatingAssignmentMap := map[uint]spec.ComputeAssignmentEx{}
@@ -49,6 +67,7 @@ func (srv *Server) SyncComputeAssignments(tctx *logger.TraceContext,
 				for id, assigned := range assignedNetnsIds {
 					if !assigned {
 						netnsId = id
+						assignedNetnsIds[id] = true
 						break
 					}
 				}
@@ -87,10 +106,12 @@ func (srv *Server) SyncComputeAssignments(tctx *logger.TraceContext,
 		}
 	}
 
+	fmt.Println("DEBUG Activating")
 	if err = srv.computeDriver.SyncActivatingAssignmentMap(tctx, activatingAssignmentMap, computeNetnsPortsMap); err != nil {
 		return nil, err
 	}
 
+	fmt.Println("DEBUG Activating2")
 	retryCount = srv.computeConf.ConfirmRetryCount
 	for {
 		if ok, err = srv.computeDriver.ConfirmActivatingAssignmentMap(tctx, activatingAssignmentMap); err != nil {
@@ -107,9 +128,12 @@ func (srv *Server) SyncComputeAssignments(tctx *logger.TraceContext,
 		}
 	}
 
+	fmt.Println("DEBUG Activating3", deletingAssignmentMap)
+
 	if err = srv.computeDriver.SyncDeletingAssignmentMap(tctx, deletingAssignmentMap); err != nil {
 		return nil, err
 	}
+	fmt.Println("DEBUG Activating4")
 
 	retryCount = srv.computeConf.ConfirmRetryCount
 	for {

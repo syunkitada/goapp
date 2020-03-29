@@ -1,26 +1,26 @@
 {
   "Kind": "RegionService",
   "Spec": {
-    "Name": "ubuntu18-service01",
+    "Name": "small-centos7-service",
     "Kind": "Compute",
     "Region": "kanto",
     "ExpireDate": -1,
     "Spec": {
       "SchedulePolicy": {
-        "Replicas": 1
+        "Replicas": 2
       },
       "NetworkPolicy": {
         "Version": 4,
         "Interfaces": 1,
         "AssignPolicy": "Affinity",
-        "StaticNetworks": []
+        "StaticNetworks": ["local-net-2"]
       },
       "Kind": "Qemu",
       "Restart": "Always",
-      "Vcpus": 1,
-      "Memory": 1024,
-      "Disk": 2,
-      "Image": "ubuntu-18.0.4"
+      "Vcpus": 2,
+      "Memory": 2048,
+      "Disk": 10,
+      "Image": "centos-7"
     }
   }
 }

@@ -18,7 +18,7 @@ func (ctl *Ctl) output(cmdInfo *base_index_model.Cmd, resp *Response,
 	if !ok {
 		outputFormat, ok = shortFlagMap["o"]
 		if !ok {
-			outputFormat = "json"
+			outputFormat = "table"
 		}
 	}
 

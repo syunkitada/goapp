@@ -58,8 +58,8 @@ type UpdateNetworkV4 struct {
 type UpdateNetworkV4Data struct{}
 
 type DeleteNetworkV4 struct {
-	Name   string `validate:"required"`
-	Region string `validate:"required"`
+	Name    string `validate:"required"`
+	Cluster string `validate:"required"`
 }
 
 type DeleteNetworkV4Data struct{}
