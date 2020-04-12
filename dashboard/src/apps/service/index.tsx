@@ -12,99 +12,99 @@ import theme_utils from "../../lib/theme_utils";
 import components from "../../components";
 
 interface IService {
-  auth;
-  history;
-  match;
-  startBackgroundSync;
-  service;
-  serviceName;
-  projectName;
-  getIndex;
+    auth: any;
+    history: any;
+    match: any;
+    startBackgroundSync: any;
+    service: any;
+    serviceName: any;
+    projectName: any;
+    getIndex: any;
 }
 
 class Service extends React.Component<IService> {
-  public componentWillMount() {
-    logger.info("Service", "componentWillMount()");
-    this.props.startBackgroundSync();
-  }
-
-  public componentWillUnmount() {
-    logger.info("Service", "componentWillUnmount()");
-    const { getIndex } = this.props;
-    getIndex();
-  }
-
-  public render() {
-    const {
-      match,
-      history,
-      auth,
-      service,
-      serviceName,
-      projectName,
-      getIndex
-    } = this.props;
-
-    if (!auth.user) {
-      return null;
+    public componentWillMount() {
+        logger.info("Service", "componentWillMount()");
+        this.props.startBackgroundSync();
     }
 
-    if (
-      service.serviceName !== serviceName ||
-      service.projectName !== projectName
-    ) {
-      getIndex();
-      return null;
+    public componentWillUnmount() {
+        logger.info("Service", "componentWillUnmount()");
+        const { getIndex } = this.props;
+        getIndex();
     }
 
-    let state: any = null;
-    if (projectName) {
-      state = service.projectServiceMap[projectName][serviceName];
-    } else {
-      state = service.serviceMap[serviceName];
-    }
+    public render() {
+        const {
+            match,
+            history,
+            auth,
+            service,
+            serviceName,
+            projectName,
+            getIndex
+        } = this.props;
 
-    let content: any;
-    if (state.isFetching) {
-      content = <div>Fetching...</div>;
-    } else {
-      const routes = [this.props];
-      content = components.renderIndex(routes, state.Data, state.Index.View);
-    }
+        if (!auth.user) {
+            return null;
+        }
 
-    return (
-      <MuiThemeProvider theme={theme_utils.getTheme(auth.theme)}>
-        <Dashboard match={match} history={history}>
-          {content}
-        </Dashboard>
-      </MuiThemeProvider>
-    );
-  }
+        if (
+            service.serviceName !== serviceName ||
+            service.projectName !== projectName
+        ) {
+            getIndex();
+            return null;
+        }
+
+        let state: any = null;
+        if (projectName) {
+            state = service.projectServiceMap[projectName][serviceName];
+        } else {
+            state = service.serviceMap[serviceName];
+        }
+
+        let content: any;
+        if (state.isFetching) {
+            content = <div>Fetching...</div>;
+        } else {
+            const routes = [this.props];
+            content = components.renderIndex(routes, state.Index.View);
+        }
+
+        return (
+            <MuiThemeProvider theme={theme_utils.getTheme(auth.theme)}>
+                <Dashboard match={match} history={history}>
+                    {content}
+                </Dashboard>
+            </MuiThemeProvider>
+        );
+    }
 }
 
 function mapStateToProps(state, ownProps) {
-  const auth = state.auth;
-  const match = ownProps.match;
-  const service = state.service;
+    const auth = state.auth;
+    const match = ownProps.match;
+    const service = state.service;
 
-  return {
-    auth,
-    match,
-    projectName: match.params.project,
-    service,
-    serviceName: match.params.service
-  };
+    return {
+        auth,
+        match,
+        projectName: match.params.project,
+        service,
+        serviceName: match.params.service
+    };
 }
 
 function mapDispatchToProps(dispatch, ownProps) {
-  return {
-    getIndex: () => {
-      dispatch(actions.service.serviceGetIndex({ route: ownProps }));
-    },
-    startBackgroundSync: () => {
-      dispatch(actions.service.serviceStartBackgroundSync());
-    }
-  };
+    return {
+        getIndex: () => {
+            dispatch(actions.service.serviceGetIndex({ route: ownProps }));
+        },
+        startBackgroundSync: () => {
+            dispatch(actions.service.serviceStartBackgroundSync());
+        }
+    };
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Service);

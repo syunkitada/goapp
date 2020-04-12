@@ -1,75 +1,73 @@
-import * as React from 'react';
-import {connect} from 'react-redux';
-import {Route} from 'react-router-dom';
+import * as React from "react";
+import { connect } from "react-redux";
+import { Route } from "react-router-dom";
 
-import {Theme} from '@material-ui/core/styles/createMuiTheme';
-import createStyles from '@material-ui/core/styles/createStyles';
+import { Theme } from "@material-ui/core/styles/createMuiTheme";
+import createStyles from "@material-ui/core/styles/createStyles";
 import withStyles, {
-  StyleRules,
-  WithStyles,
-} from '@material-ui/core/styles/withStyles';
+    StyleRules,
+    WithStyles
+} from "@material-ui/core/styles/withStyles";
 
-import Tabs from './Tabs';
+import Tabs from "./Tabs";
 
-import logger from '../../lib/logger';
+import logger from "../../lib/logger";
 
 const styles = (theme: Theme): StyleRules =>
-  createStyles({
-    root: {
-      width: '100%',
-    },
-  });
+    createStyles({
+        root: {
+            width: "100%"
+        }
+    });
 
 interface IRouteTabs extends WithStyles<typeof styles> {
-  render;
-  routes;
-  data;
-  index;
+    render;
+    routes;
+    index;
 }
 
 class RouteTabs extends React.Component<IRouteTabs> {
-  public render() {
-    const {classes, render, routes, data, index} = this.props;
-    logger.info('RouteTabs', 'render', routes);
+    public render() {
+        const { classes, render, routes, index } = this.props;
+        logger.info("RouteTabs", "render", routes);
 
-    const beforeRoute = routes.slice(-1)[0];
+        const beforeRoute = routes.slice(-1)[0];
 
-    return (
-      <div className={classes.root}>
-        {index.Tabs.map(v => (
-          <Route
-            exact={v.Route === ''}
-            path={beforeRoute.match.path + v.Route}
-            key={v.Name}
-            render={props => {
-              const newRoutes = routes.slice(0);
-              newRoutes.push(props);
-              return (
-                <Tabs
-                  render={render}
-                  routes={newRoutes}
-                  data={data}
-                  index={index}
-                  root={v}
-                />
-              );
-            }}
-          />
-        ))}
-      </div>
-    );
-  }
+        return (
+            <div className={classes.root}>
+                {index.Tabs.map(v => (
+                    <Route
+                        exact={v.Route === ""}
+                        path={beforeRoute.match.path + v.Route}
+                        key={v.Name}
+                        render={props => {
+                            const newRoutes = routes.slice(0);
+                            newRoutes.push(props);
+                            return (
+                                <Tabs
+                                    render={render}
+                                    routes={newRoutes}
+                                    index={index}
+                                    root={v}
+                                />
+                            );
+                        }}
+                    />
+                ))}
+            </div>
+        );
+    }
 }
 
 function mapStateToProps(state, ownProps) {
-  return {};
+    return {};
 }
 
 function mapDispatchToProps(dispatch, ownProps) {
-  return {};
+    return {};
 }
 
 export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
+    mapStateToProps,
+    mapDispatchToProps
 )(withStyles(styles)(RouteTabs));

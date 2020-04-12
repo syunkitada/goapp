@@ -4,8 +4,8 @@ import { connect } from "react-redux";
 import { Theme } from "@material-ui/core/styles/createMuiTheme";
 import createStyles from "@material-ui/core/styles/createStyles";
 import withStyles, {
-  StyleRules,
-  WithStyles
+    StyleRules,
+    WithStyles
 } from "@material-ui/core/styles/withStyles";
 
 import AppBar from "@material-ui/core/AppBar";
@@ -17,118 +17,118 @@ import actions from "../../actions";
 import logger from "../../lib/logger";
 
 const styles = (theme: Theme): StyleRules =>
-  createStyles({
-    root: {
-      backgroundColor: theme.palette.background.paper,
-      flexGrow: 1,
-      width: "100%"
-    }
-  });
+    createStyles({
+        root: {
+            backgroundColor: theme.palette.background.paper,
+            flexGrow: 1,
+            width: "100%"
+        }
+    });
 
 interface ITabs extends WithStyles<typeof styles> {
-  auth;
-  classes;
-  getQueries;
-  render;
-  routes;
-  data;
-  index;
+    auth;
+    classes;
+    getQueries;
+    render;
+    routes;
+    index;
 }
 
 class Tabs extends React.Component<ITabs> {
-  public state = {
-    tabId: null,
-    tabRoute: null
-  };
+    public state = {
+        tabId: null,
+        tabRoute: null
+    };
 
-  public render() {
-    const { classes, render, routes, data, index } = this.props;
-    logger.info("Tabs", "render()", routes);
+    public render() {
+        const { classes, render, routes, index } = this.props;
+        logger.info("Tabs", "render()", routes);
 
-    const route = routes[routes.length - 1];
+        const route = routes[routes.length - 1];
 
-    const tabs: any[] = [];
-    let tabContainer: any = null;
-    let tabId = 0;
-    for (let i = 0, len = index.Tabs.length; i < len; i++) {
-      const tab = index.Tabs[i];
-      if (route.match.params[index.TabParam] === tab.Name) {
-        tabId = i;
-        tabContainer = (
-          <Typography component="div">{render(routes, data, tab)}</Typography>
-        );
-      }
-      tabs.push(<Tab key={tab.Name} label={tab.Name} />);
-    }
-
-    return (
-      <div className={classes.root}>
-        <AppBar position="static" color="default">
-          <CoreTabs
-            value={tabId}
-            onChange={this.handleChange}
-            indicatorColor="primary"
-            textColor="primary"
-            variant="scrollable"
-            scrollButtons="auto"
-          >
-            {tabs}
-          </CoreTabs>
-        </AppBar>
-        {tabContainer}
-      </div>
-    );
-  }
-
-  private handleChange = (event, tabId) => {
-    const { index, routes } = this.props;
-    const route = routes[routes.length - 1];
-    const splitedPath = route.match.path.split("/");
-    let splitedUrl = route.match.url.split("/");
-    splitedUrl[splitedPath.indexOf(":" + index.TabParam)] =
-      index.Tabs[tabId].Name;
-
-    const lastIndex =
-      route.match.path.split(index.Route)[0].split("/").length +
-      index.Route.split("/").length;
-    splitedUrl = splitedUrl.slice(0, lastIndex - 1);
-
-    const searchQueries = {};
-    for (let i = 0, len = index.Tabs.length; i < len; i++) {
-      const tab = index.Tabs[i];
-      if (index.Tabs[tabId].Name === tab.Name) {
-        if (tab.DataQueries) {
-          this.props.getQueries(tab, route, searchQueries);
+        const tabs: any[] = [];
+        let tabContainer: any = null;
+        let tabId = 0;
+        for (let i = 0, len = index.Tabs.length; i < len; i++) {
+            const tab = index.Tabs[i];
+            if (route.match.params[index.TabParam] === tab.Name) {
+                tabId = i;
+                tabContainer = (
+                    <Typography component="div">
+                        {render(routes, tab)}
+                    </Typography>
+                );
+            }
+            tabs.push(<Tab key={tab.Name} label={tab.Name} />);
         }
-        break;
-      }
+
+        return (
+            <div className={classes.root}>
+                <AppBar position="static" color="default">
+                    <CoreTabs
+                        value={tabId}
+                        onChange={this.handleChange}
+                        indicatorColor="primary"
+                        textColor="primary"
+                        variant="scrollable"
+                        scrollButtons="auto"
+                    >
+                        {tabs}
+                    </CoreTabs>
+                </AppBar>
+                {tabContainer}
+            </div>
+        );
     }
 
-    route.history.push(splitedUrl.join("/"));
-  };
+    private handleChange = (event, tabId) => {
+        const { index, routes } = this.props;
+        const route = routes[routes.length - 1];
+        const splitedPath = route.match.path.split("/");
+        let splitedUrl = route.match.url.split("/");
+        splitedUrl[splitedPath.indexOf(":" + index.TabParam)] =
+            index.Tabs[tabId].Name;
+
+        const lastIndex =
+            route.match.path.split(index.Route)[0].split("/").length +
+            index.Route.split("/").length;
+        splitedUrl = splitedUrl.slice(0, lastIndex - 1);
+
+        const searchQueries = {};
+        for (let i = 0, len = index.Tabs.length; i < len; i++) {
+            const tab = index.Tabs[i];
+            if (index.Tabs[tabId].Name === tab.Name) {
+                if (tab.DataQueries) {
+                    this.props.getQueries(tab, route, searchQueries);
+                }
+                break;
+            }
+        }
+
+        route.history.push(splitedUrl.join("/"));
+    };
 }
 
 function mapStateToProps(state, ownProps) {
-  const auth = state.auth;
-  return { auth };
+    const auth = state.auth;
+    return { auth };
 }
 
 function mapDispatchToProps(dispatch, ownProps) {
-  return {
-    getQueries: (index, route, searchQueries) => {
-      console.log("DEBUG getQueries on Tabs");
-      dispatch(
-        actions.service.serviceGetQueries({
-          index,
-          route,
-          searchQueries
-        })
-      );
-    }
-  };
+    return {
+        getQueries: (index, route, searchQueries) => {
+            dispatch(
+                actions.service.serviceGetQueries({
+                    index,
+                    route,
+                    searchQueries
+                })
+            );
+        }
+    };
 }
 
 export default connect(
-  mapStateToProps,
-  mapDispatchToProps
+    mapStateToProps,
+    mapDispatchToProps
 )(withStyles(styles)(Tabs));

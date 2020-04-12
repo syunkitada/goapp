@@ -39,7 +39,8 @@ type TableColumn struct {
 	LinkParam       string
 	LinkKey         string
 	LinkSync        bool
-	LinkDataQueries []string
+	LinkDataQueries []string // deprecated
+	DataQueries     []string
 	RowColoringMap  map[string]string
 	FilterValues    []map[string]string
 	Sort            string

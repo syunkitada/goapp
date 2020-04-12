@@ -4,8 +4,8 @@ import { connect } from "react-redux";
 import { Theme } from "@material-ui/core/styles/createMuiTheme";
 import createStyles from "@material-ui/core/styles/createStyles";
 import withStyles, {
-  StyleRules,
-  WithStyles
+    StyleRules,
+    WithStyles
 } from "@material-ui/core/styles/withStyles";
 
 import ExpansionPanel from "@material-ui/core/ExpansionPanel";
@@ -20,190 +20,202 @@ import form_utils from "../../lib/form_utils";
 import logger from "../../lib/logger";
 
 interface IExpansionPanels extends WithStyles<typeof styles> {
-  auth;
-  render;
-  routes;
-  data;
-  index;
-  getQueries;
+    render;
+    routes;
+    index;
+    getQueries;
 }
 
 class ExpansionPanels extends React.Component<IExpansionPanels> {
-  public state = {
-    expanded: null,
-    expandedUrl: null
-  };
+    public state = {
+        expanded: null,
+        expandedUrl: null
+    };
 
-  public componentWillMount() {
-    const { routes, index } = this.props;
-    const route = routes.slice(-1)[0];
-    const beforeRoute = routes.slice(-2)[0];
+    public shouldComponentUpdate(nextProps, nextState) {
+        console.log("DEBUGRENDER", "ExpansionPanels", "shouldComponentUpdate");
 
-    for (let i = 0, len = index.Panels.length; i < len; i++) {
-      const panel = index.Panels[i];
-      if (route.match.path === beforeRoute.match.path + panel.Route) {
-        this.props.getQueries(panel, route);
-        break;
-      }
-    }
-  }
-
-  public render() {
-    const { classes, render, routes, data, index } = this.props;
-    const { expanded, expandedUrl } = this.state;
-
-    logger.info("ExpansionPanels", "render()", routes);
-
-    const route = routes.slice(-1)[0];
-    const beforeRoute = routes.slice(-2)[0];
-    let expandedPath: any = null;
-
-    if (expanded === null) {
-      expandedPath = route.match.path;
-    } else {
-      expandedPath = expanded;
+        //    expanded: expandedPath,
+        //    expandedUrl
+        return false;
     }
 
-    if (
-      expandedUrl !== null &&
-      expandedPath !== route.match.path &&
-      expandedUrl !== route.match.url
-    ) {
-      expandedPath = route.match.path;
+    // public componentWillMount() {
+    //     const { routes, index } = this.props;
+    //     const route = routes.slice(-1)[0];
+    //     const beforeRoute = routes.slice(-2)[0];
+
+    //     for (let i = 0, len = index.Panels.length; i < len; i++) {
+    //         const panel = index.Panels[i];
+    //         if (route.match.path === beforeRoute.match.path + panel.Route) {
+    //             this.props.getQueries(panel, route);
+    //             break;
+    //         }
+    //     }
+    // }
+
+    public render() {
+        const { classes, render, routes, index } = this.props;
+        const { expanded, expandedUrl } = this.state;
+
+        console.log("DEBUGRENDER", "ExpansionPanels", performance.now(), index);
+
+        logger.info("ExpansionPanels", "render()", routes);
+
+        const route = routes.slice(-1)[0];
+        const beforeRoute = routes.slice(-2)[0];
+        let expandedPath: any = null;
+
+        if (expanded === null) {
+            expandedPath = route.match.path;
+        } else {
+            expandedPath = expanded;
+        }
+
+        if (
+            expandedUrl !== null &&
+            expandedPath !== route.match.path &&
+            expandedUrl !== route.match.url
+        ) {
+            expandedPath = route.match.path;
+        }
+
+        const panels: any[] = [];
+        for (let i = 0, len = index.Panels.length; i < len; i++) {
+            const panel = index.Panels[i];
+            panels.push(
+                <ExpansionPanel
+                    key={i}
+                    expanded={
+                        expandedPath === beforeRoute.match.path + panel.Route
+                    }
+                    onChange={() =>
+                        this.handleChange(
+                            beforeRoute.match.path + panel.Route,
+                            route.match.url
+                        )
+                    }
+                >
+                    <ExpansionPanelSummary expandIcon={<ExpandMoreIcon />}>
+                        <Typography variant="subtitle1">
+                            {panel.Name} {route.match.params[panel.Subname]}
+                        </Typography>
+                    </ExpansionPanelSummary>
+                    <ExpansionPanelDetails style={{ padding: 0 }}>
+                        {render(routes, panel)}
+                    </ExpansionPanelDetails>
+                </ExpansionPanel>
+            );
+        }
+
+        return <div className={classes.root}>{panels}</div>;
     }
 
-    const panels: any[] = [];
-    for (let i = 0, len = index.Panels.length; i < len; i++) {
-      const panel = index.Panels[i];
-      panels.push(
-        <ExpansionPanel
-          key={i}
-          expanded={expandedPath === beforeRoute.match.path + panel.Route}
-          onChange={() =>
-            this.handleChange(
-              beforeRoute.match.path + panel.Route,
-              route.match.url
-            )
-          }
-        >
-          <ExpansionPanelSummary expandIcon={<ExpandMoreIcon />}>
-            <Typography variant="subtitle1">
-              {panel.Name} {route.match.params[panel.Subname]}
-            </Typography>
-          </ExpansionPanelSummary>
-          <ExpansionPanelDetails style={{ padding: 0 }}>
-            {render(routes, data, panel)}
-          </ExpansionPanelDetails>
-        </ExpansionPanel>
-      );
-    }
+    private handleChange = (expandedPath, expandedUrl) => {
+        const { routes, index } = this.props;
 
-    return <div className={classes.root}>{panels}</div>;
-  }
+        const beforeRoute = routes.slice(-2)[0];
+        for (let i = 0, len = index.Panels.length; i < len; i++) {
+            const panel = index.Panels[i];
+            if (expandedPath === beforeRoute.match.path + panel.Route) {
+                const route = routes[routes.length - 1];
+                this.props.getQueries(panel, route);
+                break;
+            }
+        }
 
-  private handleChange = (expandedPath, expandedUrl) => {
-    const { routes, index } = this.props;
-
-    // http://192.168.10.121:3000/Project/admin/ResourceVirtualAdmin/Regions/kanto/RegionResources/Clusters/tokyo1/Resources/Computes
-    // expandedPath: /Project/:project/:service/Regions/:Region/RegionResources/:RegionKind
-    // expandedUrl: /Project/admin/ResourceVirtualAdmin/Regions/kanto/RegionResources/Clusters/tokyo1/Resources/Computes
-
-    const beforeRoute = routes.slice(-2)[0];
-    for (let i = 0, len = index.Panels.length; i < len; i++) {
-      const panel = index.Panels[i];
-      if (expandedPath === beforeRoute.match.path + panel.Route) {
-        const route = routes[routes.length - 1];
-        this.props.getQueries(panel, route);
-        break;
-      }
-    }
-
-    this.setState({
-      expanded: expandedPath,
-      expandedUrl
-    });
-  };
+        this.setState({
+            expanded: expandedPath,
+            expandedUrl
+        });
+    };
 }
 
 const styles = (theme: Theme): StyleRules =>
-  createStyles({
-    root: {
-      backgroundColor: theme.palette.background.paper,
-      flexGrow: 1,
-      width: "100%"
-    }
-  });
+    createStyles({
+        root: {
+            backgroundColor: theme.palette.background.paper,
+            flexGrow: 1,
+            width: "100%"
+        }
+    });
 
 function mapStateToProps(state, ownProps) {
-  const auth = state.auth;
-
-  return { auth };
+    return {};
 }
 
 function mapDispatchToProps(dispatch, ownProps) {
-  return {
-    getQueries: (index, route) => {
-      const searchQueries = form_utils.getSearchQueries();
+    return {
+        getQueries: (index, route) => {
+            const searchQueries = form_utils.getSearchQueries();
 
-      if (index.DataQueries) {
-        dispatch(
-          actions.service.serviceGetQueries({
-            index,
-            route,
-            searchQueries
-          })
-        );
-      }
-
-      // exec sub queries
-      let subIndex: any = {};
-      switch (index.Kind) {
-        case "RouteTabs":
-          for (let i = 0, len = index.Tabs.length; i < len; i++) {
-            const tab = index.Tabs[i];
-            if (route.match.params[index.TabParam] === tab.Name) {
-              subIndex = tab;
-              break;
+            if (index.DataQueries) {
+                dispatch(
+                    actions.service.serviceGetQueries({
+                        index,
+                        route,
+                        searchQueries
+                    })
+                );
             }
-          }
-          break;
-        case "RoutePanes":
-          for (let i = 0, len = index.Panes.length; i < len; i++) {
-            const pane = index.Panes[i];
-            if (route.match.params[index.PaneParam] === pane.Name) {
-              switch (pane.Kind) {
+
+            // exec sub queries
+            let subIndex: any = {};
+            switch (index.Kind) {
                 case "RouteTabs":
-                  for (let j = 0, lenj = pane.Tabs.length; j < lenj; j++) {
-                    const tab = pane.Tabs[j];
-                    if (route.match.params[pane.TabParam] === tab.Name) {
-                      subIndex = tab;
-                      break;
+                    for (let i = 0, len = index.Tabs.length; i < len; i++) {
+                        const tab = index.Tabs[i];
+                        if (route.match.params[index.TabParam] === tab.Name) {
+                            subIndex = tab;
+                            break;
+                        }
                     }
-                  }
-                  break;
-              }
-              break;
+                    break;
+                case "RoutePanes":
+                    for (let i = 0, len = index.Panes.length; i < len; i++) {
+                        const pane = index.Panes[i];
+                        if (route.match.params[index.PaneParam] === pane.Name) {
+                            switch (pane.Kind) {
+                                case "RouteTabs":
+                                    for (
+                                        let j = 0, lenj = pane.Tabs.length;
+                                        j < lenj;
+                                        j++
+                                    ) {
+                                        const tab = pane.Tabs[j];
+                                        if (
+                                            route.match.params[
+                                                pane.TabParam
+                                            ] === tab.Name
+                                        ) {
+                                            subIndex = tab;
+                                            break;
+                                        }
+                                    }
+                                    break;
+                            }
+                            break;
+                        }
+                    }
+                    break;
+                default:
+                    break;
             }
-          }
-          break;
-        default:
-          break;
-      }
 
-      if (subIndex.DataQueries) {
-        dispatch(
-          actions.service.serviceGetQueries({
-            index: subIndex,
-            route,
-            searchQueries
-          })
-        );
-      }
-    }
-  };
+            if (subIndex.DataQueries) {
+                dispatch(
+                    actions.service.serviceGetQueries({
+                        index: subIndex,
+                        route,
+                        searchQueries
+                    })
+                );
+            }
+        }
+    };
 }
 
 export default connect(
-  mapStateToProps,
-  mapDispatchToProps
+    mapStateToProps,
+    mapDispatchToProps
 )(withStyles(styles)(ExpansionPanels));

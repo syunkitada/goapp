@@ -10,7 +10,7 @@ import IndexView from "./views/IndexView";
 
 import logger from "../lib/logger";
 
-function renderIndex(routes, data, index) {
+function renderIndex(routes, index) {
     if (!index) {
         return <div>Not Found</div>;
     }
@@ -23,50 +23,29 @@ function renderIndex(routes, data, index) {
                 <RoutePanels
                     render={renderIndex}
                     routes={routes}
-                    data={data}
                     index={index}
                 />
             );
         case "RouteTabs":
-            return (
-                <Tabs
-                    render={renderIndex}
-                    routes={routes}
-                    data={data}
-                    index={index}
-                />
-            );
+            return <Tabs render={renderIndex} routes={routes} index={index} />;
         case "RoutePanes":
-            return (
-                <Panes
-                    render={renderIndex}
-                    routes={routes}
-                    data={data}
-                    index={index}
-                />
-            );
+            return <Panes render={renderIndex} routes={routes} index={index} />;
         case "Table":
             return (
                 <IndexTable
                     render={renderIndex}
                     routes={routes}
                     index={index}
-                    data={data}
                 />
             );
         case "View":
             return (
-                <IndexView
-                    render={renderIndex}
-                    routes={routes}
-                    index={index}
-                    data={data}
-                />
+                <IndexView render={renderIndex} routes={routes} index={index} />
             );
         case "SearchForm":
-            return <SearchForm routes={routes} index={index} data={data} />;
+            return <SearchForm routes={routes} index={index} />;
         case "Form":
-            return <IndexForm routes={routes} index={index} data={data} />;
+            return <IndexForm routes={routes} index={index} />;
         default:
             return <div>Unsupported Kind: {index.Kind}</div>;
     }
