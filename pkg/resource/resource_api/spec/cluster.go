@@ -82,8 +82,6 @@ var ClustersTable = base_index_model.Table{
 			Link:     "Clusters/:0/Resources/Computes",
 			LinkKey:  "cluster",
 			LinkSync: true,
-			LinkDataQueries: []string{
-				"GetPhysicalResources", "GetRacks", "GetFloors", "GetPhysicalModels"},
 		},
 		base_index_model.TableColumn{Name: "Datacenter", IsSearch: true},
 		base_index_model.TableColumn{Name: "UpdatedAt", Kind: "Time", Sort: "asc"},
@@ -94,8 +92,6 @@ var ClustersTable = base_index_model.Table{
 var VirtualAdminClustersTable = base_index_model.Table{
 	Name:        "Clusters",
 	Kind:        "Table",
-	Route:       "",
-	Subname:     "cluster",
 	DataKey:     "Clusters",
 	DataQueries: []string{"GetClusters"},
 	Columns: []base_index_model.TableColumn{
@@ -103,10 +99,8 @@ var VirtualAdminClustersTable = base_index_model.Table{
 			Name:            "Name",
 			IsSearch:        true,
 			Align:           "left",
-			Link:            "Regions/:Region/RegionResources/Clusters/:Cluster/Resources/Computes",
-			LinkKey:         "Name",
-			LinkParam:       "Cluster",
-			LinkSync:        true,
+			LinkPath:        []string{"Resources", "Computes"},
+			LinkKey:         "Cluster",
 			LinkDataQueries: []string{"GetComputes"},
 		},
 		base_index_model.TableColumn{Name: "Datacenter", IsSearch: true},

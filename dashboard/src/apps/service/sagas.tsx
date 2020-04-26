@@ -31,79 +31,87 @@ function createWebSocketConnection() {
 
 function* post(action) {
     const dataQueries: any[] = [];
-    const {
-        index,
-        state,
-        route,
-        searchQueries,
-        isSync,
-        queryKind,
-        dataKind,
-        items,
-        fieldMap
-    } = action.payload;
+    const serviceState = Object.assign({}, store.getState().service);
+    const { projectName, serviceName, index, location } = serviceState;
+    const { isSync, queryKind, dataKind, items, fieldMap } = action.payload;
 
-    console.log("DEBUG TODO post", index, state, route);
-    if (!route.match) {
-        logger.error("Invalid route", index, state, route);
+    console.log("DEBUG TODO post init", index, action.type, location);
+    if (!location) {
+        logger.warning("Invalid location", location);
         return;
     }
-    const params = route.match.params;
 
     let payload: any = null;
 
     switch (action.type) {
         case "SERVICE_GET_INDEX":
-            console.log("DEBUG TODO getindex");
             payload = {
-                projectName: params.project,
+                projectName: serviceState.projectName,
                 queries: [
                     {
-                        Data: JSON.stringify({ Name: params.service }),
+                        Data: JSON.stringify({
+                            Name: serviceState.serviceName
+                        }),
                         Name: "GetServiceDashboardIndex"
                     }
                 ],
-                serviceName: params.service,
+                serviceName: serviceState.serviceName,
                 stateKey: "index"
             };
+            if (serviceState.initLocation) {
+                const queries: any[] = [];
+                const tmpData = Object.assign(
+                    {},
+                    location.Params,
+                    location.SearchQueries
+                );
+                const data = JSON.stringify(tmpData);
+                for (
+                    let i = 0, len = location.DataQueries.length;
+                    i < len;
+                    i++
+                ) {
+                    queries.push({
+                        Data: data,
+                        Name: location.DataQueries[i]
+                    });
+                }
+                payload.queries = payload.queries.concat(queries);
+            }
             break;
 
         case "SERVICE_GET_QUERIES":
             const syncQueryMap: any[] = [];
-            const queryData = Object.assign({}, params, searchQueries);
-            console.log("DEBUG TODO getqueries", index, state, route);
-            if (index.DataQueries == null) {
-                logger.warning("Invalid index: NotFound DataQueries", index);
+            const queryData = Object.assign(
+                {},
+                location.Params,
+                location.SearchQueries
+            );
+            if (location.DataQueries == null) {
+                logger.warning("Invalid index", index);
                 return;
             }
 
-            for (let i = 0, len = index.DataQueries.length; i < len; i++) {
+            for (let i = 0, len = location.DataQueries.length; i < len; i++) {
                 dataQueries.push({
                     Data: JSON.stringify(queryData),
-                    Name: index.DataQueries[i]
+                    Name: location.DataQueries[i]
                 });
-                // if (isSync) {
-                //   syncQueryMap[index.DataQueries[i]] = {
-                //     Data: JSON.stringify(params),
-                //     Name: index.DataQueries[i]
-                //   };
-                // }
             }
             payload = {
                 isSync,
-                projectName: params.project,
+                projectName: projectName,
+                serviceName: serviceName,
                 queries: dataQueries,
-                serviceName: params.service,
                 stateKey: "index",
                 syncQueryMap
             };
 
-            console.log("DEBUG TODO getqueries", index, state, route, payload);
             break;
 
         case "SERVICE_SUBMIT_QUERIES":
             const specs: any[] = [];
-            const spec = Object.assign({}, params);
+            const spec = Object.assign({}, location.params);
             for (const key of Object.keys(fieldMap)) {
                 const field = fieldMap[key];
                 spec[key] = field.value;
@@ -121,7 +129,6 @@ function* post(action) {
                 Name: queryKind
             });
 
-            const serviceState = Object.assign({}, store.getState().service);
             if (serviceState.syncQueryMap) {
                 for (const key of Object.keys(serviceState.syncQueryMap)) {
                     dataQueries.push(serviceState.syncQueryMap[key]);
@@ -129,9 +136,9 @@ function* post(action) {
             }
 
             payload = {
-                projectName: params.project,
+                projectName: projectName,
+                serviceName: serviceName,
                 queries: dataQueries,
-                serviceName: params.service,
                 stateKey: "index"
             };
 
@@ -177,11 +184,9 @@ function* sync(action) {
                     queries.push(serviceState.syncQueryMap[key]);
                 }
                 const route = {
-                    match: {
-                        params: {
-                            project: serviceState.projectName,
-                            service: serviceState.serviceName
-                        }
+                    params: {
+                        project: serviceState.projectName,
+                        service: serviceState.serviceName
                     }
                 };
                 const postAction = {

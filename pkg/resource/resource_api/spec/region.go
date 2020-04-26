@@ -58,15 +58,11 @@ var RegionsTable = base_index_model.Table{
 	DataKey: "Regions",
 	Columns: []base_index_model.TableColumn{
 		base_index_model.TableColumn{
-			Name:      "Name",
-			IsSearch:  true,
-			Align:     "left",
-			Link:      "Regions/:Region/RegionResources/Clusters",
-			LinkKey:   "Name",
-			LinkParam: "Region",
-			LinkSync:  true,
-			LinkDataQueries: []string{
-				"GetClusters"},
+			Name:     "Name",
+			IsSearch: true,
+			Align:    "left",
+			LinkPath: []string{"RegionResources", "Clusters"},
+			LinkKey:  "Region",
 		},
 		base_index_model.TableColumn{Name: "Kind"},
 		base_index_model.TableColumn{Name: "UpdatedAt", Kind: "Time", Sort: "asc"},

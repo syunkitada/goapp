@@ -172,44 +172,37 @@ func (resolver *Resolver) GetServiceDashboardIndex(tctx *logger.TraceContext,
 				"Regions": regions,
 			},
 			Index: base_index_model.DashboardIndex{
+				DefaultRoute: map[string]interface{}{
+					"Path": []string{"Regions"},
+				},
 				View: base_index_model.Panels{
 					Name: "Root",
 					Kind: "RoutePanels",
-					Panels: []interface{}{
+					Children: []interface{}{
 						spec.RegionsTable,
 						base_index_model.Tabs{
-							Name:             "RegionResources",
-							Kind:             "RouteTabs",
-							Subname:          "RegionKind",
-							Route:            "/Regions/:Region/RegionResources/:RegionKind",
-							TabParam:         "RegionKind",
-							ExpectedDataKeys: []string{"Clusters"},
-							IsSync:           true,
-							Tabs: []interface{}{
+							Name: "RegionResources",
+							Kind: "RouteTabs",
+							Children: []interface{}{
 								spec.VirtualAdminClustersTable,
 								spec.RegionServicesTable,
 								spec.ImagesTable,
 							},
 						},
 						base_index_model.Tabs{
-							Name:             "Resources",
-							Kind:             "RouteTabs",
-							Subname:          "ClusterKind",
-							Route:            "/Regions/:Region/RegionResources/:RegionKind/:Cluster/Resources/:ClusterKind",
-							TabParam:         "ClusterKind",
-							ExpectedDataKeys: []string{"Clusters"},
-							IsSync:           true,
-							Tabs: []interface{}{
+							Name:     "Resources",
+							Kind:     "RouteTabs",
+							Subname:  "ClusterKind",
+							TabParam: "ClusterKind",
+							IsSync:   true,
+							Children: []interface{}{
 								spec.ComputesTable,
 							},
 						},
 						map[string]interface{}{
-							"Name":      "Resource",
-							"Subname":   "Name",
-							"Route":     "/Regions/:Region/RegionResources/:RegionKind/:Cluster/Resources/:ClusterKind/:Name/:Subkind",
-							"Kind":      "RoutePanes",
-							"PaneParam": "ClusterKind",
-							"Panes": []interface{}{
+							"Name": "Resource",
+							"Kind": "RoutePanes",
+							"Children": []interface{}{
 								spec.ComputesDetail,
 							},
 						},

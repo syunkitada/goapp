@@ -86,10 +86,9 @@ type DeleteComputesData struct{}
 
 var ComputesTable = base_index_model.Table{
 	Name:        "Computes",
-	Route:       "/Computes",
 	Kind:        "Table",
-	DataKey:     "Computes",
 	DataQueries: []string{"GetComputes"},
+	DataKey:     "Computes",
 	SelectActions: []base_index_model.Action{
 		base_index_model.Action{
 			Name:      "Delete",
@@ -102,12 +101,9 @@ var ComputesTable = base_index_model.Table{
 	Columns: []base_index_model.TableColumn{
 		base_index_model.TableColumn{
 			Name: "Name", IsSearch: true,
-			Align:       "left",
-			Link:        "Regions/:Region/RegionResources/Clusters/:Cluster/Resources/Computes/:Name/View",
-			LinkKey:     "Name",
-			LinkParam:   "Name",
-			LinkSync:    false,
-			DataQueries: []string{"GetCompute"},
+			Align:    "left",
+			LinkPath: []string{"Resource", "Compute", "View"},
+			LinkKey:  "Name",
 		},
 		base_index_model.TableColumn{Name: "RegionService"},
 		base_index_model.TableColumn{Name: "Kind"},
@@ -119,19 +115,12 @@ var ComputesTable = base_index_model.Table{
 }
 
 var ComputesDetail = base_index_model.Tabs{
-	Name:             "Computes",
-	Kind:             "RouteTabs",
-	RouteParamKey:    "ClusterKind",
-	RouteParamValue:  "Computes",
-	Route:            "/Regions/:Region/RegionResources/Clusters/:Cluster/Resources/Computes/:Name/:Subkind",
-	TabParam:         "Subkind",
-	ExpectedDataKeys: []string{"Compute"},
-	DataQueries:      []string{"GetCompute"},
-	IsSync:           true,
-	Tabs: []interface{}{
+	Name:   "Compute",
+	Kind:   "RouteTabs",
+	IsSync: true,
+	Children: []interface{}{
 		base_index_model.View{
 			Name:        "View",
-			Route:       "/View",
 			Kind:        "View",
 			DataKey:     "Compute",
 			DataQueries: []string{"GetCompute"},

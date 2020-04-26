@@ -229,7 +229,7 @@ function mapDispatchToProps(dispatch, ownProps) {
                     fieldMap,
                     index,
                     items,
-                    route
+                    location: route
                 })
             );
         }

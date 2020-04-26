@@ -1,56 +1,123 @@
 import * as React from "react";
 import { connect } from "react-redux";
-import { Route } from "react-router-dom";
 
-import ExpansionPanels from "./ExpansionPanels";
+import { Theme } from "@material-ui/core/styles/createMuiTheme";
+import createStyles from "@material-ui/core/styles/createStyles";
+import withStyles, {
+    StyleRules,
+    WithStyles
+} from "@material-ui/core/styles/withStyles";
 
-import logger from "../../lib/logger";
+import ExpansionPanel from "@material-ui/core/ExpansionPanel";
+import ExpansionPanelDetails from "@material-ui/core/ExpansionPanelDetails";
+import ExpansionPanelSummary from "@material-ui/core/ExpansionPanelSummary";
+import Typography from "@material-ui/core/Typography";
 
-interface IRoutePanels {
+import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
+
+import actions from "../../actions";
+// import data_utils from "../../lib/data_utils";
+// import logger from "../../lib/logger";
+
+interface IRoutePanels extends WithStyles<typeof styles> {
     render;
-    routes;
+    location;
+    indexPath;
     index;
+    dispatchGetQueries;
 }
 
 class RoutePanels extends React.Component<IRoutePanels> {
     public render() {
-        const { render, routes, index } = this.props;
+        const { render, indexPath, index, classes } = this.props;
 
-        const beforeRoute = routes.slice(-1)[0];
-        logger.info("RoutePanels", "render()", beforeRoute);
+        const panels: any[] = [];
+        for (let i = 0, len = index.Children.length; i < len; i++) {
+            const panel = index.Children[i];
+            panels.push(
+                <ExpansionPanel
+                    key={panel.Name}
+                    expanded={panel.Name === indexPath}
+                    onChange={() => this.handleChange(i)}
+                >
+                    <ExpansionPanelSummary expandIcon={<ExpandMoreIcon />}>
+                        <Typography variant="subtitle1">
+                            {panel.Name}
+                        </Typography>
+                    </ExpansionPanelSummary>
+                    <ExpansionPanelDetails style={{ padding: 0 }}>
+                        {render(panel)}
+                    </ExpansionPanelDetails>
+                </ExpansionPanel>
+            );
+        }
 
-        return (
-            <div>
-                {index.Panels.map(v => (
-                    <Route
-                        exact={true}
-                        path={beforeRoute.match.path + v.Route}
-                        key={v.Name}
-                        render={props => {
-                            const newRoutes = routes.slice(0);
-                            newRoutes.push(props);
-                            return (
-                                <ExpansionPanels
-                                    render={render}
-                                    routes={newRoutes}
-                                    index={index}
-                                    root={v}
-                                />
-                            );
-                        }}
-                    />
-                ))}
-            </div>
-        );
+        return <div className={classes.root}>{panels}</div>;
     }
+
+    private handleChange = panelId => {
+        const { location, index } = this.props;
+        const child = index.Children[panelId];
+        for (let i = 0, len = location.Path.length; i < len; i++) {
+            if (index.Name === location.Path[i]) {
+                location.Path[i + 1] = child.Name;
+                break;
+            }
+        }
+        location.SubPath = {};
+        location.SubPath[index.Name] = child.Name;
+        this.props.dispatchGetQueries(index, location);
+    };
 }
 
+const styles = (theme: Theme): StyleRules =>
+    createStyles({
+        root: {
+            backgroundColor: theme.palette.background.paper,
+            flexGrow: 1,
+            width: "100%"
+        }
+    });
+
 function mapStateToProps(state, ownProps) {
-    return {};
+    const { location } = state.service;
+    const { index } = ownProps;
+
+    let indexPath;
+    if (location.SubPath) {
+        indexPath = location.SubPath[index.Name];
+    } else if (index.Name === "Root") {
+        indexPath = location.Path[0];
+    } else {
+        for (let i = 0, len = location.Path.length; i < len; i++) {
+            if (index.Name === location.Path[i]) {
+                indexPath = location.Path[i + 1];
+                break;
+            }
+        }
+    }
+
+    return {
+        indexPath,
+        location
+    };
 }
 
 function mapDispatchToProps(dispatch, ownProps) {
-    return {};
+    return {
+        dispatchGetQueries: (index, location) => {
+            dispatch(
+                actions.service.serviceGetQueries({
+                    index,
+                    location,
+                    searchQueries: null
+                })
+            );
+        }
+    };
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(RoutePanels);
+export default connect(
+    mapStateToProps,
+    mapDispatchToProps
+)(withStyles(styles)(RoutePanels));

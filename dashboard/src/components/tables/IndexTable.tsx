@@ -53,9 +53,10 @@ interface IIndexTable extends WithStyles<typeof styles> {
     routes;
     index;
     data;
-    getQueries;
+    handleColumnLinkClick;
     setAction;
     resetAction;
+    rootIndex;
 }
 
 interface IState {
@@ -88,27 +89,6 @@ class IndexTable extends React.Component<IIndexTable> {
         searchRegExp: null,
         selected: []
     };
-
-    public componentWillMount() {
-        const { routes, index } = this.props;
-        const route = routes[routes.length - 1];
-        const location = route.location;
-        const queryStr = decodeURIComponent(location.search);
-        let searchQueries = {};
-        try {
-            const value = queryStr.match(new RegExp("[?&]q=({.*?})(&|$|#)"));
-            if (value) {
-                searchQueries = JSON.parse(value[1]);
-                this.setState({ searchQueries });
-            }
-        } catch (e) {
-            console.log("Ignored failed parse", queryStr);
-        }
-
-        if (index.DataQueries) {
-            this.props.getQueries(index, route, searchQueries);
-        }
-    }
 
     public render() {
         const {
@@ -168,9 +148,6 @@ class IndexTable extends React.Component<IIndexTable> {
         if (index.SelectActions) {
             isSelectActions = true;
         }
-
-        const currentRoute = routes.slice(-1)[0];
-        const beforeRoute = routes.slice(-2)[0];
 
         const searchColumns: any[] = [];
         let order = "asc";
@@ -496,7 +473,6 @@ class IndexTable extends React.Component<IIndexTable> {
                                 const cells: any = [];
                                 const key = n[0];
                                 const isSelected = this.isSelected(key);
-                                const rawValue = data[rowIndex];
 
                                 if (isSelectActions) {
                                     cells.push(
@@ -531,61 +507,7 @@ class IndexTable extends React.Component<IIndexTable> {
                                         align = column.Align;
                                     }
 
-                                    if (column.Link) {
-                                        let link = column.Link;
-                                        const splitedLink = link.split("/");
-                                        const splitedNextLink: any[] = [];
-                                        let baseUrl = beforeRoute.match.url;
-                                        console.log(
-                                            "DEBUG base",
-                                            baseUrl,
-                                            rawValue,
-                                            splitedLink
-                                        );
-                                        for (
-                                            let j = 0,
-                                                linkLen = splitedLink.length;
-                                            j < linkLen;
-                                            j++
-                                        ) {
-                                            let path = splitedLink[j];
-                                            if (path.indexOf(":") === 0) {
-                                                const pathKey = path.slice(1);
-                                                if (
-                                                    pathKey === column.LinkParam
-                                                ) {
-                                                    path =
-                                                        rawValue[
-                                                            column.LinkKey
-                                                        ];
-                                                } else {
-                                                    const tmppath =
-                                                        currentRoute.match
-                                                            .params[pathKey];
-                                                    if (tmppath) {
-                                                        path = tmppath;
-                                                    } else {
-                                                        path =
-                                                            rawValue[
-                                                                column.LinkKey
-                                                            ];
-                                                    }
-                                                }
-                                            }
-                                            splitedNextLink.push(path);
-                                        }
-                                        if (
-                                            baseUrl === "/" ||
-                                            (column.BaseUrl &&
-                                                baseUrl === column.BaseUrl)
-                                        ) {
-                                            baseUrl = "";
-                                        }
-                                        link =
-                                            baseUrl +
-                                            "/" +
-                                            splitedNextLink.join("/");
-                                        console.log("DEBUG link", link);
+                                    if (column.LinkPath) {
                                         cells.push(
                                             <TableCell
                                                 align={align}
@@ -594,14 +516,11 @@ class IndexTable extends React.Component<IIndexTable> {
                                                 padding={padding}
                                                 scope="row"
                                                 style={{ cursor: "pointer" }}
-                                                onClick={e => {
-                                                    this.handleLinkClick(
-                                                        e,
-                                                        link,
-                                                        rawValue[
-                                                            column.LinkKey
-                                                        ],
-                                                        column
+                                                onClick={() => {
+                                                    this.props.handleColumnLinkClick(
+                                                        index,
+                                                        column,
+                                                        cellValue
                                                     );
                                                 }}
                                             >
@@ -945,24 +864,6 @@ class IndexTable extends React.Component<IIndexTable> {
         this.setState({ selected: [] });
     };
 
-    private handleLinkClick = (event, link, value, column) => {
-        const { routes } = this.props;
-        const { searchQueries } = this.state;
-        const route = routes[routes.length - 1];
-        const params = route.match.params;
-        params[column.LinkParam] = value;
-        if (column.DataQueries) {
-            console.log(
-                "DEBUG TODO getQueries indexTable",
-                link,
-                value,
-                params
-            );
-            this.props.getQueries(column, route, searchQueries);
-        }
-        route.history.push(link);
-    };
-
     private handleFilterClick = (name, value) => {
         const { filterMap } = this.state;
         if (filterMap[name] !== undefined) {
@@ -1026,24 +927,35 @@ function mapStateToProps(state, ownProps) {
     const auth = state.auth;
     const actionName = state.service.actionName;
     const resetAction = state.service.resetAction;
+    const rootIndex = state.service.index;
     const data = data_utils.getIndexDataFromState(state, ownProps.index);
 
     return {
         actionName,
         auth,
         data,
-        resetAction
+        resetAction,
+        rootIndex
     };
 }
 
 function mapDispatchToProps(dispatch, ownProps) {
     return {
-        getQueries: (index, route, searchQueries) => {
+        handleColumnLinkClick: (index, column, value) => {
+            const params = {};
+            params[column.LinkKey] = value;
+
+            const location = {
+                Path: column.LinkPath,
+                Params: params,
+                SearchQueries: {}
+            };
+            console.log("DEBUG TODO handleColumnLinkClick", location, value);
             dispatch(
                 actions.service.serviceGetQueries({
                     index,
-                    route,
-                    searchQueries
+                    location,
+                    searchQueries: null
                 })
             );
         },

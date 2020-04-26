@@ -12,4 +12,5 @@ type Tabs struct {
 	ExpectedDataKeys []string
 	IsSync           bool
 	Tabs             []interface{}
+	Children         []interface{}
 }

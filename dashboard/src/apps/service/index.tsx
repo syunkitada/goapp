@@ -68,8 +68,7 @@ class Service extends React.Component<IService> {
         if (state.isFetching) {
             content = <div>Fetching...</div>;
         } else {
-            const routes = [this.props];
-            content = components.renderIndex(routes, state.Index.View);
+            content = components.renderIndex(service.rootIndex);
         }
 
         return (

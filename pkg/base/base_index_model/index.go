@@ -1,8 +1,9 @@
 package base_index_model
 
 type DashboardIndex struct {
-	SyncDelay uint
-	View      interface{}
+	SyncDelay    uint
+	DefaultRoute map[string]interface{}
+	View         interface{}
 }
 
 type Index struct {
@@ -33,7 +34,8 @@ type Flag struct {
 }
 
 type Panels struct {
-	Name   string
-	Kind   string
-	Panels []interface{}
+	Name     string
+	Kind     string
+	Panels   []interface{}
+	Children []interface{}
 }

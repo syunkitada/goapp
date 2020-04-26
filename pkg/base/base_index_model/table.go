@@ -40,6 +40,7 @@ type TableColumn struct {
 	LinkKey         string
 	LinkSync        bool
 	LinkDataQueries []string // deprecated
+	LinkPath        []string
 	DataQueries     []string
 	RowColoringMap  map[string]string
 	FilterValues    []map[string]string
