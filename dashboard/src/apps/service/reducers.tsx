@@ -7,6 +7,7 @@ import data_utils from "../../lib/data_utils";
 type index = {
     DataQueries?: any;
     EnableWebSocket?: boolean;
+    WebSocketKey: string;
     View: any;
 };
 
@@ -71,15 +72,20 @@ const defaultState: serviceState = {
 
 export default reducerWithInitialState(defaultState)
     .case(actions.service.serviceGetIndex, (state, payload) => {
-        const params = payload.route.match.params;
-        const service = params.service;
-        const project = params.project;
+        let { serviceName, projectName } = payload;
+        if (!serviceName) {
+            const params = data_utils.getServiceParams();
+            serviceName = params.serviceName;
+            projectName = params.projectName;
+        } else {
+            data_utils.setServiceParams(payload);
+        }
         const newState = Object.assign({}, state, {
             getIndexTctx: {
                 fetching: true
             },
-            projectName: project,
-            serviceName: service,
+            projectName: projectName,
+            serviceName: serviceName,
             syncDelay: 10000,
             syncQueryMap: {},
             location: {
@@ -87,24 +93,26 @@ export default reducerWithInitialState(defaultState)
             }
         });
 
-        if (project) {
-            if (!newState.projectServiceMap[project]) {
-                newState.projectServiceMap[project] = {};
+        if (projectName) {
+            if (!newState.projectServiceMap[projectName]) {
+                newState.projectServiceMap[projectName] = {};
             }
-            if (!newState.projectServiceMap[project][service]) {
-                newState.projectServiceMap[project][service] = {
+            if (!newState.projectServiceMap[projectName][serviceName]) {
+                newState.projectServiceMap[projectName][serviceName] = {
                     isFetching: true
                 };
             } else {
-                newState.projectServiceMap[project][service].isFetching = true;
+                newState.projectServiceMap[projectName][
+                    serviceName
+                ].isFetching = true;
             }
         } else {
-            if (!newState.serviceMap[service]) {
-                newState.serviceMap[service] = {
+            if (!newState.serviceMap[serviceName]) {
+                newState.serviceMap[serviceName] = {
                     isFetching: true
                 };
             } else {
-                newState.serviceMap[service].isFetching = true;
+                newState.serviceMap[serviceName].isFetching = true;
             }
         }
 
@@ -133,6 +141,7 @@ export default reducerWithInitialState(defaultState)
         const index = data_utils.getIndex(rootIndex, payload.location.Path);
         const location = payload.location;
         location.DataQueries = index.DataQueries;
+        location.WebSocketQuery = index.WebSocketQuery;
         const params = Object.assign(
             {},
             state.location.Params,
@@ -188,7 +197,6 @@ export default reducerWithInitialState(defaultState)
             payload.action.type,
             payload
         );
-        const { index } = payload.action.payload;
         const newState = Object.assign({}, state, {
             isFetching: false,
             redirectToReferrer: true
@@ -316,7 +324,11 @@ export default reducerWithInitialState(defaultState)
             }
         }
 
-        console.log("TODO DEBUG index", index, payload.websocket);
+        const index = data_utils.getIndex(
+            newState.rootIndex,
+            newState.location.Path
+        );
+
         const { websocket } = payload;
         const service = state.serviceName;
         const project = state.projectName;
@@ -334,7 +346,11 @@ export default reducerWithInitialState(defaultState)
             }
 
             // Set WebSocket
-            if (index && index.EnableWebSocket) {
+            if (
+                actionType === "SERVICE_GET_QUERIES" &&
+                index &&
+                index.EnableWebSocket
+            ) {
                 if (
                     !newState.projectServiceMap[project][service].WebSocketMap
                 ) {
@@ -361,7 +377,11 @@ export default reducerWithInitialState(defaultState)
             }
 
             // Set WebSocket
-            if (index && index.EnableWebSocket) {
+            if (
+                actionType === "SERVICE_GET_QUERIES" &&
+                index &&
+                index.EnableWebSocket
+            ) {
                 if (!newState.serviceMap[service].WebSocketMap) {
                     newState.serviceMap[service].WebSocketMap = {};
                     newState.serviceMap[service].WebSocketDataMap = {};

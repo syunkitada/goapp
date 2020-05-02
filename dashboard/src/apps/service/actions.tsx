@@ -2,9 +2,10 @@ import actionCreatorFactory from "typescript-fsa";
 
 const actionCreator = actionCreatorFactory();
 
-export const serviceGetIndex = actionCreator<{ route: any }>(
-    "SERVICE_GET_INDEX"
-);
+export const serviceGetIndex = actionCreator<{
+    projectName: any;
+    serviceName: any;
+}>("SERVICE_GET_INDEX");
 
 export const serviceStartWebSocket = actionCreator<{
     action: any;

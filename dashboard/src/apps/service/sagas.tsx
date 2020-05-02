@@ -58,7 +58,7 @@ function* post(action) {
                 serviceName: serviceState.serviceName,
                 stateKey: "index"
             };
-            if (serviceState.initLocation) {
+            if (serviceState.initLocation && location.DataQueries) {
                 const queries: any[] = [];
                 const tmpData = Object.assign(
                     {},
@@ -87,25 +87,27 @@ function* post(action) {
                 location.Params,
                 location.SearchQueries
             );
-            if (location.DataQueries == null) {
-                logger.warning("Invalid index", index);
-                return;
+            const data = JSON.stringify(queryData);
+            if (location.DataQueries) {
+                for (
+                    let i = 0, len = location.DataQueries.length;
+                    i < len;
+                    i++
+                ) {
+                    dataQueries.push({
+                        Data: data,
+                        Name: location.DataQueries[i]
+                    });
+                }
+                payload = {
+                    isSync,
+                    projectName: projectName,
+                    serviceName: serviceName,
+                    queries: dataQueries,
+                    stateKey: "index",
+                    syncQueryMap
+                };
             }
-
-            for (let i = 0, len = location.DataQueries.length; i < len; i++) {
-                dataQueries.push({
-                    Data: JSON.stringify(queryData),
-                    Name: location.DataQueries[i]
-                });
-            }
-            payload = {
-                isSync,
-                projectName: projectName,
-                serviceName: serviceName,
-                queries: dataQueries,
-                stateKey: "index",
-                syncQueryMap
-            };
 
             break;
 
@@ -143,20 +145,16 @@ function* post(action) {
             };
 
             break;
-
-        default:
-            return {};
     }
 
-    if (index && index.EnableWebSocket) {
-        yield put(actions.service.serviceStartWebSocket({ action, payload }));
-        return;
-    } else {
+    let isError = false;
+    if (payload) {
         console.log("DEBUG TODO post", payload);
         const { result, error } = yield call(modules.service.post, payload);
         console.log("DEBUG TODO post", payload, result, error);
 
         if (error) {
+            isError = true;
             yield put(
                 actions.service.servicePostFailure({ action, payload, error })
             );
@@ -170,6 +168,34 @@ function* post(action) {
                 })
             );
         }
+    }
+
+    if (!isError && location.WebSocketQuery) {
+        console.log("DEBUG TODO WebSocketQuery");
+        const syncQueryMap: any[] = [];
+        const queryData = Object.assign(
+            {},
+            location.Params,
+            location.SearchQueries
+        );
+        const data = JSON.stringify(queryData);
+        const dataQueries = [
+            {
+                Data: data,
+                Name: location.WebSocketQuery
+            }
+        ];
+        const payload = {
+            isSync,
+            projectName: projectName,
+            serviceName: serviceName,
+            queries: dataQueries,
+            stateKey: "index",
+            syncQueryMap
+        };
+
+        yield put(actions.service.serviceStartWebSocket({ action, payload }));
+        return;
     }
     return {};
 }
@@ -298,10 +324,17 @@ function* startWebSocket(action) {
                     console.log("TODO taked on message", payload);
                     const data = JSON.parse(payload.payload.event.data);
                     if (isInit) {
+                        const tmpAction = Object.assign(
+                            {},
+                            action.payload.action,
+                            {
+                                type: "SERVICE_GET_QUERIES"
+                            }
+                        );
                         const result = data;
                         yield put(
                             actions.service.servicePostSuccess({
-                                action: action.payload.action,
+                                action: tmpAction,
                                 payload: action.payload.payload,
                                 result,
                                 websocket: socket

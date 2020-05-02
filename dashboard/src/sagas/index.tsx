@@ -9,6 +9,7 @@ import service from "../apps/service/sagas";
 export default function* rootSaga() {
     yield all([
         auth.watchLogin(),
+        auth.watchLoginSuccess(),
         auth.watchLoginWithToken(),
         auth.watchLogout(),
         service.watchGetIndex(),

@@ -4,6 +4,61 @@ const locationDataKey = "d";
 
 const dataPathKey = "p";
 
+function setServiceParams(params) {
+    const { projectName, serviceName } = params;
+    let pathname = "";
+    if (projectName) {
+        pathname = "/Project/" + projectName + "/" + serviceName + "/";
+    } else {
+        pathname = "/Service/" + serviceName + "/";
+    }
+    window.history.pushState(null, "", pathname);
+}
+
+function getServiceParams() {
+    const splitedPath = window.location.pathname.split("/");
+    if (splitedPath.length < 3) {
+        return {
+            serviceName: "Home"
+        };
+    }
+
+    switch (splitedPath[1]) {
+        case "Service":
+            return {
+                serviceName: splitedPath[2]
+            };
+        case "Project":
+            if (splitedPath.length < 4) {
+                return {
+                    projectName: splitedPath[2],
+                    serviceName: "Home"
+                };
+            }
+            return {
+                projectName: splitedPath[2],
+                serviceName: splitedPath[3]
+            };
+    }
+    return {
+        serviceName: "Home"
+    };
+}
+
+function getServiceState(state) {
+    let service: any = null;
+    let serviceState = state.service;
+    if (serviceState.projectName) {
+        service =
+            serviceState.projectServiceMap[serviceState.projectName][
+                serviceState.serviceName
+            ];
+    } else {
+        service = serviceState.serviceMap[serviceState.serviceName];
+    }
+    return service;
+}
+
 function getDataFromState(state) {
     let service: any = null;
     let serviceState = state.service;
@@ -90,6 +145,9 @@ export default {
     getIndex,
     getIndexDataFromState,
     getLocationData,
+    getServiceParams,
+    getServiceState,
     dataPathKey,
-    setLocationData
+    setLocationData,
+    setServiceParams
 };

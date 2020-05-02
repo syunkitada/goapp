@@ -33,7 +33,7 @@ func (resolver *Resolver) GetServiceDashboardIndex(tctx *logger.TraceContext, in
 		Index: base_index_model.DashboardIndex{
 			View: base_index_model.Panels{
 				Name: "Root",
-				Kind: "RoutePanels",
+				Kind: "Panels",
 				Panels: []interface{}{
 					map[string]interface{}{
 						"Name":  "Hoge",

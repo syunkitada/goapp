@@ -116,7 +116,7 @@ var ComputesTable = base_index_model.Table{
 
 var ComputesDetail = base_index_model.Tabs{
 	Name:   "Compute",
-	Kind:   "RouteTabs",
+	Kind:   "Tabs",
 	IsSync: true,
 	Children: []interface{}{
 		base_index_model.View{
@@ -141,33 +141,12 @@ var ComputesDetail = base_index_model.Tabs{
 				},
 			},
 		},
-		base_index_model.Form{
-			Name:         "Edit",
-			Kind:         "Form",
-			DataKey:      "Compute",
-			DataQueries:  []string{"GetCompute"},
-			SubmitAction: "update compute",
-			Icon:         "Update",
-			Fields: []base_index_model.Field{
-				base_index_model.Field{Name: "Name", Kind: "text", Require: true,
-					Updatable: false,
-					Min:       5, Max: 200, RegExp: "^[0-9a-zA-Z]+$",
-					RegExpMsg: "Please enter alphanumeric characters."},
-				base_index_model.Field{Name: "Kind", Kind: "select", Require: true,
-					Updatable: true,
-					Options: []string{
-						"Server", "Pdu", "RackSpineRouter",
-						"FloorLeafRouter", "FloorSpineRouter", "GatewayRouter",
-					}},
-			},
-		},
 		base_index_model.View{
 			Name:            "Console",
-			Route:           "/Console",
 			Kind:            "View",
 			DataKey:         "Compute",
-			DataQueries:     []string{"GetComputeConsole"},
 			EnableWebSocket: true,
+			WebSocketQuery:  "GetComputeConsole",
 			WebSocketKey:    "ComputeConsole",
 			PanelsGroups: []interface{}{
 				map[string]interface{}{

@@ -2,10 +2,10 @@ import * as React from "react";
 
 import IndexForm from "./forms/IndexForm";
 import SearchForm from "./forms/SearchForm";
-import RoutePanels from "./panels/RoutePanels";
+import Panels from "./panels/Panels";
 import Panes from "./panes/Panes";
 import IndexTable from "./tables/IndexTable";
-import RouteTabs from "./tabs/RouteTabs";
+import Tabs from "./tabs/Tabs";
 import IndexView from "./views/IndexView";
 
 import logger from "../lib/logger";
@@ -15,11 +15,11 @@ function Index(props) {
     switch (props.Kind) {
         case "Msg":
             return <div>Msg</div>;
-        case "RoutePanels":
-            return <RoutePanels index={props} />;
-        case "RouteTabs":
-            return <RouteTabs index={props} />;
-        case "RoutePanes":
+        case "Panels":
+            return <Panels index={props} />;
+        case "Tabs":
+            return <Tabs index={props} />;
+        case "Panes":
             return <Panes index={props} />;
         case "Table":
             return <IndexTable index={props} />;

@@ -214,6 +214,7 @@ class IndexView extends React.Component<IIndexView> {
             // TODO return loading view
             return <div>Loading</div>;
         }
+        console.log("DEBUG TODO renderPanels");
 
         const panelsGroups: JSX.Element[] = [];
         for (let i = 0, len = index.PanelsGroups.length; i < len; i++) {
@@ -543,8 +544,20 @@ class IndexView extends React.Component<IIndexView> {
 }
 
 function mapStateToProps(state, ownProps) {
-    const data = data_utils.getIndexDataFromState(state, ownProps.index);
-    return { data };
+    const { index } = ownProps;
+    const { Data, WebSocketMap, WebSocketDataMap } = data_utils.getServiceState(
+        state
+    );
+    let webSocket: any;
+    let webSocketData: any;
+    if (index.EnableWebSocket) {
+        if (WebSocketMap && WebSocketDataMap) {
+            webSocket = WebSocketMap[index.WebSocketKey];
+            webSocketData = WebSocketDataMap[index.WebSocketKey];
+        }
+    }
+
+    return { data: Data, webSocket, webSocketData };
 }
 
 function mapDispatchToProps(dispatch, ownProps) {

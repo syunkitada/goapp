@@ -20,17 +20,17 @@ import actions from "../../actions";
 // import data_utils from "../../lib/data_utils";
 import logger from "../../lib/logger";
 
-interface IRoutePanels extends WithStyles<typeof styles> {
+interface IPanels extends WithStyles<typeof styles> {
     location;
     indexPath;
     index;
     dispatchGetQueries;
 }
 
-class RoutePanels extends React.Component<IRoutePanels> {
+class Panels extends React.Component<IPanels> {
     public render() {
         const { indexPath, index, classes } = this.props;
-        logger.info("RoutePanels.render", indexPath, index);
+        logger.info("Panels.render", indexPath, index);
 
         const panels: any[] = [];
         for (let i = 0, len = index.Children.length; i < len; i++) {
@@ -98,7 +98,7 @@ function mapStateToProps(state, ownProps) {
         }
     }
 
-    console.log("DEBUG TODO RoutePanes", indexPath);
+    console.log("DEBUG TODO Panes", indexPath);
     return {
         indexPath,
         location
@@ -122,4 +122,4 @@ function mapDispatchToProps(dispatch, ownProps) {
 export default connect(
     mapStateToProps,
     mapDispatchToProps
-)(withStyles(styles)(RoutePanels));
+)(withStyles(styles)(Panels));

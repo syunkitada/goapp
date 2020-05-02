@@ -74,14 +74,13 @@ func (resolver *Resolver) GetServiceDashboardIndex(tctx *logger.TraceContext,
 			Index: base_index_model.DashboardIndex{
 				View: base_index_model.Panels{
 					Name: "Root",
-					Kind: "RoutePanels",
+					Kind: "Panels",
 					Panels: []interface{}{
 						spec.DatacentersTable,
 						base_index_model.Tabs{
 							Name:             "Resources",
-							Kind:             "RouteTabs",
+							Kind:             "Tabs",
 							Subname:          "Kind",
-							Route:            "/Datacenters/:Datacenter/Resources/:Kind",
 							TabParam:         "Kind",
 							DataQueries:      []string{"GetPhysicalResources", "GetRacks", "GetFloors", "GetPhysicalModels"},
 							ExpectedDataKeys: []string{"PhysicalResources", "Racks", "Floors", "PhysicalModels"},
@@ -96,8 +95,7 @@ func (resolver *Resolver) GetServiceDashboardIndex(tctx *logger.TraceContext,
 						map[string]interface{}{
 							"Name":      "Resource",
 							"Subname":   "Name",
-							"Route":     "/Datacenters/:Datacenter/Resources/:Kind/Detail/:Name/:Subkind",
-							"Kind":      "RoutePanes",
+							"Kind":      "Panes",
 							"PaneParam": "Kind",
 							"Panes": []interface{}{
 								spec.PhysicalModelsDetail,
@@ -124,14 +122,13 @@ func (resolver *Resolver) GetServiceDashboardIndex(tctx *logger.TraceContext,
 			Index: base_index_model.DashboardIndex{
 				View: base_index_model.Panels{
 					Name: "Root",
-					Kind: "RoutePanels",
+					Kind: "Panels",
 					Panels: []interface{}{
 						spec.DatacentersTable,
 						base_index_model.Tabs{
 							Name:             "Resources",
-							Kind:             "RouteTabs",
+							Kind:             "Tabs",
 							Subname:          "Kind",
-							Route:            "/Datacenters/:Datacenter/Resources/:Kind",
 							TabParam:         "Kind",
 							DataQueries:      []string{"GetPhysicalResources", "GetRacks", "GetFloors", "GetPhysicalModels"},
 							ExpectedDataKeys: []string{"PhysicalResources", "Racks", "Floors", "PhysicalModels"},
@@ -146,8 +143,7 @@ func (resolver *Resolver) GetServiceDashboardIndex(tctx *logger.TraceContext,
 						map[string]interface{}{
 							"Name":      "Resource",
 							"Subname":   "Name",
-							"Route":     "/Datacenters/:Datacenter/Resources/:Kind/Detail/:Name/:Subkind",
-							"Kind":      "RoutePanes",
+							"Kind":      "Panes",
 							"PaneParam": "Kind",
 							"Panes": []interface{}{
 								spec.PhysicalModelsDetail,
@@ -177,12 +173,12 @@ func (resolver *Resolver) GetServiceDashboardIndex(tctx *logger.TraceContext,
 				},
 				View: base_index_model.Panels{
 					Name: "Root",
-					Kind: "RoutePanels",
+					Kind: "Panels",
 					Children: []interface{}{
 						spec.RegionsTable,
 						base_index_model.Tabs{
 							Name: "RegionResources",
-							Kind: "RouteTabs",
+							Kind: "Tabs",
 							Children: []interface{}{
 								spec.VirtualAdminClustersTable,
 								spec.RegionServicesTable,
@@ -191,7 +187,7 @@ func (resolver *Resolver) GetServiceDashboardIndex(tctx *logger.TraceContext,
 						},
 						base_index_model.Tabs{
 							Name:     "Resources",
-							Kind:     "RouteTabs",
+							Kind:     "Tabs",
 							Subname:  "ClusterKind",
 							TabParam: "ClusterKind",
 							IsSync:   true,
@@ -201,7 +197,7 @@ func (resolver *Resolver) GetServiceDashboardIndex(tctx *logger.TraceContext,
 						},
 						map[string]interface{}{
 							"Name": "Resource",
-							"Kind": "RoutePanes",
+							"Kind": "Panes",
 							"Children": []interface{}{
 								spec.ComputesDetail,
 							},
@@ -217,17 +213,15 @@ func (resolver *Resolver) GetServiceDashboardIndex(tctx *logger.TraceContext,
 			Index: base_index_model.DashboardIndex{
 				View: base_index_model.Panels{
 					Name: "Root",
-					Kind: "RoutePanels",
+					Kind: "Panels",
 					Panels: []interface{}{
 						map[string]interface{}{
-							"Name":  "ResourceVirtual HOGE",
-							"Kind":  "Msg",
-							"Route": "",
+							"Name": "ResourceVirtual HOGE",
+							"Kind": "Msg",
 						},
 						map[string]interface{}{
-							"Name":  "Piyo",
-							"Kind":  "Msg",
-							"Route": "/Piyo",
+							"Name": "Piyo",
+							"Kind": "Msg",
 						},
 					},
 				},
@@ -249,12 +243,11 @@ func (resolver *Resolver) GetServiceDashboardIndex(tctx *logger.TraceContext,
 			Index: base_index_model.DashboardIndex{
 				View: base_index_model.Panels{
 					Name: "Root",
-					Kind: "RoutePanels",
+					Kind: "Panels",
 					Panels: []interface{}{
 						base_index_model.Table{
 							Name:    "Clusters",
 							Kind:    "Table",
-							Route:   "",
 							DataKey: "Clusters",
 							Columns: []base_index_model.TableColumn{
 								base_index_model.TableColumn{
@@ -277,9 +270,8 @@ func (resolver *Resolver) GetServiceDashboardIndex(tctx *logger.TraceContext,
 						},
 						base_index_model.Tabs{
 							Name:             "Resources",
-							Kind:             "RouteTabs",
+							Kind:             "Tabs",
 							Subname:          "Kind",
-							Route:            "/Clusters/:Cluster/Resources/:Kind",
 							TabParam:         "Kind",
 							DataQueries:      []string{"GetEvents", "GetEventRules", "GetNodes", "GetLogParams", "GetLogs"},
 							ExpectedDataKeys: []string{"Events", "EventSilenceRules", "Nodes", "Logs"},
@@ -295,8 +287,7 @@ func (resolver *Resolver) GetServiceDashboardIndex(tctx *logger.TraceContext,
 						map[string]interface{}{
 							"Name":      "Resource",
 							"Subname":   "Name",
-							"Route":     "/Clusters/:Cluster/Resources/:Kind/Detail/:Name/:Subkind",
-							"Kind":      "RoutePanes",
+							"Kind":      "Panes",
 							"PaneParam": "Kind",
 							"Panes": []interface{}{
 								spec.NodesDetail,

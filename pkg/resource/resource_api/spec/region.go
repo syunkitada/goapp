@@ -54,7 +54,6 @@ type DeleteRegionsData struct{}
 var RegionsTable = base_index_model.Table{
 	Name:    "Regions",
 	Kind:    "Table",
-	Route:   "",
 	DataKey: "Regions",
 	Columns: []base_index_model.TableColumn{
 		base_index_model.TableColumn{

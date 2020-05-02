@@ -10,6 +10,8 @@ import withStyles, {
 
 import Typography from "@material-ui/core/Typography";
 
+import Index from "../Index";
+
 import actions from "../../actions";
 import logger from "../../lib/logger";
 
@@ -24,7 +26,6 @@ const styles = (theme: Theme): StyleRules =>
 
 interface IPanes extends WithStyles<typeof styles> {
     classes;
-    render;
     index;
     indexPath;
     location;
@@ -33,7 +34,7 @@ interface IPanes extends WithStyles<typeof styles> {
 
 class Panes extends React.Component<IPanes> {
     public render() {
-        const { classes, render, indexPath, index } = this.props;
+        const { classes, indexPath, index } = this.props;
         if (!index.Children) {
             logger.error("Invalid index", index);
             return null;
@@ -43,7 +44,11 @@ class Panes extends React.Component<IPanes> {
         for (let i = 0, len = index.Children.length; i < len; i++) {
             const child = index.Children[i];
             if (child.Name === indexPath) {
-                pane = <Typography component="div">{render(child)}</Typography>;
+                pane = (
+                    <Typography component="div">
+                        <Index {...child} />
+                    </Typography>
+                );
                 break;
             }
         }

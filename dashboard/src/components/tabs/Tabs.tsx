@@ -9,9 +9,11 @@ import withStyles, {
 } from "@material-ui/core/styles/withStyles";
 
 import AppBar from "@material-ui/core/AppBar";
-import Tab from "@material-ui/core/Tab";
+import CoreTab from "@material-ui/core/Tab";
 import CoreTabs from "@material-ui/core/Tabs";
 import Typography from "@material-ui/core/Typography";
+
+import Index from "../Index";
 
 import actions from "../../actions";
 // import logger from "../../lib/logger";
@@ -25,18 +27,16 @@ const styles = (theme: Theme): StyleRules =>
         }
     });
 
-interface IRouteTabs extends WithStyles<typeof styles> {
+interface ITabs extends WithStyles<typeof styles> {
     dispatchGetQueries;
-    render;
     location;
     index;
     indexPath: any;
 }
 
-class RouteTabs extends React.Component<IRouteTabs> {
+class Tabs extends React.Component<ITabs> {
     public render() {
-        const { classes, render, location, index, indexPath } = this.props;
-        console.log("DEBUG TODO RouteTabs render", location);
+        const { classes, index, indexPath } = this.props;
 
         const tabs: any[] = [];
         let tabContainer: any = null;
@@ -46,10 +46,12 @@ class RouteTabs extends React.Component<IRouteTabs> {
             if (tab.Name === indexPath) {
                 tabId = i;
                 tabContainer = (
-                    <Typography component="div">{render(tab)}</Typography>
+                    <Typography component="div">
+                        {<Index {...tab} />}
+                    </Typography>
                 );
             }
-            tabs.push(<Tab key={tab.Name} label={tab.Name} />);
+            tabs.push(<CoreTab key={tab.Name} label={tab.Name} />);
         }
 
         return (
@@ -123,4 +125,4 @@ function mapDispatchToProps(dispatch, ownProps) {
 export default connect(
     mapStateToProps,
     mapDispatchToProps
-)(withStyles(styles)(RouteTabs));
+)(withStyles(styles)(Tabs));

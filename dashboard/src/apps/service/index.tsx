@@ -13,13 +13,10 @@ import Index from "../../components/Index";
 
 interface IService {
     auth: any;
-    history: any;
-    match: any;
     startBackgroundSync: any;
     service: any;
     serviceName: any;
     projectName: any;
-    getIndex: any;
 }
 
 class Service extends React.Component<IService> {
@@ -28,40 +25,17 @@ class Service extends React.Component<IService> {
         this.props.startBackgroundSync();
     }
 
-    public componentWillUnmount() {
-        logger.info("Service", "componentWillUnmount()");
-        const { getIndex } = this.props;
-        getIndex();
-    }
-
     public render() {
-        const {
-            match,
-            history,
-            auth,
-            service,
-            serviceName,
-            projectName,
-            getIndex
-        } = this.props;
-
-        if (!auth.user) {
-            return null;
-        }
-
-        if (
-            service.serviceName !== serviceName ||
-            service.projectName !== projectName
-        ) {
-            getIndex();
-            return null;
-        }
+        const { auth, service, serviceName, projectName } = this.props;
 
         let state: any = null;
         if (projectName) {
             state = service.projectServiceMap[projectName][serviceName];
         } else {
             state = service.serviceMap[serviceName];
+        }
+        if (!state) {
+            return <div>Fetching...</div>;
         }
 
         let content: any;
@@ -73,9 +47,7 @@ class Service extends React.Component<IService> {
 
         return (
             <MuiThemeProvider theme={theme_utils.getTheme(auth.theme)}>
-                <Dashboard match={match} history={history}>
-                    {content}
-                </Dashboard>
+                <Dashboard>{content}</Dashboard>
             </MuiThemeProvider>
         );
     }
@@ -83,23 +55,18 @@ class Service extends React.Component<IService> {
 
 function mapStateToProps(state, ownProps) {
     const auth = state.auth;
-    const match = ownProps.match;
     const service = state.service;
 
     return {
         auth,
-        match,
-        projectName: match.params.project,
+        projectName: service.projectName,
         service,
-        serviceName: match.params.service
+        serviceName: service.serviceName
     };
 }
 
 function mapDispatchToProps(dispatch, ownProps) {
     return {
-        getIndex: () => {
-            dispatch(actions.service.serviceGetIndex({ route: ownProps }));
-        },
         startBackgroundSync: () => {
             dispatch(actions.service.serviceStartBackgroundSync());
         }
