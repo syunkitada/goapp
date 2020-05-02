@@ -143,9 +143,9 @@ var ComputesDetail = base_index_model.Tabs{
 		},
 		base_index_model.Form{
 			Name:         "Edit",
-			Route:        "/Edit",
 			Kind:         "Form",
 			DataKey:      "Compute",
+			DataQueries:  []string{"GetCompute"},
 			SubmitAction: "update compute",
 			Icon:         "Update",
 			Fields: []base_index_model.Field{

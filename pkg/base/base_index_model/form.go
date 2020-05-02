@@ -7,5 +7,6 @@ type Form struct {
 	DataKey      string
 	SubmitAction string
 	Icon         string
+	DataQueries  []string
 	Fields       []Field
 }

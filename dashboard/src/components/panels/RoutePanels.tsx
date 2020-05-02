@@ -15,12 +15,12 @@ import Typography from "@material-ui/core/Typography";
 
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 
+import Index from "../Index";
 import actions from "../../actions";
 // import data_utils from "../../lib/data_utils";
-// import logger from "../../lib/logger";
+import logger from "../../lib/logger";
 
 interface IRoutePanels extends WithStyles<typeof styles> {
-    render;
     location;
     indexPath;
     index;
@@ -29,7 +29,8 @@ interface IRoutePanels extends WithStyles<typeof styles> {
 
 class RoutePanels extends React.Component<IRoutePanels> {
     public render() {
-        const { render, indexPath, index, classes } = this.props;
+        const { indexPath, index, classes } = this.props;
+        logger.info("RoutePanels.render", indexPath, index);
 
         const panels: any[] = [];
         for (let i = 0, len = index.Children.length; i < len; i++) {
@@ -46,7 +47,7 @@ class RoutePanels extends React.Component<IRoutePanels> {
                         </Typography>
                     </ExpansionPanelSummary>
                     <ExpansionPanelDetails style={{ padding: 0 }}>
-                        {render(panel)}
+                        <Index {...panel} />
                     </ExpansionPanelDetails>
                 </ExpansionPanel>
             );
@@ -97,6 +98,7 @@ function mapStateToProps(state, ownProps) {
         }
     }
 
+    console.log("DEBUG TODO RoutePanes", indexPath);
     return {
         indexPath,
         location

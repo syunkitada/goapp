@@ -9,7 +9,7 @@ import actions from "../../actions";
 import logger from "../../lib/logger";
 import theme_utils from "../../lib/theme_utils";
 
-import components from "../../components";
+import Index from "../../components/Index";
 
 interface IService {
     auth: any;
@@ -68,7 +68,7 @@ class Service extends React.Component<IService> {
         if (state.isFetching) {
             content = <div>Fetching...</div>;
         } else {
-            content = components.renderIndex(service.rootIndex);
+            content = <Index {...service.rootIndex} />;
         }
 
         return (

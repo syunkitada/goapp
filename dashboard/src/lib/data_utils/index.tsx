@@ -4,6 +4,20 @@ const locationDataKey = "d";
 
 const dataPathKey = "p";
 
+function getDataFromState(state) {
+    let service: any = null;
+    let serviceState = state.service;
+    if (serviceState.projectName) {
+        service =
+            serviceState.projectServiceMap[serviceState.projectName][
+                serviceState.serviceName
+            ];
+    } else {
+        service = serviceState.serviceMap[serviceState.serviceName];
+    }
+    return service.Data;
+}
+
 function getIndexDataFromState(state, index) {
     let service: any = null;
     let serviceState = state.service;
@@ -72,6 +86,7 @@ function getIndex(index, path) {
 }
 
 export default {
+    getDataFromState,
     getIndex,
     getIndexDataFromState,
     getLocationData,
