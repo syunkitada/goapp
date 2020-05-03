@@ -245,7 +245,7 @@ func (app *BaseApp) Ws(w http.ResponseWriter, r *http.Request, isProxy bool) {
 				isInitProxy = false
 			}
 
-			fmt.Println("Proxy: Waining Message from client")
+			fmt.Println("Proxy: Waiting Message from client")
 			mt, message, tmpErr := wsConn.ReadMessage()
 			fmt.Println("Proxy: Recieved Message", string(message))
 			if tmpErr != nil {
