@@ -7,6 +7,7 @@ import Panes from "./panes/Panes";
 import IndexTable from "./tables/IndexTable";
 import Tabs from "./tabs/Tabs";
 import IndexView from "./views/IndexView";
+import ConsoleView from "./views/ConsoleView";
 
 import logger from "../lib/logger";
 
@@ -25,6 +26,8 @@ function Index(props) {
             return <IndexTable index={props} />;
         case "View":
             return <IndexView index={props} />;
+        case "ConsoleView":
+            return <ConsoleView index={props} />;
         case "SearchForm":
             return <SearchForm index={props} />;
         case "Form":

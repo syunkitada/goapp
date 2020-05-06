@@ -7,6 +7,7 @@ type View struct {
 	EnableWebSocket bool
 	WebSocketKey    string
 	WebSocketQuery  string
+	WebSocketKind   string
 	DataQueries     []string
 	DataKey         string
 	Fields          []Field

@@ -447,16 +447,21 @@ class IndexView extends React.Component<IIndexView> {
 
         let bytes: any;
         if (event.which === 13) {
-            // Enter
-            bytes = "DQ==";
+            bytes = "DQ=="; // Enter
         } else if (event.which === 8) {
-            // Backspace
-            bytes = "CA==";
+            bytes = "CA=="; // Backspace
         } else if (event.which === 46) {
-            bytes = "BA==";
+            bytes = "BA=="; // Delete
         } else if (event.which === 32) {
-            // Space
-            bytes = "IA==";
+            bytes = "IA=="; // Space
+        } else if (event.which === 37) {
+            bytes = btoa("\x1b[D"); // G1tE "Gw==Ww==RA=="; // Left
+        } else if (event.which === 38) {
+            bytes = btoa("\x1b[A"); // G1tB "Gw==Ww==QQ=="; // Up
+        } else if (event.which === 39) {
+            bytes = btoa("\x1b[C"); // G1tD "Gw==Ww==Qw=="; // Right
+        } else if (event.which === 40) {
+            bytes = btoa("\x1b[B"); // G1tC "Gw==Ww==Qg=="; // Down
         } else {
             let value = String.fromCharCode(event.which);
             if (event.shiftKey) {
@@ -470,7 +475,7 @@ class IndexView extends React.Component<IIndexView> {
         // const encoder = new TextEncoder();
 
         console.log(
-            "TODO handleChangeTextForm",
+            "DEBUG TODO handleChangeTextForm",
             String.fromCharCode(event.which),
             event.which,
             bytes,

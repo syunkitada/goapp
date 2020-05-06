@@ -16,19 +16,6 @@ import logger from "../../lib/logger";
 import modules from "../../modules";
 import store from "../../store";
 
-function createWebSocketConnection() {
-    const url: any = process.env.REACT_APP_AUTHPROXY_URL;
-    const wsUrl: any = url.replace("http", "ws");
-    logger.info("TODO DEBUG wsUrl", wsUrl);
-    const socket = new WebSocket(wsUrl + "/ws");
-    return new Promise(resolve => {
-        socket.onopen = event => {
-            logger.info("TODO websocket.onopen", event);
-            resolve(socket);
-        };
-    });
-}
-
 function* post(action) {
     const dataQueries: any[] = [];
     const serviceState = Object.assign({}, store.getState().service);
@@ -269,6 +256,17 @@ function* sync(action) {
     }
 }
 
+function createWebSocketConnection() {
+    const url: any = process.env.REACT_APP_AUTHPROXY_URL;
+    const wsUrl: any = url.replace("http", "ws");
+    const socket = new WebSocket(wsUrl + "/ws");
+    return new Promise(resolve => {
+        socket.onopen = event => {
+            resolve(socket);
+        };
+    });
+}
+
 function createSocketChannel(socket) {
     // eventChannelは、WebSocketなどからの外部イベントを受けて、ActionとしてChannelに積むためのもの
     return eventChannel(emit => {
@@ -292,19 +290,12 @@ function createSocketChannel(socket) {
     });
 }
 
-// reply with a `pong` message by invoking `socket.emit('pong')`
-// function* pong(socket) {
-//   yield delay(5000);
-//   console.log("pong");
-//   // yield apply(socket, socket.emit, ["pong"]); // call `emit` as a method with `socket` as context
-// }
-
 function* startWebSocket(action) {
     logger.info("startWebSocket", action);
     const socket = yield call(createWebSocketConnection);
     const socketChannel = yield call(createSocketChannel, socket);
     const { projectName, serviceName, queries } = action.payload.payload;
-    console.log("TODO DEBUG ", projectName, serviceName, queries);
+    logger.info("createdSocketChannel", projectName, serviceName, queries);
 
     const body = JSON.stringify({
         Project: projectName,

@@ -433,7 +433,6 @@ export default reducerWithInitialState(defaultState)
         );
         const newState = Object.assign({}, state);
         const data = payload.result;
-
         const index = data_utils.getIndex(
             newState.rootIndex,
             newState.location.Path
@@ -442,118 +441,18 @@ export default reducerWithInitialState(defaultState)
         if (!index || !index.EnableWebSocket) {
             return newState;
         }
-        console.log("TODO value:", data.Bytes);
-        if (!data.Bytes) {
-            return newState;
-        }
 
         const service = state.serviceName;
         const project = state.projectName;
-        let value = "";
-        // get value
-        if (project) {
-            if (
-                index.WebSocketKey in
-                newState.projectServiceMap[project][service].WebSocketDataMap
-            ) {
-                value =
-                    newState.projectServiceMap[project][service]
-                        .WebSocketDataMap[index.WebSocketKey];
-            } else {
-                value = "";
-            }
-        } else {
-            if (
-                index.WebSocketKey in
-                newState.serviceMap[service].WebSocketDataMap
-            ) {
-                value =
-                    newState.serviceMap[service].WebSocketDataMap[
-                        index.WebSocketKey
-                    ];
-            } else {
-                value = "";
-            }
-        }
 
-        console.log("TODO value:", data.Value, data.Bytes);
-        // let specificPrefix = false;
-        // const decoder = new TextDecoder();
-        console.log("DEBUG TODO byte1:", atob(data.Bytes), data.Bytes);
-
-        if (data.Bytes === "CBtbSw==") {
-            // BS
-            value = value.slice(0, value.length - 1);
-        } else if (data.Bytes === "CBtoSw==") {
-            value = value.slice(0, value.length - 1);
-        } else {
-            value += atob(data.Bytes);
-        }
-
-        // for (let i = 0, len = data.Bytes.length; i < len; i++) {
-        //     const bytes = data.Bytes[i];
-        //     console.log("DEBUG TODO byte2:", bytes);
-
-        // if (lenbytes === 1) {
-        //     if (specificPrefix) {
-        //         console.log("TODO byte2:", bytes);
-        //         if (bytes[0] === 8) {
-        //             value = value.slice(0, value.length - 1);
-        //         }
-        //         // up 75
-        //         // down 97
-        //         // left 67
-        //     } else {
-        //         specificPrefix = false;
-        //         // left 8
-        //         if (bytes[0] > 22) {
-        //             value += decoder.decode(Uint8Array.from(bytes));
-        //         }
-        //     }
-        // } else if (lenbytes === 2) {
-        //     if (bytes[0] === 8 && bytes[1] === 27) {
-        //         specificPrefix = true;
-        //     } else if (specificPrefix && bytes[0] === 91) {
-        //         console.log("TODO byte2:", bytes[1]);
-        //         if (bytes[1] === 8) {
-        //             value = value.slice(0, value.length - 1);
-        //         }
-        //     } else {
-        //         specificPrefix = false;
-        //         value += decoder.decode(Uint8Array.from(bytes));
-        //     }
-        // } else if (lenbytes === 3) {
-        //     specificPrefix = false;
-        //     if (bytes[0] === 8 && bytes[1] === 27 && bytes[2] === 91) {
-        //         value = value.slice(0, value.length - 2);
-        //     } else {
-        //         value += decoder.decode(Uint8Array.from(bytes));
-        //     }
-        // } else if (lenbytes === 4) {
-        //     if (bytes[0] === 8 && bytes[1] === 27 && bytes[2] === 91) {
-        //         console.log("TODO byte2:", bytes[3]);
-        //         if (bytes[3] === 75) {
-        //             // bs
-        //             value = value.slice(0, value.length - 1);
-        //         }
-        //     } else {
-        //         value += decoder.decode(Uint8Array.from(bytes));
-        //     }
-        // } else {
-        //     specificPrefix = false;
-        //     value += decoder.decode(Uint8Array.from(bytes));
-        // }
-        // }
-
-        // set websocket data
         if (project) {
             newState.projectServiceMap[project][service].WebSocketDataMap[
                 index.WebSocketKey
-            ] = value;
+            ] = data;
         } else {
             newState.serviceMap[service].WebSocketDataMap[
                 index.WebSocketKey
-            ] = value;
+            ] = data;
         }
 
         logger.info(
