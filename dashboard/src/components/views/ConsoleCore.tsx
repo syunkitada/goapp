@@ -44,7 +44,6 @@ class ConsoleCore extends React.Component<IConsoleCore> {
         };
 
         this.xterm.onData(data => {
-            console.log("DATA", data);
             const body = JSON.stringify({
                 Bytes: btoa(data)
             });

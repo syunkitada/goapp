@@ -1,6 +1,9 @@
 import * as React from "react";
 import { connect } from "react-redux";
 
+import LinearProgress from "@material-ui/core/LinearProgress";
+import Paper from "@material-ui/core/Paper";
+
 import Dashboard from "../../components/frames/Dashboard";
 
 import { MuiThemeProvider } from "@material-ui/core/styles";
@@ -35,12 +38,20 @@ class Service extends React.Component<IService> {
             state = service.serviceMap[serviceName];
         }
         if (!state) {
-            return <div>Fetching...</div>;
+            return (
+                <Paper>
+                    <LinearProgress />
+                </Paper>
+            );
         }
 
         let content: any;
         if (state.isFetching) {
-            content = <div>Fetching...</div>;
+            content = (
+                <Paper>
+                    <LinearProgress />
+                </Paper>
+            );
         } else {
             content = <Index {...service.rootIndex} />;
         }

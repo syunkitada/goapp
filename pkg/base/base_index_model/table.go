@@ -72,5 +72,7 @@ type Field struct {
 	RegExpMsg string
 	Options   []string
 	DataKey   string
+	ListKey   string
 	Updatable bool
+	Fields    []Field
 }

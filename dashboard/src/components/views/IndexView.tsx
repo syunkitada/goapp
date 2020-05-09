@@ -13,9 +13,7 @@ import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogContentText from "@material-ui/core/DialogContentText";
 import DialogTitle from "@material-ui/core/DialogTitle";
-import FormControl from "@material-ui/core/FormControl";
 import Grid from "@material-ui/core/Grid";
-import TextField from "@material-ui/core/TextField";
 import Typography from "@material-ui/core/Typography";
 
 import Table from "@material-ui/core/Table";
@@ -43,6 +41,8 @@ import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 
 import SearchForm from "../forms/SearchForm";
 
+import Field from "./Field";
+
 // import actions from "../../actions";
 import form_utils from "../../lib/form_utils";
 import logger from "../../lib/logger";
@@ -52,6 +52,7 @@ import data_utils from "../../lib/data_utils";
 interface IIndexView extends WithStyles<typeof styles> {
     render;
     routes;
+    serviceData;
     data;
     index;
     onClose;
@@ -61,10 +62,6 @@ interface IIndexView extends WithStyles<typeof styles> {
 
     getQueries;
     submitQueries;
-    handleChange;
-
-    webSocket;
-    webSocketData;
 }
 
 class IndexView extends React.Component<IIndexView> {
@@ -90,7 +87,7 @@ class IndexView extends React.Component<IIndexView> {
                         </DialogContentText>
                     )}
                     {fields && fields.length > 0 && (
-                        <Table className={classes.table}>
+                        <Table className={classes.table} size="small">
                             <TableBody>{fields}</TableBody>
                         </Table>
                     )}
@@ -102,7 +99,7 @@ class IndexView extends React.Component<IIndexView> {
                             <Grid
                                 container={true}
                                 item={true}
-                                xs={6}
+                                xs={true}
                                 justify="flex-start"
                             >
                                 {onClose && (
@@ -117,7 +114,7 @@ class IndexView extends React.Component<IIndexView> {
                             <Grid
                                 container={true}
                                 item={true}
-                                xs={6}
+                                xs={true}
                                 justify="flex-end"
                             />
                         </Grid>
@@ -201,14 +198,7 @@ class IndexView extends React.Component<IIndexView> {
     };
 
     private renderPanels = () => {
-        const {
-            render,
-            routes,
-            classes,
-            index,
-            data,
-            webSocketData
-        } = this.props;
+        const { render, routes, classes, index, data } = this.props;
 
         if (!data) {
             // TODO return loading view
@@ -218,7 +208,7 @@ class IndexView extends React.Component<IIndexView> {
 
         const panelsGroups: JSX.Element[] = [];
         for (let i = 0, len = index.PanelsGroups.length; i < len; i++) {
-            console.log("TODO renderPanels", index, data);
+            console.log("DEBUG TODO renderPanels2", index, data);
             const panelsGroup = index.PanelsGroups[i];
             const panels: JSX.Element[] = [];
             if (panelsGroup.Kind === "Cards") {
@@ -230,35 +220,42 @@ class IndexView extends React.Component<IIndexView> {
                     j++
                 ) {
                     const card = panelsGroup.Cards[j];
+                    let cardData = data;
+                    if (card.SubDataKey) {
+                        cardData = data[card.SubDataKey];
+                    }
                     switch (card.Kind) {
                         case "Fields":
                             const fields: JSX.Element[] = [];
-                            console.log("TODO renderPanels2");
+                            console.log("DEBUG TODO renderPanels3");
                             for (
                                 let x = 0, xlen = card.Fields.length;
                                 x < xlen;
                                 x++
                             ) {
                                 const field = card.Fields[x];
-                                const value = data[field.Name];
                                 fields.push(
-                                    <TableRow key={field.Name}>
-                                        <TableCell>{field.Name}</TableCell>
-                                        <TableCell style={{ width: "100%" }}>
-                                            {value}
-                                        </TableCell>
-                                    </TableRow>
+                                    <Field
+                                        key={x}
+                                        field={field}
+                                        data={cardData}
+                                    />
                                 );
                             }
 
                             cards.push(
-                                <Grid key={card.Name} item={true} xs={6}>
-                                    <Table className={classes.table}>
+                                <Grid key={card.Name} item={true} xs={true}>
+                                    <Typography variant="subtitle1">
+                                        {card.Name}
+                                    </Typography>
+                                    <Table
+                                        className={classes.table}
+                                        size="small"
+                                    >
                                         <TableBody>{fields}</TableBody>
                                     </Table>
                                 </Grid>
                             );
-                            console.log("TODO renderPanels3");
 
                             break;
                         case "Tables":
@@ -269,7 +266,7 @@ class IndexView extends React.Component<IIndexView> {
                                 x++
                             ) {
                                 const table = card.Tables[x];
-                                const html = render(routes, data, table);
+                                const html = render(routes, cardData, table);
                                 tables.push(
                                     <div key={table.Name}>
                                         <Typography variant="subtitle1">
@@ -282,46 +279,20 @@ class IndexView extends React.Component<IIndexView> {
                             }
 
                             cards.push(
-                                <Grid key={card.Name} item={true} xs={6}>
+                                <Grid key={card.Name} item={true} xs={true}>
                                     {tables}
                                 </Grid>
                             );
                             break;
                         case "Table":
                             cards.push(
-                                <Grid key={card.Name} item={true} xs={6}>
+                                <Grid key={card.Name} item={true} xs={true}>
                                     <Typography variant="subtitle1">
                                         {card.Name}
                                     </Typography>
-                                    {render(routes, data, card)}
+                                    {render(routes, cardData, card)}
                                 </Grid>
                             );
-                            break;
-
-                        case "Console":
-                            cards.push(
-                                <Grid key={card.Name} item={true} xs={12}>
-                                    <FormControl
-                                        fullWidth={true}
-                                        variant="filled"
-                                    >
-                                        <TextField
-                                            variant="filled"
-                                            onKeyUp={this.handleChangeTextForm}
-                                        />
-                                        <pre
-                                            style={{
-                                                backgroundColor: "#333",
-                                                height: 500,
-                                                width: "100%"
-                                            }}
-                                        >
-                                            {webSocketData}
-                                        </pre>
-                                    </FormControl>
-                                </Grid>
-                            );
-
                             break;
                     }
                 }
@@ -399,7 +370,7 @@ class IndexView extends React.Component<IIndexView> {
                         const metric = metricsGroup.Metrics[x];
                         console.log("DEBUG metrics", metric);
                         cards.push(
-                            <Grid key={metric.Name} item={true} xs={6}>
+                            <Grid key={metric.Name} item={true} xs={true}>
                                 <LineGraphCard data={metric} />
                             </Grid>
                         );
@@ -441,92 +412,6 @@ class IndexView extends React.Component<IIndexView> {
         return <div>{panelsGroups}</div>;
     };
 
-    private handleChangeTextForm = event => {
-        const { webSocket } = this.props;
-        event.stopPropagation();
-
-        let bytes: any;
-        if (event.which === 13) {
-            bytes = "DQ=="; // Enter
-        } else if (event.which === 8) {
-            bytes = "CA=="; // Backspace
-        } else if (event.which === 46) {
-            bytes = "BA=="; // Delete
-        } else if (event.which === 32) {
-            bytes = "IA=="; // Space
-        } else if (event.which === 37) {
-            bytes = btoa("\x1b[D"); // G1tE "Gw==Ww==RA=="; // Left
-        } else if (event.which === 38) {
-            bytes = btoa("\x1b[A"); // G1tB "Gw==Ww==QQ=="; // Up
-        } else if (event.which === 39) {
-            bytes = btoa("\x1b[C"); // G1tD "Gw==Ww==Qw=="; // Right
-        } else if (event.which === 40) {
-            bytes = btoa("\x1b[B"); // G1tC "Gw==Ww==Qg=="; // Down
-        } else {
-            let value = String.fromCharCode(event.which);
-            if (event.shiftKey) {
-                value = value.toUpperCase();
-            } else {
-                value = value.toLowerCase();
-            }
-            bytes = btoa(encodeURIComponent(value));
-        }
-
-        // const encoder = new TextEncoder();
-
-        console.log(
-            "DEBUG TODO handleChangeTextForm",
-            String.fromCharCode(event.which),
-            event.which,
-            bytes,
-            webSocket
-        );
-
-        // $ stty -a
-        // speed 38400 baud; rows 15; columns 120; line = 0;
-        // intr = ^C; quit = ^\; erase = ^?; kill = ^U; eof = ^D; eol = M-^?; eol2 = M-^?; swtch = <undef>; start = ^Q; stop = ^S;
-        // susp = ^Z; rprnt = ^R; werase = ^W; lnext = ^V; discard = ^O; min = 1; time = 0;
-        // -
-        // if (event.which === 13) {
-        //     // enter // 13
-        //     value = "\n";
-        // } else if (event.which === 8) {
-        //     // backspace // 8
-        //     value = "\b";
-        // } else if (event.which === 9) {
-        //     // tab // 9
-        //     value = "\t";
-        // } else if (event.which === 37) {
-        //     // left // 27 91 68 \x1b[D
-        //     value = "\x1b[D";
-        // } else if (event.which === 38) {
-        //     // top // 27 91 65 \x1b[A
-        //     value = "\x1b[A";
-        // } else if (event.which === 39) {
-        //     // right // 27 91 67 \x1b[C
-        //     value = "\x1b[C";
-        // } else if (event.which === 40) {
-        //     // down // 27 91 66 \x1b[B
-        //     value = "\x1b[B";
-        // } else if (event.which === 46) {
-        //     // delete // 4
-        //     value = "\x7f";
-        // }
-        // ^C 3
-        // 37 left
-        // 38 up
-        // 39 right
-        // 40 down
-        // 46 delete
-
-        const body = JSON.stringify({
-            Bytes: bytes
-        });
-        event.target.value = "";
-        console.log("DEBUG body", body);
-        webSocket.send(body);
-    };
-
     private handleChangeOnSearchForm = (event, searchQuery) => {
         console.log("TODO handleChangeOnSearchForm");
     };
@@ -563,20 +448,11 @@ class IndexView extends React.Component<IIndexView> {
 
 function mapStateToProps(state, ownProps) {
     const { index } = ownProps;
-    const { Data, WebSocketMap, WebSocketDataMap } = data_utils.getServiceState(
-        state
-    );
-    let webSocket: any;
-    let webSocketData: any;
-    if (index.EnableWebSocket) {
-        if (WebSocketMap && WebSocketDataMap) {
-            webSocket = WebSocketMap[index.WebSocketKey];
-            webSocketData = WebSocketDataMap[index.WebSocketKey];
-            console.log("webSocketData", webSocketData);
-        }
-    }
+    const { Data } = data_utils.getServiceState(state);
+    console.log("DEBUG TODO indexView mapStateToProps");
+    const data = Data[index.DataKey];
 
-    return { data: Data, webSocket, webSocketData };
+    return { serviceData: Data, data };
 }
 
 function mapDispatchToProps(dispatch, ownProps) {
