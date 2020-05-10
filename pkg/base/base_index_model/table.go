@@ -1,19 +1,20 @@
 package base_index_model
 
 type Table struct {
-	Name           string
-	Kind           string
-	Route          string
-	Subname        string
-	DataKey        string
-	DataQueries    []string
-	DisablePaging  bool
-	DisableToolbar bool
-	SearchForm     SearchForm
-	Columns        []TableColumn
-	Actions        []Action
-	SelectActions  []Action
-	ColumnActions  []Action
+	Name             string
+	SubNameParamKeys []string
+	Kind             string
+	Route            string
+	Subname          string
+	DataKey          string
+	DataQueries      []string
+	DisablePaging    bool
+	DisableToolbar   bool
+	SearchForm       SearchForm
+	Columns          []TableColumn
+	Actions          []Action
+	SelectActions    []Action
+	ColumnActions    []Action
 }
 
 type SearchForm struct {

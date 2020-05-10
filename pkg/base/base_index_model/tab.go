@@ -2,6 +2,7 @@ package base_index_model
 
 type Tabs struct {
 	Name             string
+	SubNameParamKeys []string
 	Kind             string
 	Subname          string
 	Route            string

@@ -16,7 +16,7 @@ import Typography from "@material-ui/core/Typography";
 import Index from "../Index";
 
 import actions from "../../actions";
-// import logger from "../../lib/logger";
+import logger from "../../lib/logger";
 
 const styles = (theme: Theme): StyleRules =>
     createStyles({
@@ -37,6 +37,7 @@ interface ITabs extends WithStyles<typeof styles> {
 class Tabs extends React.Component<ITabs> {
     public render() {
         const { classes, index, indexPath } = this.props;
+        logger.info("Tabs.render", indexPath, index);
 
         const tabs: any[] = [];
         let tabContainer: any = null;
@@ -94,6 +95,13 @@ function mapStateToProps(state, ownProps) {
     if (index.Name === "Root") {
         indexPath = location.Path[0];
     } else {
+        console.log("tabs.render2", index, location.Path);
+        // check parent subpath
+        if (location.SubPath && index.parent) {
+            const parentIndexPath = location.SubPath[index.parent.Name];
+            console.log("tabs.render3", parentIndexPath);
+        }
+
         for (let i = 0, len = location.Path.length; i < len; i++) {
             if (index.Name === location.Path[i]) {
                 indexPath = location.Path[i + 1];

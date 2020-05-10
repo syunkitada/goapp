@@ -74,11 +74,14 @@ export default reducerWithInitialState(defaultState)
     .case(actions.service.serviceGetIndex, (state, payload) => {
         let { serviceName, projectName } = payload;
         if (!serviceName) {
+            // Called on init
             const params = data_utils.getServiceParams();
             serviceName = params.serviceName;
             projectName = params.projectName;
         } else {
+            // Called on click LeftSidebar link
             data_utils.setServiceParams(payload);
+            data_utils.setLocationData({});
         }
         const newState = Object.assign({}, state, {
             getIndexTctx: {
@@ -116,9 +119,9 @@ export default reducerWithInitialState(defaultState)
             }
         }
 
-        let data = data_utils.getLocationData();
-        if (data != null) {
-            newState.location = data;
+        let locationData = data_utils.getLocationData();
+        if (locationData.Path) {
+            newState.location = locationData;
             newState.initLocation = true;
         }
         logger.info("reducers", "serviceGetIndex: newState", newState);
@@ -138,16 +141,33 @@ export default reducerWithInitialState(defaultState)
     })
     .case(actions.service.serviceGetQueries, (state, payload) => {
         const rootIndex = state.rootIndex;
+        const subPathMap = state.location.SubPathMap;
         const index = data_utils.getIndex(rootIndex, payload.location.Path);
         const location = payload.location;
         location.DataQueries = index.DataQueries;
         location.WebSocketQuery = index.WebSocketQuery;
+
         const params = Object.assign(
             {},
             state.location.Params,
             location.Params
         );
         location.Params = params;
+
+        let subPathKey;
+        if (location.Path.length > 1) {
+            subPathKey = location.Path.slice(0, location.Path.length - 1).join(
+                "."
+            );
+        } else {
+            subPathKey = location.Path[0];
+        }
+        subPathMap[subPathKey] = {
+            Path: location.Path,
+            DataQueries: location.DataQueries
+        };
+        location.SubPathMap = subPathMap;
+
         data_utils.setLocationData(location);
         console.log("DEBUG TODO serviceGetQueries", location);
 
@@ -319,9 +339,17 @@ export default reducerWithInitialState(defaultState)
             }
             newState.dashboardIndex = dashboardIndex;
             newState.rootIndex = dashboardIndex.View;
+
             if (!state.initLocation) {
                 newState.location = dashboardIndex.DefaultRoute;
+                newState.location.SubPathMap = {};
+            } else {
+                newState.initLocation = false;
             }
+
+            const subPathKey = dashboardIndex.DefaultRoute.Path.join(".");
+            newState.location.SubPathMap[subPathKey] =
+                dashboardIndex.DefaultRoute;
         }
 
         const index = data_utils.getIndex(

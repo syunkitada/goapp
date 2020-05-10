@@ -93,7 +93,7 @@ function getLocationData() {
 
 function getLocationJson(key: string) {
     const searchParams = new URLSearchParams(window.location.search);
-    let data = null;
+    let data: any = {};
     if (searchParams.has(key)) {
         const value = searchParams.get(key);
         try {
