@@ -49,7 +49,7 @@ class Panels extends React.Component<IPanels> {
                     const paramKey = panel.SubNameParamKeys[j];
                     const paramData = locationParams[paramKey];
                     if (paramData) {
-                        if (j == 0) {
+                        if (j === 0) {
                             subName += ":";
                         }
                         subName += " " + paramKey + "=" + paramData;
@@ -86,7 +86,7 @@ class Panels extends React.Component<IPanels> {
         for (const key in location.SubPathMap) {
             const splitedKey = key.split(".");
             for (let i = 0, len = splitedKey.length; i < len; i++) {
-                if (splitedKey[i] == child.Name) {
+                if (splitedKey[i] === child.Name) {
                     newLocation = location.SubPathMap[key];
                 }
             }
@@ -139,7 +139,6 @@ function mapStateToProps(state, ownProps) {
     if (locationData.Params) {
         locationParams = locationData.Params;
     }
-    console.log("Panels", locationData);
 
     return {
         indexPath,

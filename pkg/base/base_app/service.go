@@ -39,6 +39,7 @@ func (app *BaseApp) SyncService(tctx *logger.TraceContext, syncRoot bool) (err e
 				Name: "UpdateService",
 				Data: base_spec.UpdateService{
 					Name:            service.Name,
+					Icon:            service.Icon,
 					Token:           token,
 					Scope:           service.Scope,
 					Endpoints:       app.appConf.Endpoints,

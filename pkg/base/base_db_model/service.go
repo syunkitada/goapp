@@ -5,6 +5,7 @@ import "github.com/jinzhu/gorm"
 type Service struct {
 	gorm.Model
 	Name            string `gorm:"not null;size:50;unique_index;"`
+	Icon            string `gorm:"not null;size:50;"`
 	Token           string
 	Scope           string `gorm:"not null;size:50;"`
 	Endpoints       string `gorm:"not null;size:1000;"`

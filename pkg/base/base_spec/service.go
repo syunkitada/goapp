@@ -7,6 +7,7 @@ import (
 
 type UpdateService struct {
 	Name            string
+	Icon            string
 	Token           string
 	Scope           string
 	SyncRootCluster bool
@@ -27,6 +28,7 @@ type GetServicesData struct {
 
 type Service struct {
 	Name            string
+	Icon            string
 	Token           string
 	Scope           string
 	Endpoints       string

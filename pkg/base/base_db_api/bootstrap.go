@@ -77,15 +77,18 @@ func (api *Api) Bootstrap(tctx *logger.TraceContext, isRecreate bool) (err error
 
 	if err = api.CreateOrUpdateService(tctx, &base_spec.UpdateService{
 		Name:            "Auth",
+		Icon:            "Person",
 		Scope:           "user",
 		SyncRootCluster: false,
 		ProjectRoles:    projectRoles,
 		Endpoints:       []string{},
 		QueryMap: map[string]base_spec_model.QueryModel{
-			"Login":          base_spec_model.QueryModel{},
-			"LoginWithToken": base_spec_model.QueryModel{},
-			"Logout":         base_spec_model.QueryModel{},
-			"UpdateService":  base_spec_model.QueryModel{},
+			"Login":                    base_spec_model.QueryModel{},
+			"LoginWithToken":           base_spec_model.QueryModel{},
+			"Logout":                   base_spec_model.QueryModel{},
+			"UpdateService":            base_spec_model.QueryModel{},
+			"GetServiceIndex":          base_spec_model.QueryModel{},
+			"GetServiceDashboardIndex": base_spec_model.QueryModel{},
 		},
 	}); err != nil {
 		return err
@@ -102,6 +105,7 @@ func (api *Api) Bootstrap(tctx *logger.TraceContext, isRecreate bool) (err error
 
 		if err = api.CreateOrUpdateService(tctx, &base_spec.UpdateService{
 			Name:            service.Name,
+			Icon:            service.Icon,
 			Scope:           service.Scope,
 			SyncRootCluster: service.SyncRootCluster,
 			ProjectRoles:    service.ProjectRoles,

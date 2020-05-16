@@ -110,7 +110,7 @@ class LeftSidebar extends React.Component<ILeftSidebar> {
                         )}
                     >
                         <ListItemIcon style={{ minWidth: 30 }}>
-                            <Icon name={tmpServiceName} />
+                            <Icon name={serviceMap[tmpServiceName].Icon} />
                         </ListItemIcon>
                         <ListItemText primary={tmpServiceName} />
                     </ListItem>
@@ -133,9 +133,10 @@ class LeftSidebar extends React.Component<ILeftSidebar> {
                             button={true}
                             dense={true}
                             className={classes.nested}
-                            onClick={event =>
-                                this.handleProjectClick(event, tmpProjectName)
-                            }
+                            onClick={this.handleClickProject.bind(
+                                this,
+                                tmpProjectName
+                            )}
                         >
                             <ListItemIcon style={{ minWidth: 30 }}>
                                 <DashboardIcon />
@@ -157,6 +158,7 @@ class LeftSidebar extends React.Component<ILeftSidebar> {
                             button={true}
                             dense={true}
                             selected={serviceName === "/Service/Home"}
+                            onClick={this.handleClickHomeService}
                         >
                             <ListItemIcon style={{ minWidth: 30 }}>
                                 <HomeIcon />
@@ -167,7 +169,7 @@ class LeftSidebar extends React.Component<ILeftSidebar> {
                         <ListItem
                             button={true}
                             dense={true}
-                            onClick={this.handleOpenProjectsClick}
+                            onClick={this.handleClickOpenProjects}
                         >
                             <ListItemIcon style={{ minWidth: 30 }}>
                                 <DashboardIcon />
@@ -195,11 +197,16 @@ class LeftSidebar extends React.Component<ILeftSidebar> {
         }
     }
 
-    private handleOpenProjectsClick = () => {
+    private handleClickOpenProjects = () => {
         this.setState(state => ({ openProjects: !this.state.openProjects }));
     };
 
-    private handleProjectClick = (event, path) => {
+    private handleClickHomeService = event => {
+        this.props.dispatchServiceGetIndex("", "Home");
+    };
+
+    private handleClickProject = (projectName, event) => {
+        this.props.dispatchServiceGetIndex(projectName, "HomeProject");
         this.setState({ openProjects: false });
     };
 

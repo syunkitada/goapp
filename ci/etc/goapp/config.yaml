@@ -28,9 +28,11 @@ authproxy:
         - { name: "tenant" }
       defaultServices:
         - name: "Home"
+          icon: "Home"
           scope: "user"
           projectRoles: ["admin", "tenant"]
         - name: "HomeProject"
+          icon: "Home"
           scope: "project"
           projectRoles: ["admin", "tenant"]
   controller:
@@ -72,22 +74,27 @@ resource:
         - { name: "tenant" }
       defaultServices:
         - name: "ResourcePhysicalAdmin"
+          icon: "Cloud"
           scope: "project"
           projectRoles: ["admin", "service"]
           syncRootCluster: true
         - name: "ResourceVirtualAdmin"
+          icon: "CloudQueue"
           scope: "project"
           projectRoles: ["admin", "service"]
           syncRootCluster: true
         - name: "ResourcePhysical"
+          icon: "Cloud"
           scope: "project"
           projectRoles: ["tenant"]
           syncRootCluster: true
         - name: "ResourceVirtual"
+          icon: "CloudQueue"
           scope: "project"
           projectRoles: ["tenant"]
           syncRootCluster: true
         - name: "ResourceMonitor"
+          icon: "CloudCircle"
           scope: "project"
           projectRoles: ["admin", "tenant"]
           syncRootCluster: true

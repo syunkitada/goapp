@@ -37,6 +37,7 @@ class Service extends React.Component<IService> {
         } else {
             state = service.serviceMap[serviceName];
         }
+
         if (!state) {
             return (
                 <Paper>

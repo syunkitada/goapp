@@ -1,6 +1,8 @@
 package resolver
 
 import (
+	"fmt"
+
 	"github.com/syunkitada/goapp/pkg/base/base_const"
 	"github.com/syunkitada/goapp/pkg/base/base_index_model"
 	"github.com/syunkitada/goapp/pkg/base/base_spec"
@@ -29,25 +31,74 @@ func (resolver *Resolver) GetServiceIndex(tctx *logger.TraceContext, input *base
 }
 
 func (resolver *Resolver) GetServiceDashboardIndex(tctx *logger.TraceContext, input *base_spec.GetServiceDashboardIndex, user *base_spec.UserAuthority) (data *base_spec.GetServiceDashboardIndexData, code uint8, err error) {
-	data = &base_spec.GetServiceDashboardIndexData{
-		Index: base_index_model.DashboardIndex{
-			View: base_index_model.Panels{
-				Name: "Root",
-				Kind: "Panels",
-				Panels: []interface{}{
-					map[string]interface{}{
-						"Name":  "Hoge",
-						"Kind":  "Msg",
-						"Route": "",
-					},
-					map[string]interface{}{
-						"Name":  "Piyo",
-						"Kind":  "Msg",
-						"Route": "/Piyo",
+	fmt.Println("DEBUG GetServiceDashboardIndex", input.Name)
+	switch input.Name {
+	case "Auth":
+		data = &base_spec.GetServiceDashboardIndexData{
+			Index: base_index_model.DashboardIndex{
+				DefaultRoute: map[string]interface{}{
+					"Path": []string{"Home"},
+				},
+				View: base_index_model.Panels{
+					Name: "Root",
+					Kind: "Panels",
+					Children: []interface{}{
+						map[string]interface{}{
+							"Name": "Home",
+							"Kind": "Msg",
+						},
+						map[string]interface{}{
+							"Name": "Piyo",
+							"Kind": "Msg",
+						},
 					},
 				},
 			},
-		},
+		}
+	case "Home":
+		data = &base_spec.GetServiceDashboardIndexData{
+			Index: base_index_model.DashboardIndex{
+				DefaultRoute: map[string]interface{}{
+					"Path": []string{"Home"},
+				},
+				View: base_index_model.Panels{
+					Name: "Root",
+					Kind: "Panels",
+					Children: []interface{}{
+						map[string]interface{}{
+							"Name": "Home",
+							"Kind": "Msg",
+						},
+						map[string]interface{}{
+							"Name": "Piyo",
+							"Kind": "Msg",
+						},
+					},
+				},
+			},
+		}
+	case "HomeProject":
+		data = &base_spec.GetServiceDashboardIndexData{
+			Index: base_index_model.DashboardIndex{
+				DefaultRoute: map[string]interface{}{
+					"Path": []string{"Home"},
+				},
+				View: base_index_model.Panels{
+					Name: "Root",
+					Kind: "Panels",
+					Children: []interface{}{
+						map[string]interface{}{
+							"Name": "Home",
+							"Kind": "Msg",
+						},
+						map[string]interface{}{
+							"Name": "Piyo",
+							"Kind": "Msg",
+						},
+					},
+				},
+			},
+		}
 	}
 
 	return

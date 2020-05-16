@@ -93,6 +93,7 @@ type AuthProjectRole struct {
 
 type AuthService struct {
 	Name            string
+	Icon            string
 	Scope           string
 	SyncRootCluster bool
 	ProjectRoles    []string

@@ -396,6 +396,7 @@ export default reducerWithInitialState(defaultState)
             }
         } else {
             // Set Data
+            newState.serviceMap[service].isFetching = false;
             if (newState.serviceMap[service].Data) {
                 for (const key of Object.keys(data)) {
                     newState.serviceMap[service].Data[key] = data[key];

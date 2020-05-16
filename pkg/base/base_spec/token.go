@@ -29,7 +29,7 @@ type LoginWithTokenData struct {
 type UserAuthority struct {
 	Name                 string
 	ProjectName          string
-	ServiceMap           map[string]uint
+	ServiceMap           map[string]ServiceData
 	ProjectServiceMap    map[string]ProjectService
 	ActionProjectService ProjectService
 }
@@ -40,5 +40,10 @@ type ProjectService struct {
 	ProjectName     string
 	ProjectRoleID   uint
 	ProjectRoleName string
-	ServiceMap      map[string]uint
+	ServiceMap      map[string]ServiceData
+}
+
+type ServiceData struct {
+	Id   uint
+	Icon string
 }
