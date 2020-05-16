@@ -330,10 +330,19 @@ export default reducerWithInitialState(defaultState)
             }
         }
 
+        const service = state.serviceName;
+        const project = state.projectName;
         let dashboardIndex: any = null;
         if (isGetIndex) {
-            dashboardIndex =
-                payload.result.ResultMap.GetServiceDashboardIndex.Data.Index;
+            if (project) {
+                dashboardIndex =
+                    payload.result.ResultMap.GetProjectServiceDashboardIndex
+                        .Data.Index;
+            } else {
+                dashboardIndex =
+                    payload.result.ResultMap.GetServiceDashboardIndex.Data
+                        .Index;
+            }
             if (dashboardIndex.SyncDelay && dashboardIndex.SyncDelay > 1000) {
                 newState.syncDelay = dashboardIndex.SyncDelay;
             }
@@ -358,8 +367,6 @@ export default reducerWithInitialState(defaultState)
         );
 
         const { websocket } = payload;
-        const service = state.serviceName;
-        const project = state.projectName;
         // set data, and websocket
         if (project) {
             newState.projectServiceMap[project][service].isFetching = false;

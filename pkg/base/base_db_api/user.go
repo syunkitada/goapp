@@ -72,6 +72,9 @@ func (api *Api) GetUserAuthority(tctx *logger.TraceContext, username string) (*b
 	serviceMap := map[string]base_spec.ServiceData{}
 	projectServiceMap := map[string]base_spec.ProjectService{}
 	for _, user := range users {
+		if user.ServiceName == "Auth" {
+			continue
+		}
 		serviceData := base_spec.ServiceData{
 			Id:   user.ServiceID,
 			Icon: user.ServiceIcon,

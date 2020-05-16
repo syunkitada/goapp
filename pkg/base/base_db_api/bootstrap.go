@@ -83,12 +83,10 @@ func (api *Api) Bootstrap(tctx *logger.TraceContext, isRecreate bool) (err error
 		ProjectRoles:    projectRoles,
 		Endpoints:       []string{},
 		QueryMap: map[string]base_spec_model.QueryModel{
-			"Login":                    base_spec_model.QueryModel{},
-			"LoginWithToken":           base_spec_model.QueryModel{},
-			"Logout":                   base_spec_model.QueryModel{},
-			"UpdateService":            base_spec_model.QueryModel{},
-			"GetServiceIndex":          base_spec_model.QueryModel{},
-			"GetServiceDashboardIndex": base_spec_model.QueryModel{},
+			"Login":          base_spec_model.QueryModel{},
+			"LoginWithToken": base_spec_model.QueryModel{},
+			"Logout":         base_spec_model.QueryModel{},
+			"UpdateService":  base_spec_model.QueryModel{},
 		},
 	}); err != nil {
 		return err
@@ -100,8 +98,9 @@ func (api *Api) Bootstrap(tctx *logger.TraceContext, isRecreate bool) (err error
 			fmt.Printf("Invalid service: querymap not found: %s\n", service.Name)
 			continue
 		}
-		queryMap["GetServiceIndex"] = base_spec_model.QueryModel{}
-		queryMap["GetServiceDashboardIndex"] = base_spec_model.QueryModel{}
+		queryMap["GetServiceIndex"] = base_spec_model.QueryModel{RequiredAuth: true}
+		queryMap["GetServiceDashboardIndex"] = base_spec_model.QueryModel{RequiredAuth: true}
+		queryMap["GetProjectServiceDashboardIndex"] = base_spec_model.QueryModel{RequiredAuth: true, RequiredProject: true}
 
 		if err = api.CreateOrUpdateService(tctx, &base_spec.UpdateService{
 			Name:            service.Name,

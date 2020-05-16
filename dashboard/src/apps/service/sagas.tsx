@@ -32,19 +32,35 @@ function* post(action) {
 
     switch (action.type) {
         case "SERVICE_GET_INDEX":
-            payload = {
-                projectName: serviceState.projectName,
-                queries: [
-                    {
-                        Data: JSON.stringify({
-                            Name: serviceState.serviceName
-                        }),
-                        Name: "GetServiceDashboardIndex"
-                    }
-                ],
-                serviceName: serviceState.serviceName,
-                stateKey: "index"
-            };
+            if (serviceState.projectName) {
+                payload = {
+                    projectName: serviceState.projectName,
+                    queries: [
+                        {
+                            Data: JSON.stringify({
+                                Name: serviceState.serviceName
+                            }),
+                            Name: "GetProjectServiceDashboardIndex"
+                        }
+                    ],
+                    serviceName: serviceState.serviceName,
+                    stateKey: "index"
+                };
+            } else {
+                payload = {
+                    projectName: serviceState.projectName,
+                    queries: [
+                        {
+                            Data: JSON.stringify({
+                                Name: serviceState.serviceName
+                            }),
+                            Name: "GetServiceDashboardIndex"
+                        }
+                    ],
+                    serviceName: serviceState.serviceName,
+                    stateKey: "index"
+                };
+            }
             if (serviceState.initLocation && location.DataQueries) {
                 const queries: any[] = [];
                 const tmpData = Object.assign(

@@ -24,6 +24,7 @@ type QueryResolver interface {
 	UpdateService(tctx *logger.TraceContext, input *base_spec.UpdateService) (*base_spec.UpdateServiceData, uint8, error)
 	GetServiceIndex(tctx *logger.TraceContext, input *base_spec.GetServiceIndex, user *base_spec.UserAuthority) (*base_spec.GetServiceIndexData, uint8, error)
 	GetServiceDashboardIndex(tctx *logger.TraceContext, input *base_spec.GetServiceDashboardIndex, user *base_spec.UserAuthority) (*base_spec.GetServiceDashboardIndexData, uint8, error)
+	GetProjectServiceDashboardIndex(tctx *logger.TraceContext, input *base_spec.GetServiceDashboardIndex, user *base_spec.UserAuthority) (*base_spec.GetServiceDashboardIndexData, uint8, error)
 	GetAllUsers(tctx *logger.TraceContext, input *base_spec.GetAllUsers, user *base_spec.UserAuthority) (*base_spec.GetAllUsersData, uint8, error)
 	GetUser(tctx *logger.TraceContext, input *base_spec.GetUser, user *base_spec.UserAuthority) (*base_spec.GetUserData, uint8, error)
 	GetUsers(tctx *logger.TraceContext, input *base_spec.GetUsers, user *base_spec.UserAuthority) (*base_spec.GetUsersData, uint8, error)
@@ -167,6 +168,28 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			}
 
 			data, code, tmpErr := handler.resolver.GetServiceDashboardIndex(tctx, &input, user)
+			if tmpErr != nil {
+				if code == 0 {
+					code = base_const.CodeServerInternalError
+				}
+				rep.ResultMap["GetServiceDashboardIndex"] = base_protocol.Result{
+					Code:  code,
+					Error: tmpErr.Error(),
+				}
+				break
+			}
+			rep.ResultMap[query.Name] = base_protocol.Result{
+				Code: code,
+				Data: data,
+			}
+		case "GetProjectServiceDashboardIndex":
+			var input base_spec.GetServiceDashboardIndex
+			err = json.Unmarshal([]byte(query.Data), &input)
+			if err != nil {
+				return err
+			}
+
+			data, code, tmpErr := handler.resolver.GetProjectServiceDashboardIndex(tctx, &input, user)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
