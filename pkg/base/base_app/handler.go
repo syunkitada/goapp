@@ -35,15 +35,15 @@ func (app *BaseApp) ExecQuery(w http.ResponseWriter, r *http.Request, isProxy bo
 		}
 	}()
 
-	w.Header().Set("Access-Control-Allow-Origin", "http://192.168.10.121:3000") // TODO FIXME
-	w.Header().Set("Access-Control-Allow-Credentials", "true")                  // TODO FIXME
+	w.Header().Set("Access-Control-Allow-Origin", app.accessControlAllowOrigin)
+	w.Header().Set("Access-Control-Allow-Credentials", app.accessControlAllowCredential)
 
 	bufbody := new(bytes.Buffer)
 	if _, err = bufbody.ReadFrom(r.Body); err != nil {
 		return
 	}
 	rawReq := bufbody.Bytes()
-	service, userAuthority, req, rep, err := app.Start(tctx, r, rawReq, isProxy)
+	service, req, rep, err := app.Start(tctx, r, rawReq, isProxy)
 
 	defer func() { app.End(tctx, startTime, err) }()
 	if err != nil {
@@ -62,16 +62,23 @@ func (app *BaseApp) ExecQuery(w http.ResponseWriter, r *http.Request, isProxy bo
 
 	statusCode := 0
 	var repBytes []byte
+	var proxyReq []byte
 	for _, endpoint := range service.Endpoints {
 		if endpoint == "" {
-			if err = app.queryHandler.Exec(tctx, userAuthority, r, w, req, rep); err != nil {
+			if err = app.queryHandler.Exec(tctx, r, w, req, rep); err != nil {
 				break
 			}
 			repBytes, err = json.Marshal(&rep)
 			break
 		}
 
-		if repBytes, statusCode, err = app.Proxy(tctx, service, endpoint, rawReq); err != nil {
+		if len(proxyReq) == 0 {
+			if proxyReq, err = json.Marshal(req); err != nil {
+				return
+			}
+		}
+
+		if repBytes, statusCode, err = app.Proxy(tctx, service, endpoint, proxyReq); err != nil {
 			fmt.Println("DEBUG proxy failed", err, req.Queries)
 			continue
 		} else {
@@ -116,8 +123,8 @@ func (app *BaseApp) Ws(w http.ResponseWriter, r *http.Request, isProxy bool) {
 		}
 	}()
 
-	w.Header().Set("Access-Control-Allow-Origin", "http://192.168.10.121:3000") // TODO FIXME
-	w.Header().Set("Access-Control-Allow-Credentials", "true")                  // TODO FIXME
+	w.Header().Set("Access-Control-Allow-Origin", app.accessControlAllowOrigin)
+	w.Header().Set("Access-Control-Allow-Credentials", app.accessControlAllowCredential)
 
 	defer func() { app.End(tctx, startTime, err) }()
 
@@ -150,7 +157,6 @@ func (app *BaseApp) Ws(w http.ResponseWriter, r *http.Request, isProxy bool) {
 	}()
 
 	var service *base_spec_model.ServiceRouter
-	var userAuthority *base_spec.UserAuthority
 	var repBytes []byte
 
 	// 初回のQueryにより認証を行う
@@ -163,7 +169,7 @@ func (app *BaseApp) Ws(w http.ResponseWriter, r *http.Request, isProxy bool) {
 	var req *base_protocol.Request
 	var res *base_protocol.Response
 	var bytes []byte
-	service, userAuthority, req, res, err = app.Start(tctx, r, rawReq, isProxy)
+	service, req, res, err = app.Start(tctx, r, rawReq, isProxy)
 	if err != nil {
 		bytes, err = json.Marshal(&res)
 		if err != nil {
@@ -174,9 +180,10 @@ func (app *BaseApp) Ws(w http.ResponseWriter, r *http.Request, isProxy bool) {
 		return
 	}
 
+	// TODO loadbalancing service endpoints
 	for _, endpoint := range service.Endpoints {
 		if endpoint == "" {
-			if err = app.queryHandler.ExecWs(tctx, userAuthority, r, w, req, res, nil); err != nil {
+			if err = app.queryHandler.ExecWs(tctx, r, w, req, res, nil); err != nil {
 				bytes, err = json.Marshal(&res)
 				if err != nil {
 					logger.Error(tctx, err, "Failed json.Marshal")
@@ -245,7 +252,7 @@ func (app *BaseApp) Ws(w http.ResponseWriter, r *http.Request, isProxy bool) {
 				isInitProxy = false
 			}
 
-			fmt.Println("Proxy: Waining Message from client")
+			fmt.Println("Proxy: Waiting Message from client")
 			mt, message, tmpErr := wsConn.ReadMessage()
 			fmt.Println("Proxy: Recieved Message", string(message))
 			if tmpErr != nil {
@@ -260,7 +267,7 @@ func (app *BaseApp) Ws(w http.ResponseWriter, r *http.Request, isProxy bool) {
 			continue
 		}
 	} else { // App handle ws
-		if err = app.queryHandler.ExecWs(tctx, userAuthority, r, w, req, res, wsConn); err != nil {
+		if err = app.queryHandler.ExecWs(tctx, r, w, req, res, wsConn); err != nil {
 			return
 		}
 	}
@@ -285,7 +292,7 @@ func (app *BaseApp) NewHandler() http.Handler {
 }
 
 func (app *BaseApp) Start(tctx *logger.TraceContext, httpReq *http.Request, rawReq []byte, isProxy bool) (service *base_spec_model.ServiceRouter,
-	userAuthority *base_spec.UserAuthority, req *base_protocol.Request, res *base_protocol.Response, err error) {
+	req *base_protocol.Request, res *base_protocol.Response, err error) {
 	res = &base_protocol.Response{TraceId: tctx.GetTraceId(), ResultMap: map[string]base_protocol.Result{}}
 
 	req = &base_protocol.Request{}
@@ -325,10 +332,14 @@ func (app *BaseApp) Start(tctx *logger.TraceContext, httpReq *http.Request, rawR
 		}
 	}
 	var tokenErr error
+	var userAuthority *base_spec.UserAuthority
 	if token != "" {
 		userAuthority, tokenErr = app.dbApi.LoginWithToken(tctx, token)
 		if tokenErr != nil {
 			logger.Warningf(tctx, "Failed LoginWithToken: %v", tokenErr)
+		}
+		if !isProxy {
+			req.UserAuthority = userAuthority
 		}
 	}
 

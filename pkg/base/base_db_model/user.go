@@ -18,5 +18,6 @@ type CustomUser struct {
 	ProjectRoleName string
 	ServiceID       uint
 	ServiceName     string
+	ServiceIcon     string
 	ServiceScope    string
 }

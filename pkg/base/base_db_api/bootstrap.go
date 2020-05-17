@@ -77,6 +77,7 @@ func (api *Api) Bootstrap(tctx *logger.TraceContext, isRecreate bool) (err error
 
 	if err = api.CreateOrUpdateService(tctx, &base_spec.UpdateService{
 		Name:            "Auth",
+		Icon:            "Person",
 		Scope:           "user",
 		SyncRootCluster: false,
 		ProjectRoles:    projectRoles,
@@ -97,11 +98,13 @@ func (api *Api) Bootstrap(tctx *logger.TraceContext, isRecreate bool) (err error
 			fmt.Printf("Invalid service: querymap not found: %s\n", service.Name)
 			continue
 		}
-		queryMap["GetServiceIndex"] = base_spec_model.QueryModel{}
-		queryMap["GetServiceDashboardIndex"] = base_spec_model.QueryModel{}
+		queryMap["GetServiceIndex"] = base_spec_model.QueryModel{RequiredAuth: true}
+		queryMap["GetServiceDashboardIndex"] = base_spec_model.QueryModel{RequiredAuth: true}
+		queryMap["GetProjectServiceDashboardIndex"] = base_spec_model.QueryModel{RequiredAuth: true, RequiredProject: true}
 
 		if err = api.CreateOrUpdateService(tctx, &base_spec.UpdateService{
 			Name:            service.Name,
+			Icon:            service.Icon,
 			Scope:           service.Scope,
 			SyncRootCluster: service.SyncRootCluster,
 			ProjectRoles:    service.ProjectRoles,

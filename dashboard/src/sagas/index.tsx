@@ -7,14 +7,15 @@ import service from "../apps/service/sagas";
 // function*は、Generatorオブジェクトを返すジェネレータ関数
 // ジェネレーター関数を呼び出しても関数は直ぐには実行されません。代わりに、関数のためのiterator オブジェクトが返す
 export default function* rootSaga() {
-  yield all([
-    auth.watchLogin(),
-    auth.watchLoginWithToken(),
-    auth.watchLogout(),
-    service.watchGetIndex(),
-    service.watchGetQueries(),
-    service.watchSubmitQueries(),
-    service.watchStartBackgroundSync(),
-    service.watchStartWebSocket()
-  ]);
+    yield all([
+        auth.watchLogin(),
+        auth.watchLoginSuccess(),
+        auth.watchLoginWithToken(),
+        auth.watchLogout(),
+        service.watchGetIndex(),
+        service.watchGetQueries(),
+        service.watchSubmitQueries(),
+        service.watchStartBackgroundSync(),
+        service.watchStartWebSocket()
+    ]);
 }

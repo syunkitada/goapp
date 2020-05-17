@@ -57,7 +57,7 @@ func (api *Api) GetUserAuthority(tctx *logger.TraceContext, username string) (*b
 		"r.id as role_id, r.name as role_name, " +
 		"p.name as project_name, " +
 		"pr.id as project_role_id, pr.name as project_role_name, " +
-		"s.id as service_id, s.name as service_name, s.scope as service_scope " +
+		"s.id as service_id, s.name as service_name, s.icon as service_icon, s.scope as service_scope " +
 		"FROM users as u " +
 		"INNER JOIN user_roles as ur ON u.id = ur.user_id " +
 		"INNER JOIN roles as r ON ur.role_id = r.id " +
@@ -69,15 +69,22 @@ func (api *Api) GetUserAuthority(tctx *logger.TraceContext, username string) (*b
 		return nil, err
 	}
 
-	serviceMap := map[string]uint{}
+	serviceMap := map[string]base_spec.ServiceData{}
 	projectServiceMap := map[string]base_spec.ProjectService{}
 	for _, user := range users {
+		if user.ServiceName == "Auth" {
+			continue
+		}
+		serviceData := base_spec.ServiceData{
+			Id:   user.ServiceID,
+			Icon: user.ServiceIcon,
+		}
 		switch user.ServiceScope {
 		case "user":
-			serviceMap[user.ServiceName] = user.ServiceID
+			serviceMap[user.ServiceName] = serviceData
 		case "project":
 			if projectService, ok := projectServiceMap[user.ProjectName]; ok {
-				projectService.ServiceMap[user.ServiceName] = user.ServiceID
+				projectService.ServiceMap[user.ServiceName] = serviceData
 			} else {
 				projectService := base_spec.ProjectService{
 					RoleID:          user.RoleID,
@@ -85,9 +92,9 @@ func (api *Api) GetUserAuthority(tctx *logger.TraceContext, username string) (*b
 					ProjectName:     user.ProjectName,
 					ProjectRoleID:   user.ProjectRoleID,
 					ProjectRoleName: user.ProjectRoleName,
-					ServiceMap:      map[string]uint{},
+					ServiceMap:      map[string]base_spec.ServiceData{},
 				}
-				projectService.ServiceMap[user.ServiceName] = user.ServiceID
+				projectService.ServiceMap[user.ServiceName] = serviceData
 				projectServiceMap[user.ProjectName] = projectService
 			}
 		}

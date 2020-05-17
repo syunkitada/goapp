@@ -1,19 +1,20 @@
 package base_index_model
 
 type Table struct {
-	Name           string
-	Kind           string
-	Route          string
-	Subname        string
-	DataKey        string
-	DataQueries    []string
-	DisablePaging  bool
-	DisableToolbar bool
-	SearchForm     SearchForm
-	Columns        []TableColumn
-	Actions        []Action
-	SelectActions  []Action
-	ColumnActions  []Action
+	Name             string
+	SubNameParamKeys []string
+	Kind             string
+	Route            string
+	Subname          string
+	DataKey          string
+	DataQueries      []string
+	DisablePaging    bool
+	DisableToolbar   bool
+	SearchForm       SearchForm
+	Columns          []TableColumn
+	Actions          []Action
+	SelectActions    []Action
+	ColumnActions    []Action
 }
 
 type SearchForm struct {
@@ -39,7 +40,9 @@ type TableColumn struct {
 	LinkParam       string
 	LinkKey         string
 	LinkSync        bool
-	LinkDataQueries []string
+	LinkDataQueries []string // deprecated
+	LinkPath        []string
+	DataQueries     []string
 	RowColoringMap  map[string]string
 	FilterValues    []map[string]string
 	Sort            string
@@ -70,5 +73,7 @@ type Field struct {
 	RegExpMsg string
 	Options   []string
 	DataKey   string
+	ListKey   string
 	Updatable bool
+	Fields    []Field
 }

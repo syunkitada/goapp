@@ -36,7 +36,7 @@ func NewQueryHandler(baseConf *base_config.Config, appConf *base_config.AppConfi
 	}
 }
 
-func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.UserAuthority, httpReq *http.Request, rw http.ResponseWriter,
+func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Request, rw http.ResponseWriter,
 	req *base_protocol.Request, rep *base_protocol.Response) (err error) {
 	for _, query := range req.Queries {
 		switch query.Name {
@@ -49,7 +49,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 	return nil
 }
 
-func (handler *QueryHandler) ExecWs(tctx *logger.TraceContext, user *base_spec.UserAuthority, httpReq *http.Request, rw http.ResponseWriter,
+func (handler *QueryHandler) ExecWs(tctx *logger.TraceContext, httpReq *http.Request, rw http.ResponseWriter,
 	req *base_protocol.Request, rep *base_protocol.Response, conn *websocket.Conn) (err error) {
 	for _, query := range req.Queries {
 		switch query.Name {
@@ -59,7 +59,7 @@ func (handler *QueryHandler) ExecWs(tctx *logger.TraceContext, user *base_spec.U
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.GetComputeConsole(tctx, &input, user, conn)
+			data, code, tmpErr := handler.resolver.GetComputeConsole(tctx, &input, req.UserAuthority, conn)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError

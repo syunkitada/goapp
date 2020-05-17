@@ -27,24 +27,25 @@ type Config struct {
 }
 
 type AppConfig struct {
-	Name                        string   `validate:"required"`
-	ClientTimeout               int      `validate:"required"`
-	ShutdownTimeout             int      `validate:"required"`
-	LoopInterval                int      `validate:"required"`
-	Listen                      string   `validate:"required"`
-	HttpListen                  string   `validate:"required"`
-	Endpoints                   []string `validate:"required"`
-	CertFile                    string   `validate:"required"`
-	KeyFile                     string   `validate:"required"`
-	CaFile                      string   `validate:"required"`
-	AccessControlAllowOrigin    string   `validate:"required"`
-	ServerHostOverride          string   `validate:"required"`
-	Targets                     []string `validate:"required"`
-	Labels                      []string `validate:"required"`
-	NodeServiceDownTimeDuration int      `validate:"required"`
-	Database                    DatabaseConfig
-	Auth                        AuthConfig
-	RootClient                  ClientConfig
+	Name                          string   `validate:"required"`
+	ClientTimeout                 int      `validate:"required"`
+	ShutdownTimeout               int      `validate:"required"`
+	LoopInterval                  int      `validate:"required"`
+	Listen                        string   `validate:"required"`
+	HttpListen                    string   `validate:"required"`
+	Endpoints                     []string `validate:"required"`
+	CertFile                      string   `validate:"required"`
+	KeyFile                       string   `validate:"required"`
+	CaFile                        string   `validate:"required"`
+	AccessControlAllowOrigin      string   `validate:"required"`
+	AccessControlAllowCredentials string   `validate:"required"`
+	ServerHostOverride            string   `validate:"required"`
+	Targets                       []string `validate:"required"`
+	Labels                        []string `validate:"required"`
+	NodeServiceDownTimeDuration   int      `validate:"required"`
+	Database                      DatabaseConfig
+	Auth                          AuthConfig
+	RootClient                    ClientConfig
 }
 
 type ClientConfig struct {
@@ -93,6 +94,7 @@ type AuthProjectRole struct {
 
 type AuthService struct {
 	Name            string
+	Icon            string
 	Scope           string
 	SyncRootCluster bool
 	ProjectRoles    []string

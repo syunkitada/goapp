@@ -5,6 +5,7 @@ LOG_DIR=~/.goapp/logs
 
 declare -a DOCKER_SERVICES=("mysql" "influxdb")
 declare -a AUTHPROXY_SERVICES=("authproxy-api")
+declare -a HOME_SERVICES=("home-api" "home-controller")
 declare -a RESOURCE_SERVICES=("resource-api" "resource-controller" "resource-cluster-api" "resource-cluster-controller" "resource-cluster-agent")
 
 start_docker_services() {
@@ -45,6 +46,16 @@ start_authproxy_services() {
 }
 stop_authproxy_services() {
     stop_service "authproxy"
+}
+
+start_home_services() {
+    for service in ${HOME_SERVICES[@]}
+    do
+        start_service $service
+    done
+}
+stop_home_services() {
+    stop_service "home"
 }
 
 start_resource_services() {

@@ -29,26 +29,12 @@ func (resolver *Resolver) GetServiceIndex(tctx *logger.TraceContext, input *base
 }
 
 func (resolver *Resolver) GetServiceDashboardIndex(tctx *logger.TraceContext, input *base_spec.GetServiceDashboardIndex, user *base_spec.UserAuthority) (data *base_spec.GetServiceDashboardIndexData, code uint8, err error) {
-	data = &base_spec.GetServiceDashboardIndexData{
-		Index: base_index_model.DashboardIndex{
-			View: base_index_model.Panels{
-				Name: "Root",
-				Kind: "RoutePanels",
-				Panels: []interface{}{
-					map[string]interface{}{
-						"Name":  "Hoge",
-						"Kind":  "Msg",
-						"Route": "",
-					},
-					map[string]interface{}{
-						"Name":  "Piyo",
-						"Kind":  "Msg",
-						"Route": "/Piyo",
-					},
-				},
-			},
-		},
-	}
+	code = base_const.CodeClientNotFound
+	return
+}
+
+func (resolver *Resolver) GetProjectServiceDashboardIndex(tctx *logger.TraceContext, input *base_spec.GetServiceDashboardIndex, user *base_spec.UserAuthority) (data *base_spec.GetServiceDashboardIndexData, code uint8, err error) {
+	code = base_const.CodeClientNotFound
 
 	return
 }

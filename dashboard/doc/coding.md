@@ -1,12 +1,11 @@
 # Coding
 
+## Export の方式
 
-## Exportの方式
-* https://developer.mozilla.org/ja/docs/Web/JavaScript/Reference/Statements/export
-* モジュールのexport方法はnamed exportとdefault exportの2種類がある
-* 基本的には、default exportを推奨する
-* また、import時は、モジュール名をそのまま利用する
-
+- https://developer.mozilla.org/ja/docs/Web/JavaScript/Reference/Statements/export
+- モジュールの export 方法は named export と default export の 2 種類がある
+- 基本的には、default export を推奨する
+- また、import 時は、モジュール名をそのまま利用する
 
 #### Export Example
 
@@ -53,7 +52,6 @@ it('sortStr', () => {
   ...
 }
 ```
-
 
 #### Import Example
 

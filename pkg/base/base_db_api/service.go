@@ -28,6 +28,7 @@ func (api *Api) CreateOrUpdateService(tctx *logger.TraceContext, input *base_spe
 
 			service = base_db_model.Service{
 				Name:            input.Name,
+				Icon:            input.Icon,
 				Token:           input.Token,
 				Scope:           input.Scope,
 				SyncRootCluster: input.SyncRootCluster,
@@ -40,6 +41,7 @@ func (api *Api) CreateOrUpdateService(tctx *logger.TraceContext, input *base_spe
 				return
 			}
 		} else {
+			service.Icon = input.Icon
 			service.Token = input.Token
 			service.Scope = input.Scope
 			service.SyncRootCluster = input.SyncRootCluster
