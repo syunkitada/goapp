@@ -5,48 +5,32 @@ import (
 )
 
 func tasks(p *do.Project) {
+	// Authproxy Services
 	p.Task("goapp-authproxy-api", nil, func(c *do.Context) {
 		c.Start("main.go api", do.M{"$in": "cmd/goapp-authproxy"})
 	}).Src("pkg/**/*.go")
 
+	// Dashboard Services
 	p.Task("goapp-dashboard", nil, func(c *do.Context) {
 		c.Start("main.go", do.M{"$in": "cmd/goapp-dashboard"})
 	}).Src("pkg/**/*.go")
 
-	p.Task("goapp-monitor-api", nil, func(c *do.Context) {
-		c.Start("main.go api", do.M{"$in": "cmd/goapp-monitor"})
+	// Home Services
+	p.Task("goapp-home-api", nil, func(c *do.Context) {
+		c.Start("main.go api", do.M{"$in": "cmd/goapp-home"})
 	}).Src("pkg/**/*.go")
 
-	p.Task("goapp-monitor-alert-manager", nil, func(c *do.Context) {
-		c.Start("main.go alert-manager", do.M{"$in": "cmd/goapp-monitor"})
+	p.Task("goapp-home-controller", nil, func(c *do.Context) {
+		c.Start("main.go controller", do.M{"$in": "cmd/goapp-home"})
 	}).Src("pkg/**/*.go")
 
-	p.Task("goapp-monitor-agent", nil, func(c *do.Context) {
-		c.Start("main.go agent", do.M{"$in": "cmd/goapp-monitor"})
-	}).Src("pkg/**/*.go")
-
+	// Resource Services
 	p.Task("goapp-resource-api", nil, func(c *do.Context) {
 		c.Start("main.go api", do.M{"$in": "cmd/goapp-resource"})
 	}).Src("pkg/**/*.go")
 
-	p.Task("goapp-resource-api2", nil, func(c *do.Context) {
-		c.Start("main.go api --config-file config2.toml", do.M{"$in": "cmd/goapp-resource"})
-	}).Src("pkg/**/*.go")
-
-	p.Task("goapp-resource-api3", nil, func(c *do.Context) {
-		c.Start("main.go api --config-file config3.toml", do.M{"$in": "cmd/goapp-resource"})
-	}).Src("pkg/**/*.go")
-
 	p.Task("goapp-resource-controller", nil, func(c *do.Context) {
 		c.Start("main.go controller", do.M{"$in": "cmd/goapp-resource"})
-	}).Src("pkg/**/*.go")
-
-	p.Task("goapp-resource-controller2", nil, func(c *do.Context) {
-		c.Start("main.go controller --config-file config2.toml", do.M{"$in": "cmd/goapp-resource"})
-	}).Src("pkg/**/*.go")
-
-	p.Task("goapp-resource-controller3", nil, func(c *do.Context) {
-		c.Start("main.go controller --config-file config3.toml", do.M{"$in": "cmd/goapp-resource"})
 	}).Src("pkg/**/*.go")
 
 	p.Task("goapp-resource-cluster-api", nil, func(c *do.Context) {

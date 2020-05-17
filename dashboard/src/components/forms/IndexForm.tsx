@@ -301,6 +301,27 @@ class IndexForm extends React.Component<IIndexForm> {
                     );
                     break;
 
+                case "password":
+                    fields.push(
+                        <TextField
+                            id={field.Name}
+                            key={i}
+                            disabled={disabled}
+                            label={field.Name}
+                            autoFocus={autoFocus}
+                            margin="dense"
+                            type="password"
+                            fullWidth={true}
+                            onChange={event => {
+                                this.handleTextFieldChange(event, field);
+                            }}
+                            value={value}
+                            helperText={helperText}
+                            error={isError}
+                        />
+                    );
+                    break;
+
                 case "select":
                     let options = field.Options;
                     if (!options) {

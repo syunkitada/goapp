@@ -119,7 +119,7 @@ func NewQueryHandler(baseConf *base_config.Config, appConf *base_config.AppConfi
 	}
 }
 
-func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.UserAuthority, httpReq *http.Request, rw http.ResponseWriter,
+func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Request, rw http.ResponseWriter,
 	req *base_protocol.Request, rep *base_protocol.Response) (err error) {
 	for _, query := range req.Queries {
 		switch query.Name {
@@ -174,7 +174,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				return err
 			}
 
-			data, code, tmpErr := handler.resolver.LoginWithToken(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.LoginWithToken(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -220,7 +220,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				return err
 			}
 
-			data, code, tmpErr := handler.resolver.GetServiceIndex(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.GetServiceIndex(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -242,7 +242,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				return err
 			}
 
-			data, code, tmpErr := handler.resolver.GetServiceDashboardIndex(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.GetServiceDashboardIndex(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -264,7 +264,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				return err
 			}
 
-			data, code, tmpErr := handler.resolver.GetProjectServiceDashboardIndex(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.GetProjectServiceDashboardIndex(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -285,7 +285,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.CreateCluster(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.CreateCluster(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -306,7 +306,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.CreateDatacenter(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.CreateDatacenter(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -327,7 +327,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.CreateEventRules(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.CreateEventRules(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -348,7 +348,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.CreateFloor(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.CreateFloor(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -369,7 +369,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.CreateImage(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.CreateImage(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -390,7 +390,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.CreateNetworkV4(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.CreateNetworkV4(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -411,7 +411,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.CreatePhysicalModel(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.CreatePhysicalModel(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -432,7 +432,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.CreatePhysicalResource(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.CreatePhysicalResource(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -453,7 +453,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.CreateRack(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.CreateRack(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -474,7 +474,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.CreateRegion(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.CreateRegion(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -495,7 +495,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.CreateRegionService(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.CreateRegionService(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -516,7 +516,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.DeleteCluster(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.DeleteCluster(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -537,7 +537,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.DeleteClusters(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.DeleteClusters(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -558,7 +558,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.DeleteDatacenter(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.DeleteDatacenter(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -579,7 +579,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.DeleteDatacenters(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.DeleteDatacenters(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -600,7 +600,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.DeleteEventRules(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.DeleteEventRules(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -621,7 +621,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.DeleteFloor(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.DeleteFloor(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -642,7 +642,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.DeleteFloors(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.DeleteFloors(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -663,7 +663,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.DeleteImage(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.DeleteImage(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -684,7 +684,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.DeleteImages(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.DeleteImages(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -705,7 +705,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.DeleteNetworkV4(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.DeleteNetworkV4(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -726,7 +726,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.DeleteNetworkV4s(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.DeleteNetworkV4s(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -747,7 +747,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.DeletePhysicalModel(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.DeletePhysicalModel(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -768,7 +768,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.DeletePhysicalModels(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.DeletePhysicalModels(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -789,7 +789,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.DeletePhysicalResource(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.DeletePhysicalResource(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -810,7 +810,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.DeletePhysicalResources(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.DeletePhysicalResources(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -831,7 +831,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.DeleteRack(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.DeleteRack(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -852,7 +852,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.DeleteRacks(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.DeleteRacks(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -873,7 +873,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.DeleteRegion(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.DeleteRegion(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -894,7 +894,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.DeleteRegionService(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.DeleteRegionService(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -915,7 +915,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.DeleteRegionServices(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.DeleteRegionServices(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -936,7 +936,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.DeleteRegions(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.DeleteRegions(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -957,7 +957,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.GetCluster(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.GetCluster(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -978,7 +978,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.GetClusters(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.GetClusters(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -999,7 +999,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.GetCompute(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.GetCompute(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -1020,7 +1020,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.GetComputes(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.GetComputes(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -1041,7 +1041,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.GetDatacenter(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.GetDatacenter(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -1062,7 +1062,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.GetDatacenters(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.GetDatacenters(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -1083,7 +1083,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.GetEventRule(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.GetEventRule(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -1104,7 +1104,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.GetEventRules(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.GetEventRules(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -1125,7 +1125,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.GetEvents(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.GetEvents(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -1146,7 +1146,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.GetFloor(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.GetFloor(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -1167,7 +1167,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.GetFloors(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.GetFloors(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -1188,7 +1188,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.GetImage(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.GetImage(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -1209,7 +1209,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.GetImages(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.GetImages(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -1230,7 +1230,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.GetLogParams(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.GetLogParams(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -1251,7 +1251,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.GetLogs(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.GetLogs(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -1272,7 +1272,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.GetNetworkV4(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.GetNetworkV4(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -1293,7 +1293,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.GetNetworkV4s(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.GetNetworkV4s(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -1314,7 +1314,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.GetNode(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.GetNode(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -1335,7 +1335,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.GetNodeMetrics(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.GetNodeMetrics(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -1356,7 +1356,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.GetNodeServices(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.GetNodeServices(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -1377,7 +1377,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.GetNodes(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.GetNodes(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -1398,7 +1398,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.GetPhysicalModel(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.GetPhysicalModel(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -1419,7 +1419,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.GetPhysicalModels(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.GetPhysicalModels(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -1440,7 +1440,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.GetPhysicalResource(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.GetPhysicalResource(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -1461,7 +1461,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.GetPhysicalResources(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.GetPhysicalResources(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -1482,7 +1482,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.GetRack(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.GetRack(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -1503,7 +1503,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.GetRacks(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.GetRacks(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -1524,7 +1524,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.GetRegion(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.GetRegion(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -1545,7 +1545,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.GetRegionService(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.GetRegionService(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -1566,7 +1566,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.GetRegionServices(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.GetRegionServices(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -1587,7 +1587,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.GetRegions(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.GetRegions(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -1608,7 +1608,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.GetStatistics(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.GetStatistics(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -1629,7 +1629,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.GetTrace(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.GetTrace(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -1650,7 +1650,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.UpdateCluster(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.UpdateCluster(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -1671,7 +1671,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.UpdateDatacenter(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.UpdateDatacenter(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -1692,7 +1692,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.UpdateEventRules(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.UpdateEventRules(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -1713,7 +1713,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.UpdateFloor(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.UpdateFloor(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -1734,7 +1734,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.UpdateImage(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.UpdateImage(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -1755,7 +1755,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.UpdateNetworkV4(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.UpdateNetworkV4(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -1776,7 +1776,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.UpdatePhysicalModel(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.UpdatePhysicalModel(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -1797,7 +1797,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.UpdatePhysicalResource(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.UpdatePhysicalResource(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -1818,7 +1818,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.UpdateRack(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.UpdateRack(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -1839,7 +1839,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.UpdateRegion(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.UpdateRegion(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -1860,7 +1860,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.UpdateRegionService(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.UpdateRegionService(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
@@ -1884,7 +1884,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 	return nil
 }
 
-func (handler *QueryHandler) ExecWs(tctx *logger.TraceContext, user *base_spec.UserAuthority, httpReq *http.Request, rw http.ResponseWriter,
+func (handler *QueryHandler) ExecWs(tctx *logger.TraceContext, httpReq *http.Request, rw http.ResponseWriter,
 	req *base_protocol.Request, rep *base_protocol.Response, conn *websocket.Conn) (err error) {
 	for _, query := range req.Queries {
 		switch query.Name {
@@ -1894,7 +1894,7 @@ func (handler *QueryHandler) ExecWs(tctx *logger.TraceContext, user *base_spec.U
 			if err != nil {
 				return err
 			}
-			data, code, tmpErr := handler.resolver.GetComputeConsole(tctx, &input, user, conn)
+			data, code, tmpErr := handler.resolver.GetComputeConsole(tctx, &input, req.UserAuthority, conn)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError

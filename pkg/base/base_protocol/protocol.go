@@ -1,6 +1,7 @@
 package base_protocol
 
 import (
+	"github.com/syunkitada/goapp/pkg/base/base_spec"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
 
@@ -10,11 +11,12 @@ type ReqQuery struct {
 }
 
 type Request struct {
-	Tctx    *logger.TraceContext
-	Token   string
-	Service string
-	Project string
-	Queries []ReqQuery
+	Tctx          *logger.TraceContext
+	UserAuthority *base_spec.UserAuthority
+	Token         string
+	Service       string
+	Project       string
+	Queries       []ReqQuery
 }
 
 type Response struct {

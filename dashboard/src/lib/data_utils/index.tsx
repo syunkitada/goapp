@@ -4,6 +4,13 @@ const locationDataKey = "d";
 
 const dataPathKey = "p";
 
+function getSubPathKey(path) {
+    if (path.length > 1) {
+        return path.slice(0, path.length - 1).join(".");
+    }
+    return path[0];
+}
+
 function setServiceParams(params) {
     const { projectName, serviceName } = params;
     let pathname = "";
@@ -147,6 +154,7 @@ export default {
     getLocationData,
     getServiceParams,
     getServiceState,
+    getSubPathKey,
     dataPathKey,
     setLocationData,
     setServiceParams

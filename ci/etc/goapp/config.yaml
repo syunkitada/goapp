@@ -2,7 +2,8 @@ authproxy:
   api:
     listen: "0.0.0.0:8000"
     allowedHosts: ["127.0.0.1:8000"]
-    accessControlAllowOrigin: "127.0.0.1:3000"
+    accessControlAllowOrigin: "http://192.168.10.121:3000"
+    accessControlAllowCredentials: "true"
     certFile: "tls-assets/server.pem"
     keyFile: "tls-assets/server.key"
     gracefulTimeout: 10
@@ -26,19 +27,64 @@ authproxy:
         - { name: "admin" }
         - { name: "service" }
         - { name: "tenant" }
+  controller:
+    listen: "0.0.0.0:8000"
+    allowedHosts: ["127.0.0.1:8000"]
+    accessControlAllowOrigin: "127.0.0.1:3000"
+    certFile: "tls-assets/server.pem"
+    keyFile: "tls-assets/server.key"
+    gracefulTimeout: 10
+
+home:
+  api:
+    listen: "0.0.0.0:9000"
+    endpoints: ["https://127.0.0.1:9000"]
+    allowedHosts: ["127.0.0.1:9000"]
+    accessControlAllowOrigin: "127.0.0.1:9000"
+    accessControlAllowCredentials: "true"
+    certFile: "tls-assets/server.pem"
+    keyFile: "tls-assets/server.key"
+    gracefulTimeout: 10
+    database:
+      connection: "goapp:goapppass@tcp(127.0.0.1:3306)/goapp_home?charset=utf8&parseTime=true"
+    auth:
+      secrets: ["changeme1", "changeme2"]
+      defaultUsers:
+        - { name: "admin", password: "admin", roles: ["admin"] }
+        - { name: "service", password: "service", roles: ["service"] }
+        - { name: "guest", password: "guest", roles: ["guestpj-member"] }
+      defaultRoles:
+        - { name: "admin", project: "admin" }
+        - { name: "service", project: "service" }
+        - { name: "guestpj-member", project: "guestpj" }
+      defaultProjects:
+        - { name: "admin", projectRole: "admin" }
+        - { name: "service", projectRole: "service" }
+        - { name: "guestpj", projectRole: "tenant" }
+      defaultProjectRoles:
+        - { name: "admin" }
+        - { name: "service" }
+        - { name: "tenant" }
       defaultServices:
         - name: "Home"
           icon: "Home"
           scope: "user"
           projectRoles: ["admin", "tenant"]
+          syncRootCluster: true
         - name: "HomeProject"
           icon: "Home"
           scope: "project"
           projectRoles: ["admin", "tenant"]
+          syncRootCluster: true
+    rootClient:
+      user: "service"
+      password: "service"
+      tlsInsecureSkipVerify: true
+      endpoints: ["https://127.0.0.1:8000"]
   controller:
-    listen: "0.0.0.0:8000"
-    allowedHosts: ["127.0.0.1:8000"]
-    accessControlAllowOrigin: "127.0.0.1:3000"
+    listen: "0.0.0.0:9001"
+    allowedHosts: ["127.0.0.1:9001"]
+    accessControlAllowOrigin: "127.0.0.1:9001"
     certFile: "tls-assets/server.pem"
     keyFile: "tls-assets/server.key"
     gracefulTimeout: 10
@@ -49,6 +95,7 @@ resource:
     endpoints: ["https://127.0.0.1:13300"]
     allowedHosts: ["127.0.0.1:13300"]
     accessControlAllowOrigin: "127.0.0.1:13300"
+    accessControlAllowCredentials: "true"
     certFile: "tls-assets/server.pem"
     keyFile: "tls-assets/server.key"
     gracefulTimeout: 10

@@ -154,14 +154,7 @@ export default reducerWithInitialState(defaultState)
         );
         location.Params = params;
 
-        let subPathKey;
-        if (location.Path.length > 1) {
-            subPathKey = location.Path.slice(0, location.Path.length - 1).join(
-                "."
-            );
-        } else {
-            subPathKey = location.Path[0];
-        }
+        const subPathKey = data_utils.getSubPathKey(location.Path);
         subPathMap[subPathKey] = {
             Path: location.Path,
             DataQueries: location.DataQueries
@@ -169,7 +162,6 @@ export default reducerWithInitialState(defaultState)
         location.SubPathMap = subPathMap;
 
         data_utils.setLocationData(location);
-        console.log("DEBUG TODO serviceGetQueries", location);
 
         return Object.assign({}, state, {
             isFetching: true,
@@ -356,7 +348,9 @@ export default reducerWithInitialState(defaultState)
                 newState.initLocation = false;
             }
 
-            const subPathKey = dashboardIndex.DefaultRoute.Path.join(".");
+            const subPathKey = data_utils.getSubPathKey(
+                dashboardIndex.DefaultRoute.Path
+            );
             newState.location.SubPathMap[subPathKey] =
                 dashboardIndex.DefaultRoute;
         }

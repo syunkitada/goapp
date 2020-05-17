@@ -9,7 +9,7 @@ type Meta struct{}
 
 var Spec = base_spec_model.Spec{
 	Meta: Meta{},
-	Name: "AuthproxyApi",
+	Name: "HomeApi",
 	Kind: base_const.KindApi,
 	Apis: []base_spec_model.Api{},
 }
