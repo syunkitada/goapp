@@ -167,11 +167,11 @@ var RegionServicesDetail = base_index_model.Tabs{
 			SubmitAction: "update image",
 			Icon:         "Update",
 			Fields: []base_index_model.Field{
-				base_index_model.Field{Name: "Name", Kind: "text", Require: true,
+				base_index_model.Field{Name: "Name", Kind: "text", Required: true,
 					Updatable: false,
 					Min:       5, Max: 200, RegExp: "^[0-9a-zA-Z]+$",
 					RegExpMsg: "Please enter alphanumeric characters."},
-				base_index_model.Field{Name: "Kind", Kind: "select", Require: true,
+				base_index_model.Field{Name: "Kind", Kind: "select", Required: true,
 					Updatable: true,
 					Options: []string{
 						"Compute",

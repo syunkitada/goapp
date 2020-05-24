@@ -15,6 +15,7 @@ import (
 	"github.com/syunkitada/goapp/pkg/base/base_const"
 	"github.com/syunkitada/goapp/pkg/base/base_protocol"
 	"github.com/syunkitada/goapp/pkg/base/base_spec"
+	"github.com/syunkitada/goapp/pkg/home/home_api/spec"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
 
@@ -28,6 +29,7 @@ type QueryResolver interface {
 	GetAllUsers(tctx *logger.TraceContext, input *base_spec.GetAllUsers, user *base_spec.UserAuthority) (*base_spec.GetAllUsersData, uint8, error)
 	GetUser(tctx *logger.TraceContext, input *base_spec.GetUser, user *base_spec.UserAuthority) (*base_spec.GetUserData, uint8, error)
 	GetUsers(tctx *logger.TraceContext, input *base_spec.GetUsers, user *base_spec.UserAuthority) (*base_spec.GetUsersData, uint8, error)
+	UpdateUserPassword(tctx *logger.TraceContext, input *spec.UpdateUserPassword, user *base_spec.UserAuthority) (*spec.UpdateUserPasswordData, uint8, error)
 }
 
 type QueryHandler struct {
@@ -253,6 +255,27 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 				return err
 			}
 			data, code, tmpErr := handler.resolver.GetUsers(tctx, &input, req.UserAuthority)
+			if tmpErr != nil {
+				if code == 0 {
+					code = base_const.CodeServerInternalError
+				}
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  code,
+					Error: tmpErr.Error(),
+				}
+				break
+			}
+			rep.ResultMap[query.Name] = base_protocol.Result{
+				Code: code,
+				Data: data,
+			}
+		case "UpdateUserPassword":
+			var input spec.UpdateUserPassword
+			err = json.Unmarshal([]byte(query.Data), &input)
+			if err != nil {
+				return err
+			}
+			data, code, tmpErr := handler.resolver.UpdateUserPassword(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError

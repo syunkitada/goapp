@@ -20,6 +20,7 @@ var Spec = base_spec_model.Spec{
 			QueryModels: []base_spec_model.QueryModel{
 				base_spec_model.QueryModel{Req: base_spec.GetAllUsers{}, Rep: base_spec.GetAllUsersData{}},
 				base_spec_model.QueryModel{Req: base_spec.GetUser{}, Rep: base_spec.GetUserData{}},
+				base_spec_model.QueryModel{Req: UpdateUserPassword{}, Rep: UpdateUserPasswordData{}},
 			},
 		},
 		base_spec_model.Api{

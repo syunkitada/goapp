@@ -10,6 +10,7 @@ import withStyles, {
 
 import Avatar from "@material-ui/core/Avatar";
 import Button from "@material-ui/core/Button";
+import CircularProgress from "@material-ui/core/CircularProgress";
 import CssBaseline from "@material-ui/core/CssBaseline";
 import FormControl from "@material-ui/core/FormControl";
 import Input from "@material-ui/core/Input";
@@ -69,12 +70,8 @@ class Login extends React.Component<ILogin> {
         const { classes, auth, onSubmit } = this.props;
         logger.info("Login", "render");
 
-        if (auth.isFetching) {
-            return <div>During authentication</div>;
-        }
-
         let msgHtml: any = null;
-        if (auth.error != null && auth.error !== "") {
+        if (auth && auth.error != null && auth.error !== "") {
             const variant = "error";
             const vertical = "bottom";
             const horizontal = "left";
@@ -91,56 +88,65 @@ class Login extends React.Component<ILogin> {
             );
         }
 
+        let mainContent: any = null;
+        if (auth.isFetching) {
+            mainContent = (
+                <Paper className={classes.paper}>
+                    <CircularProgress />
+                </Paper>
+            );
+        } else {
+            mainContent = (
+                <Paper className={classes.paper}>
+                    <Avatar className={classes.avatar}>
+                        <LockOutlinedIcon />
+                    </Avatar>
+                    <Typography variant="h4">Sign in</Typography>
+                    <form className={classes.form} onSubmit={onSubmit}>
+                        <FormControl
+                            margin="normal"
+                            required={true}
+                            fullWidth={true}
+                        >
+                            <InputLabel htmlFor="username">Name</InputLabel>
+                            <Input
+                                id="username"
+                                name="username"
+                                autoFocus={true}
+                            />
+                        </FormControl>
+                        <FormControl
+                            margin="normal"
+                            required={true}
+                            fullWidth={true}
+                        >
+                            <InputLabel htmlFor="password">Password</InputLabel>
+                            <Input
+                                name="password"
+                                type="password"
+                                id="password"
+                                autoComplete="current-password"
+                            />
+                        </FormControl>
+                        <Button
+                            type="submit"
+                            fullWidth={true}
+                            variant="contained"
+                            color="primary"
+                            className={classes.submit}
+                        >
+                            Sign in
+                        </Button>
+                    </form>
+                </Paper>
+            );
+        }
+
         return (
             <React.Fragment>
                 <CssBaseline />
                 {msgHtml}
-                <main className={classes.layout}>
-                    <Paper className={classes.paper}>
-                        <Avatar className={classes.avatar}>
-                            <LockOutlinedIcon />
-                        </Avatar>
-                        <Typography variant="h4">Sign in</Typography>
-                        <form className={classes.form} onSubmit={onSubmit}>
-                            <FormControl
-                                margin="normal"
-                                required={true}
-                                fullWidth={true}
-                            >
-                                <InputLabel htmlFor="username">Name</InputLabel>
-                                <Input
-                                    id="username"
-                                    name="username"
-                                    autoFocus={true}
-                                />
-                            </FormControl>
-                            <FormControl
-                                margin="normal"
-                                required={true}
-                                fullWidth={true}
-                            >
-                                <InputLabel htmlFor="password">
-                                    Password
-                                </InputLabel>
-                                <Input
-                                    name="password"
-                                    type="password"
-                                    id="password"
-                                    autoComplete="current-password"
-                                />
-                            </FormControl>
-                            <Button
-                                type="submit"
-                                fullWidth={true}
-                                variant="contained"
-                                color="primary"
-                                className={classes.submit}
-                            >
-                                Sign in
-                            </Button>
-                        </form>
-                    </Paper>
-                </main>
+                <main className={classes.layout}>{mainContent}</main>
             </React.Fragment>
         );
     }

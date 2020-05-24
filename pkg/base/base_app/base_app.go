@@ -57,10 +57,6 @@ func New(conf *base_config.Config, appConf *base_config.AppConfig, dbApi base_db
 		appConf.KeyFile = "server.key"
 	}
 
-	if dbApi != nil {
-		dbApi.MustOpen()
-	}
-
 	return BaseApp{
 		host:                         conf.Host,
 		name:                         appConf.Name,

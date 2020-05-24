@@ -39,7 +39,7 @@ func (api *Api) GetUserWithValidatePassword(tctx *logger.TraceContext, name stri
 	}
 	if tmpUser.Password != hashedPassword {
 		code = base_const.CodeClientInvalidAuth
-		err = error_utils.NewInvalidAuthError(name)
+		err = error_utils.NewInvalidAuthError("Invalid password")
 		return
 	}
 	code = base_const.CodeOk
@@ -132,6 +132,24 @@ func (api *Api) CreateUser(tctx *logger.TraceContext, name string, password stri
 			}
 			err = tx.Create(&user).Error
 		}
+		return
+	})
+	return
+}
+
+func (api *Api) UpdateUserPassword(tctx *logger.TraceContext, name string, password string) (err error) {
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
+		var hashedPassword string
+		hashedPassword, err = api.generateHashFromPassword(password)
+		if err != nil {
+			return
+		}
+
+		err = tx.Table("users").Where("name = ?", name).Update("password", hashedPassword).Error
+		fmt.Println("DEBUG password", hashedPassword, err)
 		return
 	})
 	return

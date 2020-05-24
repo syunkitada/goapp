@@ -6,6 +6,7 @@ import data_utils from "../../lib/data_utils";
 
 type index = {
     DataQueries?: any;
+    SubmitQueries?: any;
     EnableWebSocket?: boolean;
     WebSocketKey: string;
     View: any;
@@ -173,11 +174,13 @@ export default reducerWithInitialState(defaultState)
             openGetQueriesTctx: false
         });
     })
-    .case(actions.service.serviceSubmitQueries, state => {
+    .case(actions.service.serviceSubmitQueries, (state, payload) => {
         logger.info("reducers", "serviceSubmitQueries");
+        const index = payload.index;
         return Object.assign({}, state, {
             isFetching: true,
             isSubmitting: true,
+            index: index,
             openSubmitQueriesTctx: false,
             submitQueriesTctx: {
                 fetching: true
@@ -257,7 +260,7 @@ export default reducerWithInitialState(defaultState)
                 break;
         }
 
-        if (tctx.StatusCode >= 300) {
+        if (tctx.StatusCode >= 100) {
             logger.error("reducers", "servicePostError: newState", newState);
             // TODO handling tctx.Err, tctx.StatusCode
             return newState;

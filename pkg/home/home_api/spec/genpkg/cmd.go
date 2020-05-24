@@ -37,6 +37,30 @@ var HomeCmdMap = map[string]base_index_model.Cmd{
 		OutputFormat: "",
 		Ws:           false,
 	},
+	"update.user.password": base_index_model.Cmd{
+		QueryName: "UpdateUserPassword",
+		FlagMap: map[string]base_index_model.Flag{
+			"current.password,c": base_index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+			"new.password,n": base_index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+			"new.password.confirm,n": base_index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+		},
+		Kind:         "",
+		OutputKind:   "",
+		OutputFormat: "",
+		Ws:           false,
+	},
 }
 var HomeProjectCmdMap = map[string]base_index_model.Cmd{
 	"get.users": base_index_model.Cmd{
@@ -66,6 +90,10 @@ var ApiQueryMap = map[string]map[string]base_spec_model.QueryModel{
 			RequiredProject: false,
 		},
 		"GetUser": base_spec_model.QueryModel{
+			RequiredAuth:    true,
+			RequiredProject: false,
+		},
+		"UpdateUserPassword": base_spec_model.QueryModel{
 			RequiredAuth:    true,
 			RequiredProject: false,
 		},

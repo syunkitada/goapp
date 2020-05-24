@@ -66,7 +66,7 @@ type Action struct {
 type Field struct {
 	Name      string
 	Kind      string
-	Require   bool
+	Required  bool
 	Min       uint
 	Max       uint
 	RegExp    string

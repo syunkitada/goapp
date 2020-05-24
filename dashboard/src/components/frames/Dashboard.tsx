@@ -28,6 +28,9 @@ import MenuIcon from "@material-ui/icons/Menu";
 
 import LeftSidebar from "./LeftSidebar";
 
+import GetMsgSnackbar from "../snackbars/GetMsgSnackbar";
+import SubmitMsgSnackbar from "../snackbars/SubmitMsgSnackbar";
+
 import actions from "../../actions";
 
 const drawerWidth = 240;
@@ -307,6 +310,9 @@ class Dashboard extends React.Component<IDashboard> {
                         {children}
                     </main>
                 </div>
+
+                <GetMsgSnackbar />
+                <SubmitMsgSnackbar />
             </React.Fragment>
         );
     }
