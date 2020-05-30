@@ -32,8 +32,8 @@ func (api *Api) GetUserWithValidatePassword(tctx *logger.TraceContext, name stri
 		return
 	}
 
-	hashedPassword, err := api.generateHashFromPassword(password)
-	if err != nil {
+	var hashedPassword string
+	if hashedPassword, err = api.generateHashFromPassword(password); err != nil {
 		code = base_const.CodeClientInvalidAuth
 		return
 	}
@@ -47,8 +47,7 @@ func (api *Api) GetUserWithValidatePassword(tctx *logger.TraceContext, name stri
 	return
 }
 
-func (api *Api) GetUserAuthority(tctx *logger.TraceContext, username string) (*base_spec.UserAuthority, error) {
-	var err error
+func (api *Api) GetUserAuthority(tctx *logger.TraceContext, username string) (userAuthority *base_spec.UserAuthority, err error) {
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
@@ -66,7 +65,7 @@ func (api *Api) GetUserAuthority(tctx *logger.TraceContext, username string) (*b
 		"INNER JOIN project_role_services as prs ON pr.id = prs.project_role_id " +
 		"INNER JOIN services as s ON prs.service_id = s.id "
 	if err = api.DB.Raw(query+"WHERE u.name = ?", username).Scan(&users).Error; err != nil {
-		return nil, err
+		return
 	}
 
 	serviceMap := map[string]base_spec.ServiceData{}
@@ -100,13 +99,12 @@ func (api *Api) GetUserAuthority(tctx *logger.TraceContext, username string) (*b
 		}
 	}
 
-	userAuthority := base_spec.UserAuthority{
+	userAuthority = &base_spec.UserAuthority{
 		Name:              username,
 		ServiceMap:        serviceMap,
 		ProjectServiceMap: projectServiceMap,
 	}
-
-	return &userAuthority, nil
+	return
 }
 
 func (api *Api) CreateUser(tctx *logger.TraceContext, name string, password string) (err error) {
@@ -155,16 +153,16 @@ func (api *Api) UpdateUserPassword(tctx *logger.TraceContext, name string, passw
 	return
 }
 
-func (api *Api) generateHashFromPassword(password string) (string, error) {
-	converted, err := scrypt.Key([]byte(password), []byte(api.secrets[0]), 16384, 8, 1, 32)
-	if err != nil {
-		return "", err
+func (api *Api) generateHashFromPassword(password string) (hash string, err error) {
+	var converted []byte
+	if converted, err = scrypt.Key([]byte(password), []byte(api.secrets[0]), 16384, 8, 1, 32); err != nil {
+		return
 	}
-
-	return hex.EncodeToString(converted[:]), nil
+	hash = hex.EncodeToString(converted[:])
+	return
 }
 
-func (api *Api) IssueToken(userName string) (string, error) {
+func (api *Api) IssueToken(userName string) (token string, err error) {
 	claims := base_protocol.JwtClaims{
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(time.Hour * 24).Unix(),
@@ -174,8 +172,8 @@ func (api *Api) IssueToken(userName string) (string, error) {
 	newToken := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
 	// Sign token with key
-	tokenString, tokenErr := newToken.SignedString([]byte(api.secrets[0]))
-	return tokenString, tokenErr
+	token, err = newToken.SignedString([]byte(api.secrets[0]))
+	return
 }
 
 func (api *Api) LoginWithToken(tctx *logger.TraceContext, token string) (data *base_spec.UserAuthority, err error) {
@@ -203,5 +201,21 @@ func (api *Api) LoginWithToken(tctx *logger.TraceContext, token string) (data *b
 
 	issuer := claims["iss"].(string)
 	data, err = api.GetUserAuthority(tctx, issuer)
+	return
+}
+
+func (api *Api) GetUsers(tctx *logger.TraceContext, projectName string) (users []base_db_model.CustomUser, err error) {
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	query := api.DB.Table("users as u").
+		Select("u.name, r.id as role_id, r.name as role_name, p.name as project_name").
+		Joins("INNER JOIN user_roles as ur ON u.id = ur.user_id").
+		Joins("INNER JOIN roles as r ON ur.role_id = r.id").
+		Joins("INNER JOIN projects as p ON r.project_id = p.id")
+	if projectName != "" {
+		query.Where("p.name = ?", projectName)
+	}
+	err = query.Scan(&users).Error
 	return
 }

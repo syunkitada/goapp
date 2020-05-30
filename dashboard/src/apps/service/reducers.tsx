@@ -354,8 +354,9 @@ export default reducerWithInitialState(defaultState)
             const subPathKey = data_utils.getSubPathKey(
                 dashboardIndex.DefaultRoute.Path
             );
-            newState.location.SubPathMap[subPathKey] =
-                dashboardIndex.DefaultRoute;
+            newState.location.SubPathMap[subPathKey] = {
+                Path: dashboardIndex.DefaultRoute.Path
+            };
         }
 
         const index = data_utils.getIndex(

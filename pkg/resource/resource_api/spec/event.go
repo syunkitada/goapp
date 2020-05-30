@@ -119,7 +119,6 @@ type EventRuleActionSpec struct {
 
 var EventsTable = base_index_model.Table{
 	Name:        "Events",
-	Route:       "/Events",
 	Kind:        "Table",
 	DataQueries: []string{"GetEvents"},
 	DataKey:     "Events",
@@ -160,7 +159,6 @@ var EventsTable = base_index_model.Table{
 
 var EventRulesTable = base_index_model.Table{
 	Name:        "EventRules",
-	Route:       "/EventRules",
 	Kind:        "Table",
 	DataQueries: []string{"GetEventRules"},
 	DataKey:     "EventRules",

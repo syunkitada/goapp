@@ -8,3 +8,15 @@ type UpdateUserPassword struct {
 
 type UpdateUserPasswordData struct {
 }
+
+type User struct {
+	Name     string
+	RoleName string
+}
+
+type GetProjectUsers struct {
+}
+
+type GetProjectUsersData struct {
+	Users []User
+}

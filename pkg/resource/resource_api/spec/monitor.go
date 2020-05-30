@@ -62,7 +62,7 @@ var LogsTable = base_index_model.Table{
 	Name:        "Logs",
 	Route:       "/Logs",
 	Kind:        "Table",
-	DataQueries: []string{"GetLogParams"},
+	DataQueries: []string{"GetLogParams", "GetLogs"},
 	DataKey:     "Logs",
 	SelectActions: []base_index_model.Action{
 		base_index_model.Action{

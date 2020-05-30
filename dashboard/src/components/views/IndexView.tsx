@@ -198,7 +198,7 @@ class IndexView extends React.Component<IIndexView> {
     };
 
     private renderPanels = () => {
-        const { render, routes, classes, index, data } = this.props;
+        const { routes, classes, index, data } = this.props;
 
         if (!data) {
             // TODO return loading view
@@ -266,7 +266,8 @@ class IndexView extends React.Component<IIndexView> {
                                 x++
                             ) {
                                 const table = card.Tables[x];
-                                const html = render(routes, cardData, table);
+                                const html = <div>TODO</div>;
+                                // const html = render(routes, cardData, table);
                                 tables.push(
                                     <div key={table.Name}>
                                         <Typography variant="subtitle1">
@@ -285,12 +286,14 @@ class IndexView extends React.Component<IIndexView> {
                             );
                             break;
                         case "Table":
+                            const html = <div>TODO</div>;
+                            // html = {render(routes, cardData, card)}
                             cards.push(
                                 <Grid key={card.Name} item={true} xs={true}>
                                     <Typography variant="subtitle1">
                                         {card.Name}
                                     </Typography>
-                                    {render(routes, cardData, card)}
+                                    {html}
                                 </Grid>
                             );
                             break;

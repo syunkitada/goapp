@@ -2,7 +2,6 @@ package spec
 
 import (
 	"github.com/syunkitada/goapp/pkg/base/base_const"
-	"github.com/syunkitada/goapp/pkg/base/base_spec"
 	"github.com/syunkitada/goapp/pkg/base/base_spec_model"
 )
 
@@ -18,8 +17,6 @@ var Spec = base_spec_model.Spec{
 			RequiredAuth:    true,
 			RequiredProject: false,
 			QueryModels: []base_spec_model.QueryModel{
-				base_spec_model.QueryModel{Req: base_spec.GetAllUsers{}, Rep: base_spec.GetAllUsersData{}},
-				base_spec_model.QueryModel{Req: base_spec.GetUser{}, Rep: base_spec.GetUserData{}},
 				base_spec_model.QueryModel{Req: UpdateUserPassword{}, Rep: UpdateUserPasswordData{}},
 			},
 		},
@@ -28,7 +25,7 @@ var Spec = base_spec_model.Spec{
 			RequiredAuth:    true,
 			RequiredProject: true,
 			QueryModels: []base_spec_model.QueryModel{
-				base_spec_model.QueryModel{Req: base_spec.GetUsers{}, Rep: base_spec.GetUsersData{}},
+				base_spec_model.QueryModel{Req: GetProjectUsers{}, Rep: GetProjectUsersData{}},
 			},
 		},
 	},

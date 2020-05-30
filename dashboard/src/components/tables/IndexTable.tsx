@@ -43,7 +43,6 @@ import Icon from "../icons/Icon";
 
 import SearchForm from "../forms/SearchForm";
 
-import form_utils from "../../lib/form_utils";
 import data_utils from "../../lib/data_utils";
 
 interface IIndexTable extends WithStyles<typeof styles> {
@@ -826,23 +825,11 @@ class IndexTable extends React.Component<IIndexTable> {
     };
 
     private handleChangeSearchInput = event => {
-        const { routes } = this.props;
-        const route = routes[routes.length - 1];
-
-        var startTime = performance.now();
         let searchRegExp: any = null;
         if (event.target.value !== "") {
             searchRegExp = new RegExp(event.target.value, "i");
         }
-
-        const searchTexts = form_utils.getSearchTexts();
-        searchTexts["s"] = event.target.value;
-        console.log("DEBUG searchTexts", searchTexts);
-
-        form_utils.setSearchTexts(route, searchTexts);
-
-        var endTime = performance.now();
-        console.log("TODO DEBUG performance: ", endTime - startTime);
+        data_utils.setFilterParamsSearch(event.target.value);
         this.setState({ searchRegExp });
     };
 
