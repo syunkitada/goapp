@@ -52,6 +52,7 @@ interface IIndexTable extends WithStyles<typeof styles> {
     routes;
     index;
     data;
+    subData;
     handleColumnLinkClick;
     setAction;
     resetAction;
@@ -62,7 +63,8 @@ interface IState {
     order;
     orderBy;
     selected: any[];
-    data: any[];
+    data: any;
+    subData: any;
     page;
     popoverHtml;
     popoverTarget;
@@ -77,6 +79,7 @@ class IndexTable extends React.Component<IIndexTable> {
     public state: IState = {
         anchorEl: null,
         data: [],
+        subData: [],
         filterMap: {},
         order: "asc",
         orderBy: -1,
@@ -95,10 +98,11 @@ class IndexTable extends React.Component<IIndexTable> {
             actionName,
             routes,
             resetAction,
+            subData,
             classes,
-            index,
-            data
+            index
         } = this.props;
+        let { data } = this.props;
         const {
             popoverTarget,
             popoverHtml,
@@ -110,16 +114,19 @@ class IndexTable extends React.Component<IIndexTable> {
             filterMap
         } = this.state;
         if (!data) {
-            logger.warning("Invalid data", index, data);
+            if (!subData) {
+                logger.warning("Invalid data", index, data);
 
-            return (
-                <Paper key={index.Name} className={classes.root}>
-                    <div className={classes.tableWrapper}>
-                        <br />
-                        <LinearProgress color="secondary" />
-                    </div>
-                </Paper>
-            );
+                return (
+                    <Paper key={index.Name} className={classes.root}>
+                        <div className={classes.tableWrapper}>
+                            <br />
+                            <LinearProgress color="secondary" />
+                        </div>
+                    </Paper>
+                );
+            }
+            data = subData;
         }
         console.log("DEBUGRENDER", "IndexTable", performance.now(), index);
 

@@ -283,8 +283,8 @@ func (driver *InfluxdbDriver) GetNode(tctx *logger.TraceContext, input *api_spec
 
 	driver.GetMetrics(tctx,
 		&systemMetrics,
-		"Processes",
-		fmt.Sprintf("SELECT MEAN(processes) FROM system_cpu %s", suffixQuery),
+		"NewProcesses",
+		fmt.Sprintf("SELECT DERIVATIVE(MEAN(processes)) FROM system_cpu %s", suffixQuery),
 		[]string{"processes"})
 
 	data = append(data, api_spec.MetricsGroup{
@@ -296,7 +296,6 @@ func (driver *InfluxdbDriver) GetNode(tctx *logger.TraceContext, input *api_spec
 }
 
 func (driver *InfluxdbDriver) GetMetrics(tctx *logger.TraceContext, metrics *[]api_spec.Metric, name string, query string, keys []string) {
-	fmt.Println("DEBUG GetMetrics")
 	fmt.Println(query)
 	for _, client := range driver.metricClients {
 		queryResult, tmpErr := client.Query(query)
@@ -325,6 +324,7 @@ func (driver *InfluxdbDriver) GetMetrics(tctx *logger.TraceContext, metrics *[]a
 			}
 		}
 	}
+	metrics = metrics[0 : len(metrics)-1]
 }
 
 func (driver *InfluxdbDriver) GetLogParams(tctx *logger.TraceContext, input *api_spec.GetLogParams) (data *api_spec.GetLogParamsData, err error) {
