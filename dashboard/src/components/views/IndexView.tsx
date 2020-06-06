@@ -374,6 +374,9 @@ class IndexView extends React.Component<IIndexView> {
                 for (let j = 0, jlen = metricsGroups.length; j < jlen; j++) {
                     const metricsGroup = metricsGroups[j];
                     const cards: JSX.Element[] = [];
+                    if (!metricsGroup.Metrics) {
+                        continue;
+                    }
                     for (
                         let x = 0, xlen = metricsGroup.Metrics.length;
                         x < xlen;

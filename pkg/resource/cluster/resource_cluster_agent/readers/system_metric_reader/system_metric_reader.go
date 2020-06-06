@@ -16,14 +16,18 @@ import (
 )
 
 type SystemMetricReader struct {
+	conf             *config.ResourceMetricSystemConfig
 	name             string
 	enableLogin      bool
 	enableCpu        bool
 	enableMemory     bool
+	enableProc       bool
 	cacheLength      int
 	uptimeStats      []UptimeStat
 	loginStats       []LoginStat
 	cpuStats         []CpuStat
+	procStats        []ProcStat
+	procCheckStats   []ProcCheckStat
 	numaNodeServices []spec.NumaNodeServiceSpec
 }
 
@@ -54,14 +58,18 @@ func New(conf *config.ResourceMetricSystemConfig) *SystemMetricReader {
 	}
 
 	return &SystemMetricReader{
+		conf:             conf,
 		name:             "system",
 		enableLogin:      conf.EnableLogin,
 		enableCpu:        conf.EnableCpu,
 		enableMemory:     conf.EnableMemory,
+		enableProc:       conf.EnableProc,
 		cacheLength:      conf.CacheLength,
 		uptimeStats:      make([]UptimeStat, 0, conf.CacheLength),
 		loginStats:       make([]LoginStat, 0, conf.CacheLength),
 		cpuStats:         make([]CpuStat, 0, conf.CacheLength),
+		procStats:        make([]ProcStat, 0, conf.CacheLength),
+		procCheckStats:   make([]ProcCheckStat, 0, conf.CacheLength),
 		numaNodeServices: numaNodeServices,
 	}
 }
@@ -99,6 +107,20 @@ type CpuStat struct {
 	procs_running int64
 	procs_blocked int64
 	softirq       int64
+}
+
+type ProcStat struct {
+	Procs int64
+}
+
+type ProcCheckStat struct {
+	Name       string
+	Cmd        string
+	Pid        int64
+	State      string
+	CpuTime    int64
+	WaitTime   int64
+	TimeSlices int64
 }
 
 func (reader *SystemMetricReader) GetNumaNodeServices(tctx *logger.TraceContext) []spec.NumaNodeServiceSpec {
@@ -232,8 +254,104 @@ func (reader *SystemMetricReader) Read(tctx *logger.TraceContext) error {
 		fmt.Println("READ Memory")
 	}
 
+	if reader.enableProc {
+		// Read /proc/
+		reader.ReadProc(tctx)
+	}
+
 	// fmt.Println(reader.cpuStats)
 	return nil
+}
+
+const ProcDir = "/proc/"
+
+func (reader *SystemMetricReader) ReadProc(tctx *logger.TraceContext) (err error) {
+	var procDirFile *os.File
+	if procDirFile, err = os.Open(ProcDir); err != nil {
+		return
+	}
+	var procFileInfos []os.FileInfo
+	procFileInfos, err = procDirFile.Readdir(-1)
+	procDirFile.Close()
+	if err != nil {
+		return
+	}
+
+	var tmpFile *os.File
+	var tmpErr error
+	var procs int64 = 0
+	var tmpScanner *bufio.Scanner
+	var tmpText string
+	var tmpTexts []string
+	procMap := map[string]map[string][]string{}
+	for _, procCheck := range reader.conf.ProcCheckMap {
+		procMap[procCheck.Cmd] = map[string][]string{}
+	}
+	for _, procFileInfo := range procFileInfos {
+		if !procFileInfo.IsDir() {
+			continue
+		}
+		if tmpFile, tmpErr = os.Open(ProcDir + procFileInfo.Name() + "/" + "status"); tmpErr != nil {
+			continue
+		}
+		procs += 1
+
+		tmpScanner = bufio.NewScanner(tmpFile)
+		tmpScanner.Scan()
+		cmd := tmpScanner.Text()
+		if cmdMap, ok := procMap[strings.Split(cmd, "\t")[1]]; ok {
+			tmpTexts := make([]string, 55)
+			for tmpScanner.Scan() {
+				tmpTexts = append(tmpTexts, tmpScanner.Text())
+			}
+			cmdMap[procFileInfo.Name()] = tmpTexts
+		}
+		tmpFile.Close()
+	}
+
+	for name, procCheck := range reader.conf.ProcCheckMap {
+		if cmdMap, ok := procMap[procCheck.Cmd]; ok {
+			for pidStr, cmdStatus := range cmdMap {
+				// /proc/[pid]/schedstat
+				// 2554841551 177487694 35200
+				// [time spent on the cpu] [time spent waiting on a runqueue] [timeslices run on this cpu]
+				if tmpFile, tmpErr = os.Open(ProcDir + pidStr + "/" + "schedstat"); tmpErr != nil {
+					continue
+				}
+				tmpScanner = bufio.NewScanner(tmpFile)
+				tmpScanner.Scan()
+				tmpText = tmpScanner.Text()
+				tmpTexts = strings.Split(tmpText, " ")
+				if len(tmpTexts) != 3 {
+					logger.Warningf(tctx, "Unexpected Format: path=/proc/[pid]/schedstat, text=%s", tmpText)
+					continue
+				}
+				cpuTime, _ := strconv.ParseInt(tmpTexts[0], 10, 64)
+				waitTime, _ := strconv.ParseInt(tmpTexts[1], 10, 64)
+				timeSlices, _ := strconv.ParseInt(tmpTexts[2], 10, 64)
+
+				fmt.Println("DEBUG cmdStatus", cmdStatus)
+
+				pid, _ := strconv.ParseInt(pidStr, 10, 64)
+				stat := ProcCheckStat{
+					Name:       name,
+					Cmd:        procCheck.Cmd,
+					Pid:        pid,
+					State:      "TODO",
+					CpuTime:    cpuTime,
+					WaitTime:   waitTime,
+					TimeSlices: timeSlices,
+				}
+				reader.procCheckStats = append(reader.procCheckStats, stat)
+			}
+		}
+	}
+
+	stat := ProcStat{
+		Procs: procs,
+	}
+	reader.procStats = append(reader.procStats, stat)
+	return
 }
 
 func (reader *SystemMetricReader) GetName() string {

@@ -53,7 +53,8 @@ function post({
             logger.error("modules.post", "fail", body, error);
             const result: IResponse = {
                 error: {
-                    err: error
+                    Error: `Failed Request: ${error.toString()}`,
+                    error: error
                 },
                 result: null
             };

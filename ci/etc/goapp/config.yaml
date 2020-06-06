@@ -272,4 +272,8 @@ resource:
             enableLogin: true
             enableCpu: true
             enableMemory: true
+            enableProc: true
             cacheLength: 10
+            procCheckMap:
+              qemu:
+                cmd: qemu-system-x86

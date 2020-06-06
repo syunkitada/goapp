@@ -431,16 +431,11 @@ export default reducerWithInitialState(defaultState)
         return newState;
     })
     .case(actions.service.servicePostFailure, (state, payload) => {
+        const { action, error } = payload;
         const newState = Object.assign({}, state, {
             error: payload.error,
             isFetching: false
         });
-
-        if (payload.action.type === "SERVICE_SUBMIT_QUERIES") {
-            Object.assign(newState, {
-                isSubmitting: false
-            });
-        }
 
         const service = state.serviceName;
         const project = state.projectName;
@@ -450,10 +445,35 @@ export default reducerWithInitialState(defaultState)
             newState.serviceMap[service].isFetching = false;
         }
 
+        const tctx: any = {
+            Error: error.Error,
+            StatusCode: 500
+        };
+
+        switch (action.type) {
+            case "SERVICE_GET_INDEX":
+                newState.getQueriesTctx = tctx;
+                newState.openGetQueriesTctx = true;
+                break;
+            case "SERVICE_GET_QUERIES":
+                newState.getQueriesTctx = tctx;
+                newState.openGetQueriesTctx = true;
+                break;
+            case "SERVICE_SUBMIT_QUERIES":
+                newState.submitQueriesTctx = tctx;
+                newState.openSubmitQueriesTctx = true;
+                newState.isSubmitting = false;
+
+                break;
+            default:
+                logger.warning("Unknown action type", action.type);
+                break;
+        }
+
         logger.error(
             "reducers",
             "servicePostFailure: newState",
-            payload.action.type,
+            action.type,
             newState
         );
         return newState;

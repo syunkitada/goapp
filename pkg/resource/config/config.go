@@ -135,7 +135,13 @@ type ResourceMetricSystemConfig struct {
 	EnableLogin  bool
 	EnableCpu    bool
 	EnableMemory bool
+	EnableProc   bool
 	CacheLength  int
+	ProcCheckMap map[string]ResourceProcCheckConfig
+}
+
+type ResourceProcCheckConfig struct {
+	Cmd string
 }
 
 type TimeSeriesDatabaseConfig struct {

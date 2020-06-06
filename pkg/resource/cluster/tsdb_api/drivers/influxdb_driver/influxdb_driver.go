@@ -272,20 +272,21 @@ func (driver *InfluxdbDriver) GetNode(tctx *logger.TraceContext, input *api_spec
 
 	whereStr := fmt.Sprintf("WHERE Node = '%s' AND time < %s AND time > %s %s",
 		input.Name, until, until, from)
-	suffixQuery := fmt.Sprintf("%s GROUP BY time(1m)", whereStr)
+	suffixQuery := fmt.Sprintf("%s GROUP BY time(1m) fill(null)", whereStr)
 
 	var systemMetrics []api_spec.Metric
 	driver.GetMetrics(tctx,
 		&systemMetrics,
 		"ProcsRunning",
-		fmt.Sprintf("SELECT MEAN(procs_running), MEAN(procs_blocked) FROM system_cpu %s", suffixQuery),
+		fmt.Sprintf("SELECT max(procs_running), mean(procs_blocked) FROM system_cpu %s", suffixQuery),
 		[]string{"procs_running", "procs_blocked"})
 
+	// Memo: derivativeを使う場合は、mean(processes)も一緒に取得しないと、開始時間からのメトリックスが存在しない期間分が取得できない(nullで埋められない)
 	driver.GetMetrics(tctx,
 		&systemMetrics,
-		"NewProcesses",
-		fmt.Sprintf("SELECT DERIVATIVE(MEAN(processes)) FROM system_cpu %s", suffixQuery),
-		[]string{"processes"})
+		"NewProcesses/Min",
+		fmt.Sprintf("SELECT non_negative_derivative(max(processes), 1m), max(processes) FROM system_cpu %s", suffixQuery),
+		[]string{"new_processes"})
 
 	data = append(data, api_spec.MetricsGroup{
 		Name:    "system",
@@ -316,6 +317,7 @@ func (driver *InfluxdbDriver) GetMetrics(tctx *logger.TraceContext, metrics *[]a
 					}
 					values = append(values, v)
 				}
+				values = values[0 : len(values)-1]
 				*metrics = append(*metrics, api_spec.Metric{
 					Name:   name,
 					Values: values,
@@ -324,7 +326,6 @@ func (driver *InfluxdbDriver) GetMetrics(tctx *logger.TraceContext, metrics *[]a
 			}
 		}
 	}
-	metrics = metrics[0 : len(metrics)-1]
 }
 
 func (driver *InfluxdbDriver) GetLogParams(tctx *logger.TraceContext, input *api_spec.GetLogParams) (data *api_spec.GetLogParamsData, err error) {
