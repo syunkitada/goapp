@@ -43,7 +43,6 @@ import Icon from "../icons/Icon";
 
 import SearchForm from "../forms/SearchForm";
 
-import form_utils from "../../lib/form_utils";
 import data_utils from "../../lib/data_utils";
 
 interface IIndexTable extends WithStyles<typeof styles> {
@@ -53,6 +52,7 @@ interface IIndexTable extends WithStyles<typeof styles> {
     routes;
     index;
     data;
+    subData;
     handleColumnLinkClick;
     setAction;
     resetAction;
@@ -63,7 +63,8 @@ interface IState {
     order;
     orderBy;
     selected: any[];
-    data: any[];
+    data: any;
+    subData: any;
     page;
     popoverHtml;
     popoverTarget;
@@ -78,6 +79,7 @@ class IndexTable extends React.Component<IIndexTable> {
     public state: IState = {
         anchorEl: null,
         data: [],
+        subData: [],
         filterMap: {},
         order: "asc",
         orderBy: -1,
@@ -96,10 +98,11 @@ class IndexTable extends React.Component<IIndexTable> {
             actionName,
             routes,
             resetAction,
+            subData,
             classes,
-            index,
-            data
+            index
         } = this.props;
+        let { data } = this.props;
         const {
             popoverTarget,
             popoverHtml,
@@ -111,16 +114,19 @@ class IndexTable extends React.Component<IIndexTable> {
             filterMap
         } = this.state;
         if (!data) {
-            logger.warning("Invalid data", index, data);
+            if (!subData) {
+                logger.warning("Invalid data", index, data);
 
-            return (
-                <Paper key={index.Name} className={classes.root}>
-                    <div className={classes.tableWrapper}>
-                        <br />
-                        <LinearProgress color="secondary" />
-                    </div>
-                </Paper>
-            );
+                return (
+                    <Paper key={index.Name} className={classes.root}>
+                        <div className={classes.tableWrapper}>
+                            <br />
+                            <LinearProgress color="secondary" />
+                        </div>
+                    </Paper>
+                );
+            }
+            data = subData;
         }
         console.log("DEBUGRENDER", "IndexTable", performance.now(), index);
 
@@ -826,23 +832,11 @@ class IndexTable extends React.Component<IIndexTable> {
     };
 
     private handleChangeSearchInput = event => {
-        const { routes } = this.props;
-        const route = routes[routes.length - 1];
-
-        var startTime = performance.now();
         let searchRegExp: any = null;
         if (event.target.value !== "") {
             searchRegExp = new RegExp(event.target.value, "i");
         }
-
-        const searchTexts = form_utils.getSearchTexts();
-        searchTexts["s"] = event.target.value;
-        console.log("DEBUG searchTexts", searchTexts);
-
-        form_utils.setSearchTexts(route, searchTexts);
-
-        var endTime = performance.now();
-        console.log("TODO DEBUG performance: ", endTime - startTime);
+        data_utils.setFilterParamsSearch(event.target.value);
         this.setState({ searchRegExp });
     };
 

@@ -76,10 +76,11 @@ func (resolver *Resolver) GetServiceDashboardIndex(tctx *logger.TraceContext, in
 									"DataKey":          "User",
 									"Icon":             "Update",
 									"SubmitButtonName": "Change Password",
+									"SubmitQueries":    []string{"UpdateUserPassword"},
 									"Fields": []base_index_model.Field{
-										base_index_model.Field{Name: "CurrentPassword", Kind: "password", Updatable: true},
-										base_index_model.Field{Name: "NewPassword", Kind: "password", Updatable: true},
-										base_index_model.Field{Name: "NewPasswordConfirm", Kind: "password", Updatable: true},
+										base_index_model.Field{Name: "CurrentPassword", Kind: "password", Updatable: true, Required: true},
+										base_index_model.Field{Name: "NewPassword", Kind: "password", Updatable: true, Required: true},
+										base_index_model.Field{Name: "NewPasswordConfirm", Kind: "password", Updatable: true, Required: true},
 									},
 								},
 							},
@@ -111,15 +112,15 @@ func (resolver *Resolver) GetProjectServiceDashboardIndex(tctx *logger.TraceCont
 					Name: "Root",
 					Kind: "Panels",
 					Children: []interface{}{
-						map[string]interface{}{
-							"Name": "User",
-							"Kind": "Tabs",
-							"Children": []interface{}{
-								map[string]interface{}{
-									"Name":    "View",
-									"Kind":    "View",
-									"DataKey": "User",
-									"PanelsGroups": []interface{}{
+						base_index_model.Tabs{
+							Name: "User",
+							Kind: "Tabs",
+							Children: []interface{}{
+								base_index_model.View{
+									Name:    "View",
+									Kind:    "View",
+									DataKey: "User",
+									PanelsGroups: []interface{}{
 										map[string]interface{}{
 											"Name": "Detail",
 											"Kind": "Cards",
@@ -134,6 +135,16 @@ func (resolver *Resolver) GetProjectServiceDashboardIndex(tctx *logger.TraceCont
 												},
 											},
 										},
+									},
+								},
+								base_index_model.Table{
+									Name:        "Users",
+									Kind:        "Table",
+									DataQueries: []string{"GetProjectUsers"},
+									DataKey:     "Users",
+									Columns: []base_index_model.TableColumn{
+										base_index_model.TableColumn{Name: "Name", IsSearch: true, Align: "left"},
+										base_index_model.TableColumn{Name: "RoleName", Align: "left"},
 									},
 								},
 							},

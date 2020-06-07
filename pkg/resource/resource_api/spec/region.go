@@ -79,10 +79,10 @@ var RegionsTable = base_index_model.Table{
 			Name: "Create", Icon: "Create", Kind: "Form",
 			DataKind: "Region",
 			Fields: []base_index_model.Field{
-				base_index_model.Field{Name: "Name", Kind: "text", Require: true,
+				base_index_model.Field{Name: "Name", Kind: "text", Required: true,
 					Min: 5, Max: 200, RegExp: "^[0-9a-zA-Z]+$",
 					RegExpMsg: "Please enter alphanumeric characters."},
-				base_index_model.Field{Name: "Kind", Kind: "select", Require: true,
+				base_index_model.Field{Name: "Kind", Kind: "select", Required: true,
 					Options: []string{
 						"Private", "Share",
 					}},

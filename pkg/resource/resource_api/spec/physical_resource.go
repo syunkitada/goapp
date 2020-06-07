@@ -73,15 +73,15 @@ var PhysicalResourcesTable = base_index_model.Table{
 			DataKind: "PhysicalResource",
 			Fields: []base_index_model.Field{
 				base_index_model.Field{Name: "Name", Kind: "text",
-					Require: true, Min: 5, Max: 200, RegExp: "^[0-9a-zA-Z]+$"},
-				base_index_model.Field{Name: "Kind", Kind: "select", Require: true,
+					Required: true, Min: 5, Max: 200, RegExp: "^[0-9a-zA-Z]+$"},
+				base_index_model.Field{Name: "Kind", Kind: "select", Required: true,
 					Options: []string{
 						"Server", "Pdu", "RackSpineRouter",
 						"FloorLeafRouter", "FloorSpineRouter", "GatewayRouter",
 					}},
-				base_index_model.Field{Name: "Rack", Kind: "select", Require: true,
+				base_index_model.Field{Name: "Rack", Kind: "select", Required: true,
 					DataKey: "Racks"},
-				base_index_model.Field{Name: "Model", Kind: "select", Require: true,
+				base_index_model.Field{Name: "Model", Kind: "select", Required: true,
 					DataKey: "PhysicalModels"},
 			},
 		},
@@ -144,11 +144,11 @@ var PhysicalResourcesDetail = base_index_model.Tabs{
 			SubmitAction: "UpdatePhysicalResource",
 			Icon:         "Update",
 			Fields: []base_index_model.Field{
-				base_index_model.Field{Name: "Name", Kind: "text", Require: true,
+				base_index_model.Field{Name: "Name", Kind: "text", Required: true,
 					Updatable: false,
 					Min:       5, Max: 200, RegExp: "^[0-9a-zA-Z]+$",
 					RegExpMsg: "Please enter alphanumeric characters."},
-				base_index_model.Field{Name: "Kind", Kind: "select", Require: true,
+				base_index_model.Field{Name: "Kind", Kind: "select", Required: true,
 					Updatable: true,
 					Options: []string{
 						"Server", "Pdu", "RackSpineRouter",

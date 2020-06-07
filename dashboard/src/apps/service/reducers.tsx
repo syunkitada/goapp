@@ -6,6 +6,7 @@ import data_utils from "../../lib/data_utils";
 
 type index = {
     DataQueries?: any;
+    SubmitQueries?: any;
     EnableWebSocket?: boolean;
     WebSocketKey: string;
     View: any;
@@ -173,11 +174,13 @@ export default reducerWithInitialState(defaultState)
             openGetQueriesTctx: false
         });
     })
-    .case(actions.service.serviceSubmitQueries, state => {
+    .case(actions.service.serviceSubmitQueries, (state, payload) => {
         logger.info("reducers", "serviceSubmitQueries");
+        const index = payload.index;
         return Object.assign({}, state, {
             isFetching: true,
             isSubmitting: true,
+            index: index,
             openSubmitQueriesTctx: false,
             submitQueriesTctx: {
                 fetching: true
@@ -257,7 +260,7 @@ export default reducerWithInitialState(defaultState)
                 break;
         }
 
-        if (tctx.StatusCode >= 300) {
+        if (tctx.StatusCode >= 100) {
             logger.error("reducers", "servicePostError: newState", newState);
             // TODO handling tctx.Err, tctx.StatusCode
             return newState;
@@ -351,8 +354,9 @@ export default reducerWithInitialState(defaultState)
             const subPathKey = data_utils.getSubPathKey(
                 dashboardIndex.DefaultRoute.Path
             );
-            newState.location.SubPathMap[subPathKey] =
-                dashboardIndex.DefaultRoute;
+            newState.location.SubPathMap[subPathKey] = {
+                Path: dashboardIndex.DefaultRoute.Path
+            };
         }
 
         const index = data_utils.getIndex(
@@ -427,16 +431,11 @@ export default reducerWithInitialState(defaultState)
         return newState;
     })
     .case(actions.service.servicePostFailure, (state, payload) => {
+        const { action, error } = payload;
         const newState = Object.assign({}, state, {
             error: payload.error,
             isFetching: false
         });
-
-        if (payload.action.type === "SERVICE_SUBMIT_QUERIES") {
-            Object.assign(newState, {
-                isSubmitting: false
-            });
-        }
 
         const service = state.serviceName;
         const project = state.projectName;
@@ -446,10 +445,35 @@ export default reducerWithInitialState(defaultState)
             newState.serviceMap[service].isFetching = false;
         }
 
+        const tctx: any = {
+            Error: error.Error,
+            StatusCode: 500
+        };
+
+        switch (action.type) {
+            case "SERVICE_GET_INDEX":
+                newState.getQueriesTctx = tctx;
+                newState.openGetQueriesTctx = true;
+                break;
+            case "SERVICE_GET_QUERIES":
+                newState.getQueriesTctx = tctx;
+                newState.openGetQueriesTctx = true;
+                break;
+            case "SERVICE_SUBMIT_QUERIES":
+                newState.submitQueriesTctx = tctx;
+                newState.openSubmitQueriesTctx = true;
+                newState.isSubmitting = false;
+
+                break;
+            default:
+                logger.warning("Unknown action type", action.type);
+                break;
+        }
+
         logger.error(
             "reducers",
             "servicePostFailure: newState",
-            payload.action.type,
+            action.type,
             newState
         );
         return newState;

@@ -36,7 +36,6 @@ func init() {
 func initMain() {
 	os.Setenv("LANG", "en_US.UTF-8")
 	config.BaseConf.BaseDir = filepath.Join(os.Getenv("HOME"), ".goapp")
-	// config.BaseConf.LogTimeFormat = "2006-01-02T15:04:05Z09:00"
 	config.BaseConf.LogTimeFormat = time.RFC3339
 	base_config.InitConfig(&config.BaseConf, &config.MainConf)
 	logger.InitLogger(&config.BaseConf)

@@ -9,25 +9,21 @@ import (
 )
 
 var HomeCmdMap = map[string]base_index_model.Cmd{
-	"get.all.users": base_index_model.Cmd{
-		QueryName: "GetAllUsers",
+	"update.user.password": base_index_model.Cmd{
+		QueryName: "UpdateUserPassword",
 		FlagMap: map[string]base_index_model.Flag{
-			"name,n": base_index_model.Flag{
-				Required: false,
+			"current.password,c": base_index_model.Flag{
+				Required: true,
 				FlagType: "string",
 				FlagKind: "",
 			},
-		},
-		Kind:         "",
-		OutputKind:   "",
-		OutputFormat: "",
-		Ws:           false,
-	},
-	"get.user": base_index_model.Cmd{
-		QueryName: "GetUser",
-		FlagMap: map[string]base_index_model.Flag{
-			"name,n": base_index_model.Flag{
-				Required: false,
+			"new.password,n": base_index_model.Flag{
+				Required: true,
+				FlagType: "string",
+				FlagKind: "",
+			},
+			"new.password.confirm,n": base_index_model.Flag{
+				Required: true,
 				FlagType: "string",
 				FlagKind: "",
 			},
@@ -39,18 +35,12 @@ var HomeCmdMap = map[string]base_index_model.Cmd{
 	},
 }
 var HomeProjectCmdMap = map[string]base_index_model.Cmd{
-	"get.users": base_index_model.Cmd{
-		QueryName: "GetUsers",
-		FlagMap: map[string]base_index_model.Flag{
-			"name,n": base_index_model.Flag{
-				Required: false,
-				FlagType: "string",
-				FlagKind: "",
-			},
-		},
+	"get.project.users": base_index_model.Cmd{
+		QueryName:    "GetProjectUsers",
+		FlagMap:      map[string]base_index_model.Flag{},
 		Kind:         "",
-		OutputKind:   "",
-		OutputFormat: "",
+		OutputKind:   "table",
+		OutputFormat: "Name",
 		Ws:           false,
 	},
 }
@@ -61,17 +51,13 @@ var ApiQueryMap = map[string]map[string]base_spec_model.QueryModel{
 		"UpdateService": base_spec_model.QueryModel{},
 	},
 	"Home": map[string]base_spec_model.QueryModel{
-		"GetAllUsers": base_spec_model.QueryModel{
-			RequiredAuth:    true,
-			RequiredProject: false,
-		},
-		"GetUser": base_spec_model.QueryModel{
+		"UpdateUserPassword": base_spec_model.QueryModel{
 			RequiredAuth:    true,
 			RequiredProject: false,
 		},
 	},
 	"HomeProject": map[string]base_spec_model.QueryModel{
-		"GetUsers": base_spec_model.QueryModel{
+		"GetProjectUsers": base_spec_model.QueryModel{
 			RequiredAuth:    true,
 			RequiredProject: true,
 		},

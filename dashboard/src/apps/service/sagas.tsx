@@ -17,10 +17,9 @@ import modules from "../../modules";
 import store from "../../store";
 
 function* post(action) {
-    const dataQueries: any[] = [];
     const serviceState = Object.assign({}, store.getState().service);
     const { projectName, serviceName, index, location } = serviceState;
-    const { isSync, queryKind, dataKind, items, fieldMap } = action.payload;
+    const { isSync, items, fieldMap } = action.payload;
 
     console.log("DEBUG TODO post init", index, action.type, location);
     if (!location) {
@@ -84,20 +83,22 @@ function* post(action) {
             break;
 
         case "SERVICE_GET_QUERIES":
-            const syncQueryMap: any[] = [];
-            const queryData = Object.assign(
-                {},
-                location.Params,
-                location.SearchQueries
-            );
-            const data = JSON.stringify(queryData);
             if (location.DataQueries) {
+                const queries: any[] = [];
+                const syncQueryMap: any[] = [];
+                const queryData = Object.assign(
+                    {},
+                    location.Params,
+                    location.SearchQueries
+                );
+                const data = JSON.stringify(queryData);
+
                 for (
                     let i = 0, len = location.DataQueries.length;
                     i < len;
                     i++
                 ) {
-                    dataQueries.push({
+                    queries.push({
                         Data: data,
                         Name: location.DataQueries[i]
                     });
@@ -106,7 +107,7 @@ function* post(action) {
                     isSync,
                     projectName: projectName,
                     serviceName: serviceName,
-                    queries: dataQueries,
+                    queries: queries,
                     stateKey: "index",
                     syncQueryMap
                 };
@@ -115,37 +116,49 @@ function* post(action) {
             break;
 
         case "SERVICE_SUBMIT_QUERIES":
-            const specs: any[] = [];
-            const spec = Object.assign({}, location.params);
-            for (const key of Object.keys(fieldMap)) {
-                const field = fieldMap[key];
-                spec[key] = field.value;
-            }
-
-            for (let i = 0, len = items.length; i < len; i++) {
-                specs.push({
-                    Kind: dataKind,
-                    Spec: Object.assign({}, spec, items[i])
-                });
-            }
-
-            dataQueries.push({
-                Data: JSON.stringify({ Spec: JSON.stringify(specs) }),
-                Name: queryKind
-            });
-
-            if (serviceState.syncQueryMap) {
-                for (const key of Object.keys(serviceState.syncQueryMap)) {
-                    dataQueries.push(serviceState.syncQueryMap[key]);
+            console.log("DEBUG TODO submitqueries", index);
+            if (index && index.SubmitQueries) {
+                const queries: any[] = [];
+                const tmpQueryData = Object.assign({}, location.params);
+                for (const key of Object.keys(fieldMap)) {
+                    const field = fieldMap[key];
+                    tmpQueryData[key] = field.value;
                 }
-            }
 
-            payload = {
-                projectName: projectName,
-                serviceName: serviceName,
-                queries: dataQueries,
-                stateKey: "index"
-            };
+                let queryData;
+                if (items && items.length > 0) {
+                    const specs: any[] = [];
+                    for (let i = 0, len = items.length; i < len; i++) {
+                        specs.push({
+                            Spec: Object.assign({}, tmpQueryData, items[i])
+                        });
+                    }
+                    queryData = {
+                        Specs: JSON.stringify(specs)
+                    };
+                } else {
+                    queryData = tmpQueryData;
+                }
+
+                const data = JSON.stringify(queryData);
+                for (
+                    let i = 0, len = index.SubmitQueries.length;
+                    i < len;
+                    i++
+                ) {
+                    queries.push({
+                        Data: data,
+                        Name: index.SubmitQueries[i]
+                    });
+                }
+
+                payload = {
+                    projectName: projectName,
+                    serviceName: serviceName,
+                    queries: queries,
+                    stateKey: "index"
+                };
+            }
 
             break;
     }
@@ -182,7 +195,7 @@ function* post(action) {
             location.SearchQueries
         );
         const data = JSON.stringify(queryData);
-        const dataQueries = [
+        const queries = [
             {
                 Data: data,
                 Name: location.WebSocketQuery
@@ -192,7 +205,7 @@ function* post(action) {
             isSync,
             projectName: projectName,
             serviceName: serviceName,
-            queries: dataQueries,
+            queries: queries,
             stateKey: "index",
             syncQueryMap
         };

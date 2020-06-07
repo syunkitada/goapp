@@ -33,17 +33,24 @@ function* login(action) {
     } else if (payload.Error && payload.Error !== "") {
         yield put(actions.auth.authLoginFailure(payload.error));
     } else {
-        yield put(
-            actions.auth.authLoginSuccess({
-                authority: payload.ResultMap.Login.Data.Authority,
-                username: payload.ResultMap.Login.Data.Authority.Name
-            })
-        );
+        if (payload.ResultMap.Login.Code > 100) {
+            yield put(
+                actions.auth.authLoginFailure({
+                    error: payload.ResultMap.Login.Error
+                })
+            );
+        } else {
+            yield put(
+                actions.auth.authLoginSuccess({
+                    authority: payload.ResultMap.Login.Data.Authority,
+                    username: payload.ResultMap.Login.Data.Authority.Name
+                })
+            );
+        }
     }
 }
 
 function* loginSuccess(action) {
-    console.log("DEBUG LoginSuccess");
     yield put(
         actions.service.serviceGetIndex({
             projectName: null,

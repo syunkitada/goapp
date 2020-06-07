@@ -278,25 +278,43 @@ func (driver *InfluxdbDriver) GetNode(tctx *logger.TraceContext, input *api_spec
 	driver.GetMetrics(tctx,
 		&systemMetrics,
 		"ProcsRunning",
-		fmt.Sprintf("SELECT MEAN(procs_running), MEAN(procs_blocked) FROM system_cpu %s", suffixQuery),
+		fmt.Sprintf("SELECT max(procs_running), mean(procs_blocked) FROM system_cpu %s fill(null)", suffixQuery),
 		[]string{"procs_running", "procs_blocked"})
+
+	// Memo: derivativeを使う場合は、mean(processes)も一緒に取得しないと、開始時間からのメトリックスが存在しない期間分が取得できない(nullで埋められない)
+	driver.GetMetrics(tctx,
+		&systemMetrics,
+		"NewProcesses/Min",
+		fmt.Sprintf("SELECT non_negative_derivative(max(processes), 1m), max(processes) FROM system_cpu %s fill(null)", suffixQuery),
+		[]string{"new_processes"})
 
 	driver.GetMetrics(tctx,
 		&systemMetrics,
-		"Processes",
-		fmt.Sprintf("SELECT MEAN(processes) FROM system_cpu %s", suffixQuery),
-		[]string{"processes"})
+		"Procs",
+		fmt.Sprintf("SELECT max(procs) FROM system_procs %s fill(null)", suffixQuery),
+		[]string{"procs"})
 
 	data = append(data, api_spec.MetricsGroup{
 		Name:    "system",
 		Metrics: systemMetrics,
 	})
 
+	var systemProcMetrics []api_spec.Metric
+	driver.GetMetrics(tctx,
+		&systemProcMetrics,
+		"ProcSched/Min",
+		fmt.Sprintf("SELECT non_negative_derivative(max(sched_cpu_time), 1m), non_negative_derivative(max(sched_wait_time), 1m), max(sched_time_slices) FROM system_proc %s, cmd, pid fill(null)", suffixQuery),
+		[]string{"sched_cpu_time", "sched_wait_time", "sched_time_slices"})
+
+	data = append(data, api_spec.MetricsGroup{
+		Name:    "system proc",
+		Metrics: systemProcMetrics,
+	})
+
 	return
 }
 
 func (driver *InfluxdbDriver) GetMetrics(tctx *logger.TraceContext, metrics *[]api_spec.Metric, name string, query string, keys []string) {
-	fmt.Println("DEBUG GetMetrics")
 	fmt.Println(query)
 	for _, client := range driver.metricClients {
 		queryResult, tmpErr := client.Query(query)
@@ -317,6 +335,7 @@ func (driver *InfluxdbDriver) GetMetrics(tctx *logger.TraceContext, metrics *[]a
 					}
 					values = append(values, v)
 				}
+				values = values[0 : len(values)-1]
 				*metrics = append(*metrics, api_spec.Metric{
 					Name:   name,
 					Values: values,

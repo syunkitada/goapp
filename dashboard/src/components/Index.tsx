@@ -1,5 +1,6 @@
 import * as React from "react";
 
+import Msg from "./msg/Msg";
 import IndexForm from "./forms/IndexForm";
 import SearchForm from "./forms/SearchForm";
 import Panels from "./panels/Panels";
@@ -15,7 +16,7 @@ function Index(props) {
     logger.info("Index.render", props.Kind, props);
     switch (props.Kind) {
         case "Msg":
-            return <div>Msg</div>;
+            return <Msg title={"Msg"} msg={""} />;
         case "Panels":
             return <Panels index={props} />;
         case "Tabs":
@@ -33,7 +34,12 @@ function Index(props) {
         case "Form":
             return <IndexForm index={props} />;
         default:
-            return <div>Unsupported Kind: {props.Kind}</div>;
+            return (
+                <Msg
+                    title={"Not Found Error"}
+                    msg={`Unsupported Kind: ${props.Kind}`}
+                />
+            );
     }
 }
 

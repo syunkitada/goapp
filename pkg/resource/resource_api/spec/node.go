@@ -69,7 +69,6 @@ type Metric struct {
 
 var NodesTable = base_index_model.Table{
 	Name:        "Nodes",
-	Route:       "/Nodes",
 	Kind:        "Table",
 	DataQueries: []string{"GetNodes"},
 	DataKey:     "Nodes",
@@ -85,10 +84,8 @@ var NodesTable = base_index_model.Table{
 	Columns: []base_index_model.TableColumn{
 		base_index_model.TableColumn{
 			Name: "Name", IsSearch: true,
-			Link:           "Clusters/:Cluster/Resources/Nodes/Detail/:0/View",
-			LinkKey:      "Name",
-			LinkSync:       false,
-			LinkDataQueries: []string{"GetNode"},
+			LinkPath: []string{"Resource", "Node", "View"},
+			LinkKey:  "Name",
 		},
 		base_index_model.TableColumn{
 			Name: "ActiveServices", Kind: "Popover", Icon: "Success", Color: "Success", InactiveColor: "Default",
@@ -181,18 +178,14 @@ var NodeEventsTableColumns = []base_index_model.TableColumn{
 }
 
 var NodesDetail = base_index_model.Tabs{
-	Name:             "Nodes",
-	Kind:             "RouteTabs",
-	RouteParamKey:    "Kind",
-	RouteParamValue:  "Nodes",
-	Route:            "/Clusters/:Cluster/Resources/Nodes/Detail/:Name/:Subkind",
-	TabParam:         "Subkind",
-	ExpectedDataKeys: []string{"Node"},
-	IsSync:           true,
-	Tabs: []interface{}{
+	Name:            "Node",
+	Kind:            "Tabs",
+	RouteParamKey:   "Kind",
+	RouteParamValue: "Nodes",
+	TabParam:        "Subkind",
+	Children: []interface{}{
 		base_index_model.View{
 			Name:        "View",
-			Route:       "/View",
 			Kind:        "View",
 			DataQueries: []string{"GetNode"},
 			DataKey:     "Node",
@@ -282,7 +275,6 @@ var NodesDetail = base_index_model.Tabs{
 		},
 		base_index_model.View{
 			Name:        "Metrics",
-			Route:       "/Metrics",
 			Kind:        "View",
 			DataQueries: []string{"GetNodeMetrics"},
 			DataKey:     "NodeMetrics",

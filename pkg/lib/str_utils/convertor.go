@@ -49,3 +49,32 @@ func SplitActionDataName(name string) (string, string) {
 
 	return string(actionRunes), string(dataRunes)
 }
+
+func ParseLastValue(s string) string {
+	// Parse 'voluntary_ctxt_switches:        14415', and return 14415
+	for i := len(s) - 1; i >= 0; i-- {
+		if s[i] == ' ' || s[i:i+1] == "\t" {
+			if i < len(s) {
+				return s[i+1 : len(s)]
+			} else {
+				return "0"
+			}
+		}
+	}
+	return "0"
+}
+
+func ParseLastSecondValue(s string) string {
+	// Parse 'VmSize:    15736 kB' and return 1536
+	lastIndex := 0
+	for i := len(s) - 1; i >= 0; i-- {
+		if s[i] == ' ' || s[i:i+1] == "\t" {
+			if lastIndex == 0 || lastIndex == i+1 {
+				lastIndex = i
+			} else {
+				return s[i+1 : lastIndex]
+			}
+		}
+	}
+	return "0"
+}

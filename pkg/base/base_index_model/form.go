@@ -9,5 +9,6 @@ type Form struct {
 	Icon             string
 	SubmitButtonName string
 	DataQueries      []string
+	SubmitQueries    []string
 	Fields           []Field
 }

@@ -1,11 +1,13 @@
 package config
 
 import (
+	authproxy_config "github.com/syunkitada/goapp/pkg/authproxy/config"
 	"github.com/syunkitada/goapp/pkg/base/base_config"
 )
 
 type Config struct {
-	Home HomeConfig
+	Authproxy authproxy_config.AuthproxyConfig
+	Home      HomeConfig
 }
 
 type HomeConfig struct {

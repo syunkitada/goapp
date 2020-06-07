@@ -147,15 +147,48 @@ function getIndex(index, path) {
     return index;
 }
 
+function setFilterParamsSearch(text) {
+    const data = getLocationData();
+    if (data.FilterParams) {
+        data.FilterParams.Search = text;
+    } else {
+        data.FilterParams = { Search: text };
+    }
+    setLocationData(data);
+}
+
+function getFilterParamsSearch() {
+    const data = getLocationData();
+    if (data.FilterParams && data.FilterParams.Search) {
+        return data.FilterParams.Search;
+    }
+    return "";
+}
+
+function setSearchParams(obj) {
+    const data = getLocationData();
+    data.SearchParams = obj;
+    setLocationData(data);
+}
+
+function getSearchParams() {
+    const data = getLocationData();
+    return data.SearchParams;
+}
+
 export default {
     getDataFromState,
+    getFilterParamsSearch,
     getIndex,
     getIndexDataFromState,
     getLocationData,
+    getSearchParams,
     getServiceParams,
     getServiceState,
     getSubPathKey,
     dataPathKey,
+    setFilterParamsSearch,
     setLocationData,
+    setSearchParams,
     setServiceParams
 };

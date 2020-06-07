@@ -46,6 +46,7 @@ func New(baseConf *base_config.Config, appConf *base_config.AppConfig, apiQueryM
 		secrets:              appConf.Auth.Secrets,
 		apiQueryMap:          apiQueryMap,
 	}
+	api.MustOpen()
 
 	return &api
 }

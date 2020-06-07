@@ -255,6 +255,9 @@ class IndexForm extends React.Component<IIndexForm> {
                     value = field.DefaultFunc(data);
                 }
             }
+            if (!value) {
+                value = "";
+            }
 
             switch (field.Kind) {
                 case "text":
@@ -423,20 +426,11 @@ class IndexForm extends React.Component<IIndexForm> {
     };
 
     private handleActionSubmit = () => {
-        const {
-            index,
-            data,
-            indexData,
-            selected,
-            routes,
-            submitQueries
-        } = this.props;
+        const { index, data, indexData, selected, submitQueries } = this.props;
         const { fieldMap } = this.state;
-        const route = routes.slice(-1)[0];
         const fieldData = {};
 
         if (index.Fields) {
-            console.log("DEBUG index.Fields", index.Fields);
             // Validate
             // フォーム入力がなく、デフォルト値がある場合はセットする
             for (let i = 0, len = index.Fields.length; i < len; i++) {
@@ -455,7 +449,8 @@ class IndexForm extends React.Component<IIndexForm> {
                 switch (field.Kind) {
                     case "text":
                     case "texts":
-                        if (field.Require) {
+                    case "password":
+                        if (field.Required) {
                             if (!value || value === "") {
                                 fieldMap[field.Name] = {
                                     error: "This is required",
@@ -507,10 +502,13 @@ class IndexForm extends React.Component<IIndexForm> {
             }
             if (items.length === 0) {
                 // TODO handle unknown error
+                logger.uerror(
+                    "IndexForm",
+                    "handleActionSubmit",
+                    "items.length === 0"
+                );
                 return;
             }
-        } else {
-            items.push({});
         }
 
         for (const key in fieldMap) {
@@ -520,7 +518,7 @@ class IndexForm extends React.Component<IIndexForm> {
             }
         }
 
-        submitQueries(route, items, fieldData);
+        submitQueries(index, items, fieldData);
     };
 }
 
@@ -540,15 +538,14 @@ function mapStateToProps(state, ownProps) {
 }
 
 function mapDispatchToProps(dispatch, ownProps) {
-    const { index } = ownProps;
     return {
-        submitQueries: (route, items, fieldMap) => {
+        submitQueries: (index, items, fieldMap) => {
             dispatch(
                 actions.service.serviceSubmitQueries({
                     fieldMap,
                     index,
                     items,
-                    location: route
+                    location: {}
                 })
             );
         }

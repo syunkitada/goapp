@@ -43,6 +43,8 @@ import SearchForm from "../forms/SearchForm";
 
 import Field from "./Field";
 
+import IndexTable from "../tables/IndexTable";
+
 // import actions from "../../actions";
 import form_utils from "../../lib/form_utils";
 import logger from "../../lib/logger";
@@ -198,17 +200,14 @@ class IndexView extends React.Component<IIndexView> {
     };
 
     private renderPanels = () => {
-        const { render, routes, classes, index, data } = this.props;
+        const { routes, classes, index, data } = this.props;
 
         if (!data) {
-            // TODO return loading view
-            return <div>Loading</div>;
+            return <div>Data Not Found</div>;
         }
-        console.log("DEBUG TODO renderPanels");
 
         const panelsGroups: JSX.Element[] = [];
         for (let i = 0, len = index.PanelsGroups.length; i < len; i++) {
-            console.log("DEBUG TODO renderPanels2", index, data);
             const panelsGroup = index.PanelsGroups[i];
             const panels: JSX.Element[] = [];
             if (panelsGroup.Kind === "Cards") {
@@ -266,13 +265,19 @@ class IndexView extends React.Component<IIndexView> {
                                 x++
                             ) {
                                 const table = card.Tables[x];
-                                const html = render(routes, cardData, table);
+                                let subData = cardData[table.DataKey];
+                                if (!subData) {
+                                    subData = [];
+                                }
                                 tables.push(
                                     <div key={table.Name}>
                                         <Typography variant="subtitle1">
                                             {table.Name}
                                         </Typography>
-                                        {html}
+                                        <IndexTable
+                                            index={table}
+                                            subData={subData}
+                                        />
                                         <hr />
                                     </div>
                                 );
@@ -285,12 +290,19 @@ class IndexView extends React.Component<IIndexView> {
                             );
                             break;
                         case "Table":
+                            let subData = cardData[card.DataKey];
+                            if (!subData) {
+                                subData = [];
+                            }
                             cards.push(
                                 <Grid key={card.Name} item={true} xs={true}>
                                     <Typography variant="subtitle1">
                                         {card.Name}
                                     </Typography>
-                                    {render(routes, cardData, card)}
+                                    <IndexTable
+                                        index={card}
+                                        subData={subData}
+                                    />
                                 </Grid>
                             );
                             break;
@@ -362,6 +374,9 @@ class IndexView extends React.Component<IIndexView> {
                 for (let j = 0, jlen = metricsGroups.length; j < jlen; j++) {
                     const metricsGroup = metricsGroups[j];
                     const cards: JSX.Element[] = [];
+                    if (!metricsGroup.Metrics) {
+                        continue;
+                    }
                     for (
                         let x = 0, xlen = metricsGroup.Metrics.length;
                         x < xlen;

@@ -5,8 +5,8 @@ import (
 	"github.com/syunkitada/goapp/pkg/base/base_config"
 	"github.com/syunkitada/goapp/pkg/home/config"
 	"github.com/syunkitada/goapp/pkg/home/db_api"
-	"github.com/syunkitada/goapp/pkg/home/home_api/resolver"
-	"github.com/syunkitada/goapp/pkg/home/home_api/spec/genpkg"
+	"github.com/syunkitada/goapp/pkg/home/home_controller/resolver"
+	"github.com/syunkitada/goapp/pkg/home/home_controller/spec/genpkg"
 )
 
 type Server struct {

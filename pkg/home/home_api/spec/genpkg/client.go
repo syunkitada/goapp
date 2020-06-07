@@ -7,7 +7,7 @@ import (
 	"github.com/syunkitada/goapp/pkg/base/base_client"
 	"github.com/syunkitada/goapp/pkg/base/base_config"
 	"github.com/syunkitada/goapp/pkg/base/base_protocol"
-	"github.com/syunkitada/goapp/pkg/base/base_spec"
+	"github.com/syunkitada/goapp/pkg/home/home_api/spec"
 	"github.com/syunkitada/goapp/pkg/lib/error_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
@@ -23,56 +23,42 @@ func NewClient(conf *base_config.ClientConfig) *Client {
 	return &client
 }
 
-type GetAllUsersResponse struct {
+type GetProjectUsersResponse struct {
 	base_protocol.Response
-	ResultMap GetAllUsersResultMap
+	ResultMap GetProjectUsersResultMap
 }
 
-type GetAllUsersResultMap struct {
-	GetAllUsers GetAllUsersResult
+type GetProjectUsersResultMap struct {
+	GetProjectUsers GetProjectUsersResult
 }
 
-type GetAllUsersResult struct {
+type GetProjectUsersResult struct {
 	Code  uint8
 	Error string
-	Data  base_spec.GetAllUsersData
+	Data  spec.GetProjectUsersData
 }
-type GetUserResponse struct {
+type UpdateUserPasswordResponse struct {
 	base_protocol.Response
-	ResultMap GetUserResultMap
+	ResultMap UpdateUserPasswordResultMap
 }
 
-type GetUserResultMap struct {
-	GetUser GetUserResult
+type UpdateUserPasswordResultMap struct {
+	UpdateUserPassword UpdateUserPasswordResult
 }
 
-type GetUserResult struct {
+type UpdateUserPasswordResult struct {
 	Code  uint8
 	Error string
-	Data  base_spec.GetUserData
-}
-type GetUsersResponse struct {
-	base_protocol.Response
-	ResultMap GetUsersResultMap
+	Data  spec.UpdateUserPasswordData
 }
 
-type GetUsersResultMap struct {
-	GetUsers GetUsersResult
-}
-
-type GetUsersResult struct {
-	Code  uint8
-	Error string
-	Data  base_spec.GetUsersData
-}
-
-func (client *Client) HomeGetAllUsers(tctx *logger.TraceContext, queries []base_client.Query) (data *base_spec.GetAllUsersData, err error) {
-	var res GetAllUsersResponse
+func (client *Client) HomeUpdateUserPassword(tctx *logger.TraceContext, queries []base_client.Query) (data *spec.UpdateUserPasswordData, err error) {
+	var res UpdateUserPasswordResponse
 	err = client.Request(tctx, "Home", queries, &res, true)
 	if err != nil {
 		return
 	}
-	result := res.ResultMap.GetAllUsers
+	result := res.ResultMap.UpdateUserPassword
 	if result.Code >= 100 || result.Error != "" {
 		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
 		return
@@ -81,28 +67,13 @@ func (client *Client) HomeGetAllUsers(tctx *logger.TraceContext, queries []base_
 	data = &result.Data
 	return
 }
-func (client *Client) HomeGetUser(tctx *logger.TraceContext, queries []base_client.Query) (data *base_spec.GetUserData, err error) {
-	var res GetUserResponse
-	err = client.Request(tctx, "Home", queries, &res, true)
-	if err != nil {
-		return
-	}
-	result := res.ResultMap.GetUser
-	if result.Code >= 100 || result.Error != "" {
-		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
-		return
-	}
-
-	data = &result.Data
-	return
-}
-func (client *Client) HomeProjectGetUsers(tctx *logger.TraceContext, queries []base_client.Query) (data *base_spec.GetUsersData, err error) {
-	var res GetUsersResponse
+func (client *Client) HomeProjectGetProjectUsers(tctx *logger.TraceContext, queries []base_client.Query) (data *spec.GetProjectUsersData, err error) {
+	var res GetProjectUsersResponse
 	err = client.Request(tctx, "HomeProject", queries, &res, true)
 	if err != nil {
 		return
 	}
-	result := res.ResultMap.GetUsers
+	result := res.ResultMap.GetProjectUsers
 	if result.Code >= 100 || result.Error != "" {
 		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
 		return
