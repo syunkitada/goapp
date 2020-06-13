@@ -1,6 +1,7 @@
 package str_utils
 
 import (
+	"strconv"
 	"strings"
 	"unicode"
 )
@@ -77,4 +78,28 @@ func ParseLastSecondValue(s string) string {
 		}
 	}
 	return "0"
+}
+
+func ParseRangeFormatStr(str string) (ints []int) {
+	// parse 0-1,3-5, and return [0,1,3,5]
+	splitedComma := strings.Split(strings.TrimRight(str, "\n"), ",")
+	for _, c := range splitedComma {
+		splitedRange := strings.Split(c, "-")
+		firstNum, tmpErr := strconv.Atoi(splitedRange[0])
+		if tmpErr != nil {
+			return
+		}
+		if len(splitedRange) == 1 {
+			ints = append(ints, firstNum)
+			continue
+		}
+		secondNum, tmpErr := strconv.Atoi(splitedRange[1])
+		if tmpErr != nil {
+			return
+		}
+		for ; firstNum <= secondNum; firstNum++ {
+			ints = append(ints, firstNum)
+		}
+	}
+	return
 }

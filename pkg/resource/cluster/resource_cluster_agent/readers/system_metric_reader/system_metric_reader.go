@@ -17,19 +17,19 @@ import (
 )
 
 type SystemMetricReader struct {
-	conf             *config.ResourceMetricSystemConfig
-	name             string
-	enableLogin      bool
-	enableCpu        bool
-	enableMemory     bool
-	enableProc       bool
-	cacheLength      int
-	uptimeStats      []UptimeStat
-	loginStats       []LoginStat
-	cpuStats         []CpuStat
-	procsStats       []ProcsStat
-	procStats        []ProcStat
-	numaNodeServices []spec.NumaNodeServiceSpec
+	conf         *config.ResourceMetricSystemConfig
+	name         string
+	enableLogin  bool
+	enableCpu    bool
+	enableMemory bool
+	enableProc   bool
+	cacheLength  int
+	uptimeStats  []UptimeStat
+	loginStats   []LoginStat
+	cpuStats     []CpuStat
+	procsStats   []ProcsStat
+	procStats    []ProcStat
+	numaNodeMap  map[string]*spec.NumaNodeSpec
 }
 
 func New(conf *config.ResourceMetricSystemConfig) *SystemMetricReader {
@@ -47,31 +47,32 @@ func New(conf *config.ResourceMetricSystemConfig) *SystemMetricReader {
 	}
 	splitedNodeServices := strings.Split(strings.TrimRight(string(nodeOnlineBytes), "\n"), ",")
 
-	numaNodeServices := []spec.NumaNodeServiceSpec{}
+	numaNodeMap := map[string]*spec.NumaNodeSpec{}
 	for _, node := range splitedNodeServices {
 		id, err := strconv.Atoi(node)
 		if err != nil {
 			logger.StdoutFatalf("Failed Initialize SystemMetricReader: %v", err)
 		}
-		numaNodeServices = append(numaNodeServices, spec.NumaNodeServiceSpec{
-			Id: id,
-		})
+		numaNodeMap[node] = &spec.NumaNodeSpec{
+			Id:     id,
+			CpuMap: map[int]spec.NumaNodeCpuSpec{},
+		}
 	}
 
 	return &SystemMetricReader{
-		conf:             conf,
-		name:             "system",
-		enableLogin:      conf.EnableLogin,
-		enableCpu:        conf.EnableCpu,
-		enableMemory:     conf.EnableMemory,
-		enableProc:       conf.EnableProc,
-		cacheLength:      conf.CacheLength,
-		uptimeStats:      make([]UptimeStat, 0, conf.CacheLength),
-		loginStats:       make([]LoginStat, 0, conf.CacheLength),
-		cpuStats:         make([]CpuStat, 0, conf.CacheLength),
-		procsStats:       make([]ProcsStat, 0, conf.CacheLength),
-		procStats:        make([]ProcStat, 0, conf.CacheLength),
-		numaNodeServices: numaNodeServices,
+		conf:         conf,
+		name:         "system",
+		enableLogin:  conf.EnableLogin,
+		enableCpu:    conf.EnableCpu,
+		enableMemory: conf.EnableMemory,
+		enableProc:   conf.EnableProc,
+		cacheLength:  conf.CacheLength,
+		uptimeStats:  make([]UptimeStat, 0, conf.CacheLength),
+		loginStats:   make([]LoginStat, 0, conf.CacheLength),
+		cpuStats:     make([]CpuStat, 0, conf.CacheLength),
+		procsStats:   make([]ProcsStat, 0, conf.CacheLength),
+		procStats:    make([]ProcStat, 0, conf.CacheLength),
+		numaNodeMap:  numaNodeMap,
 	}
 }
 
@@ -141,11 +142,11 @@ type ProcStat struct {
 	NonvoluntaryCtxtSwitches int64
 }
 
-func (reader *SystemMetricReader) GetNumaNodeServices(tctx *logger.TraceContext) []spec.NumaNodeServiceSpec {
-	return reader.numaNodeServices
+func (reader *SystemMetricReader) GetNumaNodeMap(tctx *logger.TraceContext) map[string]*spec.NumaNodeSpec {
+	return reader.numaNodeMap
 }
 
-func (reader *SystemMetricReader) Read(tctx *logger.TraceContext) error {
+func (reader *SystemMetricReader) Read(tctx *logger.TraceContext) (err error) {
 	timestamp := time.Now()
 
 	// Read /proc/uptime
@@ -277,8 +278,52 @@ func (reader *SystemMetricReader) Read(tctx *logger.TraceContext) error {
 		reader.ReadProc(tctx)
 	}
 
-	// fmt.Println(reader.cpuStats)
-	return nil
+	var tmpBytes []byte
+	var tmpFile *os.File
+	var tmpScanner *bufio.Scanner
+	var tmpErr error
+	for id, node := range reader.numaNodeMap {
+		if tmpBytes, err = ioutil.ReadFile("/sys/devices/system/node/node" + id + "/cpulist"); err != nil {
+			return
+		}
+		cpus := str_utils.ParseRangeFormatStr(string(tmpBytes))
+		for _, cpu := range cpus {
+			node.CpuMap[cpu] = spec.NumaNodeCpuSpec{}
+		}
+
+		nr1GHugepages := 0
+		if tmpBytes, err = ioutil.ReadFile("/sys/devices/system/node/node" + id + "/hugepages/hugepages-1048576kB/nr_hugepages"); err == nil {
+			nr1GHugepages, _ = strconv.Atoi(string(tmpBytes))
+		}
+
+		free1GHugepages := 0
+		if tmpBytes, err = ioutil.ReadFile("/sys/devices/system/node/node" + id + "/hugepages/hugepages-1048576kB/free_hugepages"); err == nil {
+			free1GHugepages, _ = strconv.Atoi(string(tmpBytes))
+		}
+
+		node.Total1GMemory = nr1GHugepages
+		node.Used1GMemory = nr1GHugepages - free1GHugepages
+
+		if tmpFile, tmpErr = os.Open("/sys/devices/system/node/node" + id + "/meminfo"); tmpErr != nil {
+			continue
+		}
+
+		tmpScanner = bufio.NewScanner(tmpFile)
+		tmpScanner.Scan()
+		memTotal, _ := strconv.ParseInt(str_utils.ParseLastSecondValue(tmpScanner.Text()), 10, 64)
+		tmpScanner.Scan()
+		memFree, _ := strconv.ParseInt(str_utils.ParseLastSecondValue(tmpScanner.Text()), 10, 64)
+		tmpScanner.Scan()
+		memUsed, _ := strconv.ParseInt(str_utils.ParseLastSecondValue(tmpScanner.Text()), 10, 64)
+
+		fmt.Println("DEBUG mem", memTotal, memFree, memUsed)
+	}
+
+	// TODO /proc/cpuinfo
+
+	// TODO /proc/buddyinfo
+
+	return
 }
 
 const ProcDir = "/proc/"
