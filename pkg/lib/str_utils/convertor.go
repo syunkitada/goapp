@@ -103,3 +103,31 @@ func ParseRangeFormatStr(str string) (ints []int) {
 	}
 	return
 }
+
+func SplitSpace(str string) (strs []string) {
+	lenstr := len(str)
+	tmpBytes := []byte{}
+	for i := 0; i < lenstr; i++ {
+		if str[i] == ' ' {
+			if len(tmpBytes) > 0 {
+				strs = append(strs, string(tmpBytes))
+				tmpBytes = []byte{}
+			}
+			continue
+		}
+		if i+1 < lenstr && str[i:i+1] == "\t" {
+			if len(tmpBytes) > 0 {
+				strs = append(strs, string(tmpBytes))
+				tmpBytes = []byte{}
+			}
+			i++
+			continue
+		}
+		tmpBytes = append(tmpBytes, str[i])
+	}
+
+	if len(tmpBytes) > 0 {
+		strs = append(strs, string(tmpBytes))
+	}
+	return
+}

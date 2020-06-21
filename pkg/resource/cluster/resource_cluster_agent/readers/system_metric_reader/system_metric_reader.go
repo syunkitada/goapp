@@ -24,9 +24,12 @@ type SystemMetricReader struct {
 	enableMemory bool
 	enableProc   bool
 	cacheLength  int
+	tmpVmStat    *TmpVmStat
 	uptimeStats  []UptimeStat
 	loginStats   []LoginStat
 	cpuStats     []CpuStat
+	memStats     []MemStat
+	vmStats      []VmStat
 	procsStats   []ProcsStat
 	procStats    []ProcStat
 	numaNodeMap  map[string]*spec.NumaNodeSpec
@@ -70,6 +73,7 @@ func New(conf *config.ResourceMetricSystemConfig) *SystemMetricReader {
 		uptimeStats:  make([]UptimeStat, 0, conf.CacheLength),
 		loginStats:   make([]LoginStat, 0, conf.CacheLength),
 		cpuStats:     make([]CpuStat, 0, conf.CacheLength),
+		memStats:     make([]MemStat, 0, conf.CacheLength),
 		procsStats:   make([]ProcsStat, 0, conf.CacheLength),
 		procStats:    make([]ProcStat, 0, conf.CacheLength),
 		numaNodeMap:  numaNodeMap,
@@ -113,6 +117,51 @@ type CpuStat struct {
 	softirq       int64
 }
 
+type MemStat struct {
+	ReportStatus int // 0, 1(GetReport), 2(Reported)
+	Timestamp    time.Time
+	NodeId       int64
+	MemTotal     int64
+	MemFree      int64
+	MemUsed      int64
+	Active       int64
+	Inactive     int64
+	ActiveAnon   int64
+	InactiveAnon int64
+	ActiveFile   int64
+	InactiveFile int64
+	Unevictable  int64
+	Mlocked      int64
+	Dirty        int64
+	Writeback    int64
+	FilePages    int64
+	Mapped       int64
+	AnonPages    int64
+	Shmem        int64
+	KernelStack  int64
+	PageTables   int64
+	NfsUnstable  int64
+	Bounce       int64
+	WritebackTmp int64
+	KReclaimable int64
+	Slab         int64
+	SReclaimable int64
+	SUnreclaim   int64
+}
+
+type VmStat struct {
+	ReportStatus     int // 0, 1(GetReport), 2(Reported)
+	Timestamp        time.Time
+	DiffPgscanKswapd int64
+	DiffPgscanDirect int64
+}
+
+type TmpVmStat struct {
+	Timestamp    time.Time
+	PgscanKswapd int64
+	PgscanDirect int64
+}
+
 type ProcsStat struct {
 	ReportStatus int // 0, 1(GetReport), 2(Reported)
 	Timestamp    time.Time
@@ -152,13 +201,12 @@ func (reader *SystemMetricReader) Read(tctx *logger.TraceContext) (err error) {
 	// Read /proc/uptime
 	// uptime(s)  idle(s)
 	// 2906.26 5507.43
-	// fmt.Println("READ /proc/uptime")
 	procUptime, _ := os.Open("/proc/uptime")
 	defer procUptime.Close()
-	scanner := bufio.NewScanner(procUptime)
-	scanner.Scan()
-	uptimeText := scanner.Text()
-	uptimeWords := strings.Split(uptimeText, " ")
+	var tmpErr error
+	tmpReader := bufio.NewReader(procUptime)
+	tmpBytes, _, _ := tmpReader.ReadLine()
+	uptimeWords := strings.Split(string(tmpBytes), " ")
 	uptime, _ := strconv.ParseInt(uptimeWords[0], 10, 64)
 	uptimeStat := UptimeStat{
 		reportStatus: 0,
@@ -169,6 +217,129 @@ func (reader *SystemMetricReader) Read(tctx *logger.TraceContext) (err error) {
 		reader.uptimeStats = reader.uptimeStats[1:]
 	}
 	reader.uptimeStats = append(reader.uptimeStats, uptimeStat)
+
+	// Read /sys/devices/system/node/node.*/cpulist
+	// Read /sys/devices/system/node/node.*/hugepages
+	// Read /sys/devices/system/node/node.*/meminfo
+	numCpus := 0
+	var tmpFile *os.File
+	for id, node := range reader.numaNodeMap {
+		if tmpBytes, err = ioutil.ReadFile("/sys/devices/system/node/node" + id + "/cpulist"); err != nil {
+			return
+		}
+		cpus := str_utils.ParseRangeFormatStr(string(tmpBytes))
+		numCpus += len(cpus)
+		for _, cpu := range cpus {
+			node.CpuMap[cpu] = spec.NumaNodeCpuSpec{}
+		}
+
+		nr1GHugepages := 0
+		if tmpBytes, err = ioutil.ReadFile("/sys/devices/system/node/node" + id + "/hugepages/hugepages-1048576kB/nr_hugepages"); err == nil {
+			nr1GHugepages, _ = strconv.Atoi(string(tmpBytes))
+		}
+
+		free1GHugepages := 0
+		if tmpBytes, err = ioutil.ReadFile("/sys/devices/system/node/node" + id + "/hugepages/hugepages-1048576kB/free_hugepages"); err == nil {
+			free1GHugepages, _ = strconv.Atoi(string(tmpBytes))
+		}
+
+		node.Total1GMemory = nr1GHugepages
+		node.Used1GMemory = nr1GHugepages - free1GHugepages
+
+		if tmpFile, tmpErr = os.Open("/sys/devices/system/node/node" + id + "/meminfo"); tmpErr != nil {
+			continue
+		}
+		tmpReader := bufio.NewReader(tmpFile)
+
+		tmpBytes, _, _ = tmpReader.ReadLine()
+		memTotal, _ := strconv.ParseInt(str_utils.ParseLastSecondValue(string(tmpBytes)), 10, 64)
+		tmpBytes, _, _ = tmpReader.ReadLine()
+		memFree, _ := strconv.ParseInt(str_utils.ParseLastSecondValue(string(tmpBytes)), 10, 64)
+		tmpBytes, _, _ = tmpReader.ReadLine()
+		memUsed, _ := strconv.ParseInt(str_utils.ParseLastSecondValue(string(tmpBytes)), 10, 64)
+		tmpBytes, _, _ = tmpReader.ReadLine()
+		active, _ := strconv.ParseInt(str_utils.ParseLastSecondValue(string(tmpBytes)), 10, 64)
+		tmpBytes, _, _ = tmpReader.ReadLine()
+		inactive, _ := strconv.ParseInt(str_utils.ParseLastSecondValue(string(tmpBytes)), 10, 64)
+		tmpBytes, _, _ = tmpReader.ReadLine()
+		activeAnon, _ := strconv.ParseInt(str_utils.ParseLastSecondValue(string(tmpBytes)), 10, 64)
+		tmpBytes, _, _ = tmpReader.ReadLine()
+		inactiveAnon, _ := strconv.ParseInt(str_utils.ParseLastSecondValue(string(tmpBytes)), 10, 64)
+		tmpBytes, _, _ = tmpReader.ReadLine()
+		activeFile, _ := strconv.ParseInt(str_utils.ParseLastSecondValue(string(tmpBytes)), 10, 64)
+		tmpBytes, _, _ = tmpReader.ReadLine()
+		inactiveFile, _ := strconv.ParseInt(str_utils.ParseLastSecondValue(string(tmpBytes)), 10, 64)
+		tmpBytes, _, _ = tmpReader.ReadLine()
+		unevictable, _ := strconv.ParseInt(str_utils.ParseLastSecondValue(string(tmpBytes)), 10, 64)
+		tmpBytes, _, _ = tmpReader.ReadLine()
+		mlocked, _ := strconv.ParseInt(str_utils.ParseLastSecondValue(string(tmpBytes)), 10, 64)
+		tmpBytes, _, _ = tmpReader.ReadLine()
+		dirty, _ := strconv.ParseInt(str_utils.ParseLastSecondValue(string(tmpBytes)), 10, 64)
+		tmpBytes, _, _ = tmpReader.ReadLine()
+		writeback, _ := strconv.ParseInt(str_utils.ParseLastSecondValue(string(tmpBytes)), 10, 64)
+		tmpBytes, _, _ = tmpReader.ReadLine()
+		filePages, _ := strconv.ParseInt(str_utils.ParseLastSecondValue(string(tmpBytes)), 10, 64)
+		tmpBytes, _, _ = tmpReader.ReadLine()
+		mapped, _ := strconv.ParseInt(str_utils.ParseLastSecondValue(string(tmpBytes)), 10, 64)
+		tmpBytes, _, _ = tmpReader.ReadLine()
+		anonPages, _ := strconv.ParseInt(str_utils.ParseLastSecondValue(string(tmpBytes)), 10, 64)
+		tmpBytes, _, _ = tmpReader.ReadLine()
+		shmem, _ := strconv.ParseInt(str_utils.ParseLastSecondValue(string(tmpBytes)), 10, 64)
+		tmpBytes, _, _ = tmpReader.ReadLine()
+		kernelStack, _ := strconv.ParseInt(str_utils.ParseLastSecondValue(string(tmpBytes)), 10, 64)
+		tmpBytes, _, _ = tmpReader.ReadLine()
+		pageTables, _ := strconv.ParseInt(str_utils.ParseLastSecondValue(string(tmpBytes)), 10, 64)
+		tmpBytes, _, _ = tmpReader.ReadLine()
+		nfsUnstable, _ := strconv.ParseInt(str_utils.ParseLastSecondValue(string(tmpBytes)), 10, 64)
+		tmpBytes, _, _ = tmpReader.ReadLine()
+		bounce, _ := strconv.ParseInt(str_utils.ParseLastSecondValue(string(tmpBytes)), 10, 64)
+		tmpBytes, _, _ = tmpReader.ReadLine()
+		writebackTmp, _ := strconv.ParseInt(str_utils.ParseLastSecondValue(string(tmpBytes)), 10, 64)
+		tmpBytes, _, _ = tmpReader.ReadLine()
+		kReclaimable, _ := strconv.ParseInt(str_utils.ParseLastSecondValue(string(tmpBytes)), 10, 64)
+		tmpBytes, _, _ = tmpReader.ReadLine()
+		slab, _ := strconv.ParseInt(str_utils.ParseLastSecondValue(string(tmpBytes)), 10, 64)
+		tmpBytes, _, _ = tmpReader.ReadLine()
+		sReclaimable, _ := strconv.ParseInt(str_utils.ParseLastSecondValue(string(tmpBytes)), 10, 64)
+		tmpBytes, _, _ = tmpReader.ReadLine()
+		sUnreclaim, _ := strconv.ParseInt(str_utils.ParseLastSecondValue(string(tmpBytes)), 10, 64)
+
+		node.TotalMemory = int(memTotal)
+		node.UsedMemory = int(memUsed)
+
+		reader.memStats = append(reader.memStats, MemStat{
+			ReportStatus: 0,
+			Timestamp:    timestamp,
+			MemTotal:     memTotal,
+			MemFree:      memFree,
+			MemUsed:      memUsed,
+			Active:       active,
+			Inactive:     inactive,
+			ActiveAnon:   activeAnon,
+			InactiveAnon: inactiveAnon,
+			ActiveFile:   activeFile,
+			InactiveFile: inactiveFile,
+			Unevictable:  unevictable,
+			Mlocked:      mlocked,
+			Dirty:        dirty,
+			Writeback:    writeback,
+			FilePages:    filePages,
+			Mapped:       mapped,
+			AnonPages:    anonPages,
+			Shmem:        shmem,
+			KernelStack:  kernelStack,
+			PageTables:   pageTables,
+			NfsUnstable:  nfsUnstable,
+			Bounce:       bounce,
+			WritebackTmp: writebackTmp,
+			KReclaimable: kReclaimable,
+			Slab:         slab,
+			SReclaimable: sReclaimable,
+			SUnreclaim:   sUnreclaim,
+		})
+	}
+
+	// TODO /proc/cpuinfo
 
 	if reader.enableLogin {
 		// Don't read /var/run/utmp, because of this is binary
@@ -219,18 +390,21 @@ func (reader *SystemMetricReader) Read(tctx *logger.TraceContext) (err error) {
 		// procs_blocked 0
 		// softirq 11650881 ...
 
-		// fmt.Println("READ /proc/stat")
 		f, _ := os.Open("/proc/stat")
 		defer f.Close()
-		scanner = bufio.NewScanner(f)
+		tmpReader = bufio.NewReader(f)
 		lines := make([]string, 0, 20)
-		for scanner.Scan() {
-			lines = append(lines, scanner.Text())
+		for {
+			tmpBytes, _, tmpErr = tmpReader.ReadLine()
+			if tmpErr != nil {
+				break
+			}
+			lines = append(lines, string(tmpBytes))
 		}
 
 		var cpu []string
 		cpuMap := map[string][]int64{}
-		lastIndex := 13 // TODO FIXME len(cpus) + 1
+		lastIndex := numCpus + 1
 		for i := 0; i < lastIndex; i++ {
 			cpu = strings.Split(lines[i], " ")
 			v := make([]int64, len(cpu)-1)
@@ -247,7 +421,6 @@ func (reader *SystemMetricReader) Read(tctx *logger.TraceContext) (err error) {
 		procs_running, _ := strconv.ParseInt(strings.Split(lines[lastIndex+4], " ")[1], 10, 64)
 		procs_blocked, _ := strconv.ParseInt(strings.Split(lines[lastIndex+5], " ")[1], 10, 64)
 		softirq, _ := strconv.ParseInt(strings.Split(lines[lastIndex+6], " ")[1], 10, 64)
-		// fmt.Println("procs_running", procs_running)
 		stat := CpuStat{
 			reportStatus:  0,
 			timestamp:     timestamp,
@@ -267,62 +440,72 @@ func (reader *SystemMetricReader) Read(tctx *logger.TraceContext) (err error) {
 		reader.cpuStats = append(reader.cpuStats, stat)
 	}
 
-	if reader.enableMemory {
-		// Read /proc/vmstat
-		// TODO READ Memory
-		fmt.Println("READ Memory")
-	}
-
 	if reader.enableProc {
 		// Read /proc/
 		reader.ReadProc(tctx)
 	}
 
-	var tmpBytes []byte
-	var tmpFile *os.File
-	var tmpScanner *bufio.Scanner
-	var tmpErr error
-	for id, node := range reader.numaNodeMap {
-		if tmpBytes, err = ioutil.ReadFile("/sys/devices/system/node/node" + id + "/cpulist"); err != nil {
-			return
-		}
-		cpus := str_utils.ParseRangeFormatStr(string(tmpBytes))
-		for _, cpu := range cpus {
-			node.CpuMap[cpu] = spec.NumaNodeCpuSpec{}
-		}
-
-		nr1GHugepages := 0
-		if tmpBytes, err = ioutil.ReadFile("/sys/devices/system/node/node" + id + "/hugepages/hugepages-1048576kB/nr_hugepages"); err == nil {
-			nr1GHugepages, _ = strconv.Atoi(string(tmpBytes))
-		}
-
-		free1GHugepages := 0
-		if tmpBytes, err = ioutil.ReadFile("/sys/devices/system/node/node" + id + "/hugepages/hugepages-1048576kB/free_hugepages"); err == nil {
-			free1GHugepages, _ = strconv.Atoi(string(tmpBytes))
-		}
-
-		node.Total1GMemory = nr1GHugepages
-		node.Used1GMemory = nr1GHugepages - free1GHugepages
-
-		if tmpFile, tmpErr = os.Open("/sys/devices/system/node/node" + id + "/meminfo"); tmpErr != nil {
-			continue
-		}
-
-		tmpScanner = bufio.NewScanner(tmpFile)
-		tmpScanner.Scan()
-		memTotal, _ := strconv.ParseInt(str_utils.ParseLastSecondValue(tmpScanner.Text()), 10, 64)
-		tmpScanner.Scan()
-		memFree, _ := strconv.ParseInt(str_utils.ParseLastSecondValue(tmpScanner.Text()), 10, 64)
-		tmpScanner.Scan()
-		memUsed, _ := strconv.ParseInt(str_utils.ParseLastSecondValue(tmpScanner.Text()), 10, 64)
-
-		fmt.Println("DEBUG mem", memTotal, memFree, memUsed)
+	// Read /proc/vmstat
+	if reader.tmpVmStat == nil {
+		reader.tmpVmStat = reader.ReadVmStat(tctx)
+	} else {
+		tmpVmStat := reader.ReadVmStat(tctx)
+		reader.vmStats = append(reader.vmStats, VmStat{
+			ReportStatus:     0,
+			Timestamp:        timestamp,
+			DiffPgscanKswapd: tmpVmStat.PgscanKswapd - reader.tmpVmStat.PgscanKswapd,
+			DiffPgscanDirect: tmpVmStat.PgscanDirect - reader.tmpVmStat.PgscanDirect,
+		})
+		reader.tmpVmStat = tmpVmStat
 	}
 
-	// TODO /proc/cpuinfo
+	// Read /proc/buddyinfo
+	// $ cat /proc/buddyinfo
+	//                           4K     8k    16k    32k    64k   128k   256k   512k     1M     2M     4M
+	// Node 0, zone      DMA      0      0      0      1      2      1      1      0      1      1      3
+	// Node 0, zone    DMA32      3      3      3      3      3      2      5      6      5      2    874
+	// Node 0, zone   Normal  24727  53842  18419  15120  10448   4451   1761    804    382    105    229
+	buddyinfoFile, _ := os.Open("/proc/buddyinfo")
+	defer buddyinfoFile.Close()
+	tmpReader = bufio.NewReader(buddyinfoFile)
+	for {
+		tmpBytes, _, tmpErr = tmpReader.ReadLine()
+		if tmpErr != nil {
+			break
+		}
+		buddyinfo := str_utils.SplitSpace(string(tmpBytes))
+		if len(buddyinfo) < 10 {
+			continue
+		}
+		fmt.Println("DEBUG buddyinfo", buddyinfo)
+	}
 
-	// TODO /proc/buddyinfo
+	return
+}
 
+func (reader *SystemMetricReader) ReadVmStat(tctx *logger.TraceContext) (tmpVmStat *TmpVmStat) {
+	// Read /proc/vmstat
+	timestamp := time.Now()
+	f, _ := os.Open("/proc/vmstat")
+	defer f.Close()
+	tmpReader := bufio.NewReader(f)
+	vmstat := map[string]string{}
+	for {
+		tmpBytes, _, tmpErr := tmpReader.ReadLine()
+		if tmpErr != nil {
+			break
+		}
+		columns := strings.Split(string(tmpBytes), " ")
+		vmstat[columns[0]] = columns[1]
+	}
+
+	pgscanKswapd, _ := strconv.ParseInt(str_utils.ParseLastValue(vmstat["pgscan_kswapd"]), 10, 64)
+	pgscanDirect, _ := strconv.ParseInt(str_utils.ParseLastValue(vmstat["pgscan_direct"]), 10, 64)
+	tmpVmStat = &TmpVmStat{
+		Timestamp:    timestamp,
+		PgscanKswapd: pgscanKswapd,
+		PgscanDirect: pgscanDirect,
+	}
 	return
 }
 
@@ -349,7 +532,8 @@ func (reader *SystemMetricReader) ReadProc(tctx *logger.TraceContext) (err error
 	var procDiskSleeps int64 = 0
 	var procZonbies int64 = 0
 	var procOthers int64 = 0
-	var tmpScanner *bufio.Scanner
+	var tmpReader *bufio.Reader
+	var tmpBytes []byte
 	var tmpText string
 	var tmpTexts []string
 	procMap := map[string]map[string][]string{}
@@ -365,12 +549,12 @@ func (reader *SystemMetricReader) ReadProc(tctx *logger.TraceContext) (err error
 		}
 		procs += 1
 
-		tmpScanner = bufio.NewScanner(tmpFile)
-		tmpScanner.Scan()
-		cmd := str_utils.ParseLastSecondValue(tmpScanner.Text())
-		tmpScanner.Scan()
-		tmpScanner.Scan()
-		state := str_utils.ParseLastSecondValue(tmpScanner.Text())
+		tmpReader = bufio.NewReader(tmpFile)
+		tmpBytes, _, _ = tmpReader.ReadLine()
+		cmd := str_utils.ParseLastSecondValue(string(tmpBytes))
+		_, _, _ = tmpReader.ReadLine()
+		tmpBytes, _, _ = tmpReader.ReadLine()
+		state := str_utils.ParseLastSecondValue(string(tmpBytes))
 		switch state {
 		case "R":
 			procRuns += 1
@@ -387,8 +571,12 @@ func (reader *SystemMetricReader) ReadProc(tctx *logger.TraceContext) (err error
 		if cmdMap, ok := procMap[cmd]; ok {
 			tmpTexts := make([]string, 0, 53)
 			tmpTexts = append(tmpTexts, state)
-			for tmpScanner.Scan() {
-				tmpTexts = append(tmpTexts, tmpScanner.Text())
+			for {
+				tmpBytes, _, tmpErr = tmpReader.ReadLine()
+				if tmpErr != nil {
+					break
+				}
+				tmpTexts = append(tmpTexts, string(tmpBytes))
 			}
 			cmdMap[procFileInfo.Name()] = tmpTexts
 		}
@@ -404,12 +592,14 @@ func (reader *SystemMetricReader) ReadProc(tctx *logger.TraceContext) (err error
 				if tmpFile, tmpErr = os.Open(ProcDir + pid + "/" + "schedstat"); tmpErr != nil {
 					continue
 				}
-				tmpScanner = bufio.NewScanner(tmpFile)
-				tmpScanner.Scan()
-				tmpText = tmpScanner.Text()
-				tmpTexts = strings.Split(tmpText, " ")
+				tmpReader = bufio.NewReader(tmpFile)
+				tmpBytes, _, tmpErr = tmpReader.ReadLine()
+				if tmpErr != nil {
+					continue
+				}
+				tmpTexts = strings.Split(string(tmpText), " ")
 				if len(tmpTexts) != 3 {
-					logger.Warningf(tctx, "Unexpected Format: path=/proc/[pid]/schedstat, text=%s", tmpText)
+					logger.Warningf(tctx, "Unexpected Format: path=/proc/[pid]/schedstat, text=%s", string(tmpText))
 					continue
 				}
 				schedCpuTime, _ := strconv.ParseInt(tmpTexts[0], 10, 64)
