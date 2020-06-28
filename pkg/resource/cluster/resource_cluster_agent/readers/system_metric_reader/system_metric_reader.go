@@ -17,22 +17,23 @@ import (
 )
 
 type SystemMetricReader struct {
-	conf         *config.ResourceMetricSystemConfig
-	name         string
-	enableLogin  bool
-	enableCpu    bool
-	enableMemory bool
-	enableProc   bool
-	cacheLength  int
-	tmpVmStat    *TmpVmStat
-	uptimeStats  []UptimeStat
-	loginStats   []LoginStat
-	cpuStats     []CpuStat
-	memStats     []MemStat
-	vmStats      []VmStat
-	procsStats   []ProcsStat
-	procStats    []ProcStat
-	numaNodeMap  map[string]*spec.NumaNodeSpec
+	conf           *config.ResourceMetricSystemConfig
+	name           string
+	enableLogin    bool
+	enableCpu      bool
+	enableMemory   bool
+	enableProc     bool
+	cacheLength    int
+	tmpVmStat      *TmpVmStat
+	uptimeStats    []UptimeStat
+	loginStats     []LoginStat
+	cpuStats       []CpuStat
+	memStats       []MemStat
+	buddyinfoStats []BuddyinfoStat
+	vmStats        []VmStat
+	procsStats     []ProcsStat
+	procStats      []ProcStat
+	numaNodeMap    map[string]*spec.NumaNodeSpec
 }
 
 func New(conf *config.ResourceMetricSystemConfig) *SystemMetricReader {
@@ -63,20 +64,21 @@ func New(conf *config.ResourceMetricSystemConfig) *SystemMetricReader {
 	}
 
 	return &SystemMetricReader{
-		conf:         conf,
-		name:         "system",
-		enableLogin:  conf.EnableLogin,
-		enableCpu:    conf.EnableCpu,
-		enableMemory: conf.EnableMemory,
-		enableProc:   conf.EnableProc,
-		cacheLength:  conf.CacheLength,
-		uptimeStats:  make([]UptimeStat, 0, conf.CacheLength),
-		loginStats:   make([]LoginStat, 0, conf.CacheLength),
-		cpuStats:     make([]CpuStat, 0, conf.CacheLength),
-		memStats:     make([]MemStat, 0, conf.CacheLength),
-		procsStats:   make([]ProcsStat, 0, conf.CacheLength),
-		procStats:    make([]ProcStat, 0, conf.CacheLength),
-		numaNodeMap:  numaNodeMap,
+		conf:           conf,
+		name:           "system",
+		enableLogin:    conf.EnableLogin,
+		enableCpu:      conf.EnableCpu,
+		enableMemory:   conf.EnableMemory,
+		enableProc:     conf.EnableProc,
+		cacheLength:    conf.CacheLength,
+		uptimeStats:    make([]UptimeStat, 0, conf.CacheLength),
+		loginStats:     make([]LoginStat, 0, conf.CacheLength),
+		cpuStats:       make([]CpuStat, 0, conf.CacheLength),
+		memStats:       make([]MemStat, 0, conf.CacheLength),
+		buddyinfoStats: make([]BuddyinfoStat, 0, conf.CacheLength),
+		procsStats:     make([]ProcsStat, 0, conf.CacheLength),
+		procStats:      make([]ProcStat, 0, conf.CacheLength),
+		numaNodeMap:    numaNodeMap,
 	}
 }
 
@@ -147,6 +149,23 @@ type MemStat struct {
 	Slab         int64
 	SReclaimable int64
 	SUnreclaim   int64
+}
+
+type BuddyinfoStat struct {
+	ReportStatus int // 0, 1(GetReport), 2(Reported)
+	Timestamp    time.Time
+	NodeId       int64
+	M4K          int64
+	M8K          int64
+	M16K         int64
+	M32K         int64
+	M64K         int64
+	M128K        int64
+	M256K        int64
+	M512K        int64
+	M1M          int64
+	M2M          int64
+	M4M          int64
 }
 
 type VmStat struct {
@@ -339,7 +358,9 @@ func (reader *SystemMetricReader) Read(tctx *logger.TraceContext) (err error) {
 		})
 	}
 
-	// TODO /proc/cpuinfo
+	// TODO /proc/net/netstat
+
+	// TODO /proc/diskstats
 
 	if reader.enableLogin {
 		// Don't read /var/run/utmp, because of this is binary
@@ -377,6 +398,44 @@ func (reader *SystemMetricReader) Read(tctx *logger.TraceContext) (err error) {
 	}
 
 	if reader.enableCpu {
+		// Read /proc/cpuinfo
+		cpuinfo, _ := os.Open("/proc/cpuinfo")
+		defer cpuinfo.Close()
+		tmpReader = bufio.NewReader(cpuinfo)
+
+		var tmpProcessor string
+		var tmpCoreId string
+		var tmpCpuMhz string
+		var tmpBytes []byte
+		var tmpErr error
+		for {
+			tmpBytes, _, tmpErr = tmpReader.ReadLine()
+			if tmpErr != nil {
+				break
+			}
+
+			splited := str_utils.SplitColon(string(tmpBytes))
+			if len(splited) < 1 {
+				continue
+			}
+			switch splited[0] {
+			case "processor":
+				tmpProcessor = splited[1]
+			case "cpu MHz":
+				tmpCpuMhz = splited[1]
+			case "core id":
+				tmpCoreId = splited[1]
+				for i := 0; i < 13; i++ {
+					if _, _, tmpErr = tmpReader.ReadLine(); tmpErr != nil {
+						break
+					}
+				}
+			}
+
+			fmt.Println("DEBUG cpuinfo", tmpProcessor, tmpCoreId, tmpCpuMhz)
+
+		}
+
 		// Read /proc/stat
 		//      user   nice system idle    iowait irq softirq steal guest guest_nice
 		// cpu  264230 262  60792  8237284 20685  0   2652    0     0     0
@@ -477,7 +536,37 @@ func (reader *SystemMetricReader) Read(tctx *logger.TraceContext) (err error) {
 		if len(buddyinfo) < 10 {
 			continue
 		}
-		fmt.Println("DEBUG buddyinfo", buddyinfo)
+		if buddyinfo[3] == "Normal" {
+			nodeId, _ := strconv.ParseInt(buddyinfo[1], 10, 64)
+			m4K, _ := strconv.ParseInt(buddyinfo[4], 10, 64)
+			m8K, _ := strconv.ParseInt(buddyinfo[5], 10, 64)
+			m16K, _ := strconv.ParseInt(buddyinfo[6], 10, 64)
+			m32K, _ := strconv.ParseInt(buddyinfo[7], 10, 64)
+			m64K, _ := strconv.ParseInt(buddyinfo[8], 10, 64)
+			m128K, _ := strconv.ParseInt(buddyinfo[9], 10, 64)
+			m256K, _ := strconv.ParseInt(buddyinfo[10], 10, 64)
+			m512K, _ := strconv.ParseInt(buddyinfo[11], 10, 64)
+			m1M, _ := strconv.ParseInt(buddyinfo[12], 10, 64)
+			m2M, _ := strconv.ParseInt(buddyinfo[13], 10, 64)
+			m4M, _ := strconv.ParseInt(buddyinfo[14], 10, 64)
+
+			reader.buddyinfoStats = append(reader.buddyinfoStats, BuddyinfoStat{
+				ReportStatus: 0,
+				Timestamp:    timestamp,
+				NodeId:       nodeId,
+				M4K:          m4K,
+				M8K:          m8K,
+				M16K:         m16K,
+				M32K:         m32K,
+				M64K:         m64K,
+				M128K:        m128K,
+				M256K:        m256K,
+				M512K:        m512K,
+				M1M:          m1M,
+				M2M:          m2M,
+				M4M:          m4M,
+			})
+		}
 	}
 
 	return

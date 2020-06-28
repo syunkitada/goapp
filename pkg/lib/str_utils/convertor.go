@@ -131,3 +131,26 @@ func SplitSpace(str string) (strs []string) {
 	}
 	return
 }
+
+func SplitColon(str string) (strs []string) {
+	// parse 'core id         : 6', and return ["core id", "6"]
+
+	lenstr := len(str)
+	lastStrIndex := 0
+	for i := 0; i < lenstr; i++ {
+		if str[i] == ' ' {
+			continue
+		} else if str[i] == ':' {
+			strs = append(strs, str[0:lastStrIndex+1])
+			if i+2 < lenstr {
+				strs = append(strs, str[i+2:lenstr])
+			}
+			return
+		} else if i+1 < lenstr && str[i:i+1] == "\t" {
+			continue
+		}
+		lastStrIndex = i
+	}
+
+	return
+}
