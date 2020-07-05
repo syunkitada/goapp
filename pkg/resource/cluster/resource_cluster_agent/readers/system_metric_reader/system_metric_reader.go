@@ -24,6 +24,8 @@ type SystemMetricReader struct {
 	enableMemory   bool
 	enableProc     bool
 	cacheLength    int
+	numaNodes      []spec.NumaNodeSpec
+	cpus           []spec.NumaNodeCpuSpec
 	tmpVmStat      *TmpVmStat
 	uptimeStats    []UptimeStat
 	loginStats     []LoginStat
@@ -33,33 +35,59 @@ type SystemMetricReader struct {
 	vmStats        []VmStat
 	procsStats     []ProcsStat
 	procStats      []ProcStat
-	numaNodeMap    map[string]*spec.NumaNodeSpec
 }
 
 func New(conf *config.ResourceMetricSystemConfig) *SystemMetricReader {
 	// f, _ := os.Open("/sys/devices/system/node/online")
 	// /sys/devices/system/node/node0/meminfo
-	nodeOnline, err := os.Open("/sys/devices/system/node/online")
-	if err != nil {
-		logger.StdoutFatalf("Failed Initialize SystemMetricReader: %v", err)
-	}
-	defer nodeOnline.Close()
 
-	nodeOnlineBytes, err := ioutil.ReadAll(nodeOnline)
-	if err != nil {
-		logger.StdoutFatalf("Failed Initialize SystemMetricReader: %v", err)
-	}
-	splitedNodeServices := strings.Split(strings.TrimRight(string(nodeOnlineBytes), "\n"), ",")
+	var numaNodes []spec.NumaNodeSpec
+	var cpus []spec.NumaNodeCpuSpec
 
-	numaNodeMap := map[string]*spec.NumaNodeSpec{}
-	for _, node := range splitedNodeServices {
-		id, err := strconv.Atoi(node)
-		if err != nil {
-			logger.StdoutFatalf("Failed Initialize SystemMetricReader: %v", err)
+	cpuinfoFile, _ := os.Open("/proc/cpuinfo")
+	defer cpuinfoFile.Close()
+	tmpReader := bufio.NewReader(cpuinfoFile)
+
+	var tmpProcessor int
+	var tmpPhysicalId int
+	var tmpCoreId int
+	var tmpBytes []byte
+	var tmpErr error
+	for {
+		tmpBytes, _, tmpErr = tmpReader.ReadLine()
+		if tmpErr != nil {
+			break
 		}
-		numaNodeMap[node] = &spec.NumaNodeSpec{
-			Id:     id,
-			CpuMap: map[int]spec.NumaNodeCpuSpec{},
+
+		splited := str_utils.SplitColon(string(tmpBytes))
+		if len(splited) < 1 {
+			continue
+		}
+		switch splited[0] {
+		case "processor":
+			tmpProcessor, _ = strconv.Atoi(splited[1])
+		case "physical id":
+			tmpPhysicalId, _ = strconv.Atoi(splited[1])
+		case "core id":
+			tmpCoreId, _ = strconv.Atoi(splited[1])
+			cpuSpec := spec.NumaNodeCpuSpec{
+				PhysicalId: tmpPhysicalId,
+				CoreId:     tmpCoreId,
+				Processor:  tmpProcessor,
+			}
+			if len(numaNodes) == tmpPhysicalId {
+				numaNodes = append(numaNodes, spec.NumaNodeSpec{
+					Id:   tmpPhysicalId,
+					Cpus: []spec.NumaNodeCpuSpec{cpuSpec},
+				})
+			}
+			cpus = append(cpus, cpuSpec)
+
+			for i := 0; i < 13; i++ {
+				if _, _, tmpErr = tmpReader.ReadLine(); tmpErr != nil {
+					break
+				}
+			}
 		}
 	}
 
@@ -71,6 +99,8 @@ func New(conf *config.ResourceMetricSystemConfig) *SystemMetricReader {
 		enableMemory:   conf.EnableMemory,
 		enableProc:     conf.EnableProc,
 		cacheLength:    conf.CacheLength,
+		numaNodes:      numaNodes,
+		cpus:           cpus,
 		uptimeStats:    make([]UptimeStat, 0, conf.CacheLength),
 		loginStats:     make([]LoginStat, 0, conf.CacheLength),
 		cpuStats:       make([]CpuStat, 0, conf.CacheLength),
@@ -78,7 +108,6 @@ func New(conf *config.ResourceMetricSystemConfig) *SystemMetricReader {
 		buddyinfoStats: make([]BuddyinfoStat, 0, conf.CacheLength),
 		procsStats:     make([]ProcsStat, 0, conf.CacheLength),
 		procStats:      make([]ProcStat, 0, conf.CacheLength),
-		numaNodeMap:    numaNodeMap,
 	}
 }
 
@@ -106,10 +135,26 @@ type UserStat struct {
 	what         string
 }
 
+type CpuProcessorStat struct {
+	ReportStatus int // 0, 1(GetReport), 2(Reported)
+	Timestamp    time.Time
+	Processor    int64
+	Mhz          int64
+	User         int64
+	Nice         int64
+	System       int64
+	Idle         int64
+	Iowait       int64
+	Irq          int64
+	Softirq      int64
+	Steal        int64
+	Guest        int64
+	GuestNice    int64
+}
+
 type CpuStat struct {
 	reportStatus  int // 0, 1(GetReport), 2(Reported)
 	timestamp     time.Time
-	cpuMap        map[string][]int64
 	intr          int64
 	ctx           int64
 	btime         int64
@@ -210,8 +255,8 @@ type ProcStat struct {
 	NonvoluntaryCtxtSwitches int64
 }
 
-func (reader *SystemMetricReader) GetNumaNodeMap(tctx *logger.TraceContext) map[string]*spec.NumaNodeSpec {
-	return reader.numaNodeMap
+func (reader *SystemMetricReader) GetNumaNodes(tctx *logger.TraceContext) []spec.NumaNodeSpec {
+	return reader.numaNodes
 }
 
 func (reader *SystemMetricReader) Read(tctx *logger.TraceContext) (err error) {
@@ -237,35 +282,24 @@ func (reader *SystemMetricReader) Read(tctx *logger.TraceContext) (err error) {
 	}
 	reader.uptimeStats = append(reader.uptimeStats, uptimeStat)
 
-	// Read /sys/devices/system/node/node.*/cpulist
 	// Read /sys/devices/system/node/node.*/hugepages
 	// Read /sys/devices/system/node/node.*/meminfo
-	numCpus := 0
 	var tmpFile *os.File
-	for id, node := range reader.numaNodeMap {
-		if tmpBytes, err = ioutil.ReadFile("/sys/devices/system/node/node" + id + "/cpulist"); err != nil {
-			return
-		}
-		cpus := str_utils.ParseRangeFormatStr(string(tmpBytes))
-		numCpus += len(cpus)
-		for _, cpu := range cpus {
-			node.CpuMap[cpu] = spec.NumaNodeCpuSpec{}
-		}
-
+	for id, node := range reader.numaNodes {
 		nr1GHugepages := 0
-		if tmpBytes, err = ioutil.ReadFile("/sys/devices/system/node/node" + id + "/hugepages/hugepages-1048576kB/nr_hugepages"); err == nil {
+		if tmpBytes, err = ioutil.ReadFile("/sys/devices/system/node/node" + strconv.Itoa(id) + "/hugepages/hugepages-1048576kB/nr_hugepages"); err == nil {
 			nr1GHugepages, _ = strconv.Atoi(string(tmpBytes))
 		}
 
 		free1GHugepages := 0
-		if tmpBytes, err = ioutil.ReadFile("/sys/devices/system/node/node" + id + "/hugepages/hugepages-1048576kB/free_hugepages"); err == nil {
+		if tmpBytes, err = ioutil.ReadFile("/sys/devices/system/node/node" + strconv.Itoa(id) + "/hugepages/hugepages-1048576kB/free_hugepages"); err == nil {
 			free1GHugepages, _ = strconv.Atoi(string(tmpBytes))
 		}
 
 		node.Total1GMemory = nr1GHugepages
 		node.Used1GMemory = nr1GHugepages - free1GHugepages
 
-		if tmpFile, tmpErr = os.Open("/sys/devices/system/node/node" + id + "/meminfo"); tmpErr != nil {
+		if tmpFile, tmpErr = os.Open("/sys/devices/system/node/node" + strconv.Itoa(id) + "/meminfo"); tmpErr != nil {
 			continue
 		}
 		tmpReader := bufio.NewReader(tmpFile)
@@ -358,6 +392,8 @@ func (reader *SystemMetricReader) Read(tctx *logger.TraceContext) (err error) {
 		})
 	}
 
+	// TODO ip -s link show
+
 	// TODO /proc/net/netstat
 
 	// TODO /proc/diskstats
@@ -403,9 +439,10 @@ func (reader *SystemMetricReader) Read(tctx *logger.TraceContext) (err error) {
 		defer cpuinfo.Close()
 		tmpReader = bufio.NewReader(cpuinfo)
 
-		var tmpProcessor string
-		var tmpCoreId string
-		var tmpCpuMhz string
+		cpuProcessorStats := make([]CpuProcessorStat, len(reader.cpus))
+
+		var tmpProcessor int
+		var tmpCpuMhz int64
 		var tmpBytes []byte
 		var tmpErr error
 		for {
@@ -420,20 +457,21 @@ func (reader *SystemMetricReader) Read(tctx *logger.TraceContext) (err error) {
 			}
 			switch splited[0] {
 			case "processor":
-				tmpProcessor = splited[1]
+				tmpProcessor, _ = strconv.Atoi(splited[1])
 			case "cpu MHz":
-				tmpCpuMhz = splited[1]
-			case "core id":
-				tmpCoreId = splited[1]
-				for i := 0; i < 13; i++ {
+				tmpCpuMhz, _ = strconv.ParseInt(splited[1], 10, 64)
+				for i := 0; i < 20; i++ {
 					if _, _, tmpErr = tmpReader.ReadLine(); tmpErr != nil {
 						break
 					}
 				}
 			}
-
-			fmt.Println("DEBUG cpuinfo", tmpProcessor, tmpCoreId, tmpCpuMhz)
-
+			cpuProcessorStats[tmpProcessor] = CpuProcessorStat{
+				ReportStatus: 0,
+				Timestamp:    timestamp,
+				Mhz:          tmpCpuMhz,
+				Processor:    int64(tmpProcessor),
+			}
 		}
 
 		// Read /proc/stat
@@ -452,38 +490,51 @@ func (reader *SystemMetricReader) Read(tctx *logger.TraceContext) (err error) {
 		f, _ := os.Open("/proc/stat")
 		defer f.Close()
 		tmpReader = bufio.NewReader(f)
-		lines := make([]string, 0, 20)
-		for {
-			tmpBytes, _, tmpErr = tmpReader.ReadLine()
-			if tmpErr != nil {
-				break
-			}
-			lines = append(lines, string(tmpBytes))
+
+		tmpBytes, _, _ = tmpReader.ReadLine()
+
+		for i := 0; i < len(reader.cpus); i++ {
+			tmpBytes, _, _ = tmpReader.ReadLine()
+			cpu := strings.Split(string(tmpBytes), " ")
+			user, _ := strconv.ParseInt(cpu[1], 10, 64)
+			nice, _ := strconv.ParseInt(cpu[2], 10, 64)
+			system, _ := strconv.ParseInt(cpu[3], 10, 64)
+			idle, _ := strconv.ParseInt(cpu[4], 10, 64)
+			iowait, _ := strconv.ParseInt(cpu[5], 10, 64)
+			irq, _ := strconv.ParseInt(cpu[6], 10, 64)
+			softirq, _ := strconv.ParseInt(cpu[7], 10, 64)
+			steal, _ := strconv.ParseInt(cpu[8], 10, 64)
+			guest, _ := strconv.ParseInt(cpu[9], 10, 64)
+			guestNice, _ := strconv.ParseInt(cpu[10], 10, 64)
+			cpuProcessorStats[i].User = user
+			cpuProcessorStats[i].Nice = nice
+			cpuProcessorStats[i].System = system
+			cpuProcessorStats[i].Idle = idle
+			cpuProcessorStats[i].Iowait = iowait
+			cpuProcessorStats[i].Irq = irq
+			cpuProcessorStats[i].Softirq = softirq
+			cpuProcessorStats[i].Steal = steal
+			cpuProcessorStats[i].Guest = guest
+			cpuProcessorStats[i].GuestNice = guestNice
 		}
 
-		var cpu []string
-		cpuMap := map[string][]int64{}
-		lastIndex := numCpus + 1
-		for i := 0; i < lastIndex; i++ {
-			cpu = strings.Split(lines[i], " ")
-			v := make([]int64, len(cpu)-1)
-			for j, c := range cpu[1:] {
-				v[j], _ = strconv.ParseInt(c, 10, 64)
-			}
-			cpuMap[cpu[0]] = v
-		}
-
-		intr, _ := strconv.ParseInt(strings.Split(lines[lastIndex], " ")[1], 10, 64)
-		ctx, _ := strconv.ParseInt(strings.Split(lines[lastIndex+1], " ")[1], 10, 64)
-		btime, _ := strconv.ParseInt(strings.Split(lines[lastIndex+2], " ")[1], 10, 64)
-		processes, _ := strconv.ParseInt(strings.Split(lines[lastIndex+3], " ")[1], 10, 64)
-		procs_running, _ := strconv.ParseInt(strings.Split(lines[lastIndex+4], " ")[1], 10, 64)
-		procs_blocked, _ := strconv.ParseInt(strings.Split(lines[lastIndex+5], " ")[1], 10, 64)
-		softirq, _ := strconv.ParseInt(strings.Split(lines[lastIndex+6], " ")[1], 10, 64)
+		tmpBytes, _, _ = tmpReader.ReadLine()
+		intr, _ := strconv.ParseInt(strings.Split(string(tmpBytes), " ")[1], 10, 64)
+		tmpBytes, _, _ = tmpReader.ReadLine()
+		ctx, _ := strconv.ParseInt(strings.Split(string(tmpBytes), " ")[1], 10, 64)
+		tmpBytes, _, _ = tmpReader.ReadLine()
+		btime, _ := strconv.ParseInt(strings.Split(string(tmpBytes), " ")[1], 10, 64)
+		tmpBytes, _, _ = tmpReader.ReadLine()
+		processes, _ := strconv.ParseInt(strings.Split(string(tmpBytes), " ")[1], 10, 64)
+		tmpBytes, _, _ = tmpReader.ReadLine()
+		procs_running, _ := strconv.ParseInt(strings.Split(string(tmpBytes), " ")[1], 10, 64)
+		tmpBytes, _, _ = tmpReader.ReadLine()
+		procs_blocked, _ := strconv.ParseInt(strings.Split(string(tmpBytes), " ")[1], 10, 64)
+		tmpBytes, _, _ = tmpReader.ReadLine()
+		softirq, _ := strconv.ParseInt(strings.Split(string(tmpBytes), " ")[1], 10, 64)
 		stat := CpuStat{
 			reportStatus:  0,
 			timestamp:     timestamp,
-			cpuMap:        cpuMap,
 			intr:          intr,
 			ctx:           ctx,
 			btime:         btime,
@@ -847,27 +898,27 @@ func (reader *SystemMetricReader) Report() ([]spec.ResourceMetric, []spec.Resour
 
 	for _, stat := range reader.cpuStats {
 		timestamp := strconv.FormatInt(stat.timestamp.UnixNano(), 10)
-		for cpuName, cpu := range stat.cpuMap {
-			metrics = append(metrics, spec.ResourceMetric{
-				Name: "system_cpu",
-				Time: timestamp,
-				Tag: map[string]string{
-					"cpu": cpuName,
-				},
-				Metric: map[string]interface{}{
-					"user":       cpu[0],
-					"nice":       cpu[1],
-					"system":     cpu[2],
-					"idle":       cpu[3],
-					"iowait":     cpu[4],
-					"irq":        cpu[5],
-					"softirq":    cpu[6],
-					"steal":      cpu[7],
-					"guest":      cpu[8],
-					"guest_nice": cpu[9],
-				},
-			})
-		}
+		// for cpuName, cpu := range stat.cpuMap {
+		// 	metrics = append(metrics, spec.ResourceMetric{
+		// 		Name: "system_cpu",
+		// 		Time: timestamp,
+		// 		Tag: map[string]string{
+		// 			"cpu": cpuName,
+		// 		},
+		// 		Metric: map[string]interface{}{
+		// 			"user":       cpu[0],
+		// 			"nice":       cpu[1],
+		// 			"system":     cpu[2],
+		// 			"idle":       cpu[3],
+		// 			"iowait":     cpu[4],
+		// 			"irq":        cpu[5],
+		// 			"softirq":    cpu[6],
+		// 			"steal":      cpu[7],
+		// 			"guest":      cpu[8],
+		// 			"guest_nice": cpu[9],
+		// 		},
+		// 	})
+		// }
 
 		metrics = append(metrics, spec.ResourceMetric{
 			Name: "system_cpu",

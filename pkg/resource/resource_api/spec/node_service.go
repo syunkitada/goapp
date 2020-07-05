@@ -13,7 +13,7 @@ type NodeServiceSpec struct {
 
 type NumaNodeSpec struct {
 	Id            int
-	CpuMap        map[int]NumaNodeCpuSpec
+	Cpus          []NumaNodeCpuSpec
 	TotalMemory   int
 	UsedMemory    int
 	Total1GMemory int
@@ -21,8 +21,11 @@ type NumaNodeSpec struct {
 }
 
 type NumaNodeCpuSpec struct {
-	Reserved bool
-	Used     bool
+	Reserved   bool
+	Used       bool
+	PhysicalId int // numa
+	CoreId     int // core
+	Processor  int // thread
 }
 
 type StorageSpec struct {
