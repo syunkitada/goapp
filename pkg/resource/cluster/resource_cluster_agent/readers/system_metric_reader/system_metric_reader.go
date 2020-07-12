@@ -17,24 +17,27 @@ import (
 )
 
 type SystemMetricReader struct {
-	conf           *config.ResourceMetricSystemConfig
-	name           string
-	enableLogin    bool
-	enableCpu      bool
-	enableMemory   bool
-	enableProc     bool
-	cacheLength    int
-	numaNodes      []spec.NumaNodeSpec
-	cpus           []spec.NumaNodeCpuSpec
-	tmpVmStat      *TmpVmStat
-	uptimeStats    []UptimeStat
-	loginStats     []LoginStat
-	cpuStats       []CpuStat
-	memStats       []MemStat
-	buddyinfoStats []BuddyinfoStat
-	vmStats        []VmStat
-	procsStats     []ProcsStat
-	procStats      []ProcStat
+	conf            *config.ResourceMetricSystemConfig
+	name            string
+	diskStatFilters []string
+	enableLogin     bool
+	enableCpu       bool
+	enableMemory    bool
+	enableProc      bool
+	cacheLength     int
+	numaNodes       []spec.NumaNodeSpec
+	cpus            []spec.NumaNodeCpuSpec
+	tmpDiskStatMap  map[string]TmpDiskStat
+	tmpVmStat       *TmpVmStat
+	uptimeStats     []UptimeStat
+	loginStats      []LoginStat
+	cpuStats        []CpuStat
+	memStats        []MemStat
+	diskStats       []DiskStat
+	buddyinfoStats  []BuddyinfoStat
+	vmStats         []VmStat
+	procsStats      []ProcsStat
+	procStats       []ProcStat
 }
 
 func New(conf *config.ResourceMetricSystemConfig) *SystemMetricReader {
@@ -92,22 +95,24 @@ func New(conf *config.ResourceMetricSystemConfig) *SystemMetricReader {
 	}
 
 	return &SystemMetricReader{
-		conf:           conf,
-		name:           "system",
-		enableLogin:    conf.EnableLogin,
-		enableCpu:      conf.EnableCpu,
-		enableMemory:   conf.EnableMemory,
-		enableProc:     conf.EnableProc,
-		cacheLength:    conf.CacheLength,
-		numaNodes:      numaNodes,
-		cpus:           cpus,
-		uptimeStats:    make([]UptimeStat, 0, conf.CacheLength),
-		loginStats:     make([]LoginStat, 0, conf.CacheLength),
-		cpuStats:       make([]CpuStat, 0, conf.CacheLength),
-		memStats:       make([]MemStat, 0, conf.CacheLength),
-		buddyinfoStats: make([]BuddyinfoStat, 0, conf.CacheLength),
-		procsStats:     make([]ProcsStat, 0, conf.CacheLength),
-		procStats:      make([]ProcStat, 0, conf.CacheLength),
+		conf:            conf,
+		name:            "system",
+		enableLogin:     conf.EnableLogin,
+		enableCpu:       conf.EnableCpu,
+		enableMemory:    conf.EnableMemory,
+		enableProc:      conf.EnableProc,
+		cacheLength:     conf.CacheLength,
+		numaNodes:       numaNodes,
+		cpus:            cpus,
+		uptimeStats:     make([]UptimeStat, 0, conf.CacheLength),
+		loginStats:      make([]LoginStat, 0, conf.CacheLength),
+		cpuStats:        make([]CpuStat, 0, conf.CacheLength),
+		memStats:        make([]MemStat, 0, conf.CacheLength),
+		diskStats:       make([]DiskStat, 0, conf.CacheLength),
+		buddyinfoStats:  make([]BuddyinfoStat, 0, conf.CacheLength),
+		procsStats:      make([]ProcsStat, 0, conf.CacheLength),
+		procStats:       make([]ProcStat, 0, conf.CacheLength),
+		diskStatFilters: []string{"loop"},
 	}
 }
 
@@ -167,7 +172,7 @@ type CpuStat struct {
 type MemStat struct {
 	ReportStatus int // 0, 1(GetReport), 2(Reported)
 	Timestamp    time.Time
-	NodeId       int64
+	NodeId       int
 	MemTotal     int64
 	MemFree      int64
 	MemUsed      int64
@@ -224,6 +229,46 @@ type TmpVmStat struct {
 	Timestamp    time.Time
 	PgscanKswapd int64
 	PgscanDirect int64
+}
+
+type TmpDiskStat struct {
+	Timestamp         time.Time
+	PblockSize        int64
+	ReadsCompleted    int64
+	ReadsMerges       int64
+	ReadSectors       int64
+	ReadMs            int64
+	WritesCompleted   int64
+	WritesMerges      int64
+	WriteSectors      int64
+	WriteMs           int64
+	ProgressIos       int64
+	IosMs             int64
+	WeightedIosMs     int64
+	DiscardsCompleted int64
+	DiscardsMerges    int64
+	DiscardSectors    int64
+	DiscardMs         int64
+}
+
+type DiskStat struct {
+	ReportStatus        int
+	Timestamp           time.Time
+	ReadsPerSec         int64
+	RmergesPerSec       int64
+	ReadBytesPerSec     int64
+	ReadMsPerSec        int64
+	WritesPerSec        int64
+	WmergesPerSec       int64
+	WriteBytesPerSec    int64
+	WriteMsPerSec       int64
+	DiscardsPerSec      int64
+	DmergesPerSec       int64
+	DiscardBytesPerSec  int64
+	DiscardMsPerSec     int64
+	ProgressIos         int64
+	IosMsPerSec         int64
+	WeightedIosMsPerSec int64
 }
 
 type ProcsStat struct {
@@ -363,6 +408,7 @@ func (reader *SystemMetricReader) Read(tctx *logger.TraceContext) (err error) {
 		reader.memStats = append(reader.memStats, MemStat{
 			ReportStatus: 0,
 			Timestamp:    timestamp,
+			NodeId:       id,
 			MemTotal:     memTotal,
 			MemFree:      memFree,
 			MemUsed:      memUsed,
@@ -391,12 +437,6 @@ func (reader *SystemMetricReader) Read(tctx *logger.TraceContext) (err error) {
 			SUnreclaim:   sUnreclaim,
 		})
 	}
-
-	// TODO ip -s link show
-
-	// TODO /proc/net/netstat
-
-	// TODO /proc/diskstats
 
 	if reader.enableLogin {
 		// Don't read /var/run/utmp, because of this is binary
@@ -620,6 +660,61 @@ func (reader *SystemMetricReader) Read(tctx *logger.TraceContext) (err error) {
 		}
 	}
 
+	// Read /proc/diskstat
+	if reader.tmpDiskStatMap == nil {
+		reader.tmpDiskStatMap = reader.ReadDiskStat(tctx)
+	} else {
+		tmpDiskStatMap := reader.ReadDiskStat(tctx)
+		for dev, cstat := range tmpDiskStatMap {
+			bstat, ok := reader.tmpDiskStatMap[dev]
+			if !ok {
+				continue
+			}
+			interval := cstat.Timestamp.Unix() - bstat.Timestamp.Unix()
+			readsPerSec := int64((cstat.ReadsCompleted - bstat.ReadsCompleted) / int64(interval))
+			rmergesPerSec := int64((cstat.ReadsMerges - bstat.ReadsMerges) / int64(interval))
+			readBytesPerSec := int64(((cstat.ReadSectors - bstat.ReadSectors) * cstat.PblockSize) / int64(interval))
+			readMsPerSec := int64((cstat.ReadMs - bstat.ReadMs) / int64(interval))
+
+			writesPerSec := int64((cstat.WritesCompleted - bstat.WritesCompleted) / int64(interval))
+			wmergesPerSec := int64((cstat.WritesMerges - bstat.WritesMerges) / int64(interval))
+			writeBytesPerSec := int64(((cstat.WriteSectors - bstat.WriteSectors) * cstat.PblockSize) / int64(interval))
+			writeMsPerSec := int64((cstat.WriteMs - bstat.WriteMs) / int64(interval))
+
+			discardsPerSec := int64((cstat.DiscardsCompleted - bstat.DiscardsCompleted) / int64(interval))
+			dmergesPerSec := int64((cstat.DiscardsMerges - bstat.DiscardsMerges) / int64(interval))
+			discardBytesPerSec := int64(((cstat.DiscardSectors - bstat.DiscardSectors) * cstat.PblockSize) / int64(interval))
+			discardMsPerSec := int64((cstat.DiscardMs - bstat.DiscardMs) / int64(interval))
+
+			iosMsPerSec := int64((cstat.IosMs - bstat.IosMs) / int64(interval))
+			weightedIosMsPerSec := int64((cstat.WeightedIosMs - bstat.WeightedIosMs) / int64(interval))
+
+			reader.diskStats = append(reader.diskStats, DiskStat{
+				ReportStatus:        0,
+				Timestamp:           timestamp,
+				ReadsPerSec:         readsPerSec,
+				RmergesPerSec:       rmergesPerSec,
+				ReadBytesPerSec:     readBytesPerSec,
+				ReadMsPerSec:        readMsPerSec,
+				WritesPerSec:        writesPerSec,
+				WmergesPerSec:       wmergesPerSec,
+				WriteBytesPerSec:    writeBytesPerSec,
+				WriteMsPerSec:       writeMsPerSec,
+				DiscardsPerSec:      discardsPerSec,
+				DmergesPerSec:       dmergesPerSec,
+				DiscardBytesPerSec:  discardBytesPerSec,
+				DiscardMsPerSec:     discardMsPerSec,
+				ProgressIos:         cstat.ProgressIos,
+				IosMsPerSec:         iosMsPerSec,
+				WeightedIosMsPerSec: weightedIosMsPerSec,
+			})
+		}
+	}
+
+	// TODO /proc/net/netstat
+
+	// TODO  /proc/net/dev
+
 	return
 }
 
@@ -646,6 +741,106 @@ func (reader *SystemMetricReader) ReadVmStat(tctx *logger.TraceContext) (tmpVmSt
 		PgscanKswapd: pgscanKswapd,
 		PgscanDirect: pgscanDirect,
 	}
+	return
+}
+
+func (reader *SystemMetricReader) ReadDiskStat(tctx *logger.TraceContext) (tmpDiskStatMap map[string]TmpDiskStat) {
+	// Read /proc/diskstats
+
+	// 259       0 nvme0n1 94360 70783 6403078 67950 136558 90723 6419592 38105 0 97140 59208 0 0 0 0
+	// 259       0 nvme0n1 94360 70783 6403078 67950 136611 90751 6423880 38111 0 97200 59208 0 0 0 0
+	// 259       0 nvme0n1 94364 70783 6403230 67951 155638 101247 7087392 41420 0 107356 59208 0 0 0 0
+
+	// Field  1 -- # of reads completed
+	// Field  2 -- # of reads merged, field 6 -- # of writes merged
+	// Field  3 -- # of sectors read
+	// Field  4 -- # of milliseconds spent reading
+	// Field  5 -- # of writes completed
+	// Field  6 -- # of writes merged
+	// Field  7 -- # of sectors written
+	// Field  8 -- # of milliseconds spent writing
+	// Field  9 -- # of I/Os currently in progress
+	// Field 10 -- # of milliseconds spent doing I/Os
+	// Field 11 -- weighted # of milliseconds spent doing I/Os
+	// Field 12 -- # of discards completed
+	// Field 13 -- # of discards merged
+	// Field 14 -- # of sectors discarded
+	// Field 15 -- # of milliseconds spent discarding
+
+	timestamp := time.Now()
+	f, _ := os.Open("/proc/diskstats")
+	defer f.Close()
+	tmpReader := bufio.NewReader(f)
+	tmpDiskStatMap = map[string]TmpDiskStat{}
+	var isFiltered bool
+	for {
+		tmpBytes, _, tmpErr := tmpReader.ReadLine()
+		if tmpErr != nil {
+			break
+		}
+		columns := str_utils.SplitSpace(string(tmpBytes))
+		isFiltered = false
+		for _, filter := range reader.diskStatFilters {
+			if strings.Index(columns[2], filter) > -1 {
+				isFiltered = true
+				break
+			}
+		}
+		if isFiltered {
+			continue
+		}
+
+		pblockSizeFile, tmpErr := os.Open("/sys/block/" + columns[2] + "/queue/physical_block_size")
+		if tmpErr != nil {
+			continue
+		}
+		pblockSizeReader := bufio.NewReader(pblockSizeFile)
+		pblockSizeBytes, _, tmpErr := pblockSizeReader.ReadLine()
+		pblockSizeFile.Close()
+		if tmpErr != nil {
+			continue
+		}
+		pblockSize, _ := strconv.ParseInt(string(pblockSizeBytes), 10, 64)
+
+		readsCompleted, _ := strconv.ParseInt(columns[3], 10, 64)
+		readsMerges, _ := strconv.ParseInt(columns[4], 10, 64)
+		readSectors, _ := strconv.ParseInt(columns[5], 10, 64)
+		readMs, _ := strconv.ParseInt(columns[6], 10, 64)
+		writesCompleted, _ := strconv.ParseInt(columns[7], 10, 64)
+		writesMerges, _ := strconv.ParseInt(columns[8], 10, 64)
+		writeSectors, _ := strconv.ParseInt(columns[9], 10, 64)
+		writeMs, _ := strconv.ParseInt(columns[10], 10, 64)
+
+		progressIos, _ := strconv.ParseInt(columns[11], 10, 64)
+		iosMs, _ := strconv.ParseInt(columns[12], 10, 64)
+		weightedIosMs, _ := strconv.ParseInt(columns[13], 10, 64)
+
+		discardsCompleted, _ := strconv.ParseInt(columns[14], 10, 64)
+		discardsMerges, _ := strconv.ParseInt(columns[15], 10, 64)
+		discardSectors, _ := strconv.ParseInt(columns[16], 10, 64)
+		discardMs, _ := strconv.ParseInt(columns[17], 10, 64)
+
+		tmpDiskStatMap[columns[2]] = TmpDiskStat{
+			Timestamp:         timestamp,
+			PblockSize:        pblockSize,
+			ReadsCompleted:    readsCompleted,
+			ReadsMerges:       readsMerges,
+			ReadSectors:       readSectors,
+			ReadMs:            readMs,
+			WritesCompleted:   writesCompleted,
+			WritesMerges:      writesMerges,
+			WriteSectors:      writeSectors,
+			WriteMs:           writeMs,
+			ProgressIos:       progressIos,
+			IosMs:             iosMs,
+			WeightedIosMs:     weightedIosMs,
+			DiscardsCompleted: discardsCompleted,
+			DiscardsMerges:    discardsMerges,
+			DiscardSectors:    discardSectors,
+			DiscardMs:         discardMs,
+		}
+	}
+
 	return
 }
 
@@ -985,6 +1180,40 @@ func (reader *SystemMetricReader) Report() ([]spec.ResourceMetric, []spec.Resour
 
 		stat.ReportStatus = 1
 		fmt.Println("DEBUG stat", metrics[len(metrics)-1])
+	}
+
+	for _, stat := range reader.memStats {
+		timestamp := strconv.FormatInt(stat.Timestamp.UnixNano(), 10)
+
+		reclaimable := (stat.Inactive + stat.KReclaimable + stat.SReclaimable) * 1000
+		metrics = append(metrics, spec.ResourceMetric{
+			Name: "system_mem",
+			Time: timestamp,
+			Tag: map[string]string{
+				"node_id": strconv.Itoa(stat.NodeId),
+			},
+			Metric: map[string]interface{}{
+				"reclaimable":   reclaimable,
+				"mem_total":     stat.MemTotal * 1000,
+				"mem_free":      stat.MemFree * 1000,
+				"mem_used":      stat.MemUsed * 1000,
+				"active":        stat.Active * 1000,
+				"inactive":      stat.Inactive * 1000,
+				"active_anon":   stat.ActiveAnon * 1000,
+				"inactive_anon": stat.InactiveAnon * 1000,
+				"active_file":   stat.ActiveFile * 1000,
+				"inactive_file": stat.InactiveFile * 1000,
+				"unevictable":   stat.Unevictable * 1000,
+				"mlocked":       stat.Mlocked * 1000,
+				"dirty":         stat.Dirty * 1000,
+				"writeback":     stat.Writeback * 1000,
+				"writeback_tmp": stat.WritebackTmp * 1000,
+				"k_reclaimable": stat.KReclaimable * 1000,
+				"slab":          stat.Slab * 1000,
+				"s_reclaimable": stat.SReclaimable * 1000,
+				"s_unreclaim":   stat.SUnreclaim * 1000,
+			},
+		})
 	}
 
 	// TODO check metrics and issue events

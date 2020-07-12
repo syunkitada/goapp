@@ -299,6 +299,24 @@ func (driver *InfluxdbDriver) GetNode(tctx *logger.TraceContext, input *api_spec
 		Metrics: systemMetrics,
 	})
 
+	var systemMemMetrics []api_spec.Metric
+	driver.GetMetrics(tctx,
+		&systemMemMetrics,
+		"Mem",
+		fmt.Sprintf("SELECT max(mem_total), max(mem_free), max(reclaimable) FROM system_mem %s fill(null)", suffixQuery),
+		[]string{"total", "free", "reclaimable"})
+
+	driver.GetMetrics(tctx,
+		&systemMemMetrics,
+		"Slab",
+		fmt.Sprintf("SELECT max(slab), max(s_reclaimable), max(s_unreclaim) FROM system_mem %s fill(null)", suffixQuery),
+		[]string{"slab", "slab_reclaimable"})
+
+	data = append(data, api_spec.MetricsGroup{
+		Name:    "system_mem",
+		Metrics: systemMemMetrics,
+	})
+
 	var systemProcMetrics []api_spec.Metric
 	driver.GetMetrics(tctx,
 		&systemProcMetrics,
