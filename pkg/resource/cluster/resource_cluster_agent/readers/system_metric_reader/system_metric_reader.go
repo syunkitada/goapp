@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/syunkitada/goapp/pkg/lib/logger"
@@ -20,6 +21,7 @@ type SystemMetricReader struct {
 	conf            *config.ResourceMetricSystemConfig
 	name            string
 	diskStatFilters []string
+	fsStatTypes     []string
 	enableLogin     bool
 	enableCpu       bool
 	enableMemory    bool
@@ -113,6 +115,7 @@ func New(conf *config.ResourceMetricSystemConfig) *SystemMetricReader {
 		procsStats:      make([]ProcsStat, 0, conf.CacheLength),
 		procStats:       make([]ProcStat, 0, conf.CacheLength),
 		diskStatFilters: []string{"loop"},
+		fsStatTypes:     []string{"ext4"},
 	}
 }
 
@@ -223,12 +226,18 @@ type VmStat struct {
 	Timestamp        time.Time
 	DiffPgscanKswapd int64
 	DiffPgscanDirect int64
+	DiffPgfault      int64
+	DiffPswapin      int64
+	DiffPswapout     int64
 }
 
 type TmpVmStat struct {
 	Timestamp    time.Time
 	PgscanKswapd int64
 	PgscanDirect int64
+	Pgfault      int64
+	Pswapin      int64
+	Pswapout     int64
 }
 
 type TmpDiskStat struct {
@@ -269,6 +278,11 @@ type DiskStat struct {
 	ProgressIos         int64
 	IosMsPerSec         int64
 	WeightedIosMsPerSec int64
+}
+
+type FsStat struct {
+	ReportStatus int
+	Timestamp    time.Time
 }
 
 type ProcsStat struct {
@@ -605,6 +619,9 @@ func (reader *SystemMetricReader) Read(tctx *logger.TraceContext) (err error) {
 			Timestamp:        timestamp,
 			DiffPgscanKswapd: tmpVmStat.PgscanKswapd - reader.tmpVmStat.PgscanKswapd,
 			DiffPgscanDirect: tmpVmStat.PgscanDirect - reader.tmpVmStat.PgscanDirect,
+			DiffPgfault:      tmpVmStat.Pgfault - reader.tmpVmStat.Pgfault,
+			DiffPswapin:      tmpVmStat.Pswapin - reader.tmpVmStat.Pswapin,
+			DiffPswapout:     tmpVmStat.Pswapout - reader.tmpVmStat.Pswapout,
 		})
 		reader.tmpVmStat = tmpVmStat
 	}
@@ -709,6 +726,38 @@ func (reader *SystemMetricReader) Read(tctx *logger.TraceContext) (err error) {
 				WeightedIosMsPerSec: weightedIosMsPerSec,
 			})
 		}
+
+		reader.tmpDiskStatMap = tmpDiskStatMap
+	}
+
+	// Read mounts
+	// /etc/mtab -> ../proc/self/mounts
+	mountsFile, _ := os.Open("/proc/self/mounts")
+	defer mountsFile.Close()
+	tmpReader = bufio.NewReader(mountsFile)
+	var splitedLine []string
+	var isMatch bool
+	for {
+		tmpBytes, _, tmpErr = tmpReader.ReadLine()
+		if tmpErr != nil {
+			break
+		}
+		splitedLine = strings.Split(string(tmpBytes), " ")
+		isMatch = false
+		for _, fsType := range reader.fsStatTypes {
+			if splitedLine[2] == fsType {
+				isMatch = true
+				break
+			}
+		}
+		if !isMatch {
+			continue
+		}
+		var statfs syscall.Statfs_t
+		if tmpErr = syscall.Statfs(splitedLine[1], &statfs); tmpErr != nil {
+			continue
+		}
+		fmt.Println("DEBUG statfs", statfs)
 	}
 
 	// TODO /proc/net/netstat
@@ -736,10 +785,18 @@ func (reader *SystemMetricReader) ReadVmStat(tctx *logger.TraceContext) (tmpVmSt
 
 	pgscanKswapd, _ := strconv.ParseInt(str_utils.ParseLastValue(vmstat["pgscan_kswapd"]), 10, 64)
 	pgscanDirect, _ := strconv.ParseInt(str_utils.ParseLastValue(vmstat["pgscan_direct"]), 10, 64)
+	pgfault, _ := strconv.ParseInt(str_utils.ParseLastValue(vmstat["pgfault"]), 10, 64)
+
+	pswapin, _ := strconv.ParseInt(str_utils.ParseLastValue(vmstat["pswapin"]), 10, 64)
+	pswapout, _ := strconv.ParseInt(str_utils.ParseLastValue(vmstat["pswapout"]), 10, 64)
+
 	tmpVmStat = &TmpVmStat{
 		Timestamp:    timestamp,
 		PgscanKswapd: pgscanKswapd,
 		PgscanDirect: pgscanDirect,
+		Pgfault:      pgfault,
+		Pswapin:      pswapin,
+		Pswapout:     pswapout,
 	}
 	return
 }
@@ -1214,6 +1271,41 @@ func (reader *SystemMetricReader) Report() ([]spec.ResourceMetric, []spec.Resour
 				"s_unreclaim":   stat.SUnreclaim * 1000,
 			},
 		})
+	}
+
+	for _, stat := range reader.vmStats {
+		timestamp := strconv.FormatInt(stat.Timestamp.UnixNano(), 10)
+
+		metrics = append(metrics, spec.ResourceMetric{
+			Name: "system_vmstat",
+			Time: timestamp,
+			Metric: map[string]interface{}{
+				"pgscan_kswapd": stat.DiffPgscanKswapd,
+				"pgscan_direct": stat.DiffPgscanDirect,
+				"pgfault":       stat.DiffPgfault,
+				"pswapin":       stat.DiffPswapin,
+				"pswapout":      stat.DiffPswapout,
+			},
+		})
+	}
+
+	for _, stat := range reader.diskStats {
+		timestamp := strconv.FormatInt(stat.Timestamp.UnixNano(), 10)
+
+		metrics = append(metrics, spec.ResourceMetric{
+			Name: "system_diskstat",
+			Time: timestamp,
+			Metric: map[string]interface{}{
+				"reads_per_sec":       stat.ReadsPerSec,
+				"read_bytes_per_sec":  stat.ReadBytesPerSec,
+				"read_ms_per_sec":     stat.ReadMsPerSec,
+				"writes_per_sec":      stat.WritesPerSec,
+				"write_bytes_per_sec": stat.WriteBytesPerSec,
+				"write_ms_per_sec":    stat.WriteMsPerSec,
+				"progress_ios":        stat.ProgressIos,
+			},
+		})
+
 	}
 
 	// TODO check metrics and issue events
