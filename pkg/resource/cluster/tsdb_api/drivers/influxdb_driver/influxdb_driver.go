@@ -335,6 +335,72 @@ func (driver *InfluxdbDriver) GetNode(tctx *logger.TraceContext, input *api_spec
 		Metrics: systemMemMetrics,
 	})
 
+	var systemDiskMetrics []api_spec.Metric
+	driver.GetMetrics(tctx,
+		&systemDiskMetrics,
+		"Disk",
+		fmt.Sprintf("SELECT max(total_size), max(free_size) FROM system_fsstat %s fill(null)", suffixQuery),
+		[]string{"total_size", "free_size"})
+
+	driver.GetMetrics(tctx,
+		&systemDiskMetrics,
+		"Block Reads/Writes",
+		fmt.Sprintf("SELECT max(reads_per_sec), max(writes_per_sec) FROM system_diskstat %s fill(null)", suffixQuery),
+		[]string{"reads_per_sec", "writes_per_sec"})
+
+	driver.GetMetrics(tctx,
+		&systemDiskMetrics,
+		"Block ReadBytes/WriteBytes",
+		fmt.Sprintf("SELECT max(read_bytes_per_sec), max(write_bytes_per_sec) FROM system_diskstat %s fill(null)", suffixQuery),
+		[]string{"read_bytes_per_sec", "write_bytes_per_sec"})
+
+	driver.GetMetrics(tctx,
+		&systemDiskMetrics,
+		"Block ReadMsPerSec/WriteMsPerSec",
+		fmt.Sprintf("SELECT max(read_ms_per_sec), max(write_ms_per_sec) FROM system_diskstat %s fill(null)", suffixQuery),
+		[]string{"read_ms_per_sec", "write_ms_per_sec"})
+
+	driver.GetMetrics(tctx,
+		&systemDiskMetrics,
+		"Block ProgressIos",
+		fmt.Sprintf("SELECT max(progress_ios) FROM system_diskstat %s fill(null)", suffixQuery),
+		[]string{"progress_ios"})
+
+	data = append(data, api_spec.MetricsGroup{
+		Name:    "system disk",
+		Metrics: systemDiskMetrics,
+	})
+
+	var systemNetMetrics []api_spec.Metric
+	driver.GetMetrics(tctx,
+		&systemNetMetrics,
+		"NetDev Bytes/Sec",
+		fmt.Sprintf("SELECT max(receive_bytes_per_sec), max(transmit_bytes_per_sec) FROM system_netdevstat %s fill(null)", suffixQuery),
+		[]string{"receive_bytes_per_sec", "transmit_bytes_per_sec"})
+
+	driver.GetMetrics(tctx,
+		&systemNetMetrics,
+		"NetDev Packets/Sec",
+		fmt.Sprintf("SELECT max(receive_packets_per_sec), max(transmit_packets_per_sec) FROM system_netdevstat %s fill(null)", suffixQuery),
+		[]string{"receive_packets_per_sec", "transmit_packets_per_sec"})
+
+	driver.GetMetrics(tctx,
+		&systemNetMetrics,
+		"NetDev Errors",
+		fmt.Sprintf("SELECT max(receive_errors), max(transmit_errors) FROM system_netdevstat %s fill(null)", suffixQuery),
+		[]string{"receive_errors", "transmit_errors"})
+
+	driver.GetMetrics(tctx,
+		&systemNetMetrics,
+		"NetDev Drops",
+		fmt.Sprintf("SELECT max(receive_drops), max(transmit_drops) FROM system_netdevstat %s fill(null)", suffixQuery),
+		[]string{"receive_drops", "transmit_drops"})
+
+	data = append(data, api_spec.MetricsGroup{
+		Name:    "system netdev",
+		Metrics: systemNetMetrics,
+	})
+
 	var systemProcMetrics []api_spec.Metric
 	driver.GetMetrics(tctx,
 		&systemProcMetrics,

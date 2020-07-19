@@ -18,28 +18,32 @@ import (
 )
 
 type SystemMetricReader struct {
-	conf            *config.ResourceMetricSystemConfig
-	name            string
-	diskStatFilters []string
-	fsStatTypes     []string
-	enableLogin     bool
-	enableCpu       bool
-	enableMemory    bool
-	enableProc      bool
-	cacheLength     int
-	numaNodes       []spec.NumaNodeSpec
-	cpus            []spec.NumaNodeCpuSpec
-	tmpDiskStatMap  map[string]TmpDiskStat
-	tmpVmStat       *TmpVmStat
-	uptimeStats     []UptimeStat
-	loginStats      []LoginStat
-	cpuStats        []CpuStat
-	memStats        []MemStat
-	diskStats       []DiskStat
-	buddyinfoStats  []BuddyinfoStat
-	vmStats         []VmStat
-	procsStats      []ProcsStat
-	procStats       []ProcStat
+	conf              *config.ResourceMetricSystemConfig
+	name              string
+	diskStatFilters   []string
+	netDevStatFilters []string
+	fsStatTypes       []string
+	enableLogin       bool
+	enableCpu         bool
+	enableMemory      bool
+	enableProc        bool
+	cacheLength       int
+	numaNodes         []spec.NumaNodeSpec
+	cpus              []spec.NumaNodeCpuSpec
+	tmpDiskStatMap    map[string]TmpDiskStat
+	tmpVmStat         *TmpVmStat
+	uptimeStats       []UptimeStat
+	loginStats        []LoginStat
+	cpuStats          []CpuStat
+	memStats          []MemStat
+	diskStats         []DiskStat
+	fsStats           []FsStat
+	buddyinfoStats    []BuddyinfoStat
+	vmStats           []VmStat
+	tmpNetDevStatMap  map[string]TmpNetDevStat
+	netDevStats       []NetDevStat
+	procsStats        []ProcsStat
+	procStats         []ProcStat
 }
 
 func New(conf *config.ResourceMetricSystemConfig) *SystemMetricReader {
@@ -64,7 +68,7 @@ func New(conf *config.ResourceMetricSystemConfig) *SystemMetricReader {
 			break
 		}
 
-		splited := str_utils.SplitColon(string(tmpBytes))
+		splited := str_utils.SplitSpaceColon(string(tmpBytes))
 		if len(splited) < 1 {
 			continue
 		}
@@ -97,25 +101,26 @@ func New(conf *config.ResourceMetricSystemConfig) *SystemMetricReader {
 	}
 
 	return &SystemMetricReader{
-		conf:            conf,
-		name:            "system",
-		enableLogin:     conf.EnableLogin,
-		enableCpu:       conf.EnableCpu,
-		enableMemory:    conf.EnableMemory,
-		enableProc:      conf.EnableProc,
-		cacheLength:     conf.CacheLength,
-		numaNodes:       numaNodes,
-		cpus:            cpus,
-		uptimeStats:     make([]UptimeStat, 0, conf.CacheLength),
-		loginStats:      make([]LoginStat, 0, conf.CacheLength),
-		cpuStats:        make([]CpuStat, 0, conf.CacheLength),
-		memStats:        make([]MemStat, 0, conf.CacheLength),
-		diskStats:       make([]DiskStat, 0, conf.CacheLength),
-		buddyinfoStats:  make([]BuddyinfoStat, 0, conf.CacheLength),
-		procsStats:      make([]ProcsStat, 0, conf.CacheLength),
-		procStats:       make([]ProcStat, 0, conf.CacheLength),
-		diskStatFilters: []string{"loop"},
-		fsStatTypes:     []string{"ext4"},
+		conf:              conf,
+		name:              "system",
+		enableLogin:       conf.EnableLogin,
+		enableCpu:         conf.EnableCpu,
+		enableMemory:      conf.EnableMemory,
+		enableProc:        conf.EnableProc,
+		cacheLength:       conf.CacheLength,
+		numaNodes:         numaNodes,
+		cpus:              cpus,
+		uptimeStats:       make([]UptimeStat, 0, conf.CacheLength),
+		loginStats:        make([]LoginStat, 0, conf.CacheLength),
+		cpuStats:          make([]CpuStat, 0, conf.CacheLength),
+		memStats:          make([]MemStat, 0, conf.CacheLength),
+		diskStats:         make([]DiskStat, 0, conf.CacheLength),
+		buddyinfoStats:    make([]BuddyinfoStat, 0, conf.CacheLength),
+		procsStats:        make([]ProcsStat, 0, conf.CacheLength),
+		procStats:         make([]ProcStat, 0, conf.CacheLength),
+		diskStatFilters:   []string{"loop"},
+		netDevStatFilters: []string{"lo"},
+		fsStatTypes:       []string{"ext4"},
 	}
 }
 
@@ -263,6 +268,7 @@ type TmpDiskStat struct {
 type DiskStat struct {
 	ReportStatus        int
 	Timestamp           time.Time
+	Device              string
 	ReadsPerSec         int64
 	RmergesPerSec       int64
 	ReadBytesPerSec     int64
@@ -283,6 +289,37 @@ type DiskStat struct {
 type FsStat struct {
 	ReportStatus int
 	Timestamp    time.Time
+	TotalSize    int64
+	FreeSize     int64
+	UsedSize     int64
+	Files        int64
+}
+
+type TmpNetDevStat struct {
+	ReportStatus    int
+	Timestamp       time.Time
+	ReceiveBytes    int64
+	ReceivePackets  int64
+	ReceiveErrors   int64
+	ReceiveDrops    int64
+	TransmitBytes   int64
+	TransmitPackets int64
+	TransmitErrors  int64
+	TransmitDrops   int64
+}
+
+type NetDevStat struct {
+	ReportStatus          int
+	Timestamp             time.Time
+	Interface             string
+	ReceiveBytesPerSec    int64
+	ReceivePacketsPerSec  int64
+	ReceiveDiffErrors     int64
+	ReceiveDiffDrops      int64
+	TransmitBytesPerSec   int64
+	TransmitPacketsPerSec int64
+	TransmitDiffErrors    int64
+	TransmitDiffDrops     int64
 }
 
 type ProcsStat struct {
@@ -505,7 +542,7 @@ func (reader *SystemMetricReader) Read(tctx *logger.TraceContext) (err error) {
 				break
 			}
 
-			splited := str_utils.SplitColon(string(tmpBytes))
+			splited := str_utils.SplitSpaceColon(string(tmpBytes))
 			if len(splited) < 1 {
 				continue
 			}
@@ -709,6 +746,7 @@ func (reader *SystemMetricReader) Read(tctx *logger.TraceContext) (err error) {
 			reader.diskStats = append(reader.diskStats, DiskStat{
 				ReportStatus:        0,
 				Timestamp:           timestamp,
+				Device:              dev,
 				ReadsPerSec:         readsPerSec,
 				RmergesPerSec:       rmergesPerSec,
 				ReadBytesPerSec:     readBytesPerSec,
@@ -757,12 +795,58 @@ func (reader *SystemMetricReader) Read(tctx *logger.TraceContext) (err error) {
 		if tmpErr = syscall.Statfs(splitedLine[1], &statfs); tmpErr != nil {
 			continue
 		}
-		fmt.Println("DEBUG statfs", statfs)
+		totalSize := int64(statfs.Blocks) * statfs.Bsize
+		freeSize := int64(statfs.Bavail) * statfs.Bsize
+
+		reader.fsStats = append(reader.fsStats, FsStat{
+			ReportStatus: 0,
+			Timestamp:    timestamp,
+			TotalSize:    totalSize,
+			FreeSize:     freeSize,
+			UsedSize:     totalSize - freeSize,
+			Files:        int64(statfs.Files),
+		})
+	}
+
+	// Read /proc/diskstat
+	if reader.tmpNetDevStatMap == nil {
+		reader.tmpNetDevStatMap = reader.ReadNetDevStat(tctx)
+	} else {
+		tmpNetDevStatMap := reader.ReadNetDevStat(tctx)
+		for dev, cstat := range tmpNetDevStatMap {
+			bstat, ok := reader.tmpNetDevStatMap[dev]
+			if !ok {
+				continue
+			}
+			interval := cstat.Timestamp.Unix() - bstat.Timestamp.Unix()
+			receiveBytesPerSec := int64((cstat.ReceiveBytes - bstat.ReceiveBytes) / int64(interval))
+			receivePacketsPerSec := int64((cstat.ReceivePackets - bstat.ReceivePackets) / int64(interval))
+			receiveDiffErrors := int64((cstat.ReceiveErrors - bstat.ReceiveErrors) / int64(interval))
+			receiveDiffDrops := int64((cstat.ReceiveDrops - bstat.ReceiveDrops) / int64(interval))
+			transmitBytesPerSec := int64((cstat.TransmitBytes - bstat.TransmitBytes) / int64(interval))
+			transmitPacketsPerSec := int64((cstat.TransmitPackets - bstat.TransmitPackets) / int64(interval))
+			transmitDiffErrors := int64((cstat.TransmitErrors - bstat.TransmitErrors) / int64(interval))
+			transmitDiffDrops := int64((cstat.TransmitDrops - bstat.TransmitDrops) / int64(interval))
+
+			reader.netDevStats = append(reader.netDevStats, NetDevStat{
+				ReportStatus:          0,
+				Timestamp:             timestamp,
+				Interface:             dev,
+				ReceiveBytesPerSec:    receiveBytesPerSec,
+				ReceivePacketsPerSec:  receivePacketsPerSec,
+				ReceiveDiffErrors:     receiveDiffErrors,
+				ReceiveDiffDrops:      receiveDiffDrops,
+				TransmitBytesPerSec:   transmitBytesPerSec,
+				TransmitPacketsPerSec: transmitPacketsPerSec,
+				TransmitDiffErrors:    transmitDiffErrors,
+				TransmitDiffDrops:     transmitDiffDrops,
+			})
+		}
+
+		reader.tmpNetDevStatMap = tmpNetDevStatMap
 	}
 
 	// TODO /proc/net/netstat
-
-	// TODO  /proc/net/dev
 
 	return
 }
@@ -895,6 +979,73 @@ func (reader *SystemMetricReader) ReadDiskStat(tctx *logger.TraceContext) (tmpDi
 			DiscardsMerges:    discardsMerges,
 			DiscardSectors:    discardSectors,
 			DiscardMs:         discardMs,
+		}
+	}
+
+	return
+}
+
+func (reader *SystemMetricReader) ReadNetDevStat(tctx *logger.TraceContext) (tmpNetDevStatMap map[string]TmpNetDevStat) {
+	// $ cat /proc/net/dev
+	// Inter-|   Receive                                                |  Transmit
+	//  face |bytes    packets errs drop fifo frame compressed multicast|bytes    packets errs drop fifo colls carrier compressed
+	//  com-1-ex:    1426      19    0    0    0     0          0         0     4616      43    0    0    0     0       0          0
+	//  enp31s0: 7855580   30554    0    0    0     0          0      1408 19677375   42829    0    0    0     0       0          0
+	//      lo: 1442597782 3051437    0    0    0     0          0         0 1442597782 3051437    0    0    0     0       0          0
+	// 	 com-0-ex:   29026     447    0    0    0     0          0         0    34621     471    0    0    0     0       0          0
+	// 	 com-2-ex:   26578     383    0    0    0     0          0         0    32083     406    0    0    0     0       0          0
+	// 	 com-4-ex:   28084     420    0    0    0     0          0         0    33499     442    0    0    0     0       0          0
+	// 	 docker0:       0       0    0    0    0     0          0         0        0       0    0    0    0     0       0          0
+	timestamp := time.Now()
+	netdevFile, _ := os.Open("/proc/net/dev")
+	defer netdevFile.Close()
+	tmpReader := bufio.NewReader(netdevFile)
+	_, _, _ = tmpReader.ReadLine()
+	_, _, _ = tmpReader.ReadLine()
+
+	var tmpBytes []byte
+	var tmpErr error
+	tmpNetDevStatMap = map[string]TmpNetDevStat{}
+	var isFiltered bool
+	for {
+		tmpBytes, _, tmpErr = tmpReader.ReadLine()
+		if tmpErr != nil {
+			break
+		}
+		splitedStr := str_utils.SplitColon(string(tmpBytes))
+		columns := str_utils.SplitSpace(splitedStr[1])
+
+		isFiltered = false
+		for _, filter := range reader.netDevStatFilters {
+			if strings.Index(splitedStr[0], filter) > -1 {
+				isFiltered = true
+				break
+			}
+		}
+		if isFiltered {
+			continue
+		}
+
+		receiveBytes, _ := strconv.ParseInt(columns[0], 10, 64)
+		receivePackets, _ := strconv.ParseInt(columns[1], 10, 64)
+		receiveErrors, _ := strconv.ParseInt(columns[2], 10, 64)
+		receiveDrops, _ := strconv.ParseInt(columns[3], 10, 64)
+
+		transmitBytes, _ := strconv.ParseInt(columns[8], 10, 64)
+		transmitPackets, _ := strconv.ParseInt(columns[9], 10, 64)
+		transmitErrors, _ := strconv.ParseInt(columns[10], 10, 64)
+		transmitDrops, _ := strconv.ParseInt(columns[11], 10, 64)
+
+		tmpNetDevStatMap[splitedStr[0]] = TmpNetDevStat{
+			Timestamp:       timestamp,
+			ReceiveBytes:    receiveBytes,
+			ReceivePackets:  receivePackets,
+			ReceiveErrors:   receiveErrors,
+			ReceiveDrops:    receiveDrops,
+			TransmitBytes:   transmitBytes,
+			TransmitPackets: transmitPackets,
+			TransmitErrors:  transmitErrors,
+			TransmitDrops:   transmitDrops,
 		}
 	}
 
@@ -1211,7 +1362,6 @@ func (reader *SystemMetricReader) Report() ([]spec.ResourceMetric, []spec.Resour
 		stat.ReportStatus = 1
 	}
 
-	fmt.Println("DEBUG procStats55", reader.procStats)
 	for _, stat := range reader.procStats {
 		timestamp := strconv.FormatInt(stat.Timestamp.UnixNano(), 10)
 		metrics = append(metrics, spec.ResourceMetric{
@@ -1236,7 +1386,6 @@ func (reader *SystemMetricReader) Report() ([]spec.ResourceMetric, []spec.Resour
 		})
 
 		stat.ReportStatus = 1
-		fmt.Println("DEBUG stat", metrics[len(metrics)-1])
 	}
 
 	for _, stat := range reader.memStats {
@@ -1291,10 +1440,12 @@ func (reader *SystemMetricReader) Report() ([]spec.ResourceMetric, []spec.Resour
 
 	for _, stat := range reader.diskStats {
 		timestamp := strconv.FormatInt(stat.Timestamp.UnixNano(), 10)
-
 		metrics = append(metrics, spec.ResourceMetric{
 			Name: "system_diskstat",
 			Time: timestamp,
+			Tag: map[string]string{
+				"dev": stat.Device,
+			},
 			Metric: map[string]interface{}{
 				"reads_per_sec":       stat.ReadsPerSec,
 				"read_bytes_per_sec":  stat.ReadBytesPerSec,
@@ -1305,7 +1456,41 @@ func (reader *SystemMetricReader) Report() ([]spec.ResourceMetric, []spec.Resour
 				"progress_ios":        stat.ProgressIos,
 			},
 		})
+	}
 
+	for _, stat := range reader.fsStats {
+		timestamp := strconv.FormatInt(stat.Timestamp.UnixNano(), 10)
+		metrics = append(metrics, spec.ResourceMetric{
+			Name: "system_fsstat",
+			Time: timestamp,
+			Metric: map[string]interface{}{
+				"total_size": stat.TotalSize,
+				"free_size":  stat.FreeSize,
+				"used_size":  stat.UsedSize,
+				"files":      stat.Files,
+			},
+		})
+	}
+
+	for _, stat := range reader.netDevStats {
+		timestamp := strconv.FormatInt(stat.Timestamp.UnixNano(), 10)
+		metrics = append(metrics, spec.ResourceMetric{
+			Name: "system_netdevstat",
+			Time: timestamp,
+			Tag: map[string]string{
+				"interface": stat.Interface,
+			},
+			Metric: map[string]interface{}{
+				"receive_bytes_per_sec":    stat.ReceiveBytesPerSec,
+				"receive_packets_per_sec":  stat.ReceivePacketsPerSec,
+				"receive_errors":           stat.ReceiveDiffErrors,
+				"receive_drops":            stat.ReceiveDiffDrops,
+				"transmit_bytes_per_sec":   stat.TransmitBytesPerSec,
+				"transmit_packets_per_sec": stat.TransmitPacketsPerSec,
+				"transmit_errors":          stat.TransmitDiffErrors,
+				"transmit_drops":           stat.TransmitDiffDrops,
+			},
+		})
 	}
 
 	// TODO check metrics and issue events
@@ -1326,7 +1511,19 @@ func (reader *SystemMetricReader) Reported() {
 	for _, stat := range reader.procsStats {
 		stat.ReportStatus = 2
 	}
-	for _, stat := range reader.procStats {
+	for _, stat := range reader.memStats {
+		stat.ReportStatus = 2
+	}
+	for _, stat := range reader.vmStats {
+		stat.ReportStatus = 2
+	}
+	for _, stat := range reader.diskStats {
+		stat.ReportStatus = 2
+	}
+	for _, stat := range reader.fsStats {
+		stat.ReportStatus = 2
+	}
+	for _, stat := range reader.netDevStats {
 		stat.ReportStatus = 2
 	}
 }

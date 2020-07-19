@@ -133,6 +133,33 @@ func SplitSpace(str string) (strs []string) {
 }
 
 func SplitColon(str string) (strs []string) {
+	// parse '   com-1-ex:    1426    245  ', and return ["com-1-ex", "    1426    245  "]
+
+	lenstr := len(str)
+	lastSpaceIndex := 0
+	lastStrIndex := 0
+	for i := 0; i < lenstr; i++ {
+		if str[i] == ' ' {
+			lastSpaceIndex = i + 1
+			continue
+		} else if i+1 < lenstr && str[i:i+1] == "\t" {
+			i++
+			lastSpaceIndex = i + 1
+			continue
+		} else if str[i] == ':' {
+			strs = append(strs, str[lastSpaceIndex:lastStrIndex+1])
+			if i+1 < lenstr {
+				strs = append(strs, str[i+1:lenstr])
+			}
+			return
+		}
+		lastStrIndex = i
+	}
+
+	return
+}
+
+func SplitSpaceColon(str string) (strs []string) {
 	// parse 'core id         : 6', and return ["core id", "6"]
 
 	lenstr := len(str)
