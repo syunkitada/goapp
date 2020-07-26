@@ -385,7 +385,7 @@ class IndexView extends React.Component<IIndexView> {
                         const metric = metricsGroup.Metrics[x];
                         console.log("DEBUG metrics", metric);
                         cards.push(
-                            <Grid key={metric.Name} item={true} xs={true}>
+                            <Grid key={metric.Name} item={true} xs={6}>
                                 <LineGraphCard data={metric} />
                             </Grid>
                         );
