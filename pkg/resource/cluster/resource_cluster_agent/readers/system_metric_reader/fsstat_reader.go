@@ -3,7 +3,6 @@ package system_metric_reader
 import (
 	"bufio"
 	"os"
-	"strconv"
 	"strings"
 	"syscall"
 	"time"
@@ -71,10 +70,9 @@ func (reader *SystemMetricReader) ReadFsStat(tctx *logger.TraceContext) {
 func (reader *SystemMetricReader) GetFsStatMetrics() (metrics []spec.ResourceMetric) {
 	metrics = make([]spec.ResourceMetric, len(reader.fsStats))
 	for _, stat := range reader.fsStats {
-		timestamp := strconv.FormatInt(stat.Timestamp.UnixNano(), 10)
 		metrics = append(metrics, spec.ResourceMetric{
 			Name: "system_fsstat",
-			Time: timestamp,
+			Time: stat.Timestamp,
 			Metric: map[string]interface{}{
 				"total_size": stat.TotalSize,
 				"free_size":  stat.FreeSize,

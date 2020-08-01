@@ -203,7 +203,8 @@ func (driver *InfluxdbDriver) Report(tctx *logger.TraceContext, input *api_spec.
 			values += "," + key + "=" + fmt.Sprint(value) + ""
 		}
 		values = values[1:]
-		metricsData += metric.Name + tags + " " + values + " " + metric.Time + "\n"
+		timestamp := strconv.FormatInt(metric.Time.UnixNano(), 10)
+		metricsData += metric.Name + tags + " " + values + " " + timestamp + "\n"
 	}
 
 	for _, client := range driver.metricClients {

@@ -60,10 +60,9 @@ func (reader *UptimeMetricReader) Read(tctx *logger.TraceContext) {
 func (reader *UptimeMetricReader) ReportMetrics() (metrics []spec.ResourceMetric) {
 	metrics = make([]spec.ResourceMetric, len(reader.uptimeStats))
 	for _, stat := range reader.uptimeStats {
-		timestamp := strconv.FormatInt(stat.timestamp.UnixNano(), 10)
 		metrics = append(metrics, spec.ResourceMetric{
 			Name: "system_uptime",
-			Time: timestamp,
+			Time: stat.timestamp,
 			Tag:  map[string]string{},
 			Metric: map[string]interface{}{
 				"uptime": stat.uptime,

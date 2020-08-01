@@ -161,12 +161,10 @@ func (reader *SystemMetricReader) GetMemStatMetrics() (metrics []spec.ResourceMe
 	metrics = make([]spec.ResourceMetric, len(reader.procsStats)+len(reader.memStats))
 
 	for _, stat := range reader.memStats {
-		timestamp := strconv.FormatInt(stat.Timestamp.UnixNano(), 10)
-
 		reclaimable := (stat.Inactive + stat.KReclaimable + stat.SReclaimable) * 1000
 		metrics = append(metrics, spec.ResourceMetric{
 			Name: "system_mem",
-			Time: timestamp,
+			Time: stat.Timestamp,
 			Tag: map[string]string{
 				"node_id": strconv.Itoa(stat.NodeId),
 			},

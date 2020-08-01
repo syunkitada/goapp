@@ -251,10 +251,9 @@ func (reader *SystemMetricReader) ReadTmpNetStat(tctx *logger.TraceContext) (tmp
 func (reader *SystemMetricReader) GetNetStatMetrics() (metrics []spec.ResourceMetric) {
 	metrics = make([]spec.ResourceMetric, len(reader.tcpExtStats)+len(reader.ipExtStats))
 	for _, stat := range reader.tcpExtStats {
-		timestamp := strconv.FormatInt(stat.Timestamp.UnixNano(), 10)
 		metrics = append(metrics, spec.ResourceMetric{
 			Name: "system_tcp_netstat",
-			Time: timestamp,
+			Time: stat.Timestamp,
 			Metric: map[string]interface{}{
 				"syncookies_sent":   stat.SyncookiesSent,
 				"syncookies_recv":   stat.SyncookiesRecv,
@@ -264,10 +263,9 @@ func (reader *SystemMetricReader) GetNetStatMetrics() (metrics []spec.ResourceMe
 	}
 
 	for _, stat := range reader.ipExtStats {
-		timestamp := strconv.FormatInt(stat.Timestamp.UnixNano(), 10)
 		metrics = append(metrics, spec.ResourceMetric{
 			Name: "system_tcp_netstat",
-			Time: timestamp,
+			Time: stat.Timestamp,
 			Metric: map[string]interface{}{
 				"in_no_routes":      stat.InNoRoutes,
 				"in_truncated_pkts": stat.InTruncatedPkts,

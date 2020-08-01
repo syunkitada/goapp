@@ -14,7 +14,7 @@ type ResourceLog struct {
 
 type ResourceMetric struct {
 	Name   string
-	Time   string
+	Time   time.Time
 	Tag    map[string]string
 	Metric map[string]interface{}
 }

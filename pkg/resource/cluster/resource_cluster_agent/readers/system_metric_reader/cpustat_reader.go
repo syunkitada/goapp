@@ -165,7 +165,6 @@ func (reader *SystemMetricReader) GetCpuStatMetrics() (metrics []spec.ResourceMe
 	metrics = make([]spec.ResourceMetric, len(reader.cpuStats))
 
 	for _, stat := range reader.cpuStats {
-		timestamp := strconv.FormatInt(stat.timestamp.UnixNano(), 10)
 		// for cpuName, cpu := range stat.cpuMap {
 		// 	metrics = append(metrics, spec.ResourceMetric{
 		// 		Name: "system_cpu",
@@ -190,7 +189,7 @@ func (reader *SystemMetricReader) GetCpuStatMetrics() (metrics []spec.ResourceMe
 
 		metrics = append(metrics, spec.ResourceMetric{
 			Name: "system_cpu",
-			Time: timestamp,
+			Time: stat.timestamp,
 			Tag: map[string]string{
 				"cpu": "cpu",
 			},

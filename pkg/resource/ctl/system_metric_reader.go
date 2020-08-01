@@ -3,7 +3,6 @@ package ctl
 import (
 	"fmt"
 	"os"
-	"strconv"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -51,6 +50,7 @@ func (ctl *Ctl) SystemMetricReader() (err error) {
 	time.Sleep(interval)
 	_, _ = reader.Report()
 
+	timeFormat := "15:04:05"
 	for {
 		time.Sleep(interval)
 		if err = reader.Read(tctx); err != nil {
@@ -61,15 +61,18 @@ func (ctl *Ctl) SystemMetricReader() (err error) {
 		for _, metric := range metrics {
 			switch metric.Name {
 			case "system_diskstat":
-				timestampInt, _ := strconv.ParseInt(metric.Time, 10, 64)
-				timestampInt /= 1000000000
-				timestamp := time.Unix(timestampInt, 0)
 				fmt.Printf("%s diskstat dev=%s: rps=%d, rbps=%d, rmsps=%d, wps=%d, wbps=%d, wmsps=%d, pios=%d\n",
-					timestamp.Format("15:04:05"),
+					metric.Time.Format(timeFormat),
 					metric.Tag["dev"],
 					metric.Metric["reads_per_sec"], metric.Metric["read_bytes_per_sec"], metric.Metric["read_ms_per_sec"],
 					metric.Metric["writes_per_sec"], metric.Metric["write_bytes_per_sec"], metric.Metric["write_ms_per_sec"],
 					metric.Metric["progress_ios"],
+				)
+			case "system_vmstat":
+				fmt.Printf("%s vmstat: pskswapd=%d, psdirect=%d, pgfault=%d\n",
+					metric.Time.Format(timeFormat),
+					metric.Metric["pgscan_kswapd"], metric.Metric["pgscan_direct"],
+					metric.Metric["pgfault"],
 				)
 			}
 		}

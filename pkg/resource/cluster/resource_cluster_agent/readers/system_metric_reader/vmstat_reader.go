@@ -9,6 +9,7 @@ import (
 
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/lib/str_utils"
+	"github.com/syunkitada/goapp/pkg/resource/config"
 	"github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
 )
 
@@ -31,6 +32,13 @@ type TmpVmStat struct {
 	Pswapout     int64
 }
 
+type VmStatReader struct {
+	conf            *config.ResourceMetricSystemConfig
+	tmpDiskStatMap  map[string]TmpDiskStat
+	diskStats       []DiskStat
+	diskStatFilters []string
+}
+
 func (reader *SystemMetricReader) ReadVmStat(tctx *logger.TraceContext) {
 	timestamp := time.Now()
 
@@ -38,7 +46,12 @@ func (reader *SystemMetricReader) ReadVmStat(tctx *logger.TraceContext) {
 	if reader.tmpVmStat == nil {
 		reader.tmpVmStat = reader.ReadTmpVmStat(tctx)
 	} else {
+		if len(reader.vmStats) > reader.cacheLength {
+			reader.vmStats = reader.vmStats[1:]
+		}
+
 		tmpVmStat := reader.ReadTmpVmStat(tctx)
+
 		reader.vmStats = append(reader.vmStats, VmStat{
 			ReportStatus:     0,
 			Timestamp:        timestamp,
@@ -89,11 +102,9 @@ func (reader *SystemMetricReader) ReadTmpVmStat(tctx *logger.TraceContext) (tmpV
 func (reader *SystemMetricReader) GetVmStatMetrics() (metrics []spec.ResourceMetric) {
 	metrics = make([]spec.ResourceMetric, len(reader.vmStats))
 	for _, stat := range reader.vmStats {
-		timestamp := strconv.FormatInt(stat.Timestamp.UnixNano(), 10)
-
 		metrics = append(metrics, spec.ResourceMetric{
 			Name: "system_vmstat",
-			Time: timestamp,
+			Time: stat.Timestamp,
 			Metric: map[string]interface{}{
 				"pgscan_kswapd": stat.DiffPgscanKswapd,
 				"pgscan_direct": stat.DiffPgscanDirect,

@@ -151,10 +151,9 @@ func (reader *SystemMetricReader) ReadTmpNetDevStat(tctx *logger.TraceContext) (
 func (reader *SystemMetricReader) GetNetDevStatMetrics() (metrics []spec.ResourceMetric) {
 	metrics = make([]spec.ResourceMetric, len(reader.procsStats)+len(reader.memStats))
 	for _, stat := range reader.netDevStats {
-		timestamp := strconv.FormatInt(stat.Timestamp.UnixNano(), 10)
 		metrics = append(metrics, spec.ResourceMetric{
 			Name: "system_netdevstat",
-			Time: timestamp,
+			Time: stat.Timestamp,
 			Tag: map[string]string{
 				"interface": stat.Interface,
 			},

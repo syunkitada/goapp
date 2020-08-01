@@ -56,6 +56,7 @@ type TmpDiskStat struct {
 
 type DiskMetricReader struct {
 	conf            *config.ResourceMetricSystemConfig
+	cacheLength     int
 	tmpDiskStatMap  map[string]TmpDiskStat
 	diskStats       []DiskStat
 	diskStatFilters []string
@@ -64,6 +65,7 @@ type DiskMetricReader struct {
 func NewDiskMetricReader(conf *config.ResourceMetricSystemConfig) SubMetricReader {
 	return &DiskMetricReader{
 		conf:            conf,
+		cacheLength:     conf.CacheLength,
 		diskStatFilters: []string{"loop"},
 		tmpDiskStatMap:  map[string]TmpDiskStat{},
 	}
@@ -100,6 +102,10 @@ func (reader *DiskMetricReader) Read(tctx *logger.TraceContext) {
 			iosMsPerSec := int64((cstat.IosMs - bstat.IosMs) / int64(interval))
 			weightedIosMsPerSec := int64((cstat.WeightedIosMs - bstat.WeightedIosMs) / int64(interval))
 
+			if len(reader.diskStats) > reader.cacheLength {
+				reader.diskStats = reader.diskStats[1:]
+			}
+
 			reader.diskStats = append(reader.diskStats, DiskStat{
 				ReportStatus:        0,
 				Timestamp:           timestamp,
@@ -132,10 +138,9 @@ func (reader *DiskMetricReader) ReportMetrics() (metrics []spec.ResourceMetric) 
 		if stat.ReportStatus == 2 {
 			continue
 		}
-		timestamp := strconv.FormatInt(stat.Timestamp.UnixNano(), 10)
 		metrics = append(metrics, spec.ResourceMetric{
 			Name: "system_diskstat",
-			Time: timestamp,
+			Time: stat.Timestamp,
 			Tag: map[string]string{
 				"dev": stat.Device,
 			},

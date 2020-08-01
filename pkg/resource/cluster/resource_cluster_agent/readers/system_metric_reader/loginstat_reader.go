@@ -3,7 +3,6 @@ package system_metric_reader
 import (
 	"fmt"
 	"os/exec"
-	"strconv"
 	"strings"
 	"time"
 
@@ -69,10 +68,9 @@ func (reader *SystemMetricReader) ReadLoginStat(tctx *logger.TraceContext) {
 func (reader *SystemMetricReader) GetLoginStatMetrics() (metrics []spec.ResourceMetric) {
 	metrics = make([]spec.ResourceMetric, len(reader.loginStats))
 	for _, stat := range reader.loginStats {
-		timestamp := strconv.FormatInt(stat.timestamp.UnixNano(), 10)
 		metrics = append(metrics, spec.ResourceMetric{
 			Name: "system_login",
-			Time: timestamp,
+			Time: stat.timestamp,
 			Tag:  map[string]string{},
 			Metric: map[string]interface{}{
 				"users": len(stat.users),

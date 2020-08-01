@@ -260,10 +260,9 @@ func (reader *SystemMetricReader) GetProcStatMetrics() (metrics []spec.ResourceM
 	metrics = make([]spec.ResourceMetric, len(reader.procsStats)+len(reader.procStats))
 
 	for _, stat := range reader.procsStats {
-		timestamp := strconv.FormatInt(stat.Timestamp.UnixNano(), 10)
 		metrics = append(metrics, spec.ResourceMetric{
 			Name: "system_procs",
-			Time: timestamp,
+			Time: stat.Timestamp,
 			Tag:  map[string]string{},
 			Metric: map[string]interface{}{
 				"procs":       stat.Procs,
@@ -279,10 +278,9 @@ func (reader *SystemMetricReader) GetProcStatMetrics() (metrics []spec.ResourceM
 	}
 
 	for _, stat := range reader.procStats {
-		timestamp := strconv.FormatInt(stat.Timestamp.UnixNano(), 10)
 		metrics = append(metrics, spec.ResourceMetric{
 			Name: "system_proc",
-			Time: timestamp,
+			Time: stat.Timestamp,
 			Tag: map[string]string{
 				"name": stat.Name,
 				"cmd":  stat.Cmd,
