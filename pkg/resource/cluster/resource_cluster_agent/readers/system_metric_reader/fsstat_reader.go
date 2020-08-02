@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/syunkitada/goapp/pkg/lib/logger"
+	"github.com/syunkitada/goapp/pkg/resource/config"
 	"github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
 )
 
@@ -20,8 +21,23 @@ type FsStat struct {
 	Files        int64
 }
 
+type FsStatReader struct {
+	conf        *config.ResourceMetricSystemConfig
+	cacheLength int
+	fsStats     []FsStat
+	fsStatTypes []string
+}
+
+func NewFsStatReader(conf *config.ResourceMetricSystemConfig) SubMetricReader {
+	return &FsStatReader{
+		conf:        conf,
+		cacheLength: conf.CacheLength,
+		fsStatTypes: []string{"ext4"},
+	}
+}
+
 // Read filesystem stat
-func (reader *SystemMetricReader) ReadFsStat(tctx *logger.TraceContext) {
+func (reader *FsStatReader) Read(tctx *logger.TraceContext) {
 	timestamp := time.Now()
 
 	// read /proc/self/mounts
@@ -67,7 +83,7 @@ func (reader *SystemMetricReader) ReadFsStat(tctx *logger.TraceContext) {
 	}
 }
 
-func (reader *SystemMetricReader) GetFsStatMetrics() (metrics []spec.ResourceMetric) {
+func (reader *FsStatReader) ReportMetrics() (metrics []spec.ResourceMetric) {
 	metrics = make([]spec.ResourceMetric, len(reader.fsStats))
 	for _, stat := range reader.fsStats {
 		metrics = append(metrics, spec.ResourceMetric{
@@ -80,6 +96,17 @@ func (reader *SystemMetricReader) GetFsStatMetrics() (metrics []spec.ResourceMet
 				"files":      stat.Files,
 			},
 		})
+	}
+	return
+}
+
+func (reader *FsStatReader) ReportEvents() (events []spec.ResourceEvent) {
+	return
+}
+
+func (reader *FsStatReader) Reported() {
+	for i := range reader.fsStats {
+		reader.fsStats[i].ReportStatus = 2
 	}
 	return
 }

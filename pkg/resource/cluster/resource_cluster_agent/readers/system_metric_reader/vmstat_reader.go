@@ -33,24 +33,31 @@ type TmpVmStat struct {
 }
 
 type VmStatReader struct {
-	conf            *config.ResourceMetricSystemConfig
-	tmpDiskStatMap  map[string]TmpDiskStat
-	diskStats       []DiskStat
-	diskStatFilters []string
+	conf        *config.ResourceMetricSystemConfig
+	cacheLength int
+	tmpVmStat   *TmpVmStat
+	vmStats     []VmStat
 }
 
-func (reader *SystemMetricReader) ReadVmStat(tctx *logger.TraceContext) {
+func NewVmStatReader(conf *config.ResourceMetricSystemConfig) SubMetricReader {
+	return &VmStatReader{
+		conf:        conf,
+		cacheLength: conf.CacheLength,
+	}
+}
+
+func (reader *VmStatReader) Read(tctx *logger.TraceContext) {
 	timestamp := time.Now()
 
 	// Read /proc/vmstat
 	if reader.tmpVmStat == nil {
-		reader.tmpVmStat = reader.ReadTmpVmStat(tctx)
+		reader.tmpVmStat = reader.readTmpVmStat(tctx)
 	} else {
 		if len(reader.vmStats) > reader.cacheLength {
 			reader.vmStats = reader.vmStats[1:]
 		}
 
-		tmpVmStat := reader.ReadTmpVmStat(tctx)
+		tmpVmStat := reader.readTmpVmStat(tctx)
 
 		reader.vmStats = append(reader.vmStats, VmStat{
 			ReportStatus:     0,
@@ -65,7 +72,39 @@ func (reader *SystemMetricReader) ReadVmStat(tctx *logger.TraceContext) {
 	}
 }
 
-func (reader *SystemMetricReader) ReadTmpVmStat(tctx *logger.TraceContext) (tmpVmStat *TmpVmStat) {
+func (reader *VmStatReader) ReportMetrics() (metrics []spec.ResourceMetric) {
+	metrics = make([]spec.ResourceMetric, len(reader.vmStats))
+	for _, stat := range reader.vmStats {
+		if stat.ReportStatus == ReportStatusReported {
+			continue
+		}
+		metrics = append(metrics, spec.ResourceMetric{
+			Name: "system_vmstat",
+			Time: stat.Timestamp,
+			Metric: map[string]interface{}{
+				"pgscan_kswapd": stat.DiffPgscanKswapd,
+				"pgscan_direct": stat.DiffPgscanDirect,
+				"pgfault":       stat.DiffPgfault,
+				"pswapin":       stat.DiffPswapin,
+				"pswapout":      stat.DiffPswapout,
+			},
+		})
+	}
+	return
+}
+
+func (reader *VmStatReader) ReportEvents() (events []spec.ResourceEvent) {
+	return
+}
+
+func (reader *VmStatReader) Reported() {
+	for i := range reader.vmStats {
+		reader.vmStats[i].ReportStatus = ReportStatusReported
+	}
+	return
+}
+
+func (reader *VmStatReader) readTmpVmStat(tctx *logger.TraceContext) (tmpVmStat *TmpVmStat) {
 	// Read /proc/vmstat
 	timestamp := time.Now()
 	f, _ := os.Open("/proc/vmstat")
@@ -95,24 +134,6 @@ func (reader *SystemMetricReader) ReadTmpVmStat(tctx *logger.TraceContext) (tmpV
 		Pgfault:      pgfault,
 		Pswapin:      pswapin,
 		Pswapout:     pswapout,
-	}
-	return
-}
-
-func (reader *SystemMetricReader) GetVmStatMetrics() (metrics []spec.ResourceMetric) {
-	metrics = make([]spec.ResourceMetric, len(reader.vmStats))
-	for _, stat := range reader.vmStats {
-		metrics = append(metrics, spec.ResourceMetric{
-			Name: "system_vmstat",
-			Time: stat.Timestamp,
-			Metric: map[string]interface{}{
-				"pgscan_kswapd": stat.DiffPgscanKswapd,
-				"pgscan_direct": stat.DiffPgscanDirect,
-				"pgfault":       stat.DiffPgfault,
-				"pswapin":       stat.DiffPswapin,
-				"pswapout":      stat.DiffPswapout,
-			},
-		})
 	}
 	return
 }

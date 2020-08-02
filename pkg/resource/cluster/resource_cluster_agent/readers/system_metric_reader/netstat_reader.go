@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/syunkitada/goapp/pkg/lib/logger"
+	"github.com/syunkitada/goapp/pkg/resource/config"
 	"github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
 )
 
@@ -169,13 +170,31 @@ type IpExtStat struct {
 	InTruncatedPkts int64
 }
 
-func (reader *SystemMetricReader) ReadNetStat(tctx *logger.TraceContext) {
+type NetStatReader struct {
+	conf          *config.ResourceMetricSystemConfig
+	cacheLength   int
+	tmpTcpExtStat *TmpTcpExtStat
+	tmpIpExtStat  *TmpIpExtStat
+	tcpExtStats   []TcpExtStat
+	ipExtStats    []IpExtStat
+}
+
+func NewNetStatReader(conf *config.ResourceMetricSystemConfig) SubMetricReader {
+	return &NetStatReader{
+		conf:        conf,
+		cacheLength: conf.CacheLength,
+		tcpExtStats: make([]TcpExtStat, 0, conf.CacheLength),
+		ipExtStats:  make([]IpExtStat, 0, conf.CacheLength),
+	}
+}
+
+func (reader *NetStatReader) Read(tctx *logger.TraceContext) {
 	timestamp := time.Now()
 
 	if reader.tmpTcpExtStat == nil {
-		reader.tmpTcpExtStat, reader.tmpIpExtStat = reader.ReadTmpNetStat(tctx)
+		reader.tmpTcpExtStat, reader.tmpIpExtStat = reader.readTmpNetStat(tctx)
 	} else {
-		tmpTcpExtStat, tmpIpExtStat := reader.ReadTmpNetStat(tctx)
+		tmpTcpExtStat, tmpIpExtStat := reader.readTmpNetStat(tctx)
 
 		if len(reader.tcpExtStats) > reader.cacheLength {
 			reader.tcpExtStats = reader.tcpExtStats[1:]
@@ -203,7 +222,7 @@ func (reader *SystemMetricReader) ReadNetStat(tctx *logger.TraceContext) {
 	return
 }
 
-func (reader *SystemMetricReader) ReadTmpNetStat(tctx *logger.TraceContext) (tmpTcpExtStat *TmpTcpExtStat, tmpIpExtStat *TmpIpExtStat) {
+func (reader *NetStatReader) readTmpNetStat(tctx *logger.TraceContext) (tmpTcpExtStat *TmpTcpExtStat, tmpIpExtStat *TmpIpExtStat) {
 	netstatFile, _ := os.Open("/proc/net/netstat")
 	defer netstatFile.Close()
 	tmpReader := bufio.NewReader(netstatFile)
@@ -248,7 +267,7 @@ func (reader *SystemMetricReader) ReadTmpNetStat(tctx *logger.TraceContext) (tmp
 	return
 }
 
-func (reader *SystemMetricReader) GetNetStatMetrics() (metrics []spec.ResourceMetric) {
+func (reader *NetStatReader) ReportMetrics() (metrics []spec.ResourceMetric) {
 	metrics = make([]spec.ResourceMetric, len(reader.tcpExtStats)+len(reader.ipExtStats))
 	for _, stat := range reader.tcpExtStats {
 		metrics = append(metrics, spec.ResourceMetric{
@@ -271,6 +290,20 @@ func (reader *SystemMetricReader) GetNetStatMetrics() (metrics []spec.ResourceMe
 				"in_truncated_pkts": stat.InTruncatedPkts,
 			},
 		})
+	}
+	return
+}
+
+func (reader *NetStatReader) ReportEvents() (events []spec.ResourceEvent) {
+	return
+}
+
+func (reader *NetStatReader) Reported() {
+	for i := range reader.tcpExtStats {
+		reader.tcpExtStats[i].ReportStatus = 2
+	}
+	for i := range reader.ipExtStats {
+		reader.ipExtStats[i].ReportStatus = 2
 	}
 	return
 }

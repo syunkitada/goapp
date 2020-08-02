@@ -9,6 +9,7 @@ import (
 
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/lib/str_utils"
+	"github.com/syunkitada/goapp/pkg/resource/config"
 	"github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
 )
 
@@ -41,11 +42,28 @@ type ProcStat struct {
 	NonvoluntaryCtxtSwitches int64
 }
 
+type ProcStatReader struct {
+	conf        *config.ResourceMetricSystemConfig
+	cacheLength int
+	procsStats  []ProcsStat
+	procStats   []ProcStat
+}
+
+func NewProcStatReader(conf *config.ResourceMetricSystemConfig) SubMetricReader {
+	return &ProcStatReader{
+		conf:        conf,
+		cacheLength: conf.CacheLength,
+		procsStats:  make([]ProcsStat, 0, conf.CacheLength),
+		procStats:   make([]ProcStat, 0, conf.CacheLength),
+	}
+}
+
 const ProcDir = "/proc/"
 
-func (reader *SystemMetricReader) ReadProc(tctx *logger.TraceContext) (err error) {
+func (reader *ProcStatReader) Read(tctx *logger.TraceContext) {
 	timestamp := time.Now()
 	var procDirFile *os.File
+	var err error
 	if procDirFile, err = os.Open(ProcDir); err != nil {
 		return
 	}
@@ -256,7 +274,7 @@ func (reader *SystemMetricReader) ReadProc(tctx *logger.TraceContext) (err error
 	return
 }
 
-func (reader *SystemMetricReader) GetProcStatMetrics() (metrics []spec.ResourceMetric) {
+func (reader *ProcStatReader) ReportMetrics() (metrics []spec.ResourceMetric) {
 	metrics = make([]spec.ResourceMetric, len(reader.procsStats)+len(reader.procStats))
 
 	for _, stat := range reader.procsStats {
@@ -302,5 +320,19 @@ func (reader *SystemMetricReader) GetProcStatMetrics() (metrics []spec.ResourceM
 		stat.ReportStatus = 1
 	}
 
+	return
+}
+
+func (reader *ProcStatReader) ReportEvents() (events []spec.ResourceEvent) {
+	return
+}
+
+func (reader *ProcStatReader) Reported() {
+	for _, stat := range reader.procsStats {
+		stat.ReportStatus = 2
+	}
+	for _, stat := range reader.procStats {
+		stat.ReportStatus = 2
+	}
 	return
 }

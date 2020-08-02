@@ -9,6 +9,7 @@ import (
 
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/lib/str_utils"
+	"github.com/syunkitada/goapp/pkg/resource/config"
 	"github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
 )
 
@@ -44,7 +45,23 @@ type MemStat struct {
 	SUnreclaim   int64
 }
 
-func (reader *SystemMetricReader) ReadMemStat(tctx *logger.TraceContext) {
+type MemStatReader struct {
+	conf               *config.ResourceMetricSystemConfig
+	cacheLength        int
+	memStats           []MemStat
+	systemMetricReader *SystemMetricReader
+}
+
+func NewMemStatReader(conf *config.ResourceMetricSystemConfig, systemMetricReader *SystemMetricReader) SubMetricReader {
+	return &MemStatReader{
+		conf:               conf,
+		cacheLength:        conf.CacheLength,
+		memStats:           make([]MemStat, 0, conf.CacheLength),
+		systemMetricReader: systemMetricReader,
+	}
+}
+
+func (reader *MemStatReader) Read(tctx *logger.TraceContext) {
 	// Read /sys/devices/system/node/node.*/hugepages
 	// Read /sys/devices/system/node/node.*/meminfo
 	timestamp := time.Now()
@@ -52,7 +69,7 @@ func (reader *SystemMetricReader) ReadMemStat(tctx *logger.TraceContext) {
 	var tmpBytes []byte
 	var tmpErr error
 	var tmpFile *os.File
-	for id, node := range reader.numaNodes {
+	for id, node := range reader.systemMetricReader.NumaNodes {
 		tmpBytes, _ = ioutil.ReadFile("/sys/devices/system/node/node" + strconv.Itoa(id) + "/hugepages/hugepages-1048576kB/nr_hugepages")
 		nr1GHugepages, _ := strconv.Atoi(string(tmpBytes))
 
@@ -157,8 +174,8 @@ func (reader *SystemMetricReader) ReadMemStat(tctx *logger.TraceContext) {
 	}
 }
 
-func (reader *SystemMetricReader) GetMemStatMetrics() (metrics []spec.ResourceMetric) {
-	metrics = make([]spec.ResourceMetric, len(reader.procsStats)+len(reader.memStats))
+func (reader *MemStatReader) ReportMetrics() (metrics []spec.ResourceMetric) {
+	metrics = make([]spec.ResourceMetric, len(reader.memStats))
 
 	for _, stat := range reader.memStats {
 		reclaimable := (stat.Inactive + stat.KReclaimable + stat.SReclaimable) * 1000
@@ -192,5 +209,16 @@ func (reader *SystemMetricReader) GetMemStatMetrics() (metrics []spec.ResourceMe
 		})
 	}
 
+	return
+}
+
+func (reader *MemStatReader) ReportEvents() (events []spec.ResourceEvent) {
+	return
+}
+
+func (reader *MemStatReader) Reported() {
+	for i := range reader.memStats {
+		reader.memStats[i].ReportStatus = 2
+	}
 	return
 }

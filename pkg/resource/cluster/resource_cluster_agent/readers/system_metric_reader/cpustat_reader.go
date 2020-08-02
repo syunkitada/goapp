@@ -9,6 +9,7 @@ import (
 
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/lib/str_utils"
+	"github.com/syunkitada/goapp/pkg/resource/config"
 	"github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
 )
 
@@ -30,7 +31,7 @@ type CpuProcessorStat struct {
 }
 
 type CpuStat struct {
-	reportStatus  int // 0, 1(GetReport), 2(Reported)
+	ReportStatus  int // 0, 1(GetReport), 2(Reported)
 	timestamp     time.Time
 	intr          int64
 	ctx           int64
@@ -41,7 +42,23 @@ type CpuStat struct {
 	softirq       int64
 }
 
-func (reader *SystemMetricReader) ReadCpuStat(tctx *logger.TraceContext) {
+type CpuStatReader struct {
+	conf        *config.ResourceMetricSystemConfig
+	cpus        []spec.NumaNodeCpuSpec
+	cacheLength int
+	cpuStats    []CpuStat
+}
+
+func NewCpuStatReader(conf *config.ResourceMetricSystemConfig, cpus []spec.NumaNodeCpuSpec) SubMetricReader {
+	return &CpuStatReader{
+		conf:        conf,
+		cpus:        cpus,
+		cacheLength: conf.CacheLength,
+		cpuStats:    make([]CpuStat, 0, conf.CacheLength),
+	}
+}
+
+func (reader *CpuStatReader) Read(tctx *logger.TraceContext) {
 	timestamp := time.Now()
 	var tmpReader *bufio.Reader
 
@@ -144,7 +161,7 @@ func (reader *SystemMetricReader) ReadCpuStat(tctx *logger.TraceContext) {
 	tmpBytes, _, _ = tmpReader.ReadLine()
 	softirq, _ := strconv.ParseInt(strings.Split(string(tmpBytes), " ")[1], 10, 64)
 	stat := CpuStat{
-		reportStatus:  0,
+		ReportStatus:  0,
 		timestamp:     timestamp,
 		intr:          intr,
 		ctx:           ctx,
@@ -159,9 +176,10 @@ func (reader *SystemMetricReader) ReadCpuStat(tctx *logger.TraceContext) {
 		reader.cpuStats = reader.cpuStats[1:]
 	}
 	reader.cpuStats = append(reader.cpuStats, stat)
+
 }
 
-func (reader *SystemMetricReader) GetCpuStatMetrics() (metrics []spec.ResourceMetric) {
+func (reader *CpuStatReader) ReportMetrics() (metrics []spec.ResourceMetric) {
 	metrics = make([]spec.ResourceMetric, len(reader.cpuStats))
 
 	for _, stat := range reader.cpuStats {
@@ -187,12 +205,13 @@ func (reader *SystemMetricReader) GetCpuStatMetrics() (metrics []spec.ResourceMe
 		// 	})
 		// }
 
+		if stat.ReportStatus == ReportStatusReported {
+			continue
+		}
+
 		metrics = append(metrics, spec.ResourceMetric{
 			Name: "system_cpu",
 			Time: stat.timestamp,
-			Tag: map[string]string{
-				"cpu": "cpu",
-			},
 			Metric: map[string]interface{}{
 				"intr":          stat.intr,
 				"ctx":           stat.ctx,
@@ -204,8 +223,19 @@ func (reader *SystemMetricReader) GetCpuStatMetrics() (metrics []spec.ResourceMe
 			},
 		})
 
-		stat.reportStatus = 1
+		stat.ReportStatus = 1
 	}
 
+	return
+}
+
+func (reader *CpuStatReader) ReportEvents() (events []spec.ResourceEvent) {
+	return
+}
+
+func (reader *CpuStatReader) Reported() {
+	for i := range reader.cpuStats {
+		reader.cpuStats[i].ReportStatus = ReportStatusReported
+	}
 	return
 }

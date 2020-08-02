@@ -135,7 +135,7 @@ func (reader *DiskMetricReader) Read(tctx *logger.TraceContext) {
 func (reader *DiskMetricReader) ReportMetrics() (metrics []spec.ResourceMetric) {
 	metrics = make([]spec.ResourceMetric, len(reader.diskStats))
 	for _, stat := range reader.diskStats {
-		if stat.ReportStatus == 2 {
+		if stat.ReportStatus == ReportStatusReported {
 			continue
 		}
 		metrics = append(metrics, spec.ResourceMetric{
@@ -164,7 +164,7 @@ func (reader *DiskMetricReader) ReportEvents() (events []spec.ResourceEvent) {
 
 func (reader *DiskMetricReader) Reported() {
 	for i := range reader.diskStats {
-		reader.diskStats[i].ReportStatus = 2
+		reader.diskStats[i].ReportStatus = ReportStatusReported
 	}
 	return
 }

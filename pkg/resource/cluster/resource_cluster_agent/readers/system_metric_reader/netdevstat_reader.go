@@ -9,6 +9,7 @@ import (
 
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/lib/str_utils"
+	"github.com/syunkitada/goapp/pkg/resource/config"
 	"github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
 )
 
@@ -39,14 +40,30 @@ type NetDevStat struct {
 	TransmitDiffDrops     int64
 }
 
-// ReadNetDevStat read /proc/diskstat
-func (reader *SystemMetricReader) ReadNetDevStat(tctx *logger.TraceContext) {
+type NetDevStatReader struct {
+	conf              *config.ResourceMetricSystemConfig
+	cacheLength       int
+	tmpNetDevStatMap  map[string]TmpNetDevStat
+	netDevStats       []NetDevStat
+	netDevStatFilters []string
+}
+
+func NewNetDevStatReader(conf *config.ResourceMetricSystemConfig) SubMetricReader {
+	return &NetDevStatReader{
+		conf:              conf,
+		cacheLength:       conf.CacheLength,
+		netDevStatFilters: []string{"lo"},
+	}
+}
+
+// Read read /proc/diskstat
+func (reader *NetDevStatReader) Read(tctx *logger.TraceContext) {
 	timestamp := time.Now()
 
 	if reader.tmpNetDevStatMap == nil {
-		reader.tmpNetDevStatMap = reader.ReadTmpNetDevStat(tctx)
+		reader.tmpNetDevStatMap = reader.readTmpNetDevStat(tctx)
 	} else {
-		tmpNetDevStatMap := reader.ReadTmpNetDevStat(tctx)
+		tmpNetDevStatMap := reader.readTmpNetDevStat(tctx)
 		for dev, cstat := range tmpNetDevStatMap {
 			bstat, ok := reader.tmpNetDevStatMap[dev]
 			if !ok {
@@ -81,7 +98,7 @@ func (reader *SystemMetricReader) ReadNetDevStat(tctx *logger.TraceContext) {
 	}
 }
 
-func (reader *SystemMetricReader) ReadTmpNetDevStat(tctx *logger.TraceContext) (tmpNetDevStatMap map[string]TmpNetDevStat) {
+func (reader *NetDevStatReader) readTmpNetDevStat(tctx *logger.TraceContext) (tmpNetDevStatMap map[string]TmpNetDevStat) {
 	// $ cat /proc/net/dev
 	// Inter-|   Receive                                                |  Transmit
 	//  face |bytes    packets errs drop fifo frame compressed multicast|bytes    packets errs drop fifo colls carrier compressed
@@ -148,8 +165,8 @@ func (reader *SystemMetricReader) ReadTmpNetDevStat(tctx *logger.TraceContext) (
 	return
 }
 
-func (reader *SystemMetricReader) GetNetDevStatMetrics() (metrics []spec.ResourceMetric) {
-	metrics = make([]spec.ResourceMetric, len(reader.procsStats)+len(reader.memStats))
+func (reader *NetDevStatReader) ReportMetrics() (metrics []spec.ResourceMetric) {
+	metrics = make([]spec.ResourceMetric, len(reader.netDevStats))
 	for _, stat := range reader.netDevStats {
 		metrics = append(metrics, spec.ResourceMetric{
 			Name: "system_netdevstat",
@@ -168,6 +185,17 @@ func (reader *SystemMetricReader) GetNetDevStatMetrics() (metrics []spec.Resourc
 				"transmit_drops":           stat.TransmitDiffDrops,
 			},
 		})
+	}
+	return
+}
+
+func (reader *NetDevStatReader) ReportEvents() (events []spec.ResourceEvent) {
+	return
+}
+
+func (reader *NetDevStatReader) Reported() {
+	for i := range reader.netDevStats {
+		reader.netDevStats[i].ReportStatus = 2
 	}
 	return
 }

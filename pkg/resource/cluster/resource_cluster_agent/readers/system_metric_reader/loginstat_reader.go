@@ -7,17 +7,18 @@ import (
 	"time"
 
 	"github.com/syunkitada/goapp/pkg/lib/logger"
+	"github.com/syunkitada/goapp/pkg/resource/config"
 	"github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
 )
 
 type LoginStat struct {
-	reportStatus int // 0, 1(GetReport), 2(Reported)
+	ReportStatus int // 0, 1(GetReport), 2(Reported)
 	users        []UserStat
 	timestamp    time.Time
 }
 
 type UserStat struct {
-	reportStatus int // 0, 1(GetReport), 2(Reported)
+	ReportStatus int // 0, 1(GetReport), 2(Reported)
 	user         string
 	tty          string
 	from         string
@@ -28,7 +29,21 @@ type UserStat struct {
 	what         string
 }
 
-func (reader *SystemMetricReader) ReadLoginStat(tctx *logger.TraceContext) {
+type LoginStatReader struct {
+	conf        *config.ResourceMetricSystemConfig
+	cacheLength int
+	loginStats  []LoginStat
+}
+
+func NewLoginStatReader(conf *config.ResourceMetricSystemConfig) SubMetricReader {
+	return &LoginStatReader{
+		conf:        conf,
+		cacheLength: conf.CacheLength,
+		loginStats:  make([]LoginStat, 0, conf.CacheLength),
+	}
+}
+
+func (reader *LoginStatReader) Read(tctx *logger.TraceContext) {
 	timestamp := time.Now()
 
 	// Don't read /var/run/utmp, because of this is binary
@@ -65,7 +80,7 @@ func (reader *SystemMetricReader) ReadLoginStat(tctx *logger.TraceContext) {
 	})
 }
 
-func (reader *SystemMetricReader) GetLoginStatMetrics() (metrics []spec.ResourceMetric) {
+func (reader *LoginStatReader) ReportMetrics() (metrics []spec.ResourceMetric) {
 	metrics = make([]spec.ResourceMetric, len(reader.loginStats))
 	for _, stat := range reader.loginStats {
 		metrics = append(metrics, spec.ResourceMetric{
@@ -76,6 +91,17 @@ func (reader *SystemMetricReader) GetLoginStatMetrics() (metrics []spec.Resource
 				"users": len(stat.users),
 			},
 		})
+	}
+	return
+}
+
+func (reader *LoginStatReader) ReportEvents() (events []spec.ResourceEvent) {
+	return
+}
+
+func (reader *LoginStatReader) Reported() {
+	for i := range reader.loginStats {
+		reader.loginStats[i].ReportStatus = 2
 	}
 	return
 }
