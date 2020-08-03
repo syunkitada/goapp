@@ -14,7 +14,7 @@ import (
 )
 
 type CpuProcessorStat struct {
-	ReportStatus int // 0, 1(GetReport), 2(Reported)
+	ReportStatus int
 	Timestamp    time.Time
 	Processor    int64
 	Mhz          int64
@@ -30,23 +30,51 @@ type CpuProcessorStat struct {
 	GuestNice    int64
 }
 
+type TmpCpuProcessorStat struct {
+	Processor int64
+	Mhz       int64
+	User      int64
+	Nice      int64
+	System    int64
+	Idle      int64
+	Iowait    int64
+	Irq       int64
+	Softirq   int64
+	Steal     int64
+	Guest     int64
+	GuestNice int64
+}
+
 type CpuStat struct {
-	ReportStatus  int // 0, 1(GetReport), 2(Reported)
-	timestamp     time.Time
-	intr          int64
-	ctx           int64
-	btime         int64
-	processes     int64
-	procs_running int64
-	procs_blocked int64
-	softirq       int64
+	ReportStatus int
+	Timestamp    time.Time
+	Intr         int64
+	Ctx          int64
+	Btime        int64
+	Processes    int64
+	ProcsRunning int64
+	ProcsBlocked int64
+	Softirq      int64
+}
+
+type TmpCpuStat struct {
+	Intr         int64
+	Ctx          int64
+	Btime        int64
+	Processes    int64
+	ProcsRunning int64
+	ProcsBlocked int64
+	Softirq      int64
 }
 
 type CpuStatReader struct {
-	conf        *config.ResourceMetricSystemConfig
-	cpus        []spec.NumaNodeCpuSpec
-	cacheLength int
-	cpuStats    []CpuStat
+	conf                 *config.ResourceMetricSystemConfig
+	cpus                 []spec.NumaNodeCpuSpec
+	cacheLength          int
+	cpuStats             []CpuStat
+	cpuProcessorStats    []CpuProcessorStat
+	tmpCpuStat           *TmpCpuStat
+	tmpCpuProcessorStats []TmpCpuProcessorStat
 }
 
 func NewCpuStatReader(conf *config.ResourceMetricSystemConfig, cpus []spec.NumaNodeCpuSpec) SubMetricReader {
@@ -60,6 +88,52 @@ func NewCpuStatReader(conf *config.ResourceMetricSystemConfig, cpus []spec.NumaN
 
 func (reader *CpuStatReader) Read(tctx *logger.TraceContext) {
 	timestamp := time.Now()
+	if reader.tmpCpuStat == nil {
+		reader.tmpCpuStat, _ = reader.read(tctx)
+	} else {
+		tmpCpuStat, tmpCpuProcessorStats := reader.read(tctx)
+		if len(reader.cpuStats) > reader.cacheLength {
+			reader.cpuStats = reader.cpuStats[1:]
+		}
+		reader.cpuStats = append(reader.cpuStats, CpuStat{
+			Timestamp:    timestamp,
+			Intr:         tmpCpuStat.Intr - reader.tmpCpuStat.Intr,
+			Ctx:          tmpCpuStat.Ctx - reader.tmpCpuStat.Ctx,
+			Btime:        tmpCpuStat.Btime - reader.tmpCpuStat.Btime,
+			Processes:    tmpCpuStat.Processes - reader.tmpCpuStat.Processes,
+			ProcsRunning: tmpCpuStat.ProcsRunning,
+			ProcsBlocked: tmpCpuStat.ProcsBlocked,
+			Softirq:      tmpCpuStat.Softirq - reader.tmpCpuStat.Softirq,
+		})
+
+		if len(reader.cpuProcessorStats) > reader.cacheLength {
+			reader.cpuProcessorStats = reader.cpuProcessorStats[len(tmpCpuProcessorStats):]
+		}
+
+		for _, stat := range tmpCpuProcessorStats {
+			total := stat.User + stat.Nice + stat.Nice + stat.System + stat.Idle + stat.Iowait + stat.Irq + stat.Softirq + stat.Steal + stat.Guest + stat.GuestNice
+			reader.cpuProcessorStats = append(reader.cpuProcessorStats, CpuProcessorStat{
+				Timestamp: timestamp,
+				Processor: stat.Processor,
+				Mhz:       stat.Mhz,
+				User:      stat.User * 100 / total,
+				Nice:      stat.Nice * 100 / total,
+				System:    stat.System * 100 / total,
+				Idle:      stat.Idle * 100 / total,
+				Iowait:    stat.Iowait * 100 / total,
+				Irq:       stat.Irq * 100 / total,
+				Softirq:   stat.Softirq * 100 / total,
+				Steal:     stat.Steal * 100 / total,
+				Guest:     stat.Guest * 100 / total,
+				GuestNice: stat.GuestNice * 100 / total,
+			})
+		}
+
+		reader.tmpCpuStat = tmpCpuStat
+	}
+}
+
+func (reader *CpuStatReader) read(tctx *logger.TraceContext) (cpuStat *TmpCpuStat, cpuProcessorStats []TmpCpuProcessorStat) {
 	var tmpReader *bufio.Reader
 
 	// Read /proc/cpuinfo
@@ -67,9 +141,10 @@ func (reader *CpuStatReader) Read(tctx *logger.TraceContext) {
 	defer cpuinfo.Close()
 	tmpReader = bufio.NewReader(cpuinfo)
 
-	cpuProcessorStats := make([]CpuProcessorStat, len(reader.cpus))
+	cpuProcessorStats = make([]TmpCpuProcessorStat, len(reader.cpus))
 
 	var tmpProcessor int
+	var tmpCpuMhzF float64
 	var tmpCpuMhz int64
 	var tmpBytes []byte
 	var tmpErr error
@@ -87,18 +162,17 @@ func (reader *CpuStatReader) Read(tctx *logger.TraceContext) {
 		case "processor":
 			tmpProcessor, _ = strconv.Atoi(splited[1])
 		case "cpu MHz":
-			tmpCpuMhz, _ = strconv.ParseInt(splited[1], 10, 64)
+			tmpCpuMhzF, _ = strconv.ParseFloat(splited[1], 64)
+			tmpCpuMhz = int64(tmpCpuMhzF)
 			for i := 0; i < 20; i++ {
 				if _, _, tmpErr = tmpReader.ReadLine(); tmpErr != nil {
 					break
 				}
 			}
 		}
-		cpuProcessorStats[tmpProcessor] = CpuProcessorStat{
-			ReportStatus: 0,
-			Timestamp:    timestamp,
-			Mhz:          tmpCpuMhz,
-			Processor:    int64(tmpProcessor),
+		cpuProcessorStats[tmpProcessor] = TmpCpuProcessorStat{
+			Mhz:       tmpCpuMhz,
+			Processor: int64(tmpProcessor),
 		}
 	}
 
@@ -155,75 +229,72 @@ func (reader *CpuStatReader) Read(tctx *logger.TraceContext) {
 	tmpBytes, _, _ = tmpReader.ReadLine()
 	processes, _ := strconv.ParseInt(strings.Split(string(tmpBytes), " ")[1], 10, 64)
 	tmpBytes, _, _ = tmpReader.ReadLine()
-	procs_running, _ := strconv.ParseInt(strings.Split(string(tmpBytes), " ")[1], 10, 64)
+	procsRunning, _ := strconv.ParseInt(strings.Split(string(tmpBytes), " ")[1], 10, 64)
 	tmpBytes, _, _ = tmpReader.ReadLine()
-	procs_blocked, _ := strconv.ParseInt(strings.Split(string(tmpBytes), " ")[1], 10, 64)
+	procsBlocked, _ := strconv.ParseInt(strings.Split(string(tmpBytes), " ")[1], 10, 64)
 	tmpBytes, _, _ = tmpReader.ReadLine()
 	softirq, _ := strconv.ParseInt(strings.Split(string(tmpBytes), " ")[1], 10, 64)
-	stat := CpuStat{
-		ReportStatus:  0,
-		timestamp:     timestamp,
-		intr:          intr,
-		ctx:           ctx,
-		btime:         btime,
-		processes:     processes,
-		procs_running: procs_running,
-		procs_blocked: procs_blocked,
-		softirq:       softirq,
+	cpuStat = &TmpCpuStat{
+		Intr:         intr,
+		Ctx:          ctx,
+		Btime:        btime,
+		Processes:    processes,
+		ProcsRunning: procsRunning,
+		ProcsBlocked: procsBlocked,
+		Softirq:      softirq,
 	}
 
-	if len(reader.cpuStats) > reader.cacheLength {
-		reader.cpuStats = reader.cpuStats[1:]
-	}
-	reader.cpuStats = append(reader.cpuStats, stat)
-
+	return
 }
 
 func (reader *CpuStatReader) ReportMetrics() (metrics []spec.ResourceMetric) {
 	metrics = make([]spec.ResourceMetric, len(reader.cpuStats))
 
 	for _, stat := range reader.cpuStats {
-		// for cpuName, cpu := range stat.cpuMap {
-		// 	metrics = append(metrics, spec.ResourceMetric{
-		// 		Name: "system_cpu",
-		// 		Time: timestamp,
-		// 		Tag: map[string]string{
-		// 			"cpu": cpuName,
-		// 		},
-		// 		Metric: map[string]interface{}{
-		// 			"user":       cpu[0],
-		// 			"nice":       cpu[1],
-		// 			"system":     cpu[2],
-		// 			"idle":       cpu[3],
-		// 			"iowait":     cpu[4],
-		// 			"irq":        cpu[5],
-		// 			"softirq":    cpu[6],
-		// 			"steal":      cpu[7],
-		// 			"guest":      cpu[8],
-		// 			"guest_nice": cpu[9],
-		// 		},
-		// 	})
-		// }
-
 		if stat.ReportStatus == ReportStatusReported {
 			continue
 		}
 
 		metrics = append(metrics, spec.ResourceMetric{
 			Name: "system_cpu",
-			Time: stat.timestamp,
+			Time: stat.Timestamp,
 			Metric: map[string]interface{}{
-				"intr":          stat.intr,
-				"ctx":           stat.ctx,
-				"btime":         stat.btime,
-				"processes":     stat.processes,
-				"procs_running": stat.procs_running,
-				"procs_blocked": stat.procs_blocked,
-				"softirq":       stat.softirq,
+				"intr":          stat.Intr,
+				"ctx":           stat.Ctx,
+				"btime":         stat.Btime,
+				"processes":     stat.Processes,
+				"procs_running": stat.ProcsRunning,
+				"procs_blocked": stat.ProcsBlocked,
+				"softirq":       stat.Softirq,
 			},
 		})
+	}
 
-		stat.ReportStatus = 1
+	for _, stat := range reader.cpuProcessorStats {
+		if stat.ReportStatus == ReportStatusReported {
+			continue
+		}
+
+		metrics = append(metrics, spec.ResourceMetric{
+			Name: "system_processor",
+			Time: stat.Timestamp,
+			Tag: map[string]string{
+				"processor": strconv.FormatInt(stat.Processor, 10),
+			},
+			Metric: map[string]interface{}{
+				"mhz":       stat.Mhz,
+				"user":      stat.User,
+				"nice":      stat.Nice,
+				"system":    stat.System,
+				"idle":      stat.Idle,
+				"iowait":    stat.Iowait,
+				"irq":       stat.Irq,
+				"softirq":   stat.Softirq,
+				"steal":     stat.Steal,
+				"guest":     stat.Guest,
+				"guestnice": stat.GuestNice,
+			},
+		})
 	}
 
 	return
@@ -236,6 +307,9 @@ func (reader *CpuStatReader) ReportEvents() (events []spec.ResourceEvent) {
 func (reader *CpuStatReader) Reported() {
 	for i := range reader.cpuStats {
 		reader.cpuStats[i].ReportStatus = ReportStatusReported
+	}
+	for i := range reader.cpuProcessorStats {
+		reader.cpuProcessorStats[i].ReportStatus = ReportStatusReported
 	}
 	return
 }

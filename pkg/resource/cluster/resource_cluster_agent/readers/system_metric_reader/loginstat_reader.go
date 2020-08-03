@@ -13,20 +13,20 @@ import (
 
 type LoginStat struct {
 	ReportStatus int // 0, 1(GetReport), 2(Reported)
-	users        []UserStat
-	timestamp    time.Time
+	Users        []UserStat
+	Timestamp    time.Time
 }
 
 type UserStat struct {
 	ReportStatus int // 0, 1(GetReport), 2(Reported)
-	user         string
-	tty          string
-	from         string
-	login        string
-	idle         string
-	jcpu         string
-	pcpu         string
-	what         string
+	User         string
+	Tty          string
+	From         string
+	Login        string
+	Idle         string
+	Jcpu         string
+	Pcpu         string
+	What         string
 }
 
 type LoginStatReader struct {
@@ -57,41 +57,50 @@ func (reader *LoginStatReader) Read(tctx *logger.TraceContext) {
 	}
 	for _, line := range strings.Split(string(out), "\n") {
 		l := strings.Split(line, " ")
-		if len(l) != 8 {
+		if len(l) < 8 {
 			continue
 		}
 		users = append(users, UserStat{
-			user:  l[0],
-			tty:   l[1],
-			from:  l[2],
-			login: l[3],
-			idle:  l[4],
-			jcpu:  l[5],
-			pcpu:  l[6],
-			what:  l[7],
+			User:  l[0],
+			Tty:   l[1],
+			From:  l[2],
+			Login: l[3],
+			Idle:  l[4],
+			Jcpu:  l[5],
+			Pcpu:  l[6],
+			What:  l[7],
 		})
 	}
 	if len(reader.loginStats) > reader.cacheLength {
 		reader.loginStats = reader.loginStats[1:]
 	}
 	reader.loginStats = append(reader.loginStats, LoginStat{
-		timestamp: timestamp,
-		users:     users,
+		Timestamp: timestamp,
+		Users:     users,
 	})
 }
 
 func (reader *LoginStatReader) ReportMetrics() (metrics []spec.ResourceMetric) {
 	metrics = make([]spec.ResourceMetric, len(reader.loginStats))
 	for _, stat := range reader.loginStats {
+		if stat.ReportStatus == ReportStatusReported {
+			continue
+		}
+		userSet := map[string]bool{}
+		for _, user := range stat.Users {
+			userSet[user.User] = true
+		}
 		metrics = append(metrics, spec.ResourceMetric{
 			Name: "system_login",
-			Time: stat.timestamp,
+			Time: stat.Timestamp,
 			Tag:  map[string]string{},
 			Metric: map[string]interface{}{
-				"users": len(stat.users),
+				"users":      len(stat.Users),
+				"uniq_users": len(userSet),
 			},
 		})
 	}
+
 	return
 }
 
@@ -101,7 +110,7 @@ func (reader *LoginStatReader) ReportEvents() (events []spec.ResourceEvent) {
 
 func (reader *LoginStatReader) Reported() {
 	for i := range reader.loginStats {
-		reader.loginStats[i].ReportStatus = 2
+		reader.loginStats[i].ReportStatus = ReportStatusReported
 	}
 	return
 }

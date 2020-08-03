@@ -82,6 +82,10 @@ func (reader *BuddyinfoStatReader) Read(tctx *logger.TraceContext) {
 			m2M, _ := strconv.ParseInt(buddyinfo[13], 10, 64)
 			m4M, _ := strconv.ParseInt(buddyinfo[14], 10, 64)
 
+			if len(reader.buddyinfoStats) > reader.cacheLength {
+				reader.buddyinfoStats = reader.buddyinfoStats[1:]
+			}
+
 			reader.buddyinfoStats = append(reader.buddyinfoStats, BuddyinfoStat{
 				ReportStatus: 0,
 				Timestamp:    timestamp,

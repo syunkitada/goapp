@@ -15,6 +15,8 @@ import (
 type FsStat struct {
 	ReportStatus int
 	Timestamp    time.Time
+	Path         string
+	MountPath    string
 	TotalSize    int64
 	FreeSize     int64
 	UsedSize     int64
@@ -72,13 +74,18 @@ func (reader *FsStatReader) Read(tctx *logger.TraceContext) {
 		totalSize := int64(statfs.Blocks) * statfs.Bsize
 		freeSize := int64(statfs.Bavail) * statfs.Bsize
 
+		if len(reader.fsStats) > reader.cacheLength {
+			reader.fsStats = reader.fsStats[1:]
+		}
+
 		reader.fsStats = append(reader.fsStats, FsStat{
-			ReportStatus: 0,
-			Timestamp:    timestamp,
-			TotalSize:    totalSize,
-			FreeSize:     freeSize,
-			UsedSize:     totalSize - freeSize,
-			Files:        int64(statfs.Files),
+			Timestamp: timestamp,
+			Path:      splitedLine[0],
+			MountPath: splitedLine[1],
+			TotalSize: totalSize,
+			FreeSize:  freeSize,
+			UsedSize:  totalSize - freeSize,
+			Files:     int64(statfs.Files),
 		})
 	}
 }
@@ -86,9 +93,17 @@ func (reader *FsStatReader) Read(tctx *logger.TraceContext) {
 func (reader *FsStatReader) ReportMetrics() (metrics []spec.ResourceMetric) {
 	metrics = make([]spec.ResourceMetric, len(reader.fsStats))
 	for _, stat := range reader.fsStats {
+		if stat.ReportStatus == ReportStatusReported {
+			continue
+		}
+
 		metrics = append(metrics, spec.ResourceMetric{
 			Name: "system_fsstat",
 			Time: stat.Timestamp,
+			Tag: map[string]string{
+				"path":       stat.Path,
+				"mount_path": stat.MountPath,
+			},
 			Metric: map[string]interface{}{
 				"total_size": stat.TotalSize,
 				"free_size":  stat.FreeSize,
@@ -106,7 +121,7 @@ func (reader *FsStatReader) ReportEvents() (events []spec.ResourceEvent) {
 
 func (reader *FsStatReader) Reported() {
 	for i := range reader.fsStats {
-		reader.fsStats[i].ReportStatus = 2
+		reader.fsStats[i].ReportStatus = ReportStatusReported
 	}
 	return
 }

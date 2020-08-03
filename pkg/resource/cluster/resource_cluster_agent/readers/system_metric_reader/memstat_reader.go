@@ -140,6 +140,10 @@ func (reader *MemStatReader) Read(tctx *logger.TraceContext) {
 		node.TotalMemory = int(memTotal)
 		node.UsedMemory = int(memUsed)
 
+		if len(reader.memStats) > reader.cacheLength {
+			reader.memStats = reader.memStats[1:]
+		}
+
 		reader.memStats = append(reader.memStats, MemStat{
 			ReportStatus: 0,
 			Timestamp:    timestamp,
@@ -178,6 +182,10 @@ func (reader *MemStatReader) ReportMetrics() (metrics []spec.ResourceMetric) {
 	metrics = make([]spec.ResourceMetric, len(reader.memStats))
 
 	for _, stat := range reader.memStats {
+		if stat.ReportStatus == ReportStatusReported {
+			continue
+		}
+
 		reclaimable := (stat.Inactive + stat.KReclaimable + stat.SReclaimable) * 1000
 		metrics = append(metrics, spec.ResourceMetric{
 			Name: "system_mem",
@@ -218,7 +226,7 @@ func (reader *MemStatReader) ReportEvents() (events []spec.ResourceEvent) {
 
 func (reader *MemStatReader) Reported() {
 	for i := range reader.memStats {
-		reader.memStats[i].ReportStatus = 2
+		reader.memStats[i].ReportStatus = ReportStatusReported
 	}
 	return
 }

@@ -13,7 +13,7 @@ import (
 )
 
 type UptimeStat struct {
-	ReportStatus int // 0, 1(GetReport), 2(Reported)
+	ReportStatus int
 	timestamp    time.Time
 	uptime       int64
 }
@@ -45,21 +45,28 @@ func (reader *UptimeMetricReader) Read(tctx *logger.TraceContext) {
 	tmpReader := bufio.NewReader(procUptime)
 	tmpBytes, _, _ := tmpReader.ReadLine()
 	uptimeWords := strings.Split(string(tmpBytes), " ")
-	uptime, _ := strconv.ParseInt(uptimeWords[0], 10, 64)
+	uptimeF, _ := strconv.ParseFloat(uptimeWords[0], 64)
+	uptime := int64(uptimeF)
 	uptimeStat := UptimeStat{
 		ReportStatus: 0,
 		timestamp:    timestamp,
 		uptime:       uptime,
 	}
+
 	if len(reader.uptimeStats) > reader.cacheLength {
 		reader.uptimeStats = reader.uptimeStats[1:]
 	}
+
 	reader.uptimeStats = append(reader.uptimeStats, uptimeStat)
 }
 
 func (reader *UptimeMetricReader) ReportMetrics() (metrics []spec.ResourceMetric) {
 	metrics = make([]spec.ResourceMetric, len(reader.uptimeStats))
 	for _, stat := range reader.uptimeStats {
+		if stat.ReportStatus == ReportStatusReported {
+			continue
+		}
+
 		metrics = append(metrics, spec.ResourceMetric{
 			Name: "system_uptime",
 			Time: stat.timestamp,
@@ -77,8 +84,8 @@ func (reader *UptimeMetricReader) ReportEvents() (events []spec.ResourceEvent) {
 }
 
 func (reader *UptimeMetricReader) Reported() {
-	for _, stat := range reader.uptimeStats {
-		stat.ReportStatus = 2
+	for i := range reader.uptimeStats {
+		reader.uptimeStats[i].ReportStatus = ReportStatusReported
 	}
 	return
 }

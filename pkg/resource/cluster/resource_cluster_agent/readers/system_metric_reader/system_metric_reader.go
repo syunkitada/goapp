@@ -84,6 +84,7 @@ func New(conf *config.ResourceMetricSystemConfig) *SystemMetricReader {
 		NewCpuStatReader(conf, cpus),
 		NewVmStatReader(conf),
 		NewMemStatReader(conf, reader),
+		NewBuddyinfoStatReader(conf),
 		NewFsStatReader(conf),
 		NewDiskMetricReader(conf),
 		NewNetStatReader(conf),
