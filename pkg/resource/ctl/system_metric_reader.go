@@ -86,6 +86,22 @@ func (ctl *Ctl) SystemMetricReader() (err error) {
 	if systemMetricReaderCmdTarget == "processor" {
 		isProcessorStat = true
 	}
+	isProcsStat := false
+	if systemMetricReaderCmdTarget == "procs" {
+		isProcsStat = true
+	}
+	isNetDevStat := false
+	if systemMetricReaderCmdTarget == "netdev" {
+		isNetDevStat = true
+	}
+	isTcpNetStat := false
+	if systemMetricReaderCmdTarget == "tcpnetstat" {
+		isTcpNetStat = true
+	}
+	isIpNetStat := false
+	if systemMetricReaderCmdTarget == "ipnetstat" {
+		isIpNetStat = true
+	}
 
 	var mega int64 = 1000000
 	var giga int64 = 1000000000
@@ -184,16 +200,52 @@ func (ctl *Ctl) SystemMetricReader() (err error) {
 					metric.Metric["reclaimable"].(int64)/mega, metric.Metric["mlocked"].(int64)/mega,
 					metric.Metric["dirty"].(int64)/mega, metric.Metric["writeback"].(int64)/mega, metric.Metric["slab"].(int64)/mega,
 				)
+			case "system_netdevstat":
+				if !isNetDevStat {
+					continue
+				}
+				fmt.Printf("%s netdevstat inter=%s: rbps=%d rpps=%d rerrs=%d rdrops=%d tbps=%d tpps=%d terrs=%d tdrops=%d\n",
+					metric.Time.Format(timeFormat), metric.Tag["interface"],
+					metric.Metric["receive_bytes_per_sec"], metric.Metric["receive_packets_per_sec"],
+					metric.Metric["receive_errors"], metric.Metric["receive_drops"],
+					metric.Metric["transmit_bytes_per_sec"], metric.Metric["transmit_packets_per_sec"],
+					metric.Metric["transmit_errors"], metric.Metric["transmit_drops"],
+				)
+				continue
 			case "system_tcp_netstat":
-				// TODO
+				if !isTcpNetStat {
+					continue
+				}
+				fmt.Printf("%s tcpnetstat: tw=%d twr=%d abort=%d abortf=%d ret=%d retf=%d drops=%d ldrops=%d lovers=%d dacks=%d\n",
+					metric.Time.Format(timeFormat),
+					metric.Metric["tw"], metric.Metric["tw_recycled"],
+					metric.Metric["abort"], metric.Metric["abort_failed"],
+					metric.Metric["retrans"], metric.Metric["retrans_failed"],
+					metric.Metric["drops"],
+					metric.Metric["listen_drops"], metric.Metric["listen_overflows"],
+					metric.Metric["delayed_acks"],
+				)
 				continue
 			case "system_ip_netstat":
-				// TODO
-				continue
-			case "system_netdevstat":
-				// TODO
+				if !isIpNetStat {
+					continue
+				}
+				fmt.Printf("%s ipnetstat: noroutes=%d truncatedpkts=%d csumerrors=%d\n",
+					metric.Time.Format(timeFormat),
+					metric.Metric["in_no_routes"], metric.Metric["in_truncated_pkts"], metric.Metric["in_csum_errors"],
+				)
 				continue
 			case "system_procs":
+				if !isProcsStat {
+					continue
+				}
+				fmt.Printf("%s procsstat: procs=%d runs=%d sleeps=%d dsleeps=%d zonbies=%d others=%d\n",
+					metric.Time.Format(timeFormat),
+					metric.Metric["procs"], metric.Metric["runs"], metric.Metric["sleeps"],
+					metric.Metric["disk_sleeps"], metric.Metric["zonbies"], metric.Metric["others"],
+				)
+				continue
+			case "system_proc":
 				// TODO
 				continue
 			}

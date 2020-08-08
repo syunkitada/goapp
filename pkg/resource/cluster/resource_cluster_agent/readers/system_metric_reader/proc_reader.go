@@ -258,14 +258,13 @@ func (reader *ProcStatReader) Read(tctx *logger.TraceContext) {
 	}
 
 	stat := ProcsStat{
-		ReportStatus: 0,
-		Timestamp:    timestamp,
-		Procs:        procs,
-		Runs:         procRuns,
-		Sleeps:       procSleeps,
-		DiskSleeps:   procDiskSleeps,
-		Zonbies:      procZonbies,
-		Others:       procOthers,
+		Timestamp:  timestamp,
+		Procs:      procs,
+		Runs:       procRuns,
+		Sleeps:     procSleeps,
+		DiskSleeps: procDiskSleeps,
+		Zonbies:    procZonbies,
+		Others:     procOthers,
 	}
 	if len(reader.procsStats) > reader.cacheLength {
 		reader.procsStats = reader.procsStats[1:]
@@ -278,6 +277,9 @@ func (reader *ProcStatReader) ReportMetrics() (metrics []spec.ResourceMetric) {
 	metrics = make([]spec.ResourceMetric, len(reader.procsStats)+len(reader.procStats))
 
 	for _, stat := range reader.procsStats {
+		if stat.ReportStatus == ReportStatusReported {
+			continue
+		}
 		metrics = append(metrics, spec.ResourceMetric{
 			Name: "system_procs",
 			Time: stat.Timestamp,
@@ -291,11 +293,12 @@ func (reader *ProcStatReader) ReportMetrics() (metrics []spec.ResourceMetric) {
 				"others":      stat.Others,
 			},
 		})
-
-		stat.ReportStatus = 1
 	}
 
 	for _, stat := range reader.procStats {
+		if stat.ReportStatus == ReportStatusReported {
+			continue
+		}
 		metrics = append(metrics, spec.ResourceMetric{
 			Name: "system_proc",
 			Time: stat.Timestamp,
@@ -329,10 +332,10 @@ func (reader *ProcStatReader) ReportEvents() (events []spec.ResourceEvent) {
 
 func (reader *ProcStatReader) Reported() {
 	for _, stat := range reader.procsStats {
-		stat.ReportStatus = 2
+		stat.ReportStatus = ReportStatusReported
 	}
 	for _, stat := range reader.procStats {
-		stat.ReportStatus = 2
+		stat.ReportStatus = ReportStatusReported
 	}
 	return
 }

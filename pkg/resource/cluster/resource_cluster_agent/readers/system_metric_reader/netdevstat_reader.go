@@ -79,6 +79,10 @@ func (reader *NetDevStatReader) Read(tctx *logger.TraceContext) {
 			transmitDiffErrors := int64((cstat.TransmitErrors - bstat.TransmitErrors) / int64(interval))
 			transmitDiffDrops := int64((cstat.TransmitDrops - bstat.TransmitDrops) / int64(interval))
 
+			if len(reader.netDevStats) > reader.cacheLength {
+				reader.netDevStats = reader.netDevStats[1:]
+			}
+
 			reader.netDevStats = append(reader.netDevStats, NetDevStat{
 				ReportStatus:          0,
 				Timestamp:             timestamp,
@@ -168,6 +172,9 @@ func (reader *NetDevStatReader) readTmpNetDevStat(tctx *logger.TraceContext) (tm
 func (reader *NetDevStatReader) ReportMetrics() (metrics []spec.ResourceMetric) {
 	metrics = make([]spec.ResourceMetric, len(reader.netDevStats))
 	for _, stat := range reader.netDevStats {
+		if stat.ReportStatus == ReportStatusReported {
+			continue
+		}
 		metrics = append(metrics, spec.ResourceMetric{
 			Name: "system_netdevstat",
 			Time: stat.Timestamp,
@@ -195,7 +202,7 @@ func (reader *NetDevStatReader) ReportEvents() (events []spec.ResourceEvent) {
 
 func (reader *NetDevStatReader) Reported() {
 	for i := range reader.netDevStats {
-		reader.netDevStats[i].ReportStatus = 2
+		reader.netDevStats[i].ReportStatus = ReportStatusReported
 	}
 	return
 }
