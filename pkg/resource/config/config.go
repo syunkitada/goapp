@@ -141,7 +141,8 @@ type ResourceMetricSystemConfig struct {
 }
 
 type ResourceProcCheckConfig struct {
-	Cmd string
+	Cmd  string
+	Name string
 }
 
 type TimeSeriesDatabaseConfig struct {

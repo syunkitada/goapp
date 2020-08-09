@@ -14,7 +14,6 @@ import (
 )
 
 type TmpNetDevStat struct {
-	ReportStatus    int
 	Timestamp       time.Time
 	ReceiveBytes    int64
 	ReceivePackets  int64

@@ -90,6 +90,10 @@ func (ctl *Ctl) SystemMetricReader() (err error) {
 	if systemMetricReaderCmdTarget == "procs" {
 		isProcsStat = true
 	}
+	isProcStat := false
+	if systemMetricReaderCmdTarget == "proc" {
+		isProcStat = true
+	}
 	isNetDevStat := false
 	if systemMetricReaderCmdTarget == "netdev" {
 		isNetDevStat = true
@@ -103,6 +107,7 @@ func (ctl *Ctl) SystemMetricReader() (err error) {
 		isIpNetStat = true
 	}
 
+	var kilo int64 = 1000
 	var mega int64 = 1000000
 	var giga int64 = 1000000000
 	timeFormat := "15:04:05"
@@ -246,7 +251,30 @@ func (ctl *Ctl) SystemMetricReader() (err error) {
 				)
 				continue
 			case "system_proc":
-				// TODO
+				if !isProcStat {
+					continue
+				}
+				state := ""
+				switch metric.Metric["state"].(int64) {
+				case 3:
+					state = "R"
+				case 2:
+					state = "D"
+				case 1:
+					state = "S"
+				case 0:
+					state = "N"
+				case -1:
+					state = "Z"
+				}
+
+				fmt.Printf("%s procsstat cmd=%s pid=%s: state=%s th=%d vmM=%d rssM=%d hpM=%d ctxs=%d nctxs=%d uutil=%d sutil=%d gutil=%d cgutil=%d\n",
+					metric.Time.Format(timeFormat), metric.Tag["cmd"], metric.Tag["pid"], state, metric.Metric["threads"],
+					metric.Metric["vm_size_kb"].(int64)/kilo, metric.Metric["vm_rss_kb"].(int64)/kilo, metric.Metric["hugetlb_pages"].(int64)/kilo,
+					metric.Metric["voluntary_ctxt_switches"], metric.Metric["nonvoluntary_ctxt_switches"],
+					metric.Metric["user_util"], metric.Metric["system_util"],
+					metric.Metric["guest_util"], metric.Metric["cguest_util"],
+				)
 				continue
 			}
 		}
