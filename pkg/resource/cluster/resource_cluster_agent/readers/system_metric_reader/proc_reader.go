@@ -2,6 +2,7 @@ package system_metric_reader
 
 import (
 	"bufio"
+	"fmt"
 	"os"
 	"strconv"
 	"strings"
@@ -13,6 +14,10 @@ import (
 	"github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
 )
 
+const (
+	CmdQemu = "qemu-system-x86"
+)
+
 type ProcsStat struct {
 	ReportStatus int // 0, 1(GetReport), 2(Reported)
 	Timestamp    time.Time
@@ -22,6 +27,9 @@ type ProcsStat struct {
 	DiskSleeps   int64
 	Zonbies      int64
 	Others       int64
+}
+
+type QemuStat struct {
 }
 
 type TmpProcStat struct {
@@ -44,6 +52,8 @@ type TmpProcStat struct {
 	Stime  int64
 	Gtime  int64
 	Cgtime int64
+
+	Qemu *QemuStat
 }
 
 type ProcStat struct {
@@ -129,6 +139,8 @@ func (reader *ProcStatReader) Read(tctx *logger.TraceContext) {
 	var tmpBytes []byte
 	var tmpText string
 	var tmpTexts []string
+
+	// TODO Read self proc stat
 
 	tmpProcStatMap := map[int]TmpProcStat{}
 	for _, procFileInfo := range procFileInfos {
@@ -272,8 +284,18 @@ func (reader *ProcStatReader) Read(tctx *logger.TraceContext) {
 			gtime, _ := strconv.ParseInt(tmpTexts[42], 10, 64)
 			cgtime, _ := strconv.ParseInt(tmpTexts[43], 10, 64)
 			startTime, _ := strconv.Atoi(tmpTexts[21])
-			key := startTime*100000 + pid
-			tmpProcStatMap[key] = TmpProcStat{
+
+			// TODO Read
+			// /proc/24120/io
+			// rchar: 160323858
+			// wchar: 14532026
+			// syscr: 48257
+			// syscw: 37187
+			// read_bytes: 163528704
+			// write_bytes: 15466496
+			// cancelled_write_bytes: 0
+
+			tmpProcStat := TmpProcStat{
 				Timestamp:                timestamp,
 				Name:                     check.Name,
 				Cmd:                      cmd,
@@ -294,6 +316,14 @@ func (reader *ProcStatReader) Read(tctx *logger.TraceContext) {
 				Gtime:  gtime,
 				Cgtime: cgtime,
 			}
+
+			switch cmd {
+			case CmdQemu:
+				tmpProcStat.Qemu = reader.GetQemuStat(tctx, &tmpProcStat)
+			}
+
+			key := startTime*100000 + pid
+			tmpProcStatMap[key] = tmpProcStat
 		}
 
 		tmpFile.Close()
@@ -419,4 +449,23 @@ func (reader *ProcStatReader) Reported() {
 		reader.procStats[i].ReportStatus = ReportStatusReported
 	}
 	return
+}
+
+func (reader *ProcStatReader) GetQemuStat(tctx *logger.TraceContext, procStat *TmpProcStat) *QemuStat {
+	cmdlineFile, _ := os.Open("/proc/" + procStat.Pid + "/cmdline")
+
+	defer cmdlineFile.Close()
+	tmpReader := bufio.NewReader(cmdlineFile)
+	tmpBytes, _, _ := tmpReader.ReadLine()
+	cmds := strings.Split(string(tmpBytes), string(byte(0)))
+	lenCmds := len(cmds)
+	for i := 0; i < lenCmds; i++ {
+		switch cmds[i] {
+		case "-nic":
+			// TODO
+			fmt.Println("DEBUG nic option", cmds[i+1])
+			i += 1
+		}
+	}
+	return &QemuStat{}
 }
