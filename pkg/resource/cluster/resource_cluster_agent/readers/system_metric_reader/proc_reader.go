@@ -53,6 +53,11 @@ type TmpProcStat struct {
 	Gtime  int64
 	Cgtime int64
 
+	Syscr      int64
+	Syscw      int64
+	ReadBytes  int64
+	WriteBytes int64
+
 	Qemu *QemuStat
 }
 
@@ -77,6 +82,11 @@ type ProcStat struct {
 	SystemUtil int64
 	GuestUtil  int64
 	CguestUtil int64
+
+	SyscrPerSec      int64
+	SyscwPerSec      int64
+	ReadBytesPerSec  int64
+	WriteBytesPerSec int64
 }
 
 type ProcStatReader struct {
@@ -147,7 +157,9 @@ func (reader *ProcStatReader) Read(tctx *logger.TraceContext) {
 		if !procFileInfo.IsDir() {
 			continue
 		}
-		if tmpFile, tmpErr = os.Open(ProcDir + procFileInfo.Name() + "/" + "status"); tmpErr != nil {
+
+		procDir := ProcDir + procFileInfo.Name() + "/"
+		if tmpFile, tmpErr = os.Open(procDir + "status"); tmpErr != nil {
 			continue
 		}
 		procs += 1
@@ -251,7 +263,7 @@ func (reader *ProcStatReader) Read(tctx *logger.TraceContext) {
 			// Parse /proc/[pid]/schedstat
 			// 2554841551 177487694 35200
 			// [time spent on the cpu] [time spent waiting on a runqueue] [timeslices run on this cpu]
-			if tmpFile, tmpErr = os.Open(ProcDir + procFileInfo.Name() + "/" + "schedstat"); tmpErr != nil {
+			if tmpFile, tmpErr = os.Open(procDir + "schedstat"); tmpErr != nil {
 				continue
 			}
 			tmpReader = bufio.NewReader(tmpFile)
@@ -270,7 +282,7 @@ func (reader *ProcStatReader) Read(tctx *logger.TraceContext) {
 
 			// $ cat /proc/24120/stat
 			// 24120 (qemu-system-x86) S 24119 24120 24119 0 -1 138412416 23189 0 0 0 2227 753 0 0 20 0 6 0 251962 4969209856 7743 18446744073709551615 1 1 0 0 0 0 268444224 4096 16963 0 0 0 17 9 0 0 0 2041 0 0 0 0 0 0 0 0 0
-			if tmpFile, tmpErr = os.Open(ProcDir + procFileInfo.Name() + "/" + "stat"); tmpErr != nil {
+			if tmpFile, tmpErr = os.Open(procDir + "stat"); tmpErr != nil {
 				continue
 			}
 			tmpReader = bufio.NewReader(tmpFile)
@@ -285,7 +297,21 @@ func (reader *ProcStatReader) Read(tctx *logger.TraceContext) {
 			cgtime, _ := strconv.ParseInt(tmpTexts[43], 10, 64)
 			startTime, _ := strconv.Atoi(tmpTexts[21])
 
-			// TODO Read
+			if tmpFile, tmpErr = os.Open(procDir + "io"); tmpErr != nil {
+				continue
+			}
+			tmpReader = bufio.NewReader(tmpFile)
+			_, _, _ = tmpReader.ReadLine()
+			_, _, _ = tmpReader.ReadLine()
+			tmpBytes, _, _ = tmpReader.ReadLine()
+			syscr, _ := strconv.ParseInt(str_utils.ParseLastValue(string(tmpBytes)), 10, 64)
+			tmpBytes, _, _ = tmpReader.ReadLine()
+			syscw, _ := strconv.ParseInt(str_utils.ParseLastValue(string(tmpBytes)), 10, 64)
+			tmpBytes, _, _ = tmpReader.ReadLine()
+			readBytes, _ := strconv.ParseInt(str_utils.ParseLastValue(string(tmpBytes)), 10, 64)
+			tmpBytes, _, _ = tmpReader.ReadLine()
+			writeBytes, _ := strconv.ParseInt(str_utils.ParseLastValue(string(tmpBytes)), 10, 64)
+
 			// /proc/24120/io
 			// rchar: 160323858
 			// wchar: 14532026
@@ -315,6 +341,11 @@ func (reader *ProcStatReader) Read(tctx *logger.TraceContext) {
 				Stime:  stime,
 				Gtime:  gtime,
 				Cgtime: cgtime,
+
+				Syscr:      syscr,
+				Syscw:      syscw,
+				ReadBytes:  readBytes,
+				WriteBytes: writeBytes,
 			}
 
 			switch cmd {
@@ -352,10 +383,16 @@ func (reader *ProcStatReader) Read(tctx *logger.TraceContext) {
 					Threads:                  stat.Threads,
 					VoluntaryCtxtSwitches:    stat.VoluntaryCtxtSwitches - tmpStat.VoluntaryCtxtSwitches,
 					NonvoluntaryCtxtSwitches: stat.NonvoluntaryCtxtSwitches - tmpStat.NonvoluntaryCtxtSwitches,
-					UserUtil:                 (stat.Utime - tmpStat.Utime) / interval,
-					SystemUtil:               (stat.Stime - tmpStat.Stime) / interval,
-					GuestUtil:                (stat.Gtime - tmpStat.Gtime) / interval,
-					CguestUtil:               (stat.Cgtime - tmpStat.Cgtime) / interval,
+
+					UserUtil:   (stat.Utime - tmpStat.Utime) / interval,
+					SystemUtil: (stat.Stime - tmpStat.Stime) / interval,
+					GuestUtil:  (stat.Gtime - tmpStat.Gtime) / interval,
+					CguestUtil: (stat.Cgtime - tmpStat.Cgtime) / interval,
+
+					SyscrPerSec:      (stat.Syscr - tmpStat.Syscr) / interval,
+					SyscwPerSec:      (stat.Syscw - tmpStat.Syscw) / interval,
+					ReadBytesPerSec:  (stat.ReadBytes - tmpStat.ReadBytes) / interval,
+					WriteBytesPerSec: (stat.WriteBytes - tmpStat.WriteBytes) / interval,
 				})
 			}
 		}
