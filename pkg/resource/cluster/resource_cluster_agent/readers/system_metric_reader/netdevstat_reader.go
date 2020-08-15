@@ -1,13 +1,13 @@
 package system_metric_reader
 
 import (
-	"bufio"
-	"os"
+	"io/ioutil"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/syunkitada/goapp/pkg/lib/logger"
+	"github.com/syunkitada/goapp/pkg/lib/os_utils"
 	"github.com/syunkitada/goapp/pkg/lib/str_utils"
 	"github.com/syunkitada/goapp/pkg/resource/config"
 	"github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
@@ -40,18 +40,20 @@ type NetDevStat struct {
 }
 
 type NetDevStatReader struct {
-	conf              *config.ResourceMetricSystemConfig
-	cacheLength       int
-	tmpNetDevStatMap  map[string]TmpNetDevStat
-	netDevStats       []NetDevStat
-	netDevStatFilters []string
+	conf               *config.ResourceMetricSystemConfig
+	cacheLength        int
+	systemMetricReader *SystemMetricReader
+	tmpNetDevStatMap   map[string]TmpNetDevStat
+	netDevStats        []NetDevStat
+	netDevStatFilters  []string
 }
 
-func NewNetDevStatReader(conf *config.ResourceMetricSystemConfig) SubMetricReader {
+func NewNetDevStatReader(conf *config.ResourceMetricSystemConfig, systemMetricReader *SystemMetricReader) SubMetricReader {
 	return &NetDevStatReader{
-		conf:              conf,
-		cacheLength:       conf.CacheLength,
-		netDevStatFilters: []string{"lo"},
+		conf:               conf,
+		cacheLength:        conf.CacheLength,
+		netDevStatFilters:  []string{"lo"},
+		systemMetricReader: systemMetricReader,
 	}
 }
 
@@ -82,7 +84,7 @@ func (reader *NetDevStatReader) Read(tctx *logger.TraceContext) {
 				reader.netDevStats = reader.netDevStats[1:]
 			}
 
-			reader.netDevStats = append(reader.netDevStats, NetDevStat{
+			netDevStat := NetDevStat{
 				ReportStatus:          0,
 				Timestamp:             timestamp,
 				Interface:             dev,
@@ -94,7 +96,9 @@ func (reader *NetDevStatReader) Read(tctx *logger.TraceContext) {
 				TransmitPacketsPerSec: transmitPacketsPerSec,
 				TransmitDiffErrors:    transmitDiffErrors,
 				TransmitDiffDrops:     transmitDiffDrops,
-			})
+			}
+			reader.systemMetricReader.NetDevStatMap[dev] = netDevStat
+			reader.netDevStats = append(reader.netDevStats, netDevStat)
 		}
 
 		reader.tmpNetDevStatMap = tmpNetDevStatMap
@@ -113,22 +117,53 @@ func (reader *NetDevStatReader) readTmpNetDevStat(tctx *logger.TraceContext) (tm
 	// 	 com-4-ex:   28084     420    0    0    0     0          0         0    33499     442    0    0    0     0       0          0
 	// 	 docker0:       0       0    0    0    0     0          0         0        0       0    0    0    0     0       0          0
 	timestamp := time.Now()
-	netdevFile, _ := os.Open("/proc/net/dev")
-	defer netdevFile.Close()
-	tmpReader := bufio.NewReader(netdevFile)
-	_, _, _ = tmpReader.ReadLine()
-	_, _, _ = tmpReader.ReadLine()
 
-	var tmpBytes []byte
-	var tmpErr error
+	bytes, tmpErr := ioutil.ReadFile("/proc/net/dev")
+	if tmpErr != nil {
+		return
+	}
+	tmpNetDevStatMap = reader.ParseNetDev(string(bytes), timestamp)
+
+	netnsSet, tmpErr := os_utils.GetNetnsSet(tctx)
+	if tmpErr != nil {
+		return
+	}
+	for netns := range netnsSet {
+		out, tmpErr := os_utils.ExecInIpNetns(tctx, netns, "cat /proc/net/dev")
+		if tmpErr != nil {
+			return
+		}
+		netnsTmpNetDevStatMap := reader.ParseNetDev(out, timestamp)
+		for key, value := range netnsTmpNetDevStatMap {
+			tmpNetDevStatMap[key] = value
+		}
+	}
+
+	return
+}
+
+func (reader *NetDevStatReader) ParseNetDev(out string, timestamp time.Time) (tmpNetDevStatMap map[string]TmpNetDevStat) {
+	// $ cat /proc/net/dev
+	// Inter-|   Receive                                                |  Transmit
+	//  face |bytes    packets errs drop fifo frame compressed multicast|bytes    packets errs drop fifo colls carrier compressed
+	//  com-1-ex:    1426      19    0    0    0     0          0         0     4616      43    0    0    0     0       0          0
+	//  enp31s0: 7855580   30554    0    0    0     0          0      1408 19677375   42829    0    0    0     0       0          0
+	//      lo: 1442597782 3051437    0    0    0     0          0         0 1442597782 3051437    0    0    0     0       0          0
+	// 	 com-0-ex:   29026     447    0    0    0     0          0         0    34621     471    0    0    0     0       0          0
+	// 	 com-2-ex:   26578     383    0    0    0     0          0         0    32083     406    0    0    0     0       0          0
+	// 	 com-4-ex:   28084     420    0    0    0     0          0         0    33499     442    0    0    0     0       0          0
+	// 	 docker0:       0       0    0    0    0     0          0         0        0       0    0    0    0     0       0          0
+
+	splited := strings.Split(out, "\n")
+
 	tmpNetDevStatMap = map[string]TmpNetDevStat{}
 	var isFiltered bool
-	for {
-		tmpBytes, _, tmpErr = tmpReader.ReadLine()
-		if tmpErr != nil {
-			break
+	lenSplited := len(splited)
+	for i := 2; i < lenSplited; i++ {
+		splitedStr := str_utils.SplitColon(splited[i])
+		if len(splitedStr) < 2 {
+			continue
 		}
-		splitedStr := str_utils.SplitColon(string(tmpBytes))
 		columns := str_utils.SplitSpace(splitedStr[1])
 
 		isFiltered = false

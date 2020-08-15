@@ -268,12 +268,16 @@ func (ctl *Ctl) SystemMetricReader() (err error) {
 					state = "Z"
 				}
 
-				fmt.Printf("%s procsstat cmd=%s pid=%s: state=%s th=%d vmM=%d rssM=%d hpM=%d ctxs=%d nctxs=%d uutil=%d sutil=%d gutil=%d cgutil=%d\n",
+				fmt.Printf("%s procsstat cmd=%s pid=%s: state=%s th=%d vmM=%d rssM=%d hpM=%d ctxs=%d nctxs=%d uutil=%d sutil=%d gutil=%d cgutil=%d drps=%d dwps=%d drbps=%d dwbps=%d nrbps=%d nrerrs=%d nrdrops=%d ntbps=%d nterrs=%d ntdrops=%d \n",
 					metric.Time.Format(timeFormat), metric.Tag["cmd"], metric.Tag["pid"], state, metric.Metric["threads"],
 					metric.Metric["vm_size_kb"].(int64)/kilo, metric.Metric["vm_rss_kb"].(int64)/kilo, metric.Metric["hugetlb_pages"].(int64)/kilo,
 					metric.Metric["voluntary_ctxt_switches"], metric.Metric["nonvoluntary_ctxt_switches"],
 					metric.Metric["user_util"], metric.Metric["system_util"],
 					metric.Metric["guest_util"], metric.Metric["cguest_util"],
+					metric.Metric["syscr_per_sec"], metric.Metric["syscw_per_sec"],
+					metric.Metric["read_bytes_per_sec"], metric.Metric["write_bytes_per_sec"],
+					metric.Metric["receive_bytes_per_sec"], metric.Metric["receive_errors"], metric.Metric["receive_drops"],
+					metric.Metric["transmit_bytes_per_sec"], metric.Metric["transmit_errors"], metric.Metric["transmit_drops"],
 				)
 				continue
 			}

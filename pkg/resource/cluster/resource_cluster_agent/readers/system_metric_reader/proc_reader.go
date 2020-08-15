@@ -2,7 +2,6 @@ package system_metric_reader
 
 import (
 	"bufio"
-	"fmt"
 	"os"
 	"strconv"
 	"strings"
@@ -30,6 +29,7 @@ type ProcsStat struct {
 }
 
 type QemuStat struct {
+	NetDevStats []NetDevStat
 }
 
 type TmpProcStat struct {
@@ -87,11 +87,15 @@ type ProcStat struct {
 	SyscwPerSec      int64
 	ReadBytesPerSec  int64
 	WriteBytesPerSec int64
+
+	Qemu *QemuStat
 }
 
 type ProcStatReader struct {
-	conf           *config.ResourceMetricSystemConfig
-	cacheLength    int
+	conf               *config.ResourceMetricSystemConfig
+	cacheLength        int
+	systemMetricReader *SystemMetricReader
+
 	cmdMap         map[string]config.ResourceProcCheckConfig
 	pidmax         int
 	tmpProcStatMap map[int]TmpProcStat
@@ -99,7 +103,7 @@ type ProcStatReader struct {
 	procStats      []ProcStat
 }
 
-func NewProcStatReader(conf *config.ResourceMetricSystemConfig) SubMetricReader {
+func NewProcStatReader(conf *config.ResourceMetricSystemConfig, systemMetricReader *SystemMetricReader) SubMetricReader {
 	pidmaxFile, _ := os.Open("/proc/sys/kernel/pid_max")
 	defer pidmaxFile.Close()
 	tmpReader := bufio.NewReader(pidmaxFile)
@@ -112,12 +116,13 @@ func NewProcStatReader(conf *config.ResourceMetricSystemConfig) SubMetricReader 
 	}
 
 	return &ProcStatReader{
-		conf:        conf,
-		cacheLength: conf.CacheLength,
-		cmdMap:      cmdMap,
-		pidmax:      pidmax,
-		procsStats:  make([]ProcsStat, 0, conf.CacheLength),
-		procStats:   make([]ProcStat, 0, conf.CacheLength),
+		conf:               conf,
+		cacheLength:        conf.CacheLength,
+		systemMetricReader: systemMetricReader,
+		cmdMap:             cmdMap,
+		pidmax:             pidmax,
+		procsStats:         make([]ProcsStat, 0, conf.CacheLength),
+		procStats:          make([]ProcStat, 0, conf.CacheLength),
 	}
 }
 
@@ -393,6 +398,8 @@ func (reader *ProcStatReader) Read(tctx *logger.TraceContext) {
 					SyscwPerSec:      (stat.Syscw - tmpStat.Syscw) / interval,
 					ReadBytesPerSec:  (stat.ReadBytes - tmpStat.ReadBytes) / interval,
 					WriteBytesPerSec: (stat.WriteBytes - tmpStat.WriteBytes) / interval,
+
+					Qemu: stat.Qemu,
 				})
 			}
 		}
@@ -442,6 +449,59 @@ func (reader *ProcStatReader) ReportMetrics() (metrics []spec.ResourceMetric) {
 		if stat.ReportStatus == ReportStatusReported {
 			continue
 		}
+
+		metric := map[string]interface{}{
+			"vm_size_kb":                 stat.VmSizeKb,
+			"vm_rss_kb":                  stat.VmRssKb,
+			"state":                      stat.State,
+			"sched_cpu_time":             stat.SchedCpuTime,
+			"sched_wait_time":            stat.SchedWaitTime,
+			"sched_time_slices":          stat.SchedTimeSlices,
+			"hugetlb_pages":              stat.HugetlbPages,
+			"threads":                    stat.Threads,
+			"voluntary_ctxt_switches":    stat.VoluntaryCtxtSwitches,
+			"nonvoluntary_ctxt_switches": stat.NonvoluntaryCtxtSwitches,
+			"user_util":                  stat.UserUtil,
+			"system_util":                stat.SystemUtil,
+			"guest_util":                 stat.GuestUtil,
+			"cguest_util":                stat.CguestUtil,
+
+			"syscr_per_sec":       stat.SyscrPerSec,
+			"syscw_per_sec":       stat.SyscwPerSec,
+			"read_bytes_per_sec":  stat.ReadBytesPerSec,
+			"write_bytes_per_sec": stat.WriteBytesPerSec,
+		}
+
+		if stat.Qemu != nil {
+			var receiveBytesPerSec int64
+			var receivePacketsPerSec int64
+			var receiveDiffErrors int64
+			var receiveDiffDrops int64
+			var transmitBytesPerSec int64
+			var transmitPacketsPerSec int64
+			var transmitDiffErrors int64
+			var transmitDiffDrops int64
+			for _, stat := range stat.Qemu.NetDevStats {
+				receiveBytesPerSec += stat.ReceiveBytesPerSec
+				receivePacketsPerSec += stat.ReceivePacketsPerSec
+				receiveDiffErrors += stat.ReceiveDiffErrors
+				receiveDiffDrops += stat.ReceiveDiffDrops
+				transmitBytesPerSec += stat.TransmitBytesPerSec
+				transmitPacketsPerSec += stat.TransmitPacketsPerSec
+				transmitDiffErrors += stat.TransmitDiffErrors
+				transmitDiffDrops += stat.TransmitDiffDrops
+			}
+
+			metric["receive_bytes_per_sec"] = receiveBytesPerSec
+			metric["receive_packets_per_sec"] = receivePacketsPerSec
+			metric["receive_errors"] = receiveDiffErrors
+			metric["receive_drops"] = receiveDiffDrops
+			metric["transmit_bytes_per_sec"] = transmitBytesPerSec
+			metric["transmit_packets_per_sec"] = transmitPacketsPerSec
+			metric["transmit_errors"] = transmitDiffErrors
+			metric["transmit_drops"] = transmitDiffDrops
+		}
+
 		metrics = append(metrics, spec.ResourceMetric{
 			Name: "system_proc",
 			Time: stat.Timestamp,
@@ -450,22 +510,7 @@ func (reader *ProcStatReader) ReportMetrics() (metrics []spec.ResourceMetric) {
 				"cmd":  stat.Cmd,
 				"pid":  stat.Pid,
 			},
-			Metric: map[string]interface{}{
-				"vm_size_kb":                 stat.VmSizeKb,
-				"vm_rss_kb":                  stat.VmRssKb,
-				"state":                      stat.State,
-				"sched_cpu_time":             stat.SchedCpuTime,
-				"sched_wait_time":            stat.SchedWaitTime,
-				"sched_time_slices":          stat.SchedTimeSlices,
-				"hugetlb_pages":              stat.HugetlbPages,
-				"threads":                    stat.Threads,
-				"voluntary_ctxt_switches":    stat.VoluntaryCtxtSwitches,
-				"nonvoluntary_ctxt_switches": stat.NonvoluntaryCtxtSwitches,
-				"user_util":                  stat.UserUtil,
-				"system_util":                stat.SystemUtil,
-				"guest_util":                 stat.GuestUtil,
-				"cguest_util":                stat.CguestUtil,
-			},
+			Metric: metric,
 		})
 
 		stat.ReportStatus = 1
@@ -488,9 +533,10 @@ func (reader *ProcStatReader) Reported() {
 	return
 }
 
-func (reader *ProcStatReader) GetQemuStat(tctx *logger.TraceContext, procStat *TmpProcStat) *QemuStat {
-	cmdlineFile, _ := os.Open("/proc/" + procStat.Pid + "/cmdline")
+func (reader *ProcStatReader) GetQemuStat(tctx *logger.TraceContext, procStat *TmpProcStat) (qemuStat *QemuStat) {
+	var netDevStats []NetDevStat
 
+	cmdlineFile, _ := os.Open("/proc/" + procStat.Pid + "/cmdline")
 	defer cmdlineFile.Close()
 	tmpReader := bufio.NewReader(cmdlineFile)
 	tmpBytes, _, _ := tmpReader.ReadLine()
@@ -499,10 +545,23 @@ func (reader *ProcStatReader) GetQemuStat(tctx *logger.TraceContext, procStat *T
 	for i := 0; i < lenCmds; i++ {
 		switch cmds[i] {
 		case "-nic":
-			// TODO
-			fmt.Println("DEBUG nic option", cmds[i+1])
+			splitedOption := strings.Split(cmds[i+1], ",")
+			for _, option := range splitedOption {
+				splitedKeyValue := strings.Split(option, "=")
+				if splitedKeyValue[0] == "ifname" {
+					netDevStat, ok := reader.systemMetricReader.NetDevStatMap[splitedKeyValue[1]]
+					if !ok {
+						break
+					}
+					netDevStats = append(netDevStats, netDevStat)
+				}
+			}
 			i += 1
 		}
 	}
-	return &QemuStat{}
+
+	qemuStat = &QemuStat{
+		NetDevStats: netDevStats,
+	}
+	return
 }

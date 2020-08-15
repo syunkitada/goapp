@@ -17,6 +17,8 @@ type SystemMetricReader struct {
 	NumaNodes []spec.NumaNodeSpec
 	Cpus      []spec.NumaNodeCpuSpec
 
+	NetDevStatMap map[string]NetDevStat
+
 	subReaders []SubMetricReader
 }
 
@@ -72,24 +74,25 @@ func New(conf *config.ResourceMetricSystemConfig) *SystemMetricReader {
 	}
 
 	reader := &SystemMetricReader{
-		conf:      conf,
-		name:      "system",
-		NumaNodes: numaNodes,
-		Cpus:      cpus,
+		conf:          conf,
+		name:          "system",
+		NumaNodes:     numaNodes,
+		Cpus:          cpus,
+		NetDevStatMap: map[string]NetDevStat{},
 	}
 
 	reader.subReaders = []SubMetricReader{
 		NewUptimeMetricReader(conf),
 		NewLoginStatReader(conf),
 		NewCpuStatReader(conf, cpus),
-		NewProcStatReader(conf),
+		NewProcStatReader(conf, reader),
 		NewVmStatReader(conf),
 		NewMemStatReader(conf, reader),
 		NewBuddyinfoStatReader(conf),
 		NewFsStatReader(conf),
 		NewDiskMetricReader(conf),
 		NewNetStatReader(conf),
-		NewNetDevStatReader(conf),
+		NewNetDevStatReader(conf, reader),
 	}
 
 	return reader

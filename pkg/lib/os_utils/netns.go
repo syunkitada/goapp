@@ -27,3 +27,8 @@ func AddNetns(tctx *logger.TraceContext, netns string) error {
 	_, err := exec_utils.Cmdf(tctx, "ip netns add %s", netns)
 	return err
 }
+
+func ExecInIpNetns(tctx *logger.TraceContext, netns string, cmd string) (string, error) {
+	out, err := exec_utils.Cmdf(tctx, "ip netns exec %s %s", netns, cmd)
+	return out, err
+}
