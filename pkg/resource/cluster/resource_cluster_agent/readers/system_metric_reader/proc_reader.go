@@ -424,7 +424,7 @@ func (reader *ProcStatReader) Read(tctx *logger.TraceContext) {
 }
 
 func (reader *ProcStatReader) ReportMetrics() (metrics []spec.ResourceMetric) {
-	metrics = make([]spec.ResourceMetric, len(reader.procsStats)+len(reader.procStats))
+	metrics = make([]spec.ResourceMetric, 0, len(reader.procsStats)+len(reader.procStats))
 
 	for _, stat := range reader.procsStats {
 		if stat.ReportStatus == ReportStatusReported {

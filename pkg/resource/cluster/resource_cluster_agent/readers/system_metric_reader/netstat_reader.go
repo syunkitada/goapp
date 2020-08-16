@@ -618,7 +618,7 @@ func (reader *NetStatReader) readTmpNetStat(tctx *logger.TraceContext) (tmpTcpEx
 }
 
 func (reader *NetStatReader) ReportMetrics() (metrics []spec.ResourceMetric) {
-	metrics = make([]spec.ResourceMetric, len(reader.tcpExtStats)+len(reader.ipExtStats))
+	metrics = make([]spec.ResourceMetric, 0, len(reader.tcpExtStats)+len(reader.ipExtStats))
 	for _, stat := range reader.tcpExtStats {
 		if stat.ReportStatus == ReportStatusReported {
 			continue

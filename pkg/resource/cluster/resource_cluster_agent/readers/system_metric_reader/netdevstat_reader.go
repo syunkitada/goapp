@@ -204,7 +204,7 @@ func (reader *NetDevStatReader) ParseNetDev(out string, timestamp time.Time) (tm
 }
 
 func (reader *NetDevStatReader) ReportMetrics() (metrics []spec.ResourceMetric) {
-	metrics = make([]spec.ResourceMetric, len(reader.netDevStats))
+	metrics = make([]spec.ResourceMetric, 0, len(reader.netDevStats))
 	for _, stat := range reader.netDevStats {
 		if stat.ReportStatus == ReportStatusReported {
 			continue

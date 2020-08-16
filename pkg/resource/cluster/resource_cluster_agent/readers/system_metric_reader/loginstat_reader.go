@@ -81,7 +81,7 @@ func (reader *LoginStatReader) Read(tctx *logger.TraceContext) {
 }
 
 func (reader *LoginStatReader) ReportMetrics() (metrics []spec.ResourceMetric) {
-	metrics = make([]spec.ResourceMetric, len(reader.loginStats))
+	metrics = make([]spec.ResourceMetric, 0, len(reader.loginStats))
 	for _, stat := range reader.loginStats {
 		if stat.ReportStatus == ReportStatusReported {
 			continue

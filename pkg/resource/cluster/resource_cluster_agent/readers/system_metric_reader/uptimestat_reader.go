@@ -61,7 +61,7 @@ func (reader *UptimeMetricReader) Read(tctx *logger.TraceContext) {
 }
 
 func (reader *UptimeMetricReader) ReportMetrics() (metrics []spec.ResourceMetric) {
-	metrics = make([]spec.ResourceMetric, len(reader.uptimeStats))
+	metrics = make([]spec.ResourceMetric, 0, len(reader.uptimeStats))
 	for _, stat := range reader.uptimeStats {
 		if stat.ReportStatus == ReportStatusReported {
 			continue

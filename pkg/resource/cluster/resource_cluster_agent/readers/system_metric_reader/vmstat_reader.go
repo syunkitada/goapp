@@ -73,7 +73,7 @@ func (reader *VmStatReader) Read(tctx *logger.TraceContext) {
 }
 
 func (reader *VmStatReader) ReportMetrics() (metrics []spec.ResourceMetric) {
-	metrics = make([]spec.ResourceMetric, len(reader.vmStats))
+	metrics = make([]spec.ResourceMetric, 0, len(reader.vmStats))
 	for _, stat := range reader.vmStats {
 		if stat.ReportStatus == ReportStatusReported {
 			continue

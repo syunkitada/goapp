@@ -91,7 +91,7 @@ func (reader *FsStatReader) Read(tctx *logger.TraceContext) {
 }
 
 func (reader *FsStatReader) ReportMetrics() (metrics []spec.ResourceMetric) {
-	metrics = make([]spec.ResourceMetric, len(reader.fsStats))
+	metrics = make([]spec.ResourceMetric, 0, len(reader.fsStats))
 	for _, stat := range reader.fsStats {
 		if stat.ReportStatus == ReportStatusReported {
 			continue

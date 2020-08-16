@@ -107,7 +107,7 @@ func (reader *BuddyinfoStatReader) Read(tctx *logger.TraceContext) {
 }
 
 func (reader *BuddyinfoStatReader) ReportMetrics() (metrics []spec.ResourceMetric) {
-	metrics = make([]spec.ResourceMetric, len(reader.buddyinfoStats))
+	metrics = make([]spec.ResourceMetric, 0, len(reader.buddyinfoStats))
 	for _, stat := range reader.buddyinfoStats {
 		if stat.ReportStatus == ReportStatusReported {
 			continue

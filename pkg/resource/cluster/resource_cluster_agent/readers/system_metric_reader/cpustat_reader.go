@@ -248,7 +248,7 @@ func (reader *CpuStatReader) read(tctx *logger.TraceContext) (cpuStat *TmpCpuSta
 }
 
 func (reader *CpuStatReader) ReportMetrics() (metrics []spec.ResourceMetric) {
-	metrics = make([]spec.ResourceMetric, len(reader.cpuStats))
+	metrics = make([]spec.ResourceMetric, 0, len(reader.cpuStats))
 
 	for _, stat := range reader.cpuStats {
 		if stat.ReportStatus == ReportStatusReported {

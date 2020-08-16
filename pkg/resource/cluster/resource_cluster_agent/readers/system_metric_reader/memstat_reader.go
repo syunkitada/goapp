@@ -179,7 +179,7 @@ func (reader *MemStatReader) Read(tctx *logger.TraceContext) {
 }
 
 func (reader *MemStatReader) ReportMetrics() (metrics []spec.ResourceMetric) {
-	metrics = make([]spec.ResourceMetric, len(reader.memStats))
+	metrics = make([]spec.ResourceMetric, 0, len(reader.memStats))
 
 	for _, stat := range reader.memStats {
 		if stat.ReportStatus == ReportStatusReported {

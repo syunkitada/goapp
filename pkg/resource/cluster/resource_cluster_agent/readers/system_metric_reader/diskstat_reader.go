@@ -133,7 +133,7 @@ func (reader *DiskMetricReader) Read(tctx *logger.TraceContext) {
 }
 
 func (reader *DiskMetricReader) ReportMetrics() (metrics []spec.ResourceMetric) {
-	metrics = make([]spec.ResourceMetric, len(reader.diskStats))
+	metrics = make([]spec.ResourceMetric, 0, len(reader.diskStats))
 	for _, stat := range reader.diskStats {
 		if stat.ReportStatus == ReportStatusReported {
 			continue

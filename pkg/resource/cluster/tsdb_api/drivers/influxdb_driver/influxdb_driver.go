@@ -418,11 +418,9 @@ func (driver *InfluxdbDriver) GetNode(tctx *logger.TraceContext, input *api_spec
 }
 
 func (driver *InfluxdbDriver) GetMetrics(tctx *logger.TraceContext, metrics *[]api_spec.Metric, name string, query string, keys []string) {
-	fmt.Println(query)
 	for _, client := range driver.metricClients {
 		queryResult, tmpErr := client.Query(query)
 		if tmpErr != nil {
-			fmt.Println("DEBUG FaledQuery", tmpErr)
 			logger.Warningf(tctx, "Failed Query: %s", tmpErr.Error())
 			continue
 		}
@@ -584,7 +582,6 @@ func (driver *InfluxdbDriver) IssueEvent(tctx *logger.TraceContext, input *api_s
 	event := input.Event
 	tags := ",Check=" + event.Check + ",Level=" + event.Level + ",Project=" + event.Project + ",Node=" + event.Node
 	eventsData += "issued_events" + tags + " Msg=\"" + event.Msg + "\" " + strconv.FormatInt(event.Time.UnixNano(), 10) + "\n"
-	fmt.Println("DEBUG IssueEvent", eventsData)
 
 	for _, client := range driver.eventClients {
 		tmpErr := client.Write(eventsData)

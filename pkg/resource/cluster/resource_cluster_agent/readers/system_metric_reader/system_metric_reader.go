@@ -125,8 +125,8 @@ func (reader *SystemMetricReader) GetName() string {
 }
 
 func (reader *SystemMetricReader) Report() ([]spec.ResourceMetric, []spec.ResourceEvent) {
-	metrics := make([]spec.ResourceMetric, 0, 100)
-	events := make([]spec.ResourceEvent, 0, 100)
+	metrics := make([]spec.ResourceMetric, 0, 1000)
+	events := make([]spec.ResourceEvent, 0, 1000)
 
 	for _, r := range reader.subReaders {
 		metrics = append(metrics, r.ReportMetrics()...)
