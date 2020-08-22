@@ -7,7 +7,6 @@ import (
 	"os"
 	"path"
 	"regexp"
-	"strconv"
 	"strings"
 	"time"
 
@@ -213,10 +212,9 @@ func (reader *LogReader) ReadUntilEOF(tctx *logger.TraceContext) error {
 											if err != nil {
 												t = time.Now()
 											}
-											tstr := strconv.FormatInt(t.UnixNano(), 10)
 											reader.events = append(reader.events, spec.ResourceEvent{
 												Name:            event.name,
-												Time:            tstr,
+												Time:            t,
 												Level:           event.level,
 												Msg:             line,
 												ReissueDuration: event.reissueDuration,

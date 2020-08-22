@@ -84,7 +84,7 @@ func New(conf *config.ResourceMetricSystemConfig) *SystemMetricReader {
 	reader.subReaders = []SubMetricReader{
 		NewUptimeMetricReader(conf),
 		NewLoginStatReader(conf),
-		NewCpuStatReader(conf, cpus),
+		NewCpuReader(conf, cpus),
 		NewProcStatReader(conf, reader),
 		NewVmStatReader(conf),
 		NewMemStatReader(conf, reader),
@@ -132,7 +132,9 @@ func (reader *SystemMetricReader) Report() ([]spec.ResourceMetric, []spec.Resour
 		metrics = append(metrics, r.ReportMetrics()...)
 	}
 
-	// TODO check events
+	for _, r := range reader.subReaders {
+		events = append(events, r.ReportEvents()...)
+	}
 
 	return metrics, events
 }

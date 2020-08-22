@@ -174,7 +174,8 @@ func (driver *InfluxdbDriver) Report(tctx *logger.TraceContext, input *api_spec.
 			}
 		}
 
-		eventsData += "events" + tags + " ReissueDuration=" + strconv.Itoa(event.ReissueDuration) + ",Msg=\"" + event.Msg + "\" " + event.Time + "\n"
+		timestamp := strconv.FormatInt(event.Time.UnixNano(), 10)
+		eventsData += "events" + tags + " ReissueDuration=" + strconv.Itoa(event.ReissueDuration) + ",Msg=\"" + event.Msg + "\" " + timestamp + "\n"
 	}
 
 	for _, client := range driver.eventClients {

@@ -27,6 +27,7 @@ func (resolver *Resolver) ReportNode(tctx *logger.TraceContext, input *api_spec.
 	}
 	fmt.Println("DEBUG logs:", len(input.Logs))
 	fmt.Println("DEBUG metrics:", len(input.Metrics))
+	fmt.Println("DEBUG events:", len(input.Events))
 	code = base_const.CodeOk
 	data = &api_spec.ReportNodeData{}
 	return

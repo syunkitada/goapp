@@ -273,7 +273,17 @@ resource:
             enableCpu: true
             enableMemory: true
             enableProc: true
-            cacheLength: 10
+            cacheLength: 100
+            cpu:
+              enable: true
+              checkProcsRunning:
+                warnRateLimit: 1.5
+                critRateLimit: 0
+                occurences: 3
+              checkProcsBlocked:
+                warnLimit: 1.5
+                critLimit: 0
+                occurences: 3
             procCheckMap:
               qemu:
                 cmd: qemu-system-x86
