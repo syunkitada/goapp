@@ -333,7 +333,7 @@ type GetServiceIndexResult struct {
 func (client *Client) GetServiceIndex(tctx *logger.TraceContext, input *base_spec.GetServiceIndex) (data *base_spec.GetServiceIndexData, err error) {
 	queries := []Query{Query{Name: "GetServiceIndex", Data: input}}
 	var res GetServiceIndexResponse
-	err = client.Request(tctx, input.Name, queries, &res, false)
+	err = client.Request(tctx, input.Name, queries, &res, true)
 	if err != nil {
 		return
 	}
@@ -344,6 +344,38 @@ func (client *Client) GetServiceIndex(tctx *logger.TraceContext, input *base_spe
 	}
 
 	result := res.ResultMap.GetServiceIndex
+	if result.Code != base_const.CodeOk || result.Error != "" {
+		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
+		return
+	}
+
+	data = &result.Data
+	return
+}
+
+type GetProjectServiceIndexResponse struct {
+	base_protocol.Response
+	ResultMap GetProjectServiceIndexResultMap
+}
+
+type GetProjectServiceIndexResultMap struct {
+	GetProjectServiceIndex GetServiceIndexResult
+}
+
+func (client *Client) GetProjectServiceIndex(tctx *logger.TraceContext, input *base_spec.GetServiceIndex) (data *base_spec.GetServiceIndexData, err error) {
+	queries := []Query{Query{Name: "GetProjectServiceIndex", Data: input}}
+	var res GetProjectServiceIndexResponse
+	err = client.Request(tctx, input.Name, queries, &res, true)
+	if err != nil {
+		return
+	}
+
+	if res.Code >= 100 || res.Error != "" {
+		err = error_utils.NewInvalidResponseError(res.Code, res.Error)
+		return
+	}
+
+	result := res.ResultMap.GetProjectServiceIndex
 	if result.Code != base_const.CodeOk || result.Error != "" {
 		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
 		return

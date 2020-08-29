@@ -40,7 +40,7 @@ var HomeProjectCmdMap = map[string]base_index_model.Cmd{
 		FlagMap:      map[string]base_index_model.Flag{},
 		Kind:         "",
 		OutputKind:   "table",
-		OutputFormat: "Name",
+		OutputFormat: "Name,RoleName",
 		Ws:           false,
 	},
 }

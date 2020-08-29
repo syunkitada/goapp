@@ -52,12 +52,14 @@ func (ctl *Ctl) index(args []string) (err error) {
 		os.Exit(1)
 	}
 
+	isProjectService := false
 	if len(args) > 0 {
 		if _, ok = loginData.Authority.ServiceMap[serviceName]; !ok {
 			var project base_spec.ProjectService
 			project, ok = loginData.Authority.ProjectServiceMap[appProject]
 			if ok {
 				_, ok = project.ServiceMap[serviceName]
+				isProjectService = true
 			}
 		}
 	}
@@ -91,8 +93,14 @@ func (ctl *Ctl) index(args []string) (err error) {
 
 	// Get ServiceIndex, and exec cmd
 	var getServiceIndexData *base_spec.GetServiceIndexData
-	if getServiceIndexData, err = ctl.client.GetServiceIndex(tctx, &base_spec.GetServiceIndex{Name: serviceName}); err != nil {
-		return
+	if isProjectService {
+		if getServiceIndexData, err = ctl.client.GetProjectServiceIndex(tctx, &base_spec.GetServiceIndex{Name: serviceName}); err != nil {
+			return
+		}
+	} else {
+		if getServiceIndexData, err = ctl.client.GetServiceIndex(tctx, &base_spec.GetServiceIndex{Name: serviceName}); err != nil {
+			return
+		}
 	}
 
 	cmdArgs := []string{}
