@@ -92,7 +92,6 @@ func (srv *Server) Report(tctx *logger.TraceContext) (err error) {
 		metrics = append(metrics, tmpMetrics...)
 		events = append(events, tmpEvents...)
 	}
-	logger.Error(tctx, fmt.Errorf("UnknownError"), "HOGEPIYO")
 
 	for _, logReader := range srv.logReaderMap {
 		tmpLogs, tmpEvents := logReader.Report()
@@ -127,7 +126,6 @@ func (srv *Server) Report(tctx *logger.TraceContext) (err error) {
 	for _, logReader := range srv.logReaderMap {
 		logReader.Reported()
 	}
-	fmt.Println("DEBUG events", events)
 
 	return
 }

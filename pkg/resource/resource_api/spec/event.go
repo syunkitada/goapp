@@ -8,7 +8,7 @@ import (
 
 type ResourceEvent struct {
 	Name            string
-	Time            string
+	Time            time.Time
 	Level           string
 	Handler         string
 	Msg             string

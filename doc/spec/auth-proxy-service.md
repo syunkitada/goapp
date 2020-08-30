@@ -143,6 +143,20 @@
 ## UI
 
 - クライアントの WebUI や CUI は、 AuthProxy で認証し、UI 情報を取得して、UI を自動生成する
+- WebUI の認証の流れ
+  - Cookie のトークンによって、LoginWithToken を実行し、認可情報を取得する
+  - LoginWithToken に失敗する場合は、ログイン画面を表示する
+    - ログイン画面から、ユーザ、パスワード認証を行い、トークンと認可情報を取得する
+      - このとき Cookie にトークンを保存する
+  - 認可情報には、プロジェクト一覧とサービス一覧を含んでおり、これにより UI のフレームを生成する
+  - User サービスにアクセスしようとしてる場合は、GetServiceDashboardIndex によって Index を取得する
+  - Project サービスにアクセスしようとしてる場合は、GetProjectServiceDashboardIndex によって Index を取得する
+  - Index 情報からサービス UI を自動生成する
+- CUI の認証の流れ
+  - ユーザ、パスワード認証を行い、トークンと認可情報を取得する
+  - User サービスにアクセスしようとしてる場合は、GetServiceIndex によって Index を取得する
+  - Project サービスにアクセスしようとしてる場合は、GetProjectServiceIndex によって Index を取得する
+  - Index 情報に利用できるコマンド情報が含まれている
 
 ## ACL
 
@@ -152,4 +166,4 @@
 
 ## キャッシング
 
-- TODO
+- TOD

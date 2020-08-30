@@ -1,8 +1,6 @@
 package resolver
 
 import (
-	"fmt"
-
 	"github.com/syunkitada/goapp/pkg/base/base_const"
 	"github.com/syunkitada/goapp/pkg/base/base_index_model"
 	"github.com/syunkitada/goapp/pkg/base/base_spec"
@@ -12,6 +10,11 @@ import (
 )
 
 func (resolver *Resolver) GetServiceIndex(tctx *logger.TraceContext, input *base_spec.GetServiceIndex, user *base_spec.UserAuthority) (data *base_spec.GetServiceIndexData, code uint8, err error) {
+	code = base_const.CodeClientNotFound
+	return
+}
+
+func (resolver *Resolver) GetProjectServiceIndex(tctx *logger.TraceContext, input *base_spec.GetServiceIndex, user *base_spec.UserAuthority) (data *base_spec.GetServiceIndexData, code uint8, err error) {
 	switch input.Name {
 	case "ResourcePhysical":
 		data = &base_spec.GetServiceIndexData{
@@ -21,7 +24,6 @@ func (resolver *Resolver) GetServiceIndex(tctx *logger.TraceContext, input *base
 		}
 		code = base_const.CodeOk
 	case "ResourcePhysicalAdmin":
-		fmt.Println("DEBUG adminalalalal")
 		data = &base_spec.GetServiceIndexData{
 			Index: base_index_model.Index{
 				CmdMap: genpkg.ResourcePhysicalAdminCmdMap,

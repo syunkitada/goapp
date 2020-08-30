@@ -111,39 +111,6 @@ type ResourceComputeExConfig struct {
 // 	NetworkVhostQueues int
 // }
 
-type ResourceLogConfig struct {
-	Path               string
-	LogFormat          string
-	MaxInitialReadSize int64
-	CheckPrefix        string
-	CheckMap           map[string]ResourceLogCheckConfig
-}
-
-type ResourceLogCheckConfig struct {
-	Key             string
-	Pattern         string
-	Level           string
-	ReissueDuration int
-}
-
-type ResourceMetricConfig struct {
-	System ResourceMetricSystemConfig
-}
-
-type ResourceMetricSystemConfig struct {
-	Enable       bool
-	EnableLogin  bool
-	EnableCpu    bool
-	EnableMemory bool
-	EnableProc   bool
-	CacheLength  int
-	ProcCheckMap map[string]ResourceProcCheckConfig
-}
-
-type ResourceProcCheckConfig struct {
-	Cmd string
-}
-
 type TimeSeriesDatabaseConfig struct {
 	Driver          string
 	EventDatabases  []string

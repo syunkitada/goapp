@@ -99,6 +99,7 @@ func (api *Api) Bootstrap(tctx *logger.TraceContext, isRecreate bool) (err error
 			continue
 		}
 		queryMap["GetServiceIndex"] = base_spec_model.QueryModel{RequiredAuth: true}
+		queryMap["GetProjectServiceIndex"] = base_spec_model.QueryModel{RequiredAuth: true, RequiredProject: true}
 		queryMap["GetServiceDashboardIndex"] = base_spec_model.QueryModel{RequiredAuth: true}
 		queryMap["GetProjectServiceDashboardIndex"] = base_spec_model.QueryModel{RequiredAuth: true, RequiredProject: true}
 

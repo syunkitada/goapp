@@ -292,7 +292,7 @@ func (app *BaseApp) NewHandler() http.Handler {
 
 func (app *BaseApp) Start(tctx *logger.TraceContext, httpReq *http.Request, rawReq []byte, isProxy bool) (service *base_spec_model.ServiceRouter,
 	req *base_protocol.Request, res *base_protocol.Response, err error) {
-	res = &base_protocol.Response{TraceId: tctx.GetTraceId(), ResultMap: map[string]base_protocol.Result{}}
+	res = &base_protocol.Response{TraceId: tctx.GetTraceId(), Code: base_const.CodeOk, ResultMap: map[string]base_protocol.Result{}}
 
 	req = &base_protocol.Request{}
 	if err = json.Unmarshal(rawReq, &req); err != nil {
