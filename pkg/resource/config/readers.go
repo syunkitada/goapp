@@ -28,7 +28,9 @@ type ResourceMetricSystemConfig struct {
 	CacheLength  int
 	ProcCheckMap map[string]ResourceProcCheckConfig
 
-	Cpu ResourceMetricSystemCpuConfig
+	Cpu          ResourceMetricSystemCpuConfig
+	Mem          ResourceMetricSystemMemConfig
+	MemBuddyinfo ResourceMetricSystemMemBuddyinfoConfig
 }
 
 type ResourceMetricSystemCpuConfig struct {
@@ -38,15 +40,48 @@ type ResourceMetricSystemCpuConfig struct {
 }
 
 type ResourceMetricSystemCpuCheckProcsRunningConfig struct {
-	WarnRateLimit float64
-	CritRateLimit float64
-	Occurences    int
+	WarnRateLimit   float64
+	CritRateLimit   float64
+	Occurences      int
+	ReissueDuration int
 }
 
 type ResourceMetricSystemCpuCheckProcsBlockedConfig struct {
-	WarnRateLimit float64
-	CritRateLimit float64
-	Occurences    int
+	WarnRateLimit   float64
+	CritRateLimit   float64
+	Occurences      int
+	ReissueDuration int
+}
+
+type ResourceMetricSystemMemConfig struct {
+	Enable         bool
+	CheckAvailable ResourceMetricSystemMemCheckAvailableConfig
+	CheckPgscan    ResourceMetricSystemMemCheckPgscanConfig
+}
+
+type ResourceMetricSystemMemCheckAvailableConfig struct {
+	WarnFreeMb            int64
+	WarnAvailableMb       int64
+	IsWarnAvailableMbAuto bool
+	Occurences            int
+	ReissueDuration       int
+}
+
+type ResourceMetricSystemMemCheckPgscanConfig struct {
+	WarnPgscanDirect int64
+	Occurences       int
+	ReissueDuration  int
+}
+
+type ResourceMetricSystemMemBuddyinfoConfig struct {
+	Enable     bool
+	CheckPages ResourceMetricSystemMemBuddyinfoCheckPagesConfig
+}
+
+type ResourceMetricSystemMemBuddyinfoCheckPagesConfig struct {
+	WarnMinPages    int64
+	Occurences      int
+	ReissueDuration int
 }
 
 type ResourceProcCheckConfig struct {

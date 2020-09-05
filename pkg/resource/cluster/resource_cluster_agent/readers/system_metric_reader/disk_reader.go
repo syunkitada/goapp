@@ -54,7 +54,7 @@ type TmpDiskStat struct {
 	DiscardMs         int64
 }
 
-type DiskMetricReader struct {
+type DiskReader struct {
 	conf            *config.ResourceMetricSystemConfig
 	cacheLength     int
 	tmpDiskStatMap  map[string]TmpDiskStat
@@ -62,8 +62,8 @@ type DiskMetricReader struct {
 	diskStatFilters []string
 }
 
-func NewDiskMetricReader(conf *config.ResourceMetricSystemConfig) SubMetricReader {
-	return &DiskMetricReader{
+func NewDiskReader(conf *config.ResourceMetricSystemConfig) SubMetricReader {
+	return &DiskReader{
 		conf:            conf,
 		cacheLength:     conf.CacheLength,
 		diskStatFilters: []string{"loop"},
@@ -71,7 +71,7 @@ func NewDiskMetricReader(conf *config.ResourceMetricSystemConfig) SubMetricReade
 	}
 }
 
-func (reader *DiskMetricReader) Read(tctx *logger.TraceContext) {
+func (reader *DiskReader) Read(tctx *logger.TraceContext) {
 	timestamp := time.Now()
 
 	if reader.tmpDiskStatMap == nil {
@@ -132,7 +132,7 @@ func (reader *DiskMetricReader) Read(tctx *logger.TraceContext) {
 	}
 }
 
-func (reader *DiskMetricReader) ReportMetrics() (metrics []spec.ResourceMetric) {
+func (reader *DiskReader) ReportMetrics() (metrics []spec.ResourceMetric) {
 	metrics = make([]spec.ResourceMetric, 0, len(reader.diskStats))
 	for _, stat := range reader.diskStats {
 		if stat.ReportStatus == ReportStatusReported {
@@ -158,18 +158,18 @@ func (reader *DiskMetricReader) ReportMetrics() (metrics []spec.ResourceMetric) 
 	return
 }
 
-func (reader *DiskMetricReader) ReportEvents() (events []spec.ResourceEvent) {
+func (reader *DiskReader) ReportEvents() (events []spec.ResourceEvent) {
 	return
 }
 
-func (reader *DiskMetricReader) Reported() {
+func (reader *DiskReader) Reported() {
 	for i := range reader.diskStats {
 		reader.diskStats[i].ReportStatus = ReportStatusReported
 	}
 	return
 }
 
-func (reader *DiskMetricReader) readTmpDiskStat(tctx *logger.TraceContext) (tmpDiskStatMap map[string]TmpDiskStat) {
+func (reader *DiskReader) readTmpDiskStat(tctx *logger.TraceContext) (tmpDiskStatMap map[string]TmpDiskStat) {
 	// Read /proc/diskstats
 
 	// 259       0 nvme0n1 94360 70783 6403078 67950 136558 90723 6419592 38105 0 97140 59208 0 0 0 0

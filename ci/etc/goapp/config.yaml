@@ -269,10 +269,6 @@ resource:
         metric:
           system:
             enable: true
-            enableLogin: true
-            enableCpu: true
-            enableMemory: true
-            enableProc: true
             cacheLength: 100
             cpu:
               enable: true
@@ -280,10 +276,30 @@ resource:
                 warnRateLimit: 1.5
                 critRateLimit: 0
                 occurences: 3
+                reissueDuration: 600
               checkProcsBlocked:
                 warnLimit: 1.5
                 critLimit: 0
                 occurences: 3
+                reissueDuration: 600
+            mem:
+              enable: true
+              checkAvailable:
+                warnFreeMb: 0
+                warnAvailableMb: 0
+                isWarnAvailableMbAuto: true
+                occurences: 2
+                reissueDuration: 600
+              checkPgscan:
+                warnPgscanDirect: 0
+                occurences: 1
+                reissueDuration: 600
+            mem_buddyinfo:
+              enable: true
+              checkPages:
+                warnMinPages: 1
+                occurences: 3
+                reissueDuration: 600
             procCheckMap:
               qemu:
                 cmd: qemu-system-x86

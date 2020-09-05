@@ -248,7 +248,7 @@
 - ResourceAgent
   - Cluster に所属し、アサインされた Resource を実体化し、状態を管理する
   - Node ごとに複数の Provider サポートできる
-  - Provider を利用してノード自身を監視し、イベントがあれば Alert を MonitorController に通知する
+  - Provider を利用してノード自身を監視し、エラーなどがあらば Event を ResourceApi に通知する
     - またメトリクスをメトリクス DB に送信する
 
 ## リソースの割り当て、課金について

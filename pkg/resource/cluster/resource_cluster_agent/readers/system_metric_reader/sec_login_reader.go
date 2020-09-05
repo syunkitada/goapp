@@ -29,21 +29,21 @@ type UserStat struct {
 	What         string
 }
 
-type LoginStatReader struct {
+type SecLoginReader struct {
 	conf        *config.ResourceMetricSystemConfig
 	cacheLength int
 	loginStats  []LoginStat
 }
 
-func NewLoginStatReader(conf *config.ResourceMetricSystemConfig) SubMetricReader {
-	return &LoginStatReader{
+func NewSecLoginReader(conf *config.ResourceMetricSystemConfig) SubMetricReader {
+	return &SecLoginReader{
 		conf:        conf,
 		cacheLength: conf.CacheLength,
 		loginStats:  make([]LoginStat, 0, conf.CacheLength),
 	}
 }
 
-func (reader *LoginStatReader) Read(tctx *logger.TraceContext) {
+func (reader *SecLoginReader) Read(tctx *logger.TraceContext) {
 	timestamp := time.Now()
 
 	// Don't read /var/run/utmp, because of this is binary
@@ -80,7 +80,7 @@ func (reader *LoginStatReader) Read(tctx *logger.TraceContext) {
 	})
 }
 
-func (reader *LoginStatReader) ReportMetrics() (metrics []spec.ResourceMetric) {
+func (reader *SecLoginReader) ReportMetrics() (metrics []spec.ResourceMetric) {
 	metrics = make([]spec.ResourceMetric, 0, len(reader.loginStats))
 	for _, stat := range reader.loginStats {
 		if stat.ReportStatus == ReportStatusReported {
@@ -104,11 +104,11 @@ func (reader *LoginStatReader) ReportMetrics() (metrics []spec.ResourceMetric) {
 	return
 }
 
-func (reader *LoginStatReader) ReportEvents() (events []spec.ResourceEvent) {
+func (reader *SecLoginReader) ReportEvents() (events []spec.ResourceEvent) {
 	return
 }
 
-func (reader *LoginStatReader) Reported() {
+func (reader *SecLoginReader) Reported() {
 	for i := range reader.loginStats {
 		reader.loginStats[i].ReportStatus = ReportStatusReported
 	}

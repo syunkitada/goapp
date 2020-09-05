@@ -39,7 +39,7 @@ type NetDevStat struct {
 	TransmitDiffDrops     int64
 }
 
-type NetDevStatReader struct {
+type NetDevReader struct {
 	conf               *config.ResourceMetricSystemConfig
 	cacheLength        int
 	systemMetricReader *SystemMetricReader
@@ -48,8 +48,8 @@ type NetDevStatReader struct {
 	netDevStatFilters  []string
 }
 
-func NewNetDevStatReader(conf *config.ResourceMetricSystemConfig, systemMetricReader *SystemMetricReader) SubMetricReader {
-	return &NetDevStatReader{
+func NewNetDevReader(conf *config.ResourceMetricSystemConfig, systemMetricReader *SystemMetricReader) SubMetricReader {
+	return &NetDevReader{
 		conf:               conf,
 		cacheLength:        conf.CacheLength,
 		netDevStatFilters:  []string{"lo"},
@@ -58,7 +58,7 @@ func NewNetDevStatReader(conf *config.ResourceMetricSystemConfig, systemMetricRe
 }
 
 // Read read /proc/diskstat
-func (reader *NetDevStatReader) Read(tctx *logger.TraceContext) {
+func (reader *NetDevReader) Read(tctx *logger.TraceContext) {
 	timestamp := time.Now()
 
 	if reader.tmpNetDevStatMap == nil {
@@ -105,7 +105,7 @@ func (reader *NetDevStatReader) Read(tctx *logger.TraceContext) {
 	}
 }
 
-func (reader *NetDevStatReader) readTmpNetDevStat(tctx *logger.TraceContext) (tmpNetDevStatMap map[string]TmpNetDevStat) {
+func (reader *NetDevReader) readTmpNetDevStat(tctx *logger.TraceContext) (tmpNetDevStatMap map[string]TmpNetDevStat) {
 	// $ cat /proc/net/dev
 	// Inter-|   Receive                                                |  Transmit
 	//  face |bytes    packets errs drop fifo frame compressed multicast|bytes    packets errs drop fifo colls carrier compressed
@@ -142,7 +142,7 @@ func (reader *NetDevStatReader) readTmpNetDevStat(tctx *logger.TraceContext) (tm
 	return
 }
 
-func (reader *NetDevStatReader) ParseNetDev(out string, timestamp time.Time) (tmpNetDevStatMap map[string]TmpNetDevStat) {
+func (reader *NetDevReader) ParseNetDev(out string, timestamp time.Time) (tmpNetDevStatMap map[string]TmpNetDevStat) {
 	// $ cat /proc/net/dev
 	// Inter-|   Receive                                                |  Transmit
 	//  face |bytes    packets errs drop fifo frame compressed multicast|bytes    packets errs drop fifo colls carrier compressed
@@ -203,7 +203,7 @@ func (reader *NetDevStatReader) ParseNetDev(out string, timestamp time.Time) (tm
 	return
 }
 
-func (reader *NetDevStatReader) ReportMetrics() (metrics []spec.ResourceMetric) {
+func (reader *NetDevReader) ReportMetrics() (metrics []spec.ResourceMetric) {
 	metrics = make([]spec.ResourceMetric, 0, len(reader.netDevStats))
 	for _, stat := range reader.netDevStats {
 		if stat.ReportStatus == ReportStatusReported {
@@ -230,11 +230,11 @@ func (reader *NetDevStatReader) ReportMetrics() (metrics []spec.ResourceMetric) 
 	return
 }
 
-func (reader *NetDevStatReader) ReportEvents() (events []spec.ResourceEvent) {
+func (reader *NetDevReader) ReportEvents() (events []spec.ResourceEvent) {
 	return
 }
 
-func (reader *NetDevStatReader) Reported() {
+func (reader *NetDevReader) Reported() {
 	for i := range reader.netDevStats {
 		reader.netDevStats[i].ReportStatus = ReportStatusReported
 	}

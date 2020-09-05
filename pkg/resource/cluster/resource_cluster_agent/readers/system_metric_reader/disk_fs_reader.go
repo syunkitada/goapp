@@ -23,15 +23,15 @@ type FsStat struct {
 	Files        int64
 }
 
-type FsStatReader struct {
+type DiskFsReader struct {
 	conf        *config.ResourceMetricSystemConfig
 	cacheLength int
 	fsStats     []FsStat
 	fsStatTypes []string
 }
 
-func NewFsStatReader(conf *config.ResourceMetricSystemConfig) SubMetricReader {
-	return &FsStatReader{
+func NewDiskFsReader(conf *config.ResourceMetricSystemConfig) SubMetricReader {
+	return &DiskFsReader{
 		conf:        conf,
 		cacheLength: conf.CacheLength,
 		fsStatTypes: []string{"ext4"},
@@ -39,7 +39,7 @@ func NewFsStatReader(conf *config.ResourceMetricSystemConfig) SubMetricReader {
 }
 
 // Read filesystem stat
-func (reader *FsStatReader) Read(tctx *logger.TraceContext) {
+func (reader *DiskFsReader) Read(tctx *logger.TraceContext) {
 	timestamp := time.Now()
 
 	// read /proc/self/mounts
@@ -90,7 +90,7 @@ func (reader *FsStatReader) Read(tctx *logger.TraceContext) {
 	}
 }
 
-func (reader *FsStatReader) ReportMetrics() (metrics []spec.ResourceMetric) {
+func (reader *DiskFsReader) ReportMetrics() (metrics []spec.ResourceMetric) {
 	metrics = make([]spec.ResourceMetric, 0, len(reader.fsStats))
 	for _, stat := range reader.fsStats {
 		if stat.ReportStatus == ReportStatusReported {
@@ -115,11 +115,11 @@ func (reader *FsStatReader) ReportMetrics() (metrics []spec.ResourceMetric) {
 	return
 }
 
-func (reader *FsStatReader) ReportEvents() (events []spec.ResourceEvent) {
+func (reader *DiskFsReader) ReportEvents() (events []spec.ResourceEvent) {
 	return
 }
 
-func (reader *FsStatReader) Reported() {
+func (reader *DiskFsReader) Reported() {
 	for i := range reader.fsStats {
 		reader.fsStats[i].ReportStatus = ReportStatusReported
 	}

@@ -66,7 +66,6 @@ func (resolver *Resolver) GetEventRules(tctx *logger.TraceContext, input *spec.G
 }
 
 func (resolver *Resolver) CreateEventRules(tctx *logger.TraceContext, input *spec.CreateEventRules, user *base_spec.UserAuthority) (data *spec.CreateEventRulesData, code uint8, err error) {
-	fmt.Println("DEBUG CreateEventRules")
 	if data, err = resolver.dbApi.CreateEventRules(tctx, input, user); err != nil {
 		code = base_const.CodeServerInternalError
 		return

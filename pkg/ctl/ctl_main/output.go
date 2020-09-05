@@ -53,7 +53,7 @@ func (ctl *Ctl) output(cmdInfo *base_index_model.Cmd, resp *Response,
 		}
 
 		for query, result := range resp.ResultMap {
-			fmt.Printf("# Status: query=%s, code=%d, err=%s\n", query, result.Code, result.Error)
+			fmt.Printf("# QueryStatus: query=%s, code=%d, err=%s\n", query, result.Code, result.Error)
 			for key, data := range result.Data {
 				fmt.Printf("# %s\n", key)
 
