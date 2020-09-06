@@ -285,19 +285,26 @@ resource:
             mem:
               enable: true
               checkAvailable:
-                warnFreeMb: 0
-                warnAvailableMb: 0
-                isWarnAvailableMbAuto: true
+                warnAvailableRatio: 0.05
                 occurences: 2
                 reissueDuration: 600
               checkPgscan:
-                warnPgscanDirect: 0
+                warnPgscanDirect: 1
                 occurences: 1
                 reissueDuration: 600
-            mem_buddyinfo:
+            memBuddyinfo:
               enable: true
               checkPages:
                 warnMinPages: 1
+                occurences: 3
+                reissueDuration: 600
+            disk:
+              enable: true
+            diskFs:
+              enable: true
+              checkFree:
+                warnFreeRatio: 0.1
+                critFreeRatio: 0.01
                 occurences: 3
                 reissueDuration: 600
             procCheckMap:

@@ -2,6 +2,7 @@ package system_metric_reader
 
 import (
 	"bufio"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"strconv"
@@ -11,6 +12,7 @@ import (
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/lib/str_utils"
 	"github.com/syunkitada/goapp/pkg/resource/config"
+	"github.com/syunkitada/goapp/pkg/resource/consts"
 	"github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
 )
 
@@ -69,18 +71,41 @@ type TmpVmStat struct {
 type MemReader struct {
 	conf               *config.ResourceMetricSystemConfig
 	cacheLength        int
+	lenNodes           int
 	memStats           []MemStat
 	systemMetricReader *SystemMetricReader
 	tmpVmStat          *TmpVmStat
 	vmStats            []VmStat
+
+	checkAvailableOccurences         int
+	checkAvailableReissueDuration    int
+	checkAvailableWarnAvailableRatio float64
+	checkAvailableWarnNodeCounters   []int
+
+	checkPgscanOccurences              int
+	checkPgscanReissueDuration         int
+	checkPgscanWarnPgscanDirect        int64
+	checkPgscanWarnPgscanDirectCounter int
 }
 
 func NewMemReader(conf *config.ResourceMetricSystemConfig, systemMetricReader *SystemMetricReader) SubMetricReader {
+	lenNodes := len(systemMetricReader.NumaNodes)
 	return &MemReader{
 		conf:               conf,
 		cacheLength:        conf.CacheLength,
 		memStats:           make([]MemStat, 0, conf.CacheLength),
 		systemMetricReader: systemMetricReader,
+		lenNodes:           lenNodes,
+
+		checkAvailableOccurences:         conf.Mem.CheckAvailable.Occurences,
+		checkAvailableReissueDuration:    conf.Mem.CheckAvailable.ReissueDuration,
+		checkAvailableWarnAvailableRatio: conf.Mem.CheckAvailable.WarnAvailableRatio,
+		checkAvailableWarnNodeCounters:   make([]int, 0, len(systemMetricReader.NumaNodes)),
+
+		checkPgscanOccurences:              conf.Mem.CheckPgscan.Occurences,
+		checkPgscanReissueDuration:         conf.Mem.CheckPgscan.ReissueDuration,
+		checkPgscanWarnPgscanDirect:        conf.Mem.CheckPgscan.WarnPgscanDirect,
+		checkPgscanWarnPgscanDirectCounter: 0,
 	}
 }
 
@@ -97,11 +122,18 @@ func (reader *MemReader) Read(tctx *logger.TraceContext) {
 
 		tmpVmStat := reader.readTmpVmStat(tctx)
 
+		diffPgscanDirect := tmpVmStat.PgscanDirect - reader.tmpVmStat.PgscanDirect
+		if diffPgscanDirect > reader.checkPgscanWarnPgscanDirect {
+			reader.checkPgscanWarnPgscanDirectCounter += 1
+		} else {
+			reader.checkPgscanWarnPgscanDirectCounter = 0
+		}
+
 		reader.vmStats = append(reader.vmStats, VmStat{
 			ReportStatus:     0,
 			Timestamp:        timestamp,
 			DiffPgscanKswapd: tmpVmStat.PgscanKswapd - reader.tmpVmStat.PgscanKswapd,
-			DiffPgscanDirect: tmpVmStat.PgscanDirect - reader.tmpVmStat.PgscanDirect,
+			DiffPgscanDirect: diffPgscanDirect,
 			DiffPgfault:      tmpVmStat.Pgfault - reader.tmpVmStat.Pgfault,
 			DiffPswapin:      tmpVmStat.Pswapin - reader.tmpVmStat.Pswapin,
 			DiffPswapout:     tmpVmStat.Pswapout - reader.tmpVmStat.Pswapout,
@@ -191,6 +223,17 @@ func (reader *MemReader) Read(tctx *logger.TraceContext) {
 		}
 
 		memAvailable := memFree + inactive + kReclaimable + sReclaimable
+
+		if len(reader.checkAvailableWarnNodeCounters) < id+1 {
+			reader.checkAvailableWarnNodeCounters = append(
+				reader.checkAvailableWarnNodeCounters, 0)
+		}
+
+		if memAvailable < int64(float64(node.TotalMemory-(nr1GHugepages*1000000))*reader.checkAvailableWarnAvailableRatio) {
+			reader.checkAvailableWarnNodeCounters[id] += 1
+		} else {
+			reader.checkAvailableWarnNodeCounters[id] = 0
+		}
 
 		reader.memStats = append(reader.memStats, MemStat{
 			ReportStatus: 0,
@@ -286,6 +329,49 @@ func (reader *MemReader) ReportMetrics() (metrics []spec.ResourceMetric) {
 }
 
 func (reader *MemReader) ReportEvents() (events []spec.ResourceEvent) {
+	if len(reader.vmStats) == 0 {
+		return
+	}
+
+	stats := reader.memStats[len(reader.memStats)-reader.lenNodes:]
+	msgs := []string{}
+	eventCheckAvailableLevel := consts.EventLevelSuccess
+	for _, stat := range stats {
+		if reader.checkAvailableWarnNodeCounters[stat.NodeId] > reader.checkAvailableOccurences {
+			eventCheckAvailableLevel = consts.EventLevelWarning
+		}
+		msgs = append(msgs,
+			fmt.Sprintf("node:%d,total=%d,free=%d,available=%d",
+				stat.NodeId,
+				stat.MemTotal,
+				stat.MemFree,
+				stat.MemAvailable))
+	}
+
+	events = append(events, spec.ResourceEvent{
+		Name:            "CheckMemAvailable",
+		Time:            stats[0].Timestamp,
+		Level:           eventCheckAvailableLevel,
+		Msg:             strings.Join(msgs, ", "),
+		ReissueDuration: reader.checkAvailableReissueDuration,
+	})
+
+	stat := reader.vmStats[len(reader.vmStats)-1]
+	eventCheckPgscanLevel := consts.EventLevelSuccess
+	if reader.checkPgscanWarnPgscanDirectCounter > reader.checkPgscanOccurences {
+		eventCheckPgscanLevel = consts.EventLevelWarning
+	}
+	events = append(events, spec.ResourceEvent{
+		Name:  "CheckMemPgscan",
+		Time:  stat.Timestamp,
+		Level: eventCheckPgscanLevel,
+		Msg: fmt.Sprintf("Pgscan kswapd=%d, direct=%d",
+			stat.DiffPgscanKswapd,
+			stat.DiffPgscanDirect,
+		),
+		ReissueDuration: reader.checkPgscanReissueDuration,
+	})
+
 	return
 }
 

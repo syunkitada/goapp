@@ -31,6 +31,8 @@ type ResourceMetricSystemConfig struct {
 	Cpu          ResourceMetricSystemCpuConfig
 	Mem          ResourceMetricSystemMemConfig
 	MemBuddyinfo ResourceMetricSystemMemBuddyinfoConfig
+	Disk         ResourceMetricSystemDiskConfig
+	DiskFs       ResourceMetricSystemDiskFsConfig
 }
 
 type ResourceMetricSystemCpuConfig struct {
@@ -60,11 +62,9 @@ type ResourceMetricSystemMemConfig struct {
 }
 
 type ResourceMetricSystemMemCheckAvailableConfig struct {
-	WarnFreeMb            int64
-	WarnAvailableMb       int64
-	IsWarnAvailableMbAuto bool
-	Occurences            int
-	ReissueDuration       int
+	WarnAvailableRatio float64
+	Occurences         int
+	ReissueDuration    int
 }
 
 type ResourceMetricSystemMemCheckPgscanConfig struct {
@@ -80,6 +80,22 @@ type ResourceMetricSystemMemBuddyinfoConfig struct {
 
 type ResourceMetricSystemMemBuddyinfoCheckPagesConfig struct {
 	WarnMinPages    int64
+	Occurences      int
+	ReissueDuration int
+}
+
+type ResourceMetricSystemDiskConfig struct {
+	Enable bool
+}
+
+type ResourceMetricSystemDiskFsConfig struct {
+	Enable    bool
+	CheckFree ResourceMetricSystemDiskFsCheckFreeConfig
+}
+
+type ResourceMetricSystemDiskFsCheckFreeConfig struct {
+	WarnFreeRatio   float64
+	CritFreeRatio   float64
 	Occurences      int
 	ReissueDuration int
 }
