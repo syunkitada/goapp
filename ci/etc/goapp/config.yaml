@@ -311,6 +311,20 @@ resource:
               enable: true
             netDev:
               enable: true
+              statFilters: ["lo"]
+              checkFilters: ["docker", "com-"]
+              checkBytes:
+                occurences: 3
+                reissueDuration: 600
+                warnRatio: 0.8
+                critRatio: 0.95
+              checkErrors:
+                occurences: 3
+                reissueDuration: 600
+                warnErrors: 1
+                critErrors: 1000
+                warnDrops: 1
+                critDrops: 1000
             procCheckMap:
               qemu:
                 cmd: qemu-system-x86

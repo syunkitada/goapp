@@ -33,6 +33,8 @@ type ResourceMetricSystemConfig struct {
 	MemBuddyinfo ResourceMetricSystemMemBuddyinfoConfig
 	Disk         ResourceMetricSystemDiskConfig
 	DiskFs       ResourceMetricSystemDiskFsConfig
+	Net          ResourceMetricSystemNetConfig
+	NetDev       ResourceMetricSystemNetDevConfig
 }
 
 type ResourceMetricSystemCpuConfig struct {
@@ -98,6 +100,34 @@ type ResourceMetricSystemDiskFsCheckFreeConfig struct {
 	CritFreeRatio   float64
 	Occurences      int
 	ReissueDuration int
+}
+
+type ResourceMetricSystemNetConfig struct {
+	Enable bool
+}
+
+type ResourceMetricSystemNetDevConfig struct {
+	Enable       bool
+	StatFilters  []string
+	CheckFilters []string
+	CheckBytes   ResourceMetricSystemNetDevCheckBytesConfig
+	CheckErrors  ResourceMetricSystemNetDevCheckErrorsConfig
+}
+
+type ResourceMetricSystemNetDevCheckBytesConfig struct {
+	Occurences      int
+	ReissueDuration int
+	WarnRatio       float64
+	CritRatio       float64
+}
+
+type ResourceMetricSystemNetDevCheckErrorsConfig struct {
+	Occurences      int
+	ReissueDuration int
+	WarnErrors      int64
+	CritErrors      int64
+	WarnDrops       int64
+	CritDrops       int64
 }
 
 type ResourceProcCheckConfig struct {

@@ -1,0 +1,26 @@
+{
+    "Kind": "RegionService",
+    "Spec": {
+        "Name": "centos8-service01",
+        "Kind": "Compute",
+        "Region": "kanto",
+        "ExpireDate": -1,
+        "Spec": {
+            "SchedulePolicy": {
+                "Replicas": 1
+            },
+            "NetworkPolicy": {
+                "Version": 4,
+                "Interfaces": 1,
+                "AssignPolicy": "Affinity",
+                "StaticNetworks": []
+            },
+            "Kind": "Qemu",
+            "Restart": "Always",
+            "Vcpus": 8,
+            "Memory": 8192,
+            "Disk": 20,
+            "Image": "centos-8"
+        }
+    }
+}
