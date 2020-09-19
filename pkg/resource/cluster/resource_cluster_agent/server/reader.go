@@ -1,7 +1,6 @@
 package server
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/syunkitada/goapp/pkg/base/base_client"
@@ -10,11 +9,7 @@ import (
 	resource_api_spec "github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
 )
 
-func (srv *Server) StartSubLoop() {
-	go srv.SubLoop()
-}
-
-func (srv *Server) SubLoop() {
+func (srv *Server) ReaderLoop() {
 	var tctx *logger.TraceContext
 	var startTime time.Time
 	var err error
@@ -23,15 +18,13 @@ func (srv *Server) SubLoop() {
 	for {
 		tctx = srv.NewTraceContext()
 		startTime = logger.StartTrace(tctx)
-		err = srv.SubTask(tctx)
+		err = srv.ReaderTask(tctx)
 		logger.EndTrace(tctx, startTime, err, 0)
 		time.Sleep(loopInterval)
 	}
 }
 
-func (srv *Server) SubTask(tctx *logger.TraceContext) (err error) {
-	fmt.Println("subTask")
-
+func (srv *Server) ReaderTask(tctx *logger.TraceContext) (err error) {
 	for metricName, metricReader := range srv.metricReaderMap {
 		err = metricReader.Read(tctx)
 		if err != nil {

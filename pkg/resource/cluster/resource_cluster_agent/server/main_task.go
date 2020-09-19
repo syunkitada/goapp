@@ -7,7 +7,6 @@ import (
 	"github.com/syunkitada/goapp/pkg/base/base_const"
 	"github.com/syunkitada/goapp/pkg/base/base_spec"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
-	"github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
 	api_spec "github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
 	resource_api_spec "github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
 )
@@ -50,11 +49,13 @@ func (srv *Server) SyncNodeService(tctx *logger.TraceContext) (err error) {
 		return
 	}
 
-	var computeAssignmentReports []spec.AssignmentReport
-	if computeAssignmentReports, err = srv.SyncComputeAssignments(tctx, syncNodeServiceData.Task.ComputeAssignments); err != nil {
-		return err
-	}
-	fmt.Println("DEBUG reports", computeAssignmentReports)
+	srv.computeAssignmentsMutex.Lock()
+	srv.computeAssignments = syncNodeServiceData.Task.ComputeAssignments
+	srv.computeAssignmentsMutex.Unlock()
+
+	srv.computeAssignmentReportsMutex.Lock()
+	computeAssignmentReports := srv.computeAssignmentReports
+	srv.computeAssignmentReportsMutex.Unlock()
 
 	reportNodeServiceTaskQueries := []base_client.Query{
 		base_client.Query{

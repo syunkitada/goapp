@@ -3,6 +3,7 @@ package server
 import (
 	"net"
 	"path/filepath"
+	"sync"
 	"time"
 
 	"github.com/syunkitada/goapp/pkg/base/base_app"
@@ -19,6 +20,7 @@ import (
 	resource_cluster_api "github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_api/spec/genpkg"
 	"github.com/syunkitada/goapp/pkg/resource/config"
 	"github.com/syunkitada/goapp/pkg/resource/consts"
+	"github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
 )
 
 type Server struct {
@@ -28,8 +30,12 @@ type Server struct {
 	queryHandler *genpkg.QueryHandler
 	apiClient    *resource_cluster_api.Client
 
-	computeConf   config.ResourceComputeExConfig
-	computeDriver compute_drivers.ComputeDriver
+	computeConf                   config.ResourceComputeExConfig
+	computeDriver                 compute_drivers.ComputeDriver
+	computeAssignmentsMutex       sync.Mutex
+	computeAssignments            []spec.ComputeAssignmentEx
+	computeAssignmentReportsMutex sync.Mutex
+	computeAssignmentReports      []spec.AssignmentReport
 
 	reportCount int
 	reportSpan  int
@@ -137,4 +143,9 @@ func (srv *Server) initComputeDriver() {
 
 	srv.computeConf = computeExConf
 	srv.computeDriver = compute_drivers.Load(&computeExConf)
+}
+
+func (srv *Server) StartSubLoop() {
+	go srv.ReaderLoop()
+	go srv.ComputeLoop()
 }

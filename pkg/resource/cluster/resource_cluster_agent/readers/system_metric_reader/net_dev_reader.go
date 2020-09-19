@@ -362,7 +362,7 @@ func (reader *NetDevReader) ReportEvents() (events []spec.ResourceEvent) {
 			eventCheckErrorsLevel = consts.EventLevelWarning
 		}
 		checkErrorsMsgs = append(checkErrorsMsgs,
-			fmt.Sprintf("dev:%s,rbps=%d,tbps=%d",
+			fmt.Sprintf("dev:%s,errors=%d,drops=%d",
 				stat.Interface,
 				stat.ReceiveDiffErrors,
 				stat.ReceiveDiffDrops,
