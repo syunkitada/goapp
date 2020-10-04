@@ -457,6 +457,8 @@ func (reader *NetReader) Read(tctx *logger.TraceContext) {
 }
 
 func (reader *NetReader) readTmpNetStat(tctx *logger.TraceContext) (tmpTcpExtStat *TmpTcpExtStat, tmpIpExtStat *TmpIpExtStat) {
+	// $ cat /proc/net/snmp
+
 	netstatFile, _ := os.Open("/proc/net/netstat")
 	defer netstatFile.Close()
 	tmpReader := bufio.NewReader(netstatFile)
