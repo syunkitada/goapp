@@ -2,6 +2,7 @@ package system_metric_reader
 
 import (
 	"bufio"
+	"fmt"
 	"os"
 	"strings"
 	"syscall"
@@ -9,6 +10,7 @@ import (
 
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/resource/config"
+	"github.com/syunkitada/goapp/pkg/resource/consts"
 	"github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
 )
 
@@ -23,23 +25,37 @@ type FsStat struct {
 	Files        int64
 }
 
-type FsStatReader struct {
+type DiskFsReader struct {
 	conf        *config.ResourceMetricSystemConfig
 	cacheLength int
 	fsStats     []FsStat
 	fsStatTypes []string
+
+	checkFreeWarnRatio       float64
+	checkFreeCritRatio       float64
+	checkFreeOccurences      int
+	checkFreeReissueDuration int
+	checkFreeWarnCounter     int
+	checkFreeCritCounter     int
 }
 
-func NewFsStatReader(conf *config.ResourceMetricSystemConfig) SubMetricReader {
-	return &FsStatReader{
+func NewDiskFsReader(conf *config.ResourceMetricSystemConfig) SubMetricReader {
+	return &DiskFsReader{
 		conf:        conf,
 		cacheLength: conf.CacheLength,
 		fsStatTypes: []string{"ext4"},
+
+		checkFreeWarnRatio:       conf.DiskFs.CheckFree.WarnFreeRatio,
+		checkFreeCritRatio:       conf.DiskFs.CheckFree.CritFreeRatio,
+		checkFreeOccurences:      conf.DiskFs.CheckFree.Occurences,
+		checkFreeReissueDuration: conf.DiskFs.CheckFree.ReissueDuration,
+		checkFreeWarnCounter:     0,
+		checkFreeCritCounter:     0,
 	}
 }
 
 // Read filesystem stat
-func (reader *FsStatReader) Read(tctx *logger.TraceContext) {
+func (reader *DiskFsReader) Read(tctx *logger.TraceContext) {
 	timestamp := time.Now()
 
 	// read /proc/self/mounts
@@ -78,6 +94,20 @@ func (reader *FsStatReader) Read(tctx *logger.TraceContext) {
 			reader.fsStats = reader.fsStats[1:]
 		}
 
+		if freeSize < int64(float64(totalSize)*reader.checkFreeWarnRatio) {
+
+			reader.checkFreeWarnCounter += 1
+		} else {
+			reader.checkFreeWarnCounter = 0
+		}
+
+		if freeSize < int64(float64(totalSize)*reader.checkFreeCritRatio) {
+
+			reader.checkFreeCritCounter += 1
+		} else {
+			reader.checkFreeCritCounter = 0
+		}
+
 		reader.fsStats = append(reader.fsStats, FsStat{
 			Timestamp: timestamp,
 			Path:      splitedLine[0],
@@ -90,7 +120,7 @@ func (reader *FsStatReader) Read(tctx *logger.TraceContext) {
 	}
 }
 
-func (reader *FsStatReader) ReportMetrics() (metrics []spec.ResourceMetric) {
+func (reader *DiskFsReader) ReportMetrics() (metrics []spec.ResourceMetric) {
 	metrics = make([]spec.ResourceMetric, 0, len(reader.fsStats))
 	for _, stat := range reader.fsStats {
 		if stat.ReportStatus == ReportStatusReported {
@@ -115,11 +145,33 @@ func (reader *FsStatReader) ReportMetrics() (metrics []spec.ResourceMetric) {
 	return
 }
 
-func (reader *FsStatReader) ReportEvents() (events []spec.ResourceEvent) {
+func (reader *DiskFsReader) ReportEvents() (events []spec.ResourceEvent) {
+	if len(reader.fsStats) == 0 {
+		return
+	}
+
+	stat := reader.fsStats[len(reader.fsStats)-1]
+	eventCheckFreeLevel := consts.EventLevelSuccess
+	if reader.checkFreeCritCounter > reader.checkFreeOccurences {
+		eventCheckFreeLevel = consts.EventLevelCritical
+	} else if reader.checkFreeWarnCounter > reader.checkFreeOccurences {
+		eventCheckFreeLevel = consts.EventLevelWarning
+	}
+	events = append(events, spec.ResourceEvent{
+		Name:  "CheckDiskFsFree",
+		Time:  stat.Timestamp,
+		Level: eventCheckFreeLevel,
+		Msg: fmt.Sprintf("totalGb=%d, freeGb=%d",
+			stat.TotalSize/1000000000,
+			stat.FreeSize/1000000000,
+		),
+		ReissueDuration: reader.checkFreeReissueDuration,
+	})
+
 	return
 }
 
-func (reader *FsStatReader) Reported() {
+func (reader *DiskFsReader) Reported() {
 	for i := range reader.fsStats {
 		reader.fsStats[i].ReportStatus = ReportStatusReported
 	}

@@ -269,10 +269,6 @@ resource:
         metric:
           system:
             enable: true
-            enableLogin: true
-            enableCpu: true
-            enableMemory: true
-            enableProc: true
             cacheLength: 100
             cpu:
               enable: true
@@ -280,10 +276,55 @@ resource:
                 warnRateLimit: 1.5
                 critRateLimit: 0
                 occurences: 3
+                reissueDuration: 600
               checkProcsBlocked:
                 warnLimit: 1.5
                 critLimit: 0
                 occurences: 3
+                reissueDuration: 600
+            mem:
+              enable: true
+              checkAvailable:
+                warnAvailableRatio: 0.05
+                occurences: 2
+                reissueDuration: 600
+              checkPgscan:
+                warnPgscanDirect: 1
+                occurences: 1
+                reissueDuration: 600
+            memBuddyinfo:
+              enable: true
+              checkPages:
+                warnMinPages: 1
+                occurences: 3
+                reissueDuration: 600
+            disk:
+              enable: true
+            diskFs:
+              enable: true
+              checkFree:
+                warnFreeRatio: 0.1
+                critFreeRatio: 0.01
+                occurences: 3
+                reissueDuration: 600
+            net:
+              enable: true
+            netDev:
+              enable: true
+              statFilters: ["lo"]
+              checkFilters: ["docker", "com-"]
+              checkBytes:
+                occurences: 3
+                reissueDuration: 600
+                warnRatio: 0.8
+                critRatio: 0.95
+              checkErrors:
+                occurences: 3
+                reissueDuration: 600
+                warnErrors: 1
+                critErrors: 1000
+                warnDrops: 1
+                critDrops: 1000
             procCheckMap:
               qemu:
                 cmd: qemu-system-x86

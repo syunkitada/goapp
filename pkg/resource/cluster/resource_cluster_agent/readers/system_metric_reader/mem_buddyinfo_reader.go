@@ -2,6 +2,7 @@ package system_metric_reader
 
 import (
 	"bufio"
+	"fmt"
 	"os"
 	"strconv"
 	"time"
@@ -9,6 +10,7 @@ import (
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/lib/str_utils"
 	"github.com/syunkitada/goapp/pkg/resource/config"
+	"github.com/syunkitada/goapp/pkg/resource/consts"
 	"github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
 )
 
@@ -29,17 +31,27 @@ type BuddyinfoStat struct {
 	M4M          int64
 }
 
-type BuddyinfoStatReader struct {
+type MemBuddyinfoReader struct {
 	conf           *config.ResourceMetricSystemConfig
 	cacheLength    int
 	buddyinfoStats []BuddyinfoStat
+
+	checkPagesOccurences      int
+	checkPagesReissueDuration int
+	checkPagesWarnMinPages    int64
+	checkPagesWarnCounter     int
 }
 
-func NewBuddyinfoStatReader(conf *config.ResourceMetricSystemConfig) SubMetricReader {
-	return &BuddyinfoStatReader{
+func NewMemBuddyinfoReader(conf *config.ResourceMetricSystemConfig) SubMetricReader {
+	return &MemBuddyinfoReader{
 		conf:           conf,
 		cacheLength:    conf.CacheLength,
 		buddyinfoStats: make([]BuddyinfoStat, 0, conf.CacheLength),
+
+		checkPagesOccurences:      conf.MemBuddyinfo.CheckPages.Occurences,
+		checkPagesReissueDuration: conf.MemBuddyinfo.CheckPages.ReissueDuration,
+		checkPagesWarnMinPages:    conf.MemBuddyinfo.CheckPages.WarnMinPages,
+		checkPagesWarnCounter:     0,
 	}
 }
 
@@ -51,7 +63,7 @@ func NewBuddyinfoStatReader(conf *config.ResourceMetricSystemConfig) SubMetricRe
 // Node 0, zone      DMA      0      0      0      1      2      1      1      0      1      1      3
 // Node 0, zone    DMA32      3      3      3      3      3      2      5      6      5      2    874
 // Node 0, zone   Normal  24727  53842  18419  15120  10448   4451   1761    804    382    105    229
-func (reader *BuddyinfoStatReader) Read(tctx *logger.TraceContext) {
+func (reader *MemBuddyinfoReader) Read(tctx *logger.TraceContext) {
 	timestamp := time.Now()
 
 	buddyinfoFile, _ := os.Open("/proc/buddyinfo")
@@ -106,12 +118,38 @@ func (reader *BuddyinfoStatReader) Read(tctx *logger.TraceContext) {
 	}
 }
 
-func (reader *BuddyinfoStatReader) ReportMetrics() (metrics []spec.ResourceMetric) {
+func (reader *MemBuddyinfoReader) ReportMetrics() (metrics []spec.ResourceMetric) {
 	metrics = make([]spec.ResourceMetric, 0, len(reader.buddyinfoStats))
+	warnMinPages := reader.checkPagesWarnMinPages
 	for _, stat := range reader.buddyinfoStats {
 		if stat.ReportStatus == ReportStatusReported {
 			continue
 		}
+
+		if stat.M4K < warnMinPages {
+			reader.checkPagesWarnCounter = 1
+		} else if stat.M16K < warnMinPages {
+			reader.checkPagesWarnCounter = 1
+		} else if stat.M32K < warnMinPages {
+			reader.checkPagesWarnCounter = 1
+		} else if stat.M64K < warnMinPages {
+			reader.checkPagesWarnCounter = 1
+		} else if stat.M128K < warnMinPages {
+			reader.checkPagesWarnCounter = 1
+		} else if stat.M256K < warnMinPages {
+			reader.checkPagesWarnCounter = 1
+		} else if stat.M512K < warnMinPages {
+			reader.checkPagesWarnCounter = 1
+		} else if stat.M1M < warnMinPages {
+			reader.checkPagesWarnCounter = 1
+		} else if stat.M2M < warnMinPages {
+			reader.checkPagesWarnCounter = 1
+		} else if stat.M4M < warnMinPages {
+			reader.checkPagesWarnCounter = 1
+		} else {
+			reader.checkPagesWarnCounter = 0
+		}
+
 		metrics = append(metrics, spec.ResourceMetric{
 			Name: "system_buddyinfostat",
 			Time: stat.Timestamp,
@@ -136,11 +174,41 @@ func (reader *BuddyinfoStatReader) ReportMetrics() (metrics []spec.ResourceMetri
 	return
 }
 
-func (reader *BuddyinfoStatReader) ReportEvents() (events []spec.ResourceEvent) {
+func (reader *MemBuddyinfoReader) ReportEvents() (events []spec.ResourceEvent) {
+	if len(reader.buddyinfoStats) == 0 {
+		return
+	}
+
+	stat := reader.buddyinfoStats[len(reader.buddyinfoStats)-1]
+	eventBuddyinfoPagesLevel := consts.EventLevelSuccess
+	if reader.checkPagesWarnCounter > reader.checkPagesOccurences {
+		eventBuddyinfoPagesLevel = consts.EventLevelWarning
+	}
+
+	events = append(events, spec.ResourceEvent{
+		Name:  "CheckMemBuddyinfoPages",
+		Time:  stat.Timestamp,
+		Level: eventBuddyinfoPagesLevel,
+		Msg: fmt.Sprintf("Buddyinfo 4K=%d 8K=%d 16K=%d 32K=%d 64K=%d 128K=%d 256K=%d 512K=%d 1M=%d 2M=%d 4M=%d",
+			stat.M4K,
+			stat.M8K,
+			stat.M16K,
+			stat.M32K,
+			stat.M64K,
+			stat.M128K,
+			stat.M256K,
+			stat.M512K,
+			stat.M1M,
+			stat.M2M,
+			stat.M4M,
+		),
+		ReissueDuration: reader.checkPagesReissueDuration,
+	})
+
 	return
 }
 
-func (reader *BuddyinfoStatReader) Reported() {
+func (reader *MemBuddyinfoReader) Reported() {
 	for i := range reader.buddyinfoStats {
 		reader.buddyinfoStats[i].ReportStatus = ReportStatusReported
 	}

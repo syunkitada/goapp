@@ -18,14 +18,14 @@ type UptimeStat struct {
 	uptime       int64
 }
 
-type UptimeMetricReader struct {
+type UptimeReader struct {
 	conf        *config.ResourceMetricSystemConfig
 	uptimeStats []UptimeStat
 	cacheLength int
 }
 
-func NewUptimeMetricReader(conf *config.ResourceMetricSystemConfig) SubMetricReader {
-	return &UptimeMetricReader{
+func NewUptimeReader(conf *config.ResourceMetricSystemConfig) SubMetricReader {
+	return &UptimeReader{
 		conf:        conf,
 		cacheLength: conf.CacheLength,
 		uptimeStats: make([]UptimeStat, 0, conf.CacheLength),
@@ -37,7 +37,7 @@ func NewUptimeMetricReader(conf *config.ResourceMetricSystemConfig) SubMetricRea
 // Output example is below.
 // uptime(s)  idle(s)
 // 2906.26 5507.43
-func (reader *UptimeMetricReader) Read(tctx *logger.TraceContext) {
+func (reader *UptimeReader) Read(tctx *logger.TraceContext) {
 	timestamp := time.Now()
 
 	procUptime, _ := os.Open("/proc/uptime")
@@ -60,7 +60,7 @@ func (reader *UptimeMetricReader) Read(tctx *logger.TraceContext) {
 	reader.uptimeStats = append(reader.uptimeStats, uptimeStat)
 }
 
-func (reader *UptimeMetricReader) ReportMetrics() (metrics []spec.ResourceMetric) {
+func (reader *UptimeReader) ReportMetrics() (metrics []spec.ResourceMetric) {
 	metrics = make([]spec.ResourceMetric, 0, len(reader.uptimeStats))
 	for _, stat := range reader.uptimeStats {
 		if stat.ReportStatus == ReportStatusReported {
@@ -79,11 +79,11 @@ func (reader *UptimeMetricReader) ReportMetrics() (metrics []spec.ResourceMetric
 	return
 }
 
-func (reader *UptimeMetricReader) ReportEvents() (events []spec.ResourceEvent) {
+func (reader *UptimeReader) ReportEvents() (events []spec.ResourceEvent) {
 	return
 }
 
-func (reader *UptimeMetricReader) Reported() {
+func (reader *UptimeReader) Reported() {
 	for i := range reader.uptimeStats {
 		reader.uptimeStats[i].ReportStatus = ReportStatusReported
 	}

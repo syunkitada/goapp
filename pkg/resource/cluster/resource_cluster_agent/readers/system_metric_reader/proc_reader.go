@@ -91,7 +91,7 @@ type ProcStat struct {
 	Qemu *QemuStat
 }
 
-type ProcStatReader struct {
+type ProcReader struct {
 	conf               *config.ResourceMetricSystemConfig
 	cacheLength        int
 	systemMetricReader *SystemMetricReader
@@ -103,7 +103,7 @@ type ProcStatReader struct {
 	procStats      []ProcStat
 }
 
-func NewProcStatReader(conf *config.ResourceMetricSystemConfig, systemMetricReader *SystemMetricReader) SubMetricReader {
+func NewProcReader(conf *config.ResourceMetricSystemConfig, systemMetricReader *SystemMetricReader) SubMetricReader {
 	pidmaxFile, _ := os.Open("/proc/sys/kernel/pid_max")
 	defer pidmaxFile.Close()
 	tmpReader := bufio.NewReader(pidmaxFile)
@@ -115,7 +115,7 @@ func NewProcStatReader(conf *config.ResourceMetricSystemConfig, systemMetricRead
 		cmdMap[check.Cmd] = config.ResourceProcCheckConfig{Name: name}
 	}
 
-	return &ProcStatReader{
+	return &ProcReader{
 		conf:               conf,
 		cacheLength:        conf.CacheLength,
 		systemMetricReader: systemMetricReader,
@@ -128,7 +128,7 @@ func NewProcStatReader(conf *config.ResourceMetricSystemConfig, systemMetricRead
 
 const ProcDir = "/proc/"
 
-func (reader *ProcStatReader) Read(tctx *logger.TraceContext) {
+func (reader *ProcReader) Read(tctx *logger.TraceContext) {
 	timestamp := time.Now()
 	var procDirFile *os.File
 	var err error
@@ -423,7 +423,7 @@ func (reader *ProcStatReader) Read(tctx *logger.TraceContext) {
 	return
 }
 
-func (reader *ProcStatReader) ReportMetrics() (metrics []spec.ResourceMetric) {
+func (reader *ProcReader) ReportMetrics() (metrics []spec.ResourceMetric) {
 	metrics = make([]spec.ResourceMetric, 0, len(reader.procsStats)+len(reader.procStats))
 
 	for _, stat := range reader.procsStats {
@@ -519,11 +519,11 @@ func (reader *ProcStatReader) ReportMetrics() (metrics []spec.ResourceMetric) {
 	return
 }
 
-func (reader *ProcStatReader) ReportEvents() (events []spec.ResourceEvent) {
+func (reader *ProcReader) ReportEvents() (events []spec.ResourceEvent) {
 	return
 }
 
-func (reader *ProcStatReader) Reported() {
+func (reader *ProcReader) Reported() {
 	for i := range reader.procsStats {
 		reader.procsStats[i].ReportStatus = ReportStatusReported
 	}
@@ -533,7 +533,7 @@ func (reader *ProcStatReader) Reported() {
 	return
 }
 
-func (reader *ProcStatReader) GetQemuStat(tctx *logger.TraceContext, procStat *TmpProcStat) (qemuStat *QemuStat) {
+func (reader *ProcReader) GetQemuStat(tctx *logger.TraceContext, procStat *TmpProcStat) (qemuStat *QemuStat) {
 	var netDevStats []NetDevStat
 
 	cmdlineFile, _ := os.Open("/proc/" + procStat.Pid + "/cmdline")

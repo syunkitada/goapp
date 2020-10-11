@@ -10,7 +10,6 @@ type ResourceEvent struct {
 	Name            string
 	Time            time.Time
 	Level           string
-	Handler         string
 	Msg             string
 	ReissueDuration int
 	Tag             map[string]string

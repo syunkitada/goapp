@@ -78,17 +78,19 @@ type CpuReader struct {
 	tmpCpuStat           *TmpCpuStat
 	tmpCpuProcessorStats []TmpCpuProcessorStat
 
-	checkProcsRunningWarnLimit   int64
-	checkProcsRunningCritLimit   int64
-	checkProcsRunningOccurences  int
-	checkProcsRunningWarnCounter int
-	checkProcsRunningCritCounter int
+	checkProcsRunningWarnLimit       int64
+	checkProcsRunningCritLimit       int64
+	checkProcsRunningOccurences      int
+	checkProcsRunningReissueDuration int
+	checkProcsRunningWarnCounter     int
+	checkProcsRunningCritCounter     int
 
-	checkProcsBlockedWarnLimit   int64
-	checkProcsBlockedCritLimit   int64
-	checkProcsBlockedOccurences  int
-	checkProcsBlockedWarnCounter int
-	checkProcsBlockedCritCounter int
+	checkProcsBlockedWarnLimit       int64
+	checkProcsBlockedCritLimit       int64
+	checkProcsBlockedOccurences      int
+	checkProcsBlockedReissueDuration int
+	checkProcsBlockedWarnCounter     int
+	checkProcsBlockedCritCounter     int
 }
 
 func NewCpuReader(conf *config.ResourceMetricSystemConfig, cpus []spec.NumaNodeCpuSpec) SubMetricReader {
@@ -116,17 +118,19 @@ func NewCpuReader(conf *config.ResourceMetricSystemConfig, cpus []spec.NumaNodeC
 		cacheLength: conf.CacheLength,
 		cpuStats:    make([]CpuStat, 0, conf.CacheLength),
 
-		checkProcsRunningWarnLimit:   checkProcsRunningWarnLimit,
-		checkProcsRunningCritLimit:   checkProcsRunningCritLimit,
-		checkProcsRunningOccurences:  conf.Cpu.CheckProcsRunning.Occurences,
-		checkProcsRunningWarnCounter: 0,
-		checkProcsRunningCritCounter: 0,
+		checkProcsRunningWarnLimit:       checkProcsRunningWarnLimit,
+		checkProcsRunningCritLimit:       checkProcsRunningCritLimit,
+		checkProcsRunningOccurences:      conf.Cpu.CheckProcsRunning.Occurences,
+		checkProcsRunningReissueDuration: conf.Cpu.CheckProcsRunning.ReissueDuration,
+		checkProcsRunningWarnCounter:     0,
+		checkProcsRunningCritCounter:     0,
 
-		checkProcsBlockedWarnLimit:   checkProcsBlockedWarnLimit,
-		checkProcsBlockedCritLimit:   checkProcsBlockedCritLimit,
-		checkProcsBlockedOccurences:  conf.Cpu.CheckProcsBlocked.Occurences,
-		checkProcsBlockedWarnCounter: 0,
-		checkProcsBlockedCritCounter: 0,
+		checkProcsBlockedWarnLimit:       checkProcsBlockedWarnLimit,
+		checkProcsBlockedCritLimit:       checkProcsBlockedCritLimit,
+		checkProcsBlockedOccurences:      conf.Cpu.CheckProcsBlocked.Occurences,
+		checkProcsBlockedReissueDuration: conf.Cpu.CheckProcsBlocked.ReissueDuration,
+		checkProcsBlockedWarnCounter:     0,
+		checkProcsBlockedCritCounter:     0,
 	}
 }
 
@@ -378,14 +382,13 @@ func (reader *CpuReader) ReportEvents() (events []spec.ResourceEvent) {
 	} else if reader.checkProcsRunningWarnCounter > reader.checkProcsRunningOccurences {
 		eventProcsRunningLevel = consts.EventLevelWarning
 	}
+
 	events = append(events, spec.ResourceEvent{
-		Name:  "CheckProcsRunning",
-		Time:  cpuStat.Timestamp,
-		Level: eventProcsRunningLevel,
-		// Handler:
-		Msg: fmt.Sprintf("ProcsRunning: %d", cpuStat.ProcsRunning),
-		// ReissueDuration:
-		// Tag:
+		Name:            "CheckCpuProcsRunning",
+		Time:            cpuStat.Timestamp,
+		Level:           eventProcsRunningLevel,
+		Msg:             fmt.Sprintf("ProcsRunning: %d", cpuStat.ProcsRunning),
+		ReissueDuration: reader.checkProcsRunningReissueDuration,
 	})
 
 	eventProcsBlockedLevel := consts.EventLevelSuccess
@@ -395,13 +398,11 @@ func (reader *CpuReader) ReportEvents() (events []spec.ResourceEvent) {
 		eventProcsBlockedLevel = consts.EventLevelWarning
 	}
 	events = append(events, spec.ResourceEvent{
-		Name:  "CheckProcsBlocked",
-		Time:  cpuStat.Timestamp,
-		Level: eventProcsBlockedLevel,
-		// Handler:
-		Msg: fmt.Sprintf("ProcsBlocked: %d", cpuStat.ProcsBlocked),
-		// ReissueDuration:
-		// Tag:
+		Name:            "CheckCpuProcsBlocked",
+		Time:            cpuStat.Timestamp,
+		Level:           eventProcsBlockedLevel,
+		Msg:             fmt.Sprintf("ProcsBlocked: %d", cpuStat.ProcsBlocked),
+		ReissueDuration: reader.checkProcsBlockedReissueDuration,
 	})
 
 	return

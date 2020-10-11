@@ -287,7 +287,7 @@ type IpExtStat struct {
 	InCsumErrors    int64
 }
 
-type NetStatReader struct {
+type NetReader struct {
 	conf          *config.ResourceMetricSystemConfig
 	cacheLength   int
 	tmpTcpExtStat *TmpTcpExtStat
@@ -296,8 +296,8 @@ type NetStatReader struct {
 	ipExtStats    []IpExtStat
 }
 
-func NewNetStatReader(conf *config.ResourceMetricSystemConfig) SubMetricReader {
-	return &NetStatReader{
+func NewNetReader(conf *config.ResourceMetricSystemConfig) SubMetricReader {
+	return &NetReader{
 		conf:        conf,
 		cacheLength: conf.CacheLength,
 		tcpExtStats: make([]TcpExtStat, 0, conf.CacheLength),
@@ -305,7 +305,7 @@ func NewNetStatReader(conf *config.ResourceMetricSystemConfig) SubMetricReader {
 	}
 }
 
-func (reader *NetStatReader) Read(tctx *logger.TraceContext) {
+func (reader *NetReader) Read(tctx *logger.TraceContext) {
 	timestamp := time.Now()
 
 	if reader.tmpTcpExtStat == nil {
@@ -456,7 +456,7 @@ func (reader *NetStatReader) Read(tctx *logger.TraceContext) {
 	return
 }
 
-func (reader *NetStatReader) readTmpNetStat(tctx *logger.TraceContext) (tmpTcpExtStat *TmpTcpExtStat, tmpIpExtStat *TmpIpExtStat) {
+func (reader *NetReader) readTmpNetStat(tctx *logger.TraceContext) (tmpTcpExtStat *TmpTcpExtStat, tmpIpExtStat *TmpIpExtStat) {
 	netstatFile, _ := os.Open("/proc/net/netstat")
 	defer netstatFile.Close()
 	tmpReader := bufio.NewReader(netstatFile)
@@ -617,7 +617,7 @@ func (reader *NetStatReader) readTmpNetStat(tctx *logger.TraceContext) (tmpTcpEx
 	return
 }
 
-func (reader *NetStatReader) ReportMetrics() (metrics []spec.ResourceMetric) {
+func (reader *NetReader) ReportMetrics() (metrics []spec.ResourceMetric) {
 	metrics = make([]spec.ResourceMetric, 0, len(reader.tcpExtStats)+len(reader.ipExtStats))
 	for _, stat := range reader.tcpExtStats {
 		if stat.ReportStatus == ReportStatusReported {
@@ -660,11 +660,11 @@ func (reader *NetStatReader) ReportMetrics() (metrics []spec.ResourceMetric) {
 	return
 }
 
-func (reader *NetStatReader) ReportEvents() (events []spec.ResourceEvent) {
+func (reader *NetReader) ReportEvents() (events []spec.ResourceEvent) {
 	return
 }
 
-func (reader *NetStatReader) Reported() {
+func (reader *NetReader) Reported() {
 	for i := range reader.tcpExtStats {
 		reader.tcpExtStats[i].ReportStatus = ReportStatusReported
 	}

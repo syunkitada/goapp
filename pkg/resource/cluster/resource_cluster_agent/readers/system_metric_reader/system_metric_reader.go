@@ -82,17 +82,16 @@ func New(conf *config.ResourceMetricSystemConfig) *SystemMetricReader {
 	}
 
 	reader.subReaders = []SubMetricReader{
-		NewUptimeMetricReader(conf),
-		NewLoginStatReader(conf),
 		NewCpuReader(conf, cpus),
-		NewProcStatReader(conf, reader),
-		NewVmStatReader(conf),
-		NewMemStatReader(conf, reader),
-		NewBuddyinfoStatReader(conf),
-		NewFsStatReader(conf),
-		NewDiskMetricReader(conf),
-		NewNetStatReader(conf),
-		NewNetDevStatReader(conf, reader),
+		NewProcReader(conf, reader),
+		NewDiskReader(conf),
+		NewDiskFsReader(conf),
+		NewMemReader(conf, reader),
+		NewMemBuddyinfoReader(conf),
+		NewNetReader(conf),
+		NewNetDevReader(conf, reader),
+		NewUptimeReader(conf),
+		NewSecLoginReader(conf),
 	}
 
 	return reader

@@ -17,15 +17,32 @@ import (
 	"github.com/syunkitada/goapp/pkg/resource/resource_model"
 )
 
-func (srv *Server) SyncComputeAssignments(tctx *logger.TraceContext,
-	assignments []spec.ComputeAssignmentEx) ([]spec.AssignmentReport, error) {
+func (srv *Server) ComputeLoop() {
+	var tctx *logger.TraceContext
 	var err error
+	var startTime time.Time
+	loopInterval := 10 * time.Second
+	logger.StdoutInfof("Start ComputeLoop")
+	for {
+		tctx = srv.NewTraceContext()
+		startTime = logger.StartTrace(tctx)
+		err = srv.SyncComputeAssignments(tctx)
+		logger.EndTrace(tctx, startTime, err, 0)
+		time.Sleep(loopInterval)
+	}
+}
+
+func (srv *Server) SyncComputeAssignments(tctx *logger.TraceContext) (err error) {
 	var ok bool
 	var retryCount int
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
 	tctx.SetTimeout(1)
+
+	srv.computeAssignmentsMutex.Lock()
+	assignments := srv.computeAssignments
+	srv.computeAssignmentsMutex.Unlock()
 
 	fmt.Println("SyncComputeAssignments: ", assignments)
 
@@ -37,7 +54,7 @@ func (srv *Server) SyncComputeAssignments(tctx *logger.TraceContext,
 	assignedNetnsIds := make([]bool, 4096)
 	var netnsSet map[string]bool
 	if netnsSet, err = os_utils.GetNetnsSet(tctx); err != nil {
-		return nil, err
+		return
 	}
 	for netns := range netnsSet {
 		splitedNetns := strings.Split(netns, "com-")
@@ -108,20 +125,20 @@ func (srv *Server) SyncComputeAssignments(tctx *logger.TraceContext,
 
 	fmt.Println("DEBUG Activating")
 	if err = srv.computeDriver.SyncActivatingAssignmentMap(tctx, activatingAssignmentMap, computeNetnsPortsMap); err != nil {
-		return nil, err
+		return
 	}
 
 	fmt.Println("DEBUG Activating2")
 	retryCount = srv.computeConf.ConfirmRetryCount
 	for {
 		if ok, err = srv.computeDriver.ConfirmActivatingAssignmentMap(tctx, activatingAssignmentMap); err != nil {
-			return nil, err
+			return
 		}
 		if ok {
 			break
 		} else {
 			if retryCount == 0 {
-				return nil, error_utils.NewTimeoutExceededError("ConfirmActivatingAssignmentMap")
+				err = error_utils.NewTimeoutExceededError("ConfirmActivatingAssignmentMap")
 			}
 			time.Sleep(srv.computeConf.ConfirmRetryInterval)
 			retryCount -= 1
@@ -131,20 +148,21 @@ func (srv *Server) SyncComputeAssignments(tctx *logger.TraceContext,
 	fmt.Println("DEBUG Activating3", deletingAssignmentMap)
 
 	if err = srv.computeDriver.SyncDeletingAssignmentMap(tctx, deletingAssignmentMap); err != nil {
-		return nil, err
+		return
 	}
 	fmt.Println("DEBUG Activating4")
 
 	retryCount = srv.computeConf.ConfirmRetryCount
 	for {
 		if ok, err = srv.computeDriver.ConfirmDeletingAssignmentMap(tctx, deletingAssignmentMap); err != nil {
-			return nil, err
+			return
 		}
 		if ok {
 			break
 		} else {
 			if retryCount == 0 {
-				return nil, error_utils.NewTimeoutExceededError("ConfirmActivatingAssignmentMap")
+				err = error_utils.NewTimeoutExceededError("ConfirmActivatingAssignmentMap")
+				return
 			}
 			time.Sleep(srv.computeConf.ConfirmRetryInterval)
 			retryCount -= 1
@@ -169,5 +187,8 @@ func (srv *Server) SyncComputeAssignments(tctx *logger.TraceContext,
 		})
 	}
 
-	return assignmentReports, nil
+	srv.computeAssignmentReportsMutex.Lock()
+	srv.computeAssignmentReports = assignmentReports
+	srv.computeAssignmentReportsMutex.Unlock()
+	return
 }

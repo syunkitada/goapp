@@ -1,15 +1,18 @@
 package system_metric_reader
 
 import (
+	"fmt"
 	"io/ioutil"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/syunkitada/goapp/pkg/lib/exec_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/lib/os_utils"
 	"github.com/syunkitada/goapp/pkg/lib/str_utils"
 	"github.com/syunkitada/goapp/pkg/resource/config"
+	"github.com/syunkitada/goapp/pkg/resource/consts"
 	"github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
 )
 
@@ -39,27 +42,64 @@ type NetDevStat struct {
 	TransmitDiffDrops     int64
 }
 
-type NetDevStatReader struct {
+type NetDevReader struct {
 	conf               *config.ResourceMetricSystemConfig
 	cacheLength        int
 	systemMetricReader *SystemMetricReader
 	tmpNetDevStatMap   map[string]TmpNetDevStat
 	netDevStats        []NetDevStat
 	netDevStatFilters  []string
+	netDevCheckFilters []string
+
+	checkBytesOccurences      int
+	checkBytesReissueDuration int
+	checkBytesWarnRatio       float64
+	checkBytesCritRatio       float64
+	checkBytesWarnCounterMap  map[string]int
+	checkBytesCritCounterMap  map[string]int
+
+	checkErrorsOccurences      int
+	checkErrorsReissueDuration int
+	checkErrorsWarnErrors      int64
+	checkErrorsCritErrors      int64
+	checkErrorsWarnDrops       int64
+	checkErrorsCritDrops       int64
+	checkErrorsWarnCounterMap  map[string]int
+	checkErrorsCritCounterMap  map[string]int
 }
 
-func NewNetDevStatReader(conf *config.ResourceMetricSystemConfig, systemMetricReader *SystemMetricReader) SubMetricReader {
-	return &NetDevStatReader{
+func NewNetDevReader(conf *config.ResourceMetricSystemConfig, systemMetricReader *SystemMetricReader) SubMetricReader {
+	reader := &NetDevReader{
 		conf:               conf,
 		cacheLength:        conf.CacheLength,
-		netDevStatFilters:  []string{"lo"},
 		systemMetricReader: systemMetricReader,
+		netDevStatFilters:  conf.NetDev.StatFilters,
+		netDevCheckFilters: conf.NetDev.CheckFilters,
+
+		checkBytesOccurences:      conf.NetDev.CheckBytes.Occurences,
+		checkBytesReissueDuration: conf.NetDev.CheckBytes.ReissueDuration,
+		checkBytesWarnRatio:       conf.NetDev.CheckBytes.WarnRatio,
+		checkBytesCritRatio:       conf.NetDev.CheckBytes.CritRatio,
+		checkBytesWarnCounterMap:  map[string]int{},
+		checkBytesCritCounterMap:  map[string]int{},
+
+		checkErrorsOccurences:      conf.NetDev.CheckErrors.Occurences,
+		checkErrorsReissueDuration: conf.NetDev.CheckErrors.ReissueDuration,
+		checkErrorsWarnErrors:      conf.NetDev.CheckErrors.WarnErrors,
+		checkErrorsCritErrors:      conf.NetDev.CheckErrors.CritErrors,
+		checkErrorsWarnDrops:       conf.NetDev.CheckErrors.WarnDrops,
+		checkErrorsCritDrops:       conf.NetDev.CheckErrors.CritDrops,
+		checkErrorsWarnCounterMap:  map[string]int{},
+		checkErrorsCritCounterMap:  map[string]int{},
 	}
+
+	return reader
 }
 
 // Read read /proc/diskstat
-func (reader *NetDevStatReader) Read(tctx *logger.TraceContext) {
+func (reader *NetDevReader) Read(tctx *logger.TraceContext) {
 	timestamp := time.Now()
+	isFiltered := false
 
 	if reader.tmpNetDevStatMap == nil {
 		reader.tmpNetDevStatMap = reader.readTmpNetDevStat(tctx)
@@ -99,13 +139,71 @@ func (reader *NetDevStatReader) Read(tctx *logger.TraceContext) {
 			}
 			reader.systemMetricReader.NetDevStatMap[dev] = netDevStat
 			reader.netDevStats = append(reader.netDevStats, netDevStat)
+
+			isFiltered = false
+			for _, filter := range reader.netDevCheckFilters {
+				if strings.Index(dev, filter) > -1 {
+					isFiltered = true
+					break
+				}
+			}
+			if isFiltered {
+				continue
+			}
+			fmt.Println("dev")
+
+			out, tmpErr := exec_utils.Cmdf(tctx, "ethtool %s", dev)
+			if tmpErr != nil {
+				logger.Warningf(tctx, "Failed ethtool: out=%s err=%s",
+					out, tmpErr.Error())
+			}
+			splitedLine := strings.Split(out, "\n")
+			var totalBps float64
+			for _, line := range splitedLine {
+				if strings.Index(line, "Speed") > -1 {
+					val := str_utils.ParseLastValue(line)
+					mbsIndex := strings.Index(val, "Mb/s")
+					if mbsIndex > -1 {
+						mbsStr := val[:mbsIndex]
+						totalBps, _ = strconv.ParseFloat(mbsStr, 64)
+						totalBps = totalBps * 1000000
+					}
+					break
+				}
+			}
+
+			if receiveBytesPerSec > int64(totalBps*reader.checkBytesCritRatio) {
+				reader.checkBytesCritCounterMap[dev] += 1
+			} else if transmitBytesPerSec > int64(totalBps*reader.checkBytesCritRatio) {
+				reader.checkBytesCritCounterMap[dev] += 1
+			} else if receiveBytesPerSec > int64(totalBps*reader.checkBytesWarnRatio) {
+				reader.checkBytesWarnCounterMap[dev] += 1
+			} else if transmitBytesPerSec > int64(totalBps*reader.checkBytesWarnRatio) {
+				reader.checkBytesWarnCounterMap[dev] += 1
+			} else {
+				reader.checkBytesCritCounterMap[dev] = 0
+				reader.checkBytesWarnCounterMap[dev] = 0
+			}
+
+			if receiveDiffErrors > reader.checkErrorsCritErrors {
+				reader.checkErrorsCritCounterMap[dev] += 1
+			} else if receiveDiffDrops > reader.checkErrorsCritDrops {
+				reader.checkErrorsCritCounterMap[dev] += 1
+			} else if receiveDiffDrops > reader.checkErrorsWarnErrors {
+				reader.checkErrorsWarnCounterMap[dev] += 1
+			} else if receiveDiffDrops > reader.checkErrorsWarnDrops {
+				reader.checkErrorsWarnCounterMap[dev] += 1
+			} else {
+				reader.checkErrorsCritCounterMap[dev] = 0
+				reader.checkErrorsWarnCounterMap[dev] = 0
+			}
 		}
 
 		reader.tmpNetDevStatMap = tmpNetDevStatMap
 	}
 }
 
-func (reader *NetDevStatReader) readTmpNetDevStat(tctx *logger.TraceContext) (tmpNetDevStatMap map[string]TmpNetDevStat) {
+func (reader *NetDevReader) readTmpNetDevStat(tctx *logger.TraceContext) (tmpNetDevStatMap map[string]TmpNetDevStat) {
 	// $ cat /proc/net/dev
 	// Inter-|   Receive                                                |  Transmit
 	//  face |bytes    packets errs drop fifo frame compressed multicast|bytes    packets errs drop fifo colls carrier compressed
@@ -142,7 +240,7 @@ func (reader *NetDevStatReader) readTmpNetDevStat(tctx *logger.TraceContext) (tm
 	return
 }
 
-func (reader *NetDevStatReader) ParseNetDev(out string, timestamp time.Time) (tmpNetDevStatMap map[string]TmpNetDevStat) {
+func (reader *NetDevReader) ParseNetDev(out string, timestamp time.Time) (tmpNetDevStatMap map[string]TmpNetDevStat) {
 	// $ cat /proc/net/dev
 	// Inter-|   Receive                                                |  Transmit
 	//  face |bytes    packets errs drop fifo frame compressed multicast|bytes    packets errs drop fifo colls carrier compressed
@@ -203,7 +301,7 @@ func (reader *NetDevStatReader) ParseNetDev(out string, timestamp time.Time) (tm
 	return
 }
 
-func (reader *NetDevStatReader) ReportMetrics() (metrics []spec.ResourceMetric) {
+func (reader *NetDevReader) ReportMetrics() (metrics []spec.ResourceMetric) {
 	metrics = make([]spec.ResourceMetric, 0, len(reader.netDevStats))
 	for _, stat := range reader.netDevStats {
 		if stat.ReportStatus == ReportStatusReported {
@@ -230,11 +328,67 @@ func (reader *NetDevStatReader) ReportMetrics() (metrics []spec.ResourceMetric) 
 	return
 }
 
-func (reader *NetDevStatReader) ReportEvents() (events []spec.ResourceEvent) {
+func (reader *NetDevReader) ReportEvents() (events []spec.ResourceEvent) {
+	if len(reader.netDevStats) == 0 {
+		return
+	}
+
+	stats := reader.netDevStats[len(reader.netDevStats)-len(reader.tmpNetDevStatMap):]
+	checkBytesMsgs := []string{}
+	checkErrorsMsgs := []string{}
+	eventCheckBytesLevel := consts.EventLevelSuccess
+	eventCheckErrorsLevel := consts.EventLevelSuccess
+	for _, stat := range stats {
+		critCounter, ok := reader.checkBytesCritCounterMap[stat.Interface]
+		if !ok {
+			continue
+		}
+
+		if critCounter > reader.checkBytesOccurences {
+			eventCheckBytesLevel = consts.EventLevelCritical
+		} else if reader.checkBytesWarnCounterMap[stat.Interface] > reader.checkBytesOccurences && eventCheckBytesLevel == consts.EventLevelSuccess {
+			eventCheckBytesLevel = consts.EventLevelWarning
+		}
+		checkBytesMsgs = append(checkBytesMsgs,
+			fmt.Sprintf("dev:%s,rbps=%d,tbps=%d",
+				stat.Interface,
+				stat.ReceiveBytesPerSec,
+				stat.TransmitBytesPerSec,
+			))
+
+		if reader.checkErrorsCritCounterMap[stat.Interface] > reader.checkErrorsOccurences {
+			eventCheckErrorsLevel = consts.EventLevelCritical
+		} else if reader.checkErrorsWarnCounterMap[stat.Interface] > reader.checkErrorsOccurences && eventCheckErrorsLevel == consts.EventLevelSuccess {
+			eventCheckErrorsLevel = consts.EventLevelWarning
+		}
+		checkErrorsMsgs = append(checkErrorsMsgs,
+			fmt.Sprintf("dev:%s,errors=%d,drops=%d",
+				stat.Interface,
+				stat.ReceiveDiffErrors,
+				stat.ReceiveDiffDrops,
+			))
+	}
+
+	events = append(events, spec.ResourceEvent{
+		Name:            "CheckNetDevBytes",
+		Time:            stats[0].Timestamp,
+		Level:           eventCheckBytesLevel,
+		Msg:             strings.Join(checkBytesMsgs, ", "),
+		ReissueDuration: reader.checkBytesReissueDuration,
+	})
+
+	events = append(events, spec.ResourceEvent{
+		Name:            "CheckNetDevErrors",
+		Time:            stats[0].Timestamp,
+		Level:           eventCheckErrorsLevel,
+		Msg:             strings.Join(checkErrorsMsgs, ", "),
+		ReissueDuration: reader.checkErrorsReissueDuration,
+	})
+
 	return
 }
 
-func (reader *NetDevStatReader) Reported() {
+func (reader *NetDevReader) Reported() {
 	for i := range reader.netDevStats {
 		reader.netDevStats[i].ReportStatus = ReportStatusReported
 	}
