@@ -270,6 +270,12 @@ resource:
           system:
             enable: true
             cacheLength: 100
+            uptime:
+              enable: true
+              checkBoot:
+                occurences: 1
+                reissueDuration: 600
+                readinessSec: 600
             cpu:
               enable: true
               checkProcsRunning:
@@ -300,6 +306,15 @@ resource:
                 reissueDuration: 600
             disk:
               enable: true
+              checkIoDelay:
+                occurences: 3
+                reissueDuration: 600
+                warnReadMsPerSec: 60
+                critReadMsPerSec: 120
+                warnWriteMsPerSec: 60
+                critWriteMsPerSec: 120
+                warnProgressIos: 5
+                critProgressIos: 10
             diskFs:
               enable: true
               checkFree:
@@ -309,6 +324,13 @@ resource:
                 reissueDuration: 600
             net:
               enable: true
+              checkTcpErrors:
+                occurences: 1
+                reissueDuration: 600
+                warnOnPressures: true
+                warnOnListenDrops: true
+                warnOnListenOverflows: true
+                critOnTcpAbortOnMemory: true
             netDev:
               enable: true
               statFilters: ["lo"]

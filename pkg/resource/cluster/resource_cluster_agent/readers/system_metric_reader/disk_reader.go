@@ -2,6 +2,7 @@ package system_metric_reader
 
 import (
 	"bufio"
+	"fmt"
 	"os"
 	"strconv"
 	"strings"
@@ -10,6 +11,7 @@ import (
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/lib/str_utils"
 	"github.com/syunkitada/goapp/pkg/resource/config"
+	"github.com/syunkitada/goapp/pkg/resource/consts"
 	"github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
 )
 
@@ -60,6 +62,21 @@ type DiskReader struct {
 	tmpDiskStatMap  map[string]TmpDiskStat
 	diskStats       []DiskStat
 	diskStatFilters []string
+
+	checkIoDelayOccurences           int
+	checkIoDelayReissueDuration      int
+	checkReadMsPerSecWarnCounterMap  map[string]int
+	checkReadMsPerSecCritCounterMap  map[string]int
+	checkWriteMsPerSecWarnCounterMap map[string]int
+	checkWriteMsPerSecCritCounterMap map[string]int
+	checkProgressIosWarnCounterMap   map[string]int
+	checkProgressIosCritCounterMap   map[string]int
+	checkCritReadMsPerSec            int64
+	checkWarnReadMsPerSec            int64
+	checkCritWriteMsPerSec           int64
+	checkWarnWriteMsPerSec           int64
+	checkCritProgressIos             int64
+	checkWarnProgressIos             int64
 }
 
 func NewDiskReader(conf *config.ResourceMetricSystemConfig) SubMetricReader {
@@ -68,6 +85,21 @@ func NewDiskReader(conf *config.ResourceMetricSystemConfig) SubMetricReader {
 		cacheLength:     conf.CacheLength,
 		diskStatFilters: []string{"loop"},
 		tmpDiskStatMap:  map[string]TmpDiskStat{},
+
+		checkIoDelayOccurences:           conf.Disk.CheckIoDelay.Occurences,
+		checkIoDelayReissueDuration:      conf.Disk.CheckIoDelay.ReissueDuration,
+		checkReadMsPerSecWarnCounterMap:  map[string]int{},
+		checkReadMsPerSecCritCounterMap:  map[string]int{},
+		checkWriteMsPerSecWarnCounterMap: map[string]int{},
+		checkWriteMsPerSecCritCounterMap: map[string]int{},
+		checkProgressIosWarnCounterMap:   map[string]int{},
+		checkProgressIosCritCounterMap:   map[string]int{},
+		checkCritReadMsPerSec:            conf.Disk.CheckIoDelay.CritReadMsPerSec,
+		checkWarnReadMsPerSec:            conf.Disk.CheckIoDelay.WarnReadMsPerSec,
+		checkCritWriteMsPerSec:           conf.Disk.CheckIoDelay.CritWriteMsPerSec,
+		checkWarnWriteMsPerSec:           conf.Disk.CheckIoDelay.WarnWriteMsPerSec,
+		checkCritProgressIos:             conf.Disk.CheckIoDelay.CritProgressIos,
+		checkWarnProgressIos:             conf.Disk.CheckIoDelay.WarnProgressIos,
 	}
 }
 
@@ -104,6 +136,33 @@ func (reader *DiskReader) Read(tctx *logger.TraceContext) {
 
 			if len(reader.diskStats) > reader.cacheLength {
 				reader.diskStats = reader.diskStats[1:]
+			}
+
+			if readMsPerSec > reader.checkCritReadMsPerSec {
+				reader.checkReadMsPerSecCritCounterMap[dev] += 1
+			} else if readMsPerSec > reader.checkWarnReadMsPerSec {
+				reader.checkReadMsPerSecWarnCounterMap[dev] += 1
+			} else {
+				reader.checkReadMsPerSecCritCounterMap[dev] = 0
+				reader.checkReadMsPerSecWarnCounterMap[dev] = 0
+			}
+
+			if writeMsPerSec > reader.checkCritWriteMsPerSec {
+				reader.checkWriteMsPerSecCritCounterMap[dev] += 1
+			} else if readMsPerSec > reader.checkWarnWriteMsPerSec {
+				reader.checkWriteMsPerSecWarnCounterMap[dev] += 1
+			} else {
+				reader.checkWriteMsPerSecCritCounterMap[dev] = 0
+				reader.checkWriteMsPerSecWarnCounterMap[dev] = 0
+			}
+
+			if cstat.ProgressIos > reader.checkCritProgressIos {
+				reader.checkProgressIosCritCounterMap[dev] += 1
+			} else if cstat.ProgressIos > reader.checkWarnProgressIos {
+				reader.checkProgressIosWarnCounterMap[dev] += 1
+			} else {
+				reader.checkProgressIosCritCounterMap[dev] = 0
+				reader.checkProgressIosWarnCounterMap[dev] = 0
 			}
 
 			reader.diskStats = append(reader.diskStats, DiskStat{
@@ -159,6 +218,82 @@ func (reader *DiskReader) ReportMetrics() (metrics []spec.ResourceMetric) {
 }
 
 func (reader *DiskReader) ReportEvents() (events []spec.ResourceEvent) {
+	if len(reader.diskStats) == 0 {
+		return
+	}
+
+	stats := reader.diskStats[len(reader.diskStats)-len(reader.tmpDiskStatMap):]
+	checkDiskIoDelayMsgs := []string{}
+	eventCheckDiskIoDelayLevel := consts.EventLevelSuccess
+	for _, stat := range stats {
+		checkReadMsPerSecCritCounter, ok := reader.checkReadMsPerSecCritCounterMap[stat.Device]
+		if !ok {
+			continue
+		}
+
+		checkWriteMsPerSecCritCounter, ok := reader.checkWriteMsPerSecCritCounterMap[stat.Device]
+		if !ok {
+			continue
+		}
+
+		checkProgressIosCritCounter, ok := reader.checkProgressIosCritCounterMap[stat.Device]
+		if !ok {
+			continue
+		}
+
+		if checkReadMsPerSecCritCounter > reader.checkIoDelayOccurences {
+			eventCheckDiskIoDelayLevel = consts.EventLevelCritical
+		} else if checkWriteMsPerSecCritCounter > reader.checkIoDelayOccurences {
+			eventCheckDiskIoDelayLevel = consts.EventLevelCritical
+		} else if checkProgressIosCritCounter > reader.checkIoDelayOccurences {
+			eventCheckDiskIoDelayLevel = consts.EventLevelCritical
+		}
+
+		if eventCheckDiskIoDelayLevel == consts.EventLevelSuccess {
+			checkReadMsPerSecWarnCounter, ok := reader.checkReadMsPerSecWarnCounterMap[stat.Device]
+			if !ok {
+				continue
+			}
+
+			checkWriteMsPerSecWarnCounter, ok := reader.checkWriteMsPerSecWarnCounterMap[stat.Device]
+			if !ok {
+				continue
+			}
+
+			checkProgressIosWarnCounter, ok := reader.checkProgressIosWarnCounterMap[stat.Device]
+			if !ok {
+				continue
+			}
+
+			if checkReadMsPerSecWarnCounter > reader.checkIoDelayOccurences {
+				eventCheckDiskIoDelayLevel = consts.EventLevelWarning
+			} else if checkWriteMsPerSecWarnCounter > reader.checkIoDelayOccurences {
+				eventCheckDiskIoDelayLevel = consts.EventLevelWarning
+			} else if checkProgressIosWarnCounter > reader.checkIoDelayOccurences {
+				eventCheckDiskIoDelayLevel = consts.EventLevelWarning
+			}
+
+		}
+
+		checkDiskIoDelayMsgs = append(checkDiskIoDelayMsgs,
+			fmt.Sprintf("dev:%s,rbytes=%d,rms=%d,wbytes=%d,wms=%d,ios=%d",
+				stat.Device,
+				stat.ReadBytesPerSec,
+				stat.ReadMsPerSec,
+				stat.WriteBytesPerSec,
+				stat.WriteMsPerSec,
+				stat.ProgressIos,
+			))
+	}
+
+	events = append(events, spec.ResourceEvent{
+		Name:            "CheckDiskIoDelay",
+		Time:            stats[0].Timestamp,
+		Level:           eventCheckDiskIoDelayLevel,
+		Msg:             strings.Join(checkDiskIoDelayMsgs, ", "),
+		ReissueDuration: reader.checkIoDelayReissueDuration,
+	})
+
 	return
 }
 

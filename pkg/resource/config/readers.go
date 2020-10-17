@@ -28,6 +28,7 @@ type ResourceMetricSystemConfig struct {
 	CacheLength  int
 	ProcCheckMap map[string]ResourceProcCheckConfig
 
+	Uptime       ResourceMetricSystemUptimeConfig
 	Cpu          ResourceMetricSystemCpuConfig
 	Mem          ResourceMetricSystemMemConfig
 	MemBuddyinfo ResourceMetricSystemMemBuddyinfoConfig
@@ -35,6 +36,17 @@ type ResourceMetricSystemConfig struct {
 	DiskFs       ResourceMetricSystemDiskFsConfig
 	Net          ResourceMetricSystemNetConfig
 	NetDev       ResourceMetricSystemNetDevConfig
+}
+
+type ResourceMetricSystemUptimeConfig struct {
+	Enable    bool
+	CheckBoot ResourceMetricSystemUptimeCheckBootConfig
+}
+
+type ResourceMetricSystemUptimeCheckBootConfig struct {
+	Occurences      int
+	ReissueDuration int
+	ReadinessSec    int64
 }
 
 type ResourceMetricSystemCpuConfig struct {
@@ -87,7 +99,19 @@ type ResourceMetricSystemMemBuddyinfoCheckPagesConfig struct {
 }
 
 type ResourceMetricSystemDiskConfig struct {
-	Enable bool
+	Enable       bool
+	CheckIoDelay ResourceMetricSystemCheckIoDelayConfig
+}
+
+type ResourceMetricSystemCheckIoDelayConfig struct {
+	Occurences        int
+	ReissueDuration   int
+	CritReadMsPerSec  int64
+	WarnReadMsPerSec  int64
+	CritWriteMsPerSec int64
+	WarnWriteMsPerSec int64
+	CritProgressIos   int64
+	WarnProgressIos   int64
 }
 
 type ResourceMetricSystemDiskFsConfig struct {
@@ -103,7 +127,21 @@ type ResourceMetricSystemDiskFsCheckFreeConfig struct {
 }
 
 type ResourceMetricSystemNetConfig struct {
-	Enable bool
+	Enable         bool
+	CheckTcpErrors ResourceMetricSystemNetCheckTcpErrorsConfig
+}
+
+type ResourceMetricSystemNetCheckTcpErrorsConfig struct {
+	Occurences             int
+	ReissueDuration        int
+	WarnOnPressures        bool
+	CritOnPressures        bool
+	WarnOnTcpAbortOnMemory bool
+	CritOnTcpAbortOnMemory bool
+	WarnOnListenDrops      bool
+	CritOnListenDrops      bool
+	WarnOnListenOverflows  bool
+	CritOnListenOverflows  bool
 }
 
 type ResourceMetricSystemNetDevConfig struct {

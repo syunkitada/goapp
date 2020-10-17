@@ -2,6 +2,7 @@ package system_metric_reader
 
 import (
 	"bufio"
+	"fmt"
 	"os"
 	"strconv"
 	"strings"
@@ -9,6 +10,7 @@ import (
 
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/resource/config"
+	"github.com/syunkitada/goapp/pkg/resource/consts"
 	"github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
 )
 
@@ -294,6 +296,13 @@ type NetReader struct {
 	tmpIpExtStat  *TmpIpExtStat
 	tcpExtStats   []TcpExtStat
 	ipExtStats    []IpExtStat
+
+	checkTcpErrorsOccurences             int
+	checkTcpErrorsReissueDuration        int
+	checkTcpMemoryPressuresChronoCounter int
+	checkTcpAbortOnMemoryCounter         int
+	checkListenOverflowsCounter          int
+	checkListenDropsCounter              int
 }
 
 func NewNetReader(conf *config.ResourceMetricSystemConfig) SubMetricReader {
@@ -302,6 +311,11 @@ func NewNetReader(conf *config.ResourceMetricSystemConfig) SubMetricReader {
 		cacheLength: conf.CacheLength,
 		tcpExtStats: make([]TcpExtStat, 0, conf.CacheLength),
 		ipExtStats:  make([]IpExtStat, 0, conf.CacheLength),
+
+		checkTcpErrorsOccurences:             conf.Net.CheckTcpErrors.Occurences,
+		checkTcpErrorsReissueDuration:        conf.Net.CheckTcpErrors.ReissueDuration,
+		checkTcpMemoryPressuresChronoCounter: 0,
+		checkTcpAbortOnMemoryCounter:         0,
 	}
 }
 
@@ -316,6 +330,21 @@ func (reader *NetReader) Read(tctx *logger.TraceContext) {
 		if len(reader.tcpExtStats) > reader.cacheLength {
 			reader.tcpExtStats = reader.tcpExtStats[1:]
 		}
+
+		tcpMemoryPressuresChrono := tmpTcpExtStat.TcpMemoryPressuresChrono - reader.tmpTcpExtStat.TcpMemoryPressuresChrono
+		if tcpMemoryPressuresChrono > 0 {
+			reader.checkTcpMemoryPressuresChronoCounter += 1
+		} else {
+			reader.checkTcpMemoryPressuresChronoCounter = 0
+		}
+
+		tcpAbortOnMemory := tmpTcpExtStat.TcpAbortOnMemory - reader.tmpTcpExtStat.TcpAbortOnMemory
+		if tcpAbortOnMemory > 0 {
+			reader.checkTcpAbortOnMemoryCounter += 1
+		} else {
+			reader.checkTcpAbortOnMemoryCounter = 0
+		}
+
 		reader.tcpExtStats = append(reader.tcpExtStats, TcpExtStat{
 			ReportStatus:   0,
 			Timestamp:      timestamp,
@@ -372,12 +401,12 @@ func (reader *NetReader) Read(tctx *logger.TraceContext) {
 			TcpDsackOfoRecv:           tmpTcpExtStat.TcpDsackOfoRecv - reader.tmpTcpExtStat.TcpDsackOfoRecv,
 			TcpAbortOnData:            tmpTcpExtStat.TcpAbortOnData - reader.tmpTcpExtStat.TcpAbortOnData,
 			TcpAbortOnClose:           tmpTcpExtStat.TcpAbortOnClose - reader.tmpTcpExtStat.TcpAbortOnClose,
-			TcpAbortOnMemory:          tmpTcpExtStat.TcpAbortOnMemory - reader.tmpTcpExtStat.TcpAbortOnMemory,
+			TcpAbortOnMemory:          tcpAbortOnMemory,
 			TcpAbortOnTimeout:         tmpTcpExtStat.TcpAbortOnTimeout - reader.tmpTcpExtStat.TcpAbortOnTimeout,
 			TcpAbortOnLinger:          tmpTcpExtStat.TcpAbortOnLinger - reader.tmpTcpExtStat.TcpAbortOnLinger,
 			TcpAbortFailed:            tmpTcpExtStat.TcpAbortFailed - reader.tmpTcpExtStat.TcpAbortFailed,
 			TcpMemoryPressures:        tmpTcpExtStat.TcpMemoryPressures - reader.tmpTcpExtStat.TcpMemoryPressures,
-			TcpMemoryPressuresChrono:  tmpTcpExtStat.TcpMemoryPressuresChrono - reader.tmpTcpExtStat.TcpMemoryPressuresChrono,
+			TcpMemoryPressuresChrono:  tcpMemoryPressuresChrono,
 			TcpSackDiscard:            tmpTcpExtStat.TcpSackDiscard - reader.tmpTcpExtStat.TcpSackDiscard,
 			TcpDsackIgnoredOld:        tmpTcpExtStat.TcpDsackIgnoredOld - reader.tmpTcpExtStat.TcpDsackIgnoredOld,
 			TcpDsackIgnoredNoUndo:     tmpTcpExtStat.TcpDsackIgnoredNoUndo - reader.tmpTcpExtStat.TcpDsackIgnoredNoUndo,
@@ -663,6 +692,52 @@ func (reader *NetReader) ReportMetrics() (metrics []spec.ResourceMetric) {
 }
 
 func (reader *NetReader) ReportEvents() (events []spec.ResourceEvent) {
+	if len(reader.tcpExtStats) == 0 {
+		return
+	}
+
+	stat := reader.tcpExtStats[len(reader.tcpExtStats)-1]
+
+	eventCheckTcpErrorsLevel := consts.EventLevelSuccess
+	if reader.checkTcpAbortOnMemoryCounter > reader.checkTcpErrorsOccurences {
+		if reader.conf.Net.CheckTcpErrors.CritOnTcpAbortOnMemory {
+			eventCheckTcpErrorsLevel = consts.EventLevelCritical
+		} else if reader.conf.Net.CheckTcpErrors.WarnOnTcpAbortOnMemory {
+			eventCheckTcpErrorsLevel = consts.EventLevelWarning
+		}
+	} else if reader.checkTcpMemoryPressuresChronoCounter > reader.checkTcpErrorsOccurences {
+		if reader.conf.Net.CheckTcpErrors.CritOnPressures {
+			eventCheckTcpErrorsLevel = consts.EventLevelCritical
+		} else if reader.conf.Net.CheckTcpErrors.WarnOnPressures {
+			eventCheckTcpErrorsLevel = consts.EventLevelWarning
+		}
+	} else if reader.checkListenDropsCounter > reader.checkTcpErrorsOccurences {
+		if reader.conf.Net.CheckTcpErrors.CritOnListenDrops {
+			eventCheckTcpErrorsLevel = consts.EventLevelCritical
+		} else if reader.conf.Net.CheckTcpErrors.WarnOnListenDrops {
+			eventCheckTcpErrorsLevel = consts.EventLevelWarning
+		}
+	} else if reader.checkListenOverflowsCounter > reader.checkTcpErrorsOccurences {
+		if reader.conf.Net.CheckTcpErrors.CritOnListenOverflows {
+			eventCheckTcpErrorsLevel = consts.EventLevelCritical
+		} else if reader.conf.Net.CheckTcpErrors.WarnOnListenOverflows {
+			eventCheckTcpErrorsLevel = consts.EventLevelWarning
+		}
+	}
+
+	events = append(events, spec.ResourceEvent{
+		Name:  "CheckTcpErrors",
+		Time:  stat.Timestamp,
+		Level: eventCheckTcpErrorsLevel,
+		Msg: fmt.Sprintf("MemoryPressuresChrono=%d,TcpAbortOnMemory=%d,ListenOverflows=%d,ListenDrops=%d",
+			stat.TcpMemoryPressuresChrono,
+			stat.TcpAbortOnMemory,
+			stat.ListenOverflows,
+			stat.ListenDrops,
+		),
+		ReissueDuration: reader.checkTcpErrorsReissueDuration,
+	})
+
 	return
 }
 
