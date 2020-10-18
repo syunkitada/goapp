@@ -26,9 +26,10 @@ type ResourceMetricSystemConfig struct {
 	EnableMemory bool
 	EnableProc   bool
 	CacheLength  int
-	ProcCheckMap map[string]ResourceProcCheckConfig
 
 	Uptime       ResourceMetricSystemUptimeConfig
+	Login        ResourceMetricSystemLoginConfig
+	Proc         ResourceMetricSystemProcConfig
 	Cpu          ResourceMetricSystemCpuConfig
 	Mem          ResourceMetricSystemMemConfig
 	MemBuddyinfo ResourceMetricSystemMemBuddyinfoConfig
@@ -47,6 +48,41 @@ type ResourceMetricSystemUptimeCheckBootConfig struct {
 	Occurences      int
 	ReissueDuration int
 	ReadinessSec    int64
+}
+
+type ResourceMetricSystemLoginConfig struct {
+	Enable     bool
+	CheckLogin ResourceMetricSystemLoginCheckLoginConfig
+}
+
+type ResourceMetricSystemLoginCheckLoginConfig struct {
+	Occurences      int
+	ReissueDuration int
+	WarnLoginSec    int64
+	CritLoginSec    int64
+}
+
+type ResourceMetricSystemProcConfig struct {
+	Enable           bool
+	CheckProcsStatus ResourceMetricSystemProcCheckProcsStatusConfig
+	CheckProcMap     map[string]ResourceMetricSystemProcCheckProcConfig
+}
+
+type ResourceMetricSystemProcCheckProcsStatusConfig struct {
+	Occurences      int
+	ReissueDuration int
+}
+
+type ResourceMetricSystemProcCheckProcConfig struct {
+	Occurences      int
+	ReissueDuration int
+	Cmd             string
+	Name            string
+}
+
+type ResourceProcCheckConfig struct {
+	Cmd  string
+	Name string
 }
 
 type ResourceMetricSystemCpuConfig struct {
@@ -166,9 +202,4 @@ type ResourceMetricSystemNetDevCheckErrorsConfig struct {
 	CritErrors      int64
 	WarnDrops       int64
 	CritDrops       int64
-}
-
-type ResourceProcCheckConfig struct {
-	Cmd  string
-	Name string
 }

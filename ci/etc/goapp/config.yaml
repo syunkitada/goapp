@@ -276,6 +276,13 @@ resource:
                 occurences: 1
                 reissueDuration: 600
                 readinessSec: 600
+            login:
+              enable: true
+              checkLogin:
+                occurences: 1
+                reissueDuration: 600
+                warnLoginSec: 3600
+                critLoginSec: 83400
             cpu:
               enable: true
               checkProcsRunning:
@@ -288,6 +295,16 @@ resource:
                 critLimit: 0
                 occurences: 3
                 reissueDuration: 600
+            proc:
+              enable: true
+              checkProcsStatus:
+                occurences: 3
+                reissueDuration: 600
+              checkProcMap:
+                qemu:
+                  occurences: 3
+                  reissueDuration: 600
+                  cmd: qemu-system-x86
             mem:
               enable: true
               checkAvailable:
@@ -347,6 +364,3 @@ resource:
                 critErrors: 1000
                 warnDrops: 1
                 critDrops: 1000
-            procCheckMap:
-              qemu:
-                cmd: qemu-system-x86
