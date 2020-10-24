@@ -91,6 +91,10 @@ type ProcStat struct {
 	WriteBytesPerSec int64
 
 	Qemu *QemuStat
+
+	WarnSchedWaitTimeCounter int
+	CritSchedWaitTimeCounter int
+	checkProc                config.ResourceMetricSystemProcCheckProcConfig
 }
 
 type ProcReader struct {
@@ -104,10 +108,13 @@ type ProcReader struct {
 	procsStats     []ProcsStat
 	procStats      []ProcStat
 
+	checkProcStats                  []ProcStat
 	checkProcsStatusWarnCounter     int
 	checkProcsStatusCritCounter     int
 	checkProcsStatusOccurences      int
 	checkProcsStatusReissueDuration int
+
+	checkProcStatMap map[int]ProcStat
 }
 
 func NewProcReader(conf *config.ResourceMetricSystemConfig, systemMetricReader *SystemMetricReader) SubMetricReader {
@@ -208,7 +215,7 @@ func (reader *ProcReader) Read(tctx *logger.TraceContext) {
 			stateInt = 0
 		}
 
-		if check, ok := reader.cmdMap[cmd]; ok {
+		if checkProc, ok := reader.cmdMap[cmd]; ok {
 			pid, _ := strconv.Atoi(str_utils.ParseLastSecondValue(procFileInfo.Name()))
 
 			statusLines := make([]string, 0, 55)
@@ -318,6 +325,14 @@ func (reader *ProcReader) Read(tctx *logger.TraceContext) {
 			cgtime, _ := strconv.ParseInt(tmpTexts[43], 10, 64)
 			startTime, _ := strconv.Atoi(tmpTexts[21])
 
+			// $ cat /proc/24120/io
+			// rchar: 160323858
+			// wchar: 14532026
+			// syscr: 48257
+			// syscw: 37187
+			// read_bytes: 163528704
+			// write_bytes: 15466496
+			// cancelled_write_bytes: 0
 			if tmpFile, tmpErr = os.Open(procDir + "io"); tmpErr != nil {
 				continue
 			}
@@ -333,19 +348,9 @@ func (reader *ProcReader) Read(tctx *logger.TraceContext) {
 			tmpBytes, _, _ = tmpReader.ReadLine()
 			writeBytes, _ := strconv.ParseInt(str_utils.ParseLastValue(string(tmpBytes)), 10, 64)
 
-			// TODO
-			// /proc/24120/io
-			// rchar: 160323858
-			// wchar: 14532026
-			// syscr: 48257
-			// syscw: 37187
-			// read_bytes: 163528704
-			// write_bytes: 15466496
-			// cancelled_write_bytes: 0
-
 			tmpProcStat := TmpProcStat{
 				Timestamp:                timestamp,
-				Name:                     check.Name,
+				Name:                     checkProc.Name,
 				Cmd:                      cmd,
 				Pid:                      procFileInfo.Name(),
 				SchedCpuTime:             schedCpuTime,
@@ -386,6 +391,8 @@ func (reader *ProcReader) Read(tctx *logger.TraceContext) {
 		reader.procStats = reader.procStats[len(tmpProcStatMap):]
 	}
 
+	checkProcStatMap := map[int]ProcStat{}
+
 	if reader.tmpProcStatMap != nil {
 		for key, tmpStat := range reader.tmpProcStatMap {
 			if stat, ok := tmpProcStatMap[key]; ok {
@@ -397,12 +404,12 @@ func (reader *ProcReader) Read(tctx *logger.TraceContext) {
 				cguestUtil := (stat.Cgtime - tmpStat.Cgtime) / interval
 
 				schedTimeSlices := stat.SchedTimeSlices - tmpStat.SchedTimeSlices
-				schedCpuTimeUtil := ((stat.SchedCpuTime - tmpStat.SchedCpuTime) / interval)
-				schedWaitTimeUtil := ((stat.SchedWaitTime - tmpStat.SchedWaitTime) / interval)
-				fmt.Println("DEBUG proc sched", schedCpuTimeUtil, schedWaitTimeUtil)
-				fmt.Println("DEBUG proc util", userUtil, systemUtil, guestUtil, cguestUtil)
+				schedCpuTime := ((stat.SchedCpuTime - tmpStat.SchedCpuTime) / interval)
+				schedWaitTime := ((stat.SchedWaitTime - tmpStat.SchedWaitTime) / interval)
 
-				reader.procStats = append(reader.procStats, ProcStat{
+				checkProc := reader.cmdMap[stat.Cmd]
+
+				procStat := ProcStat{
 					Timestamp:                stat.Timestamp,
 					Name:                     stat.Name,
 					Cmd:                      stat.Cmd,
@@ -410,8 +417,8 @@ func (reader *ProcReader) Read(tctx *logger.TraceContext) {
 					VmSizeKb:                 stat.VmSizeKb,
 					VmRssKb:                  stat.VmRssKb,
 					State:                    stat.State,
-					SchedCpuTime:             schedCpuTimeUtil,
-					SchedWaitTime:            schedWaitTimeUtil,
+					SchedCpuTime:             schedCpuTime,
+					SchedWaitTime:            schedWaitTime,
 					SchedTimeSlices:          schedTimeSlices,
 					HugetlbPages:             stat.HugetlbPages,
 					Threads:                  stat.Threads,
@@ -429,12 +436,33 @@ func (reader *ProcReader) Read(tctx *logger.TraceContext) {
 					WriteBytesPerSec: (stat.WriteBytes - tmpStat.WriteBytes) / interval,
 
 					Qemu: stat.Qemu,
-				})
+
+					checkProc: checkProc,
+				}
+
+				reader.procStats = append(reader.procStats, procStat)
+
+				checkProcStat, ok := reader.checkProcStatMap[key]
+				if ok {
+					procStat.CritSchedWaitTimeCounter = checkProcStat.CritSchedWaitTimeCounter
+					procStat.WarnSchedWaitTimeCounter = checkProcStat.WarnSchedWaitTimeCounter
+				}
+				if schedWaitTime > checkProc.CritSchedWaitTime {
+					procStat.CritSchedWaitTimeCounter += 1
+				} else if schedWaitTime > checkProc.WarnSchedWaitTime {
+					procStat.WarnSchedWaitTimeCounter += 1
+				} else {
+					procStat.CritSchedWaitTimeCounter = 0
+					procStat.WarnSchedWaitTimeCounter = 0
+				}
+
+				checkProcStatMap[key] = procStat
 			}
 		}
 	}
 
 	reader.tmpProcStatMap = tmpProcStatMap
+	reader.checkProcStatMap = checkProcStatMap
 
 	stat := ProcsStat{
 		Timestamp:  timestamp,
@@ -578,8 +606,35 @@ func (reader *ProcReader) ReportEvents() (events []spec.ResourceEvent) {
 		ReissueDuration: reader.checkProcsStatusReissueDuration,
 	})
 
-	// TODO
-	// Monitor schedWaitTime
+	if len(reader.checkProcStatMap) != 0 {
+		eventCheckProcLevel := consts.EventLevelSuccess
+		var msgs []string
+		for _, procStat := range reader.checkProcStatMap {
+			if procStat.CritSchedWaitTimeCounter > procStat.checkProc.Occurences {
+				eventCheckProcLevel = consts.EventLevelCritical
+			} else if eventCheckProcLevel == consts.EventLevelSuccess && procStat.WarnSchedWaitTimeCounter > procStat.checkProc.Occurences {
+				eventCheckProcLevel = consts.EventLevelWarning
+			}
+
+			msgs = append(msgs, fmt.Sprintf(
+				"Pid=%d,Cmd=%d,SchedWaitTime=%d,SystemUtil=%d,UserUtil=%d,GuestUtil=%d",
+				procStat.Pid,
+				procStat.Cmd,
+				procStat.SchedWaitTime,
+				procStat.SystemUtil,
+				procStat.UserUtil,
+				procStat.GuestUtil,
+			))
+		}
+
+		events = append(events, spec.ResourceEvent{
+			Name:            "CheckProc",
+			Time:            stat.Timestamp,
+			Level:           eventCheckProcLevel,
+			Msg:             strings.Join(msgs, "\n"),
+			ReissueDuration: reader.checkProcsStatusReissueDuration,
+		})
+	}
 
 	return
 }

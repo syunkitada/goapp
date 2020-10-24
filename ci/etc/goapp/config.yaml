@@ -305,6 +305,8 @@ resource:
                   occurences: 3
                   reissueDuration: 600
                   cmd: qemu-system-x86
+                  warnSchedWaitTime: 100000
+                  critSchedWaitTime: 1000000
             mem:
               enable: true
               checkAvailable:

@@ -74,10 +74,12 @@ type ResourceMetricSystemProcCheckProcsStatusConfig struct {
 }
 
 type ResourceMetricSystemProcCheckProcConfig struct {
-	Occurences      int
-	ReissueDuration int
-	Cmd             string
-	Name            string
+	Occurences        int
+	ReissueDuration   int
+	Cmd               string
+	Name              string
+	WarnSchedWaitTime int64
+	CritSchedWaitTime int64
 }
 
 type ResourceProcCheckConfig struct {
