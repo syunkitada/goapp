@@ -115,6 +115,7 @@ class Client implements IClient {
     get_service_index(input: any): void {
         const { serviceName, projectName, location, initLocation } = input;
         let queries: any = null;
+
         if (projectName) {
             queries = [
                 {
@@ -155,6 +156,7 @@ class Client implements IClient {
         query({
             queries,
             serviceName,
+            projectName,
             onSuccess: function (_input: any) {
                 let result: any = null;
                 if (projectName) {
@@ -162,6 +164,7 @@ class Client implements IClient {
                 } else {
                     result = _input.GetServiceDashboardIndex;
                 }
+
                 if (result.Error && result.Error !== "") {
                     input.onError(result.Error);
                 } else {

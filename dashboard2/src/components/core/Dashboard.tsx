@@ -1,29 +1,39 @@
 import data from "../../data";
 
-function Render(input: any) {
-    const { Name, ServiceMap, ProjectServiceMap } = data.auth.Authority;
+function renderServices(input: any) {
+    const { id, idPrefix, projectName, onClickService, onClickProject } = input;
+
+    const { ServiceMap, ProjectServiceMap } = data.auth.Authority;
+
+    let tmpServiceMap: any = null;
+    let projectText: string;
+    if (projectName) {
+        projectText = projectName;
+        tmpServiceMap = ProjectServiceMap[projectName].ServiceMap;
+    } else {
+        projectText = "Projects";
+        tmpServiceMap = ServiceMap;
+    }
+    console.log("DEBUG projectName", projectName, tmpServiceMap);
 
     const tmpProjects = Object.keys(ProjectServiceMap);
     tmpProjects.sort();
 
-    const tmpServices = Object.keys(ServiceMap);
-    tmpServices.sort();
-
     const projectsHtmls = [];
     for (const tmpProject of tmpProjects) {
         projectsHtmls.push(`
-        <a class="list-group-item list-group-item-action" href="#">${tmpProject}</a>
+        <a class="list-group-item list-group-item-action ${idPrefix}-Project" href="#">${tmpProject}</a>
         `);
     }
 
     const projectHtml = `
     <li class="list-group-item list-group-item-action sidebar-item">
-      <a class="list-group-item-action" data-toggle="collapse" href="#collapseExample">
-        Projects
-        <i id="collapseExampleIcon" class="material-icons">chevron_right</i>
+      <a class="list-group-item-action" data-toggle="collapse" href="#${idPrefix}projects">
+        ${projectText}
+        <i id="${idPrefix}projectsIcon" class="material-icons">chevron_right</i>
       </a>
-      <div class="collapse list-group list-group-flush" id="collapseExample" style="padding: 5px;">
-        <input id="input-project" class="form-control form-control-sm">
+      <div class="collapse list-group list-group-flush" id="${idPrefix}projects" style="padding: 5px;">
+        <input id="${idPrefix}inputProject" class="form-control form-control-sm">
         ${projectsHtmls.join("")}
       </div>
     </li>
@@ -31,42 +41,80 @@ function Render(input: any) {
 
     const servicesHtmls = [projectHtml];
 
-    for (const tmpService of tmpServices) {
+    const tmpServices = Object.keys(tmpServiceMap);
+    tmpServices.sort();
+
+    for (const service of tmpServices) {
         servicesHtmls.push(`
     <li class="list-group-item list-group-item-action sidebar-item">
-      <a class="list-group-item-action" href="#">${tmpService}</a>
+      <a class="list-group-item-action ${idPrefix}-Service" href="#">${service}</a>
     </li>
     `);
     }
 
+    $(`#${id}`).html(servicesHtmls.join(""));
+
+    $(`#${idPrefix}projects`)
+        .on("show.bs.collapse", function () {
+            $(`${idPrefix}projectsIcon`).toggleClass("rotate-90");
+        })
+        .on("shown.bs.collapse", function () {
+            $(`#${idPrefix}inputProject`).focus();
+        })
+        .on("hide.bs.collapse", function () {
+            $(`${idPrefix}projectsIcon`).toggleClass("rotate-90");
+        });
+
+    $(`.${idPrefix}-Service`).on("click", function (e) {
+        onClickService({
+            projectName: projectName,
+            serviceName: $(this).text()
+        });
+    });
+
+    $(`.${idPrefix}-Project`).on("click", function (e) {
+        const projectName = $(this).text();
+        onClickProject({
+            projectName,
+            serviceName: "HomeProject"
+        });
+
+        renderServices(Object.assign({}, input, { projectName }));
+    });
+}
+
+function Render(input: any) {
     const { id } = input;
+    const { Name } = data.auth.Authority;
+
+    const idPrefix = `${input.id}-Dashboard-`;
+
     $(`#${id}`).html(`
-<nav class="navbar navbar-expand-lg navbar-light border-bottom sticky-top bg-white" style="height: 50px; padding: 0px;">
-  <a id="menu-toggle" class="border-right" href="#">
-    <span class="navbar-toggler-icon"></span>
-  </a>
+    <nav class="navbar navbar-expand-lg navbar-light border-bottom sticky-top bg-white" style="height: 50px; padding: 0px;">
+      <a id="menu-toggle" class="border-right" href="#">
+        <span class="navbar-toggler-icon"></span>
+      </a>
 
-  <a id="navbar-brand" class="navbar-brand border-right mr-auto" href="#">Home</a>
+      <a id="navbar-brand" class="navbar-brand border-right mr-auto" href="#">Home</a>
 
-  <div class="dropdown col-auto bg-lignt border-left">
-    <button class="btn dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-      ${Name}
-    </button>
-    <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuButton">
-      <a class="dropdown-item" id="DashboardLogout" href="#">Log out</a>
+      <div class="dropdown col-auto bg-lignt border-left">
+        <button class="btn dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          ${Name}
+        </button>
+        <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuButton">
+          <a class="dropdown-item" id="DashboardLogout" href="#">Log out</a>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Sidebar -->
+    <div class="border-right bg-white" id="sidebar-wrapper">
+      <ul id="${idPrefix}-Services" class="list-group list-group-flush" style="width: 100%;">
+      </ul>
     </div>
-  </div>
-</nav>
+    <!-- /#sidebar-wrapper -->
 
-<!-- Sidebar -->
-<div class="border-right bg-white" id="sidebar-wrapper">
-  <ul class="list-group list-group-flush" style="width: 100%;">
-    ${servicesHtmls.join("")}
-  </ul>
-</div>
-<!-- /#sidebar-wrapper -->
-
-<div class="bg-white" id="wrapper">
+    <div class="bg-white" id="wrapper">
     <!-- Page Content -->
     <div id="page-content-wrapper">
 
@@ -81,6 +129,8 @@ function Render(input: any) {
 
   `);
 
+    renderServices(Object.assign({}, input, { id: `${idPrefix}-Services` }));
+
     $("#menu-toggle").on("click", function (e) {
         e.preventDefault();
         $("#sidebar-wrapper").toggleClass("toggled");
@@ -90,17 +140,6 @@ function Render(input: any) {
         e.preventDefault();
         $("#header-menu").toggleClass("toggled");
     });
-
-    $("#collapseExample")
-        .on("show.bs.collapse", function () {
-            $("#collapseExampleIcon").toggleClass("rotate-90");
-        })
-        .on("shown.bs.collapse", function () {
-            $("#input-project").focus();
-        })
-        .on("hide.bs.collapse", function () {
-            $("#collapseExampleIcon").toggleClass("rotate-90");
-        });
 
     $("#DashboardLogout").on("click", function () {
         input.logout();

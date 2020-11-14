@@ -1,15 +1,18 @@
 import Panels from "./panels/Panels";
+import Table from "./table/Table";
 import Notfound from "./core/Notfound";
 
 function Render(input: any) {
-    const { id, View } = input;
+    const { View } = input;
+    console.log("Render", input);
     switch (View.Kind) {
         case "Panels":
             return Panels.Render(input);
+        case "Table":
+            return Table.Render(input);
         default:
             return Notfound.Render(input);
     }
-    console.log("Render", input);
 }
 
 const index = {

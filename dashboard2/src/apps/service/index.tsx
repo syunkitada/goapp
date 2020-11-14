@@ -1,6 +1,7 @@
 import Dashboard from "../../components/core/Dashboard";
 import auth from "../../apps/auth";
 import client from "../../client";
+import data from "../../data";
 import data_utils from "../../lib/data_utils";
 import Index from "../../components/Index";
 
@@ -29,6 +30,10 @@ function init(input: any) {
         initLocation,
         location,
         onSuccess: function (input: any) {
+            data.service = {
+                location
+            };
+
             Index.Render({
                 id: "root-content",
                 View: input.Index.View
@@ -40,7 +45,61 @@ function init(input: any) {
     });
     console.log("DEBUG service", serviceName, projectName);
 
-    Dashboard.Render({ id: "root", logout: auth.logout });
+    Dashboard.Render({
+        id: "root",
+        logout: auth.logout,
+        onClickService: function (input: any) {
+            const { serviceName, projectName } = input;
+            const initLocation = false;
+            const location = { Path: ["Root"] };
+
+            client.get_service_index({
+                serviceName,
+                projectName,
+                initLocation,
+                location,
+                onSuccess: function (input: any) {
+                    data.service = {
+                        location
+                    };
+
+                    Index.Render({
+                        id: "root-content",
+                        View: input.Index.View
+                    });
+                },
+                onError: function (input: any) {
+                    console.log("onError", input);
+                }
+            });
+        },
+        onClickProject: function (input: any) {
+            const { serviceName, projectName } = input;
+            console.log("serviceName", projectName, serviceName);
+            const initLocation = false;
+            const location = { Path: ["Root"] };
+
+            client.get_service_index({
+                serviceName,
+                projectName,
+                initLocation,
+                location,
+                onSuccess: function (input: any) {
+                    data.service = {
+                        location
+                    };
+
+                    Index.Render({
+                        id: "root-content",
+                        View: input.Index.View
+                    });
+                },
+                onError: function (input: any) {
+                    console.log("onError", input);
+                }
+            });
+        }
+    });
 }
 
 const index = {
