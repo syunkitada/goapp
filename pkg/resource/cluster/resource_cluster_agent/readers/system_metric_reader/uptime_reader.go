@@ -2,6 +2,7 @@ package system_metric_reader
 
 import (
 	"bufio"
+	"fmt"
 	"os"
 	"strconv"
 	"strings"
@@ -9,19 +10,24 @@ import (
 
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/resource/config"
+	"github.com/syunkitada/goapp/pkg/resource/consts"
 	"github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
 )
 
 type UptimeStat struct {
 	ReportStatus int
-	timestamp    time.Time
-	uptime       int64
+	Timestamp    time.Time
+	Uptime       int64
 }
 
 type UptimeReader struct {
 	conf        *config.ResourceMetricSystemConfig
 	uptimeStats []UptimeStat
 	cacheLength int
+
+	checkBootOccurences      int
+	checkBootReissueDuration int
+	readinessSec             int64
 }
 
 func NewUptimeReader(conf *config.ResourceMetricSystemConfig) SubMetricReader {
@@ -29,6 +35,10 @@ func NewUptimeReader(conf *config.ResourceMetricSystemConfig) SubMetricReader {
 		conf:        conf,
 		cacheLength: conf.CacheLength,
 		uptimeStats: make([]UptimeStat, 0, conf.CacheLength),
+
+		checkBootOccurences:      conf.Uptime.CheckBoot.Occurences,
+		checkBootReissueDuration: conf.Uptime.CheckBoot.ReissueDuration,
+		readinessSec:             conf.Uptime.CheckBoot.ReadinessSec,
 	}
 }
 
@@ -49,8 +59,8 @@ func (reader *UptimeReader) Read(tctx *logger.TraceContext) {
 	uptime := int64(uptimeF)
 	uptimeStat := UptimeStat{
 		ReportStatus: 0,
-		timestamp:    timestamp,
-		uptime:       uptime,
+		Timestamp:    timestamp,
+		Uptime:       uptime,
 	}
 
 	if len(reader.uptimeStats) > reader.cacheLength {
@@ -69,10 +79,10 @@ func (reader *UptimeReader) ReportMetrics() (metrics []spec.ResourceMetric) {
 
 		metrics = append(metrics, spec.ResourceMetric{
 			Name: "system_uptime",
-			Time: stat.timestamp,
+			Time: stat.Timestamp,
 			Tag:  map[string]string{},
 			Metric: map[string]interface{}{
-				"uptime": stat.uptime,
+				"uptime": stat.Uptime,
 			},
 		})
 	}
@@ -80,6 +90,24 @@ func (reader *UptimeReader) ReportMetrics() (metrics []spec.ResourceMetric) {
 }
 
 func (reader *UptimeReader) ReportEvents() (events []spec.ResourceEvent) {
+	if len(reader.uptimeStats) == 0 {
+		return
+	}
+	eventCheckUptimeLevel := consts.EventLevelSuccess
+
+	stat := reader.uptimeStats[len(reader.uptimeStats)-1]
+	if stat.Uptime < reader.readinessSec {
+		eventCheckUptimeLevel = consts.EventLevelWarning
+	}
+
+	events = append(events, spec.ResourceEvent{
+		Name:            "CheckUptime",
+		Time:            stat.Timestamp,
+		Level:           eventCheckUptimeLevel,
+		Msg:             fmt.Sprintf("Uptime=%d", stat.Uptime),
+		ReissueDuration: reader.checkBootReissueDuration,
+	})
+
 	return
 }
 

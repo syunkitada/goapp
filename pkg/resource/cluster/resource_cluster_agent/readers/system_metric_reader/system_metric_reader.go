@@ -91,7 +91,7 @@ func New(conf *config.ResourceMetricSystemConfig) *SystemMetricReader {
 		NewNetReader(conf),
 		NewNetDevReader(conf, reader),
 		NewUptimeReader(conf),
-		NewSecLoginReader(conf),
+		NewLoginReader(conf),
 	}
 
 	return reader
