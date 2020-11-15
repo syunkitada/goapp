@@ -1,11 +1,8 @@
 import data from "../../data";
-import data_utils from "../../lib/data_utils";
 
 export function Render(input: any) {
     const { id, View } = input;
-    console.log("DEBUG Panels.Render", input, View);
-
-    // const locationData = data_utils.getLocationData();
+    console.log("DEBUG Panels.Render", input, View, data);
 
     $(`#${id}`).html(`
     <div>

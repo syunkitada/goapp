@@ -1,12 +1,12 @@
 import data from "../../data";
-import data_utils from "../../lib/data_utils";
+import locationData from "../../data/locationData";
 import Index from "../../components/Index";
 
 export function Render(input: any) {
     const { id, View } = input;
     console.log("DEBUG Panels.Render", input);
 
-    const locationData = data_utils.getLocationData();
+    const tmpLocationData = locationData.getLocationData();
 
     const location = data.service.location;
     let indexPath;
@@ -24,8 +24,8 @@ export function Render(input: any) {
     }
 
     let locationParams: any = {};
-    if (locationData.Params) {
-        locationParams = locationData.Params;
+    if (tmpLocationData.Params) {
+        locationParams = tmpLocationData.Params;
     }
 
     const panelsHtmls: any[] = [];

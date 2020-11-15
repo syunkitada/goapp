@@ -8,7 +8,7 @@ function loginWithToken() {
 
     client.loginWithToken({
         onSuccess: function (input: any) {
-            service.init({});
+            service.init();
         },
         onError: function (input: any) {
             console.log("error", input);
@@ -23,7 +23,7 @@ function login(input: any) {
         userName,
         password,
         onSuccess: function (input: any) {
-            service.init({});
+            service.init();
         },
         onError: function (input: any) {
             renderLoginView();

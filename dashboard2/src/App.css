@@ -60,6 +60,10 @@
     justify-content: center;
 }
 
+.sidebar-item-active {
+    border-right: 6px solid #563d7c;
+}
+
 .rotate-90 {
     transform: rotate(90deg);
 }

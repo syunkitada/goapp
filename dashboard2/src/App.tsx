@@ -12,7 +12,7 @@ export default App;
 
 $(function () {
     if ("auth" in window) {
-        service.init({});
+        service.init();
     } else {
         auth.init();
     }

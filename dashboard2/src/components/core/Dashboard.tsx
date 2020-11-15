@@ -1,8 +1,8 @@
 import data from "../../data";
+import locationData from "../../data/locationData";
 
 function renderServices(input: any) {
-    const { id, idPrefix, projectName, onClickService, onClickProject } = input;
-
+    const { id, idPrefix, serviceName, projectName, onClickService } = input;
     const { ServiceMap, ProjectServiceMap } = data.auth.Authority;
 
     let tmpServiceMap: any = null;
@@ -45,9 +45,13 @@ function renderServices(input: any) {
     tmpServices.sort();
 
     for (const service of tmpServices) {
+        let className = "";
+        if (service === serviceName) {
+            className = "sidebar-item-active";
+        }
         servicesHtmls.push(`
     <li class="list-group-item list-group-item-action sidebar-item">
-      <a class="list-group-item-action ${idPrefix}-Service" href="#">${service}</a>
+      <a class="list-group-item-action ${idPrefix}-Service ${className}" href="#">${service}</a>
     </li>
     `);
     }
@@ -66,26 +70,32 @@ function renderServices(input: any) {
         });
 
     $(`.${idPrefix}-Service`).on("click", function (e) {
+        const serviceName = $(this).text();
         onClickService({
             projectName: projectName,
-            serviceName: $(this).text()
+            serviceName: serviceName
         });
+
+        renderServices(Object.assign({}, input, { projectName, serviceName }));
     });
 
     $(`.${idPrefix}-Project`).on("click", function (e) {
         const projectName = $(this).text();
-        onClickProject({
+        const serviceName = "HomeProject";
+        onClickService({
             projectName,
-            serviceName: "HomeProject"
+            serviceName
         });
 
-        renderServices(Object.assign({}, input, { projectName }));
+        renderServices(Object.assign({}, input, { projectName, serviceName }));
     });
 }
 
 function Render(input: any) {
     const { id } = input;
     const { Name } = data.auth.Authority;
+
+    const { serviceName, projectName } = locationData.getServiceParams();
 
     const idPrefix = `${input.id}-Dashboard-`;
 
@@ -129,7 +139,14 @@ function Render(input: any) {
 
   `);
 
-    renderServices(Object.assign({}, input, { id: `${idPrefix}-Services` }));
+    renderServices(
+        Object.assign({}, input, {
+            id: `${idPrefix}-Services`,
+            idPrefix: idPrefix,
+            serviceName,
+            projectName
+        })
+    );
 
     $("#menu-toggle").on("click", function (e) {
         e.preventDefault();
