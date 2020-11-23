@@ -121,6 +121,9 @@ function Render(input: any) {
     <div class="bg-white" id="content-wrapper">
     <!-- Page Content -->
     <div id="page-content-wrapper">
+      <div id="root-content-progress" class="progress">
+        <div class="determinate" style="width: 0%"></div>
+      </div>
 
       <div class="container-fluid">
         <div id="root-content"></div>
@@ -132,6 +135,13 @@ function Render(input: any) {
 
 
   `);
+
+    //      <div class="progress">
+    //            <div class="indeterminate"></div>
+    //      </div>
+    // <div class="progress">
+    //       <div class="determinate" style="width: 70%"></div>
+    //         </div>
 
     renderServices(
         Object.assign({}, input, {

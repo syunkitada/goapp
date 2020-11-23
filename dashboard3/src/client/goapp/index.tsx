@@ -176,6 +176,62 @@ class Client implements IClient {
             }
         });
     }
+
+    get_queries(input: any): void {
+        const { serviceName, projectName, location } = input;
+
+        const queryData = Object.assign(
+            {},
+            location.Params,
+            location.SearchQueries
+        );
+        const data = JSON.stringify(queryData);
+
+        const queries: any = [];
+        for (let i = 0, len = location.DataQueries.length; i < len; i++) {
+            queries.push({
+                Data: data,
+                Name: location.DataQueries[i]
+            });
+        }
+
+        query({
+            queries,
+            serviceName,
+            projectName,
+            onSuccess: function (_input: any) {
+                const data: any = {};
+                const errors: any = [];
+                for (let i = 0, len = queries.length; i < len; i++) {
+                    const query = queries[i];
+                    const result = _input[query.Name];
+                    if (result.Error && result.Error !== "") {
+                        errors.push({ Error: result.Error });
+                        continue;
+                    }
+                    if (result.Code >= 100) {
+                        errors.push({
+                            Error: `UnexpectedCode: ${result.Code}`
+                        });
+                        continue;
+                    }
+                    Object.assign(data, result.Data);
+                }
+                if (errors.length > 0) {
+                    input.onError({
+                        errors
+                    });
+                    return;
+                }
+                input.onSuccess({
+                    data
+                });
+            },
+            onError: function (_input: any) {
+                input.onError(_input);
+            }
+        });
+    }
 }
 
 const index = {

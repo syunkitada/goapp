@@ -257,7 +257,7 @@ func (resolver *Resolver) GetProjectServiceDashboardIndex(tctx *logger.TraceCont
 				},
 				View: base_index_model.Panels{
 					Name: "Root",
-					Kind: "Panels",
+					Kind: "Panes",
 					Children: []interface{}{
 						base_index_model.Table{
 							Name:    "Clusters",

@@ -20,9 +20,13 @@ function init() {
         initLocation,
         location,
         onSuccess: function (input: any) {
+            if (input.Index.DefaultRoute.Path) {
+                location.Path = input.Index.DefaultRoute.Path;
+            }
             data.service = {
                 location,
-                data: input.Data
+                data: input.Data,
+                rootView: input.Index.View
             };
 
             Index.Render({
@@ -51,9 +55,13 @@ function init() {
                 initLocation,
                 location,
                 onSuccess: function (input: any) {
+                    if (input.Index.DefaultRoute.Path) {
+                        location.Path = input.Index.DefaultRoute.Path;
+                    }
                     data.service = {
                         location,
-                        data: input.Data
+                        data: input.Data,
+                        rootView: input.Index.View
                     };
 
                     Index.Render({
@@ -69,7 +77,59 @@ function init() {
     });
 }
 
+function getViewFromPath(View: any, path: any): any {
+    if (View.Children) {
+        for (let i = 0, len = View.Children.length; i < len; i++) {
+            const child = View.Children[i];
+            if (child.Name !== path[0]) {
+                continue;
+            }
+            return getViewFromPath(child, path.slice(1));
+        }
+    }
+
+    return View;
+}
+
+function getQueries(input: any) {
+    const { location, View } = input;
+    const { serviceName, projectName } = locationData.getServiceParams();
+    const nextView = getViewFromPath(data.service.rootView, location.Path);
+    // const subPathMap = location.SubPathMap
+    // location.DataQueries = index.DataQueries
+    // location.WebSocketQuery = index.WebSocketQuery
+    // const params = Object.assign(
+    // )
+    location.DataQueries = nextView.DataQueries;
+    console.log("DEBUG getQueries", input);
+
+    locationData.setLocationData(location);
+    $("#root-content-progress").html('<div class="indeterminate"></div>');
+
+    client.get_queries({
+        serviceName,
+        projectName,
+        location,
+        onSuccess: function (input: any) {
+            $("#root-content-progress").html(
+                '<div class="determinate" style="width: 0%"></div>'
+            );
+
+            data.service.data = Object.assign(data.service.data, input.data);
+            Index.Render({
+                id: "root-content",
+                View: data.service.rootView
+            });
+            console.log("DEBUG getQueries onSuccess", data.service.data);
+        },
+        onError: function (input: any) {
+            console.log("DEBUG getQueries onError", input);
+        }
+    });
+}
+
 const index = {
-    init
+    init,
+    getQueries
 };
 export default index;

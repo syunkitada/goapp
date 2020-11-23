@@ -1,4 +1,5 @@
 import data from "../../data";
+import service from "../../apps/service";
 
 export function Render(input: any) {
     const { id, View } = input;
@@ -124,8 +125,7 @@ export function Render(input: any) {
                 Params: params,
                 SearchQueries: {}
             };
-
-            console.log("DEBUG click link", column, rdata, location);
+            service.getQueries({ View, location });
         }
     });
 }
