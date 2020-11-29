@@ -1,12 +1,15 @@
 import Panes from "./panes/Panes";
+import Tabs from "./tabs/Tabs";
 import Panels from "./panels/Panels";
 import Table from "./table/Table";
 import Notfound from "./core/Notfound";
 
 function Render(input: any) {
     const { View } = input;
-    console.log("Render", input);
+    console.log("IndexRender", input);
     switch (View.Kind) {
+        case "Tabs":
+            return Tabs.Render(input);
         case "Panes":
             return Panes.Render(input);
         case "Panels":

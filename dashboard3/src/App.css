@@ -151,6 +151,7 @@ nav .brand-logo {
 .table-wrapper td,
 th {
     padding: 5px 5px;
+    max-width: 300px;
 }
 
 .table-wrapper .input-field {

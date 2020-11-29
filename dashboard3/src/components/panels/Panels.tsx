@@ -4,7 +4,6 @@ import Index from "../../components/Index";
 
 export function Render(input: any) {
     const { id, View } = input;
-    console.log("DEBUG Panels.Render", input);
 
     const tmpLocationData = locationData.getLocationData();
 

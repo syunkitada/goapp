@@ -7,9 +7,7 @@ export function Render(input: any) {
     const prefixKey = `${id}-`;
     console.log("DEBUG Panes.Render", View, input);
 
-    const tmpLocationData = locationData.getLocationData();
-
-    const location = data.service.location;
+    const location = locationData.getLocationData();
     let indexPath;
     if (location.SubPath) {
         indexPath = location.SubPath[View.Name];
@@ -28,8 +26,8 @@ export function Render(input: any) {
     }
 
     let locationParams: any = {};
-    if (tmpLocationData.Params) {
-        locationParams = tmpLocationData.Params;
+    if (location.Params) {
+        locationParams = location.Params;
     }
 
     const pane = "";
@@ -57,6 +55,7 @@ export function Render(input: any) {
         if (pane.Name !== indexPath) {
             continue;
         }
+        console.log("DEBUG Pane Render", indexPath, pane);
 
         $(`#${id}`).html(`
 <div class="pane">

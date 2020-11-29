@@ -5,7 +5,7 @@ export function Render(input: any) {
     const { id, View } = input;
     const idPrefix = `${id}-Table-`;
     const tableData = data.service.data[View.DataKey];
-    console.log("DEBUG Panels.Render", input, View, tableData);
+    console.log("DEBUG Table.Render", input, View, tableData);
 
     $(`#${id}`).html(`
     <div class="row table-wrapper">

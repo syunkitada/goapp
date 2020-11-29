@@ -158,18 +158,42 @@ class Client implements IClient {
             serviceName,
             projectName,
             onSuccess: function (_input: any) {
-                let result: any = null;
-                if (projectName) {
-                    result = _input.GetProjectServiceDashboardIndex;
-                } else {
-                    result = _input.GetServiceDashboardIndex;
+                let index: any;
+                const data: any = {};
+                const errors: any = [];
+                for (let i = 0, len = queries.length; i < len; i++) {
+                    const query = queries[i];
+                    const result = _input[query.Name];
+                    if (result.Error && result.Error !== "") {
+                        errors.push({ Error: result.Error });
+                        continue;
+                    }
+                    if (result.Code >= 100) {
+                        errors.push({
+                            Error: `UnexpectedCode: ${result.Code}`
+                        });
+                        continue;
+                    }
+                    if (
+                        query.Name === "GetProjectServiceDashboardIndex" ||
+                        query.Name === "GetServiceDashboardIndex"
+                    ) {
+                        index = result.Data.Index;
+                        Object.assign(data, result.Data.Data);
+                    } else {
+                        Object.assign(data, result.Data);
+                    }
                 }
-
-                if (result.Error && result.Error !== "") {
-                    input.onError(result.Error);
-                } else {
-                    input.onSuccess(result.Data);
+                if (errors.length > 0) {
+                    input.onError({
+                        errors
+                    });
+                    return;
                 }
+                input.onSuccess({
+                    Data: data,
+                    Index: index
+                });
             },
             onError: function (_input: any) {
                 console.log("error", _input);

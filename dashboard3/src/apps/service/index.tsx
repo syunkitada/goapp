@@ -8,10 +8,11 @@ import Index from "../../components/Index";
 function init() {
     const { serviceName, projectName } = locationData.getServiceParams();
 
-    const location = { Path: ["Root"] };
+    let location = { Path: ["Root"] };
     const tmpLocationData = locationData.getLocationData();
     let initLocation = false;
     if (tmpLocationData.Path) {
+        location = tmpLocationData;
         initLocation = true;
     }
     client.get_service_index({
@@ -20,11 +21,11 @@ function init() {
         initLocation,
         location,
         onSuccess: function (input: any) {
-            if (input.Index.DefaultRoute.Path) {
+            if (!initLocation && input.Index.DefaultRoute.Path) {
                 location.Path = input.Index.DefaultRoute.Path;
+                locationData.setLocationData(location);
             }
             data.service = {
-                location,
                 data: input.Data,
                 rootView: input.Index.View
             };
@@ -57,9 +58,10 @@ function init() {
                 onSuccess: function (input: any) {
                     if (input.Index.DefaultRoute.Path) {
                         location.Path = input.Index.DefaultRoute.Path;
+                        locationData.setLocationData(location);
                     }
+
                     data.service = {
-                        location,
                         data: input.Data,
                         rootView: input.Index.View
                     };
@@ -92,7 +94,7 @@ function getViewFromPath(View: any, path: any): any {
 }
 
 function getQueries(input: any) {
-    const { location, View } = input;
+    const { location, View, view } = input;
     const { serviceName, projectName } = locationData.getServiceParams();
     const nextView = getViewFromPath(data.service.rootView, location.Path);
     // const subPathMap = location.SubPathMap
@@ -116,11 +118,16 @@ function getQueries(input: any) {
             );
 
             data.service.data = Object.assign(data.service.data, input.data);
-            Index.Render({
-                id: "root-content",
-                View: data.service.rootView
-            });
-            console.log("DEBUG getQueries onSuccess", data.service.data);
+            if (view) {
+                console.log("DEBUG get_queries", view);
+                Index.Render(view);
+            } else {
+                Index.Render({
+                    id: "root-content",
+                    View: data.service.rootView
+                });
+            }
+            console.log("DEBUG getQueries onSuccess", input);
         },
         onError: function (input: any) {
             console.log("DEBUG getQueries onError", input);
