@@ -3,61 +3,54 @@ import service from "../../apps/service";
 
 export function Render(input: any) {
     const { id, View } = input;
-    const idPrefix = `${id}-Table-`;
+    const keyPrefix = `${id}-Table-`;
     const tableData = data.service.data[View.DataKey];
-    console.log("DEBUG Table.Render", input, View, tableData);
+
+    const pagenationId = `${keyPrefix}pagenation`;
+    const pagenationRowsPerPageId = `${keyPrefix}pagenationRowsPerPage`;
+    const pagenationPageClass = `${keyPrefix}pagenationPage`;
+    const theadId = `${keyPrefix}thead`;
+    const tbodyId = `${keyPrefix}tbody`;
+    const searchInputId = `${keyPrefix}searchInput`;
+
+    const tableDataLen = tableData.length;
 
     $(`#${id}`).html(`
     <div class="row table-wrapper">
       <div class="col s3">
         <div class="input-field">
-          <input placeholder="Search" type="text">
+          <input id="${searchInputId}" placeholder="Search" type="text">
         </div>
       </div>
       <div class="col s3">
       </div>
-      <div class="col s6 pagenation-wrapper">
-        <ul class="pagination right">
-          <li>
-            Rows per page:
-            <div class="input-field inline">
-             <select class="browser-default">
-               <option value="1">100</option>
-               <option value="2">200</option>
-               <option value="3">300</option>
-             </select>
-            </div>
-            1-64 of 68
-          </li>
-          <li class="disabled"><a href="#!"><i class="material-icons">first_page</i></a></li>
-          <li class="disabled"><a href="#!"><i class="material-icons">chevron_left</i></a></li>
-          <li class="active"><a href="#!">1</a></li>
-          <li class="waves-effect"><a href="#!">2</a></li>
-          <li class="waves-effect"><a href="#!">3</a></li>
-          <li class="waves-effect"><a href="#!">4</a></li>
-          <li class="waves-effect"><a href="#!">5</a></li>
-          <li class="waves-effect"><a href="#!"><i class="material-icons">chevron_right</i></a></li>
-          <li class="waves-effect"><a href="#!"><i class="material-icons">last_page</i></a></li>
-        </ul>
-      </div>
+      <div id="${pagenationId}" class="col s6 pagenation-wrapper"></div>
 
       <div class="col s12" style="overflow: auto;">
         <table class="table">
-          <thead><tr id="${idPrefix}thead"></tr></thead>
-          <tbody id="${idPrefix}tbody"></tbody>
+          <thead><tr id="${theadId}"></tr></thead>
+          <tbody id="${tbodyId}"></tbody>
         </table>
       </div>
     </div>
     `);
 
+    const isSelectActions = true;
+
     const columns = View.Columns;
     const thHtmls: any = [];
-    const isSelectActions = true;
     thHtmls.push(
         `<th class="checkbox-wrapper"><label><input type="checkbox" /><span></span></label></th>`
     );
+
+    const searchColumns: any[] = [];
     for (let i = 0, len = columns.length; i < len; i++) {
         const column = columns[i];
+
+        if (column.IsSearch) {
+            searchColumns.push(column.Name);
+        }
+
         let alignClass = "right-align";
         if (i === 0) {
             alignClass = "left-align";
@@ -67,65 +60,232 @@ export function Render(input: any) {
         }
         thHtmls.push(`<th class="${alignClass}">${column.Name}</th>`);
     }
-    $(`#${idPrefix}thead`).html(thHtmls.join(""));
+    $(`#${theadId}`).html(thHtmls.join(""));
 
-    const linkClass = `${idPrefix}tableLink`;
-    const bodyTrHtmls: any = [];
-    for (let i = 0, len = tableData.length; i < len; i++) {
-        const rdata = tableData[i];
-        const tdHtmls: any = ["<tr>"];
-        if (isSelectActions) {
-            tdHtmls.push(
-                `<td class="checkbox-wrapper"><label><input type="checkbox" /><span></span></label></td>`
+    const rowsPerPageOptions = [10, 20, 30];
+    let page = 1;
+    let rowsPerPage = 10;
+    let searchRegExp: any = null;
+    let filteredTableData: any = [];
+    let fromIndex = 0;
+    let toIndex = rowsPerPage;
+    let tmpTableDataLen = 0;
+
+    function filterTableData() {
+        let tmpTableData: any = [];
+        let isSkip = true;
+        if (searchRegExp) {
+            for (let i = 0; i < tableDataLen; i++) {
+                const rdata = tableData[i];
+                for (const c of searchColumns) {
+                    if (searchRegExp.exec(rdata[c])) {
+                        isSkip = false;
+                        break;
+                    }
+                }
+                if (isSkip) {
+                    continue;
+                }
+                isSkip = true;
+
+                tmpTableData.push(rdata);
+            }
+        } else {
+            tmpTableData = tableData;
+        }
+
+        fromIndex = rowsPerPage * (page - 1);
+        toIndex = rowsPerPage * page - 1;
+        tmpTableDataLen = tmpTableData.length;
+        if (toIndex >= tmpTableDataLen) {
+            toIndex = tmpTableDataLen - 1;
+        }
+
+        const tmpFilteredTableData = [];
+        for (let i = fromIndex; i <= toIndex; i++) {
+            const rdata = tmpTableData[i];
+            tmpFilteredTableData.push(rdata);
+        }
+        filteredTableData = tmpFilteredTableData;
+    }
+
+    function renderTbody() {
+        const linkClass = `${keyPrefix}tableLink`;
+        const bodyTrHtmls: any = [];
+
+        for (let i = 0, len = filteredTableData.length; i < len; i++) {
+            const rdata = filteredTableData[i];
+
+            const tdHtmls: any = ["<tr>"];
+            if (isSelectActions) {
+                tdHtmls.push(
+                    `<td class="checkbox-wrapper"><label><input type="checkbox" /><span></span></label></td>`
+                );
+            }
+
+            for (let j = 0, lenj = columns.length; j < lenj; j++) {
+                const column = columns[j];
+                let alignClass = "right-align";
+                if (j === 0) {
+                    alignClass = "left-align";
+                }
+                if (column.Align) {
+                    alignClass = "left-align";
+                }
+
+                if (column.LinkPath) {
+                    tdHtmls.push(
+                        `<td class="link ${alignClass} ${linkClass}" id="${keyPrefix}${i}-${j}">
+                ${rdata[column.Name]}
+                </td>`
+                    );
+                } else {
+                    tdHtmls.push(
+                        `<td class="${alignClass}" id="${keyPrefix}${i}-${j}">
+                ${rdata[column.Name]}
+                </td>`
+                    );
+                }
+            }
+
+            tdHtmls.push("</tr>");
+            $.merge(bodyTrHtmls, tdHtmls);
+        }
+
+        $(`#${tbodyId}`).html(bodyTrHtmls.join(""));
+
+        $(`.${linkClass}`)
+            .off("click")
+            .on("click", function () {
+                const id = $(this).attr("id");
+                if (id) {
+                    const splitedId = id.split("-");
+                    const column = columns[splitedId[splitedId.length - 1]];
+                    const rdata = tableData[splitedId[splitedId.length - 2]];
+                    const params: any = {};
+                    params[column.LinkKey] = rdata[column.Name];
+                    const location = {
+                        Path: column.LinkPath,
+                        Params: params,
+                        SearchQueries: {}
+                    };
+                    service.getQueries({ View, location });
+                }
+            });
+    }
+
+    function renderPagenation() {
+        const rowsPerPageOptionsHtmls = [];
+        for (let i = 0, len = rowsPerPageOptions.length; i < len; i++) {
+            const option = rowsPerPageOptions[i];
+            let selected = "";
+            if (option === rowsPerPage) {
+                selected = "selected";
+            }
+            rowsPerPageOptionsHtmls.push(
+                `<option ${selected} value="${option}">${option}</option>`
             );
         }
 
-        for (let j = 0, lenj = columns.length; j < lenj; j++) {
-            const column = columns[j];
-            let alignClass = "right-align";
-            if (j === 0) {
-                alignClass = "left-align";
+        const pageHtmls = [];
+        const pageLen = Math.floor(tmpTableDataLen / rowsPerPage) + 2;
+        for (let i = 1; i < pageLen; i++) {
+            let active = "";
+            if (i === page) {
+                active = "active";
             }
-            if (column.Align) {
-                alignClass = "left-align";
-            }
-
-            if (column.LinkPath) {
-                tdHtmls.push(
-                    `<td class="link ${alignClass} ${linkClass}" id="${idPrefix}${i}-${j}">
-                ${rdata[column.Name]}
-                </td>`
-                );
-            } else {
-                tdHtmls.push(
-                    `<td class="${alignClass}" id="${idPrefix}${i}-${j}">
-                ${rdata[column.Name]}
-                </td>`
-                );
-            }
+            pageHtmls.push(
+                `<li class="waves-effect ${active}"><a class="${pagenationPageClass}" href="${i}">${i}</a></li>`
+            );
         }
 
-        tdHtmls.push("</tr>");
-        $.merge(bodyTrHtmls, tdHtmls);
+        let disabledLeft = "";
+        if (page === 1) {
+            disabledLeft = "disabled";
+        }
+        let disabledRight = "";
+        const lastPage = pageLen - 1;
+        if (page === lastPage) {
+            disabledRight = "disabled";
+        }
+
+        $(`#${pagenationId}`).html(`
+        <ul class="pagination right">
+          <li>
+            Rows per page:
+            <div class="input-field inline">
+             <select id="${pagenationRowsPerPageId}" class="browser-default">
+                ${rowsPerPageOptionsHtmls.join("")}
+             </select>
+            </div>
+            ${fromIndex + 1}-${toIndex + 1} of ${tmpTableDataLen}
+          </li>
+          <li class="waves-effect ${disabledLeft}"><a class="${pagenationPageClass}" href="first"><i class="material-icons">first_page</i></a></li>
+          <li class="waves-effect ${disabledLeft}"><a class="${pagenationPageClass}" href="prev"><i class="material-icons">chevron_left</i></a></li>
+          ${pageHtmls.join("")}
+          <li class="waves-effect ${disabledRight}"><a class="${pagenationPageClass}" href="next"><i class="material-icons">chevron_right</i></a></li>
+          <li class="waves-effect ${disabledRight}"><a class="${pagenationPageClass}" href="last"><i class="material-icons">last_page</i></a></li>
+        </ul>
+        `);
+
+        $(`#${pagenationRowsPerPageId}`)
+            .off("change")
+            .on("change", function () {
+                const val = $(this).val();
+                if (typeof val === "string") {
+                    rowsPerPage = parseInt(val);
+                    render();
+                }
+            });
+
+        $(`.${pagenationPageClass}`)
+            .off("click")
+            .on("click", function (e: any) {
+                e.preventDefault();
+                const href = $(this).attr("href");
+                if (typeof href === "string") {
+                    switch (href) {
+                        case "first":
+                            page = 1;
+                            break;
+                        case "prev":
+                            if (page === 1) {
+                                return;
+                            }
+                            page -= 1;
+                            break;
+                        case "next":
+                            if (page === lastPage) {
+                                return;
+                            }
+                            page += 1;
+                            break;
+                        case "last":
+                            page = lastPage;
+                            break;
+                        default:
+                            page = parseInt(href);
+                            break;
+                    }
+
+                    render();
+                }
+            });
     }
 
-    console.log("DEBUG", bodyTrHtmls);
-    $(`#${idPrefix}tbody`).html(bodyTrHtmls.join(""));
+    function render() {
+        filterTableData();
+        renderTbody();
+        renderPagenation();
+    }
+    render();
 
-    $(`.${linkClass}`).on("click", function () {
-        const id = $(this).attr("id");
-        if (id) {
-            const splitedId = id.split("-");
-            const column = columns[splitedId[splitedId.length - 1]];
-            const rdata = tableData[splitedId[splitedId.length - 2]];
-            const params: any = {};
-            params[column.LinkKey] = rdata[column.Name];
-            const location = {
-                Path: column.LinkPath,
-                Params: params,
-                SearchQueries: {}
-            };
-            service.getQueries({ View, location });
+    $(`#${searchInputId}`).on("keyup", function (e: any) {
+        const val = $(this).val();
+        if (typeof val === "string") {
+            searchRegExp = new RegExp(val, "i");
+            page = 1;
+            render();
         }
     });
 }

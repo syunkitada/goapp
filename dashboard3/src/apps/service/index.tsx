@@ -94,7 +94,7 @@ function getViewFromPath(View: any, path: any): any {
 }
 
 function getQueries(input: any) {
-    const { location, View, view } = input;
+    const { location, view } = input;
     const { serviceName, projectName } = locationData.getServiceParams();
     const nextView = getViewFromPath(data.service.rootView, location.Path);
     // const subPathMap = location.SubPathMap

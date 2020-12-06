@@ -1,4 +1,3 @@
-import data from "../../data";
 import locationData from "../../data/locationData";
 import Index from "../../components/Index";
 
@@ -30,10 +29,8 @@ export function Render(input: any) {
         locationParams = location.Params;
     }
 
-    const pane = "";
     for (let i = 0, len = View.Children.length; i < len; i++) {
         const pane = View.Children[i];
-        const paneId = `${id}-Panes-${i}`;
         let subName = "";
         if (pane.SubNameParamKeys != null && pane.SubNameParamKeys.length > 0) {
             for (

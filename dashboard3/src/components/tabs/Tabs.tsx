@@ -1,12 +1,10 @@
 import service from "../../apps/service";
-import data from "../../data";
 import locationData from "../../data/locationData";
 import Index from "../../components/Index";
 
 export function Render(input: any) {
     const { id, View } = input;
     const prefixKey = `${id}-`;
-    console.log("DEBUG Tabs.Render", View, input);
 
     const location = locationData.getLocationData();
     let indexPath;
