@@ -52,7 +52,7 @@ func (resolver *Resolver) GetNodes(tctx *logger.TraceContext, input *api_spec.Ge
 	for _, event := range getIssuedEventsData.Events {
 		node, ok := nodeMap[event.Node]
 		if !ok {
-			node = api_spec.Node{}
+			node = api_spec.Node{Name: event.Node}
 		}
 		if event.Silenced > 0 {
 			node.SilencedEventsData = append(node.SilencedEventsData, event)

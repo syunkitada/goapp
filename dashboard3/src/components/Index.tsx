@@ -2,6 +2,7 @@ import Panes from "./panes/Panes";
 import Tabs from "./tabs/Tabs";
 import Panels from "./panels/Panels";
 import Table from "./table/Table";
+import Box from "./box/Box";
 import Notfound from "./core/Notfound";
 
 function Render(input: any) {
@@ -16,6 +17,10 @@ function Render(input: any) {
             return Panels.Render(input);
         case "Table":
             return Table.Render(input);
+        case "View":
+            return Box.Render(input);
+        case "Box":
+            return Box.Render(input);
         default:
             return Notfound.Render(input);
     }

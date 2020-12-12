@@ -1,11 +1,17 @@
 import data from "../../data";
+import locationData from "../../data/locationData";
 import service from "../../apps/service";
 
 export function Render(input: any) {
     const { id, View } = input;
+    let { tableData } = input;
     const keyPrefix = `${id}-Table-`;
-    const tableData = data.service.data[View.DataKey];
+    const location = locationData.getLocationData();
+    if (!tableData) {
+        tableData = data.service.data[View.DataKey];
+    }
 
+    const toolBarId = `${keyPrefix}toolBar`;
     const pagenationId = `${keyPrefix}pagenation`;
     const pagenationRowsPerPageId = `${keyPrefix}pagenationRowsPerPage`;
     const pagenationPageClass = `${keyPrefix}pagenationPage`;
@@ -17,14 +23,8 @@ export function Render(input: any) {
 
     $(`#${id}`).html(`
     <div class="row table-wrapper">
-      <div class="col s3">
-        <div class="input-field">
-          <input id="${searchInputId}" placeholder="Search" type="text">
-        </div>
+      <div id="${toolBarId}">
       </div>
-      <div class="col s3">
-      </div>
-      <div id="${pagenationId}" class="col s6 pagenation-wrapper"></div>
 
       <div class="col s12" style="overflow: auto;">
         <table class="table">
@@ -35,13 +35,29 @@ export function Render(input: any) {
     </div>
     `);
 
-    const isSelectActions = true;
+    let isSelectActions = true;
+    if (View.DisableToolbar) {
+        isSelectActions = false;
+    } else {
+        $(`#${toolBarId}`).html(`
+          <div class="col s3">
+            <div class="input-field">
+              <input id="${searchInputId}" placeholder="Search" type="text">
+            </div>
+          </div>
+          <div class="col s3">
+          </div>
+          <div id="${pagenationId}" class="col s6 pagenation-wrapper"></div>
+        `);
+    }
 
     const columns = View.Columns;
     const thHtmls: any = [];
-    thHtmls.push(
-        `<th class="checkbox-wrapper"><label><input type="checkbox" /><span></span></label></th>`
-    );
+    if (isSelectActions) {
+        thHtmls.push(
+            `<th class="checkbox-wrapper"><label><input type="checkbox" /><span></span></label></th>`
+        );
+    }
 
     const searchColumns: any[] = [];
     for (let i = 0, len = columns.length; i < len; i++) {
@@ -66,7 +82,7 @@ export function Render(input: any) {
     let page = 1;
     let rowsPerPage = 10;
     let searchRegExp: any = null;
-    let filteredTableData: any = [];
+    let filteredTableData = tableData;
     let fromIndex = 0;
     let toIndex = rowsPerPage;
     let tmpTableDataLen = 0;
@@ -141,9 +157,9 @@ export function Render(input: any) {
                     );
                 } else {
                     tdHtmls.push(
-                        `<td class="${alignClass}" id="${keyPrefix}${i}-${j}">
-                ${rdata[column.Name]}
-                </td>`
+                        `<td class="${alignClass}" id="${keyPrefix}${i}-${j}">${
+                            rdata[column.Name]
+                        }</td>`
                     );
                 }
             }
@@ -162,14 +178,14 @@ export function Render(input: any) {
                     const splitedId = id.split("-");
                     const column = columns[splitedId[splitedId.length - 1]];
                     const rdata = tableData[splitedId[splitedId.length - 2]];
-                    const params: any = {};
+                    const params = Object.assign({}, location.Params);
                     params[column.LinkKey] = rdata[column.Name];
-                    const location = {
+                    const newLocation = {
                         Path: column.LinkPath,
                         Params: params,
                         SearchQueries: {}
                     };
-                    service.getQueries({ View, location });
+                    service.getQueries({ View, location: newLocation });
                 }
             });
     }
@@ -274,7 +290,9 @@ export function Render(input: any) {
     }
 
     function render() {
-        filterTableData();
+        if (!View.DisableToolbar) {
+            filterTableData();
+        }
         renderTbody();
         renderPagenation();
     }
