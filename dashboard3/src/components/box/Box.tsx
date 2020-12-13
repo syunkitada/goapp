@@ -1,8 +1,10 @@
 import data from "../../data";
+import converter from "../../lib/converter";
 import locationData from "../../data/locationData";
 import service from "../../apps/service";
 import Table from "../table/Table";
 import SearchForm from "../form/SearchForm";
+import LineGraphCard from "../card/LineGraphCard";
 
 export function Render(input: any) {
     const { id, View } = input;
@@ -40,6 +42,7 @@ export function Render(input: any) {
     }
 
     function renderPanels() {
+        const renderHandlers = [];
         const panelsGroups = [];
         for (let i = 0, len = View.PanelsGroups.length; i < len; i++) {
             const panelsGroup = View.PanelsGroups[i];
@@ -87,6 +90,20 @@ export function Render(input: any) {
                                       <div id="${keyPrefix}${card.Name}"></div>
                                     </div>
                                 `);
+
+                                let tableData: any = [];
+                                if (cardData[card.DataKey]) {
+                                    tableData = cardData[card.DataKey];
+                                }
+
+                                renderHandlers.push({
+                                    render: Table.Render,
+                                    input: {
+                                        id: `${keyPrefix}${card.Name}`,
+                                        View: card,
+                                        tableData
+                                    }
+                                });
                                 break;
                             default:
                                 cards.push(
@@ -109,6 +126,58 @@ export function Render(input: any) {
                         </div>`
                     );
 
+                    renderHandlers.push({
+                        render: SearchForm.Render,
+                        input: {
+                            id: `${keyPrefix}searchForm-${panelsGroup.Name}`,
+                            View: panelsGroup
+                        }
+                    });
+
+                    break;
+
+                case "MetricsGroups":
+                    const metricsGroups = boxData[panelsGroup.DataKey];
+                    if (!metricsGroups) {
+                        continue;
+                    }
+                    console.log("DEBUG MetricsGroups", metricsGroups);
+                    for (
+                        let j = 0, jlen = metricsGroups.length;
+                        j < jlen;
+                        j++
+                    ) {
+                        const metricsGroup = metricsGroups[j];
+                        const cards: any = [];
+                        if (!metricsGroup.Metrics) {
+                            continue;
+                        }
+                        for (
+                            let x = 0, xlen = metricsGroup.Metrics.length;
+                            x < xlen;
+                            x++
+                        ) {
+                            const metric = metricsGroup.Metrics[x];
+                            cards.push(`
+                                <div id="${keyPrefix}metric-${converter.escape_id(
+                                metric.Name
+                            )}" class="col m6"></div>
+                            `);
+                            renderHandlers.push({
+                                render: LineGraphCard.Render,
+                                input: {
+                                    id: `${keyPrefix}metric-${converter.escape_id(
+                                        metric.Name
+                                    )}`
+                                }
+                            });
+                        }
+                        panelsGroups.push(`
+                          <div class="row">
+                            ${cards.join("")}
+                          </div>
+                        `);
+                    }
                     break;
 
                 default:
@@ -119,44 +188,9 @@ export function Render(input: any) {
         }
         $(`#${panelsId}`).html(panelsGroups.join(""));
 
-        for (let i = 0, len = View.PanelsGroups.length; i < len; i++) {
-            const panelsGroup = View.PanelsGroups[i];
-            switch (panelsGroup.Kind) {
-                case "Cards":
-                    const cards = [];
-                    for (
-                        let j = 0, jlen = panelsGroup.Cards.length;
-                        j < jlen;
-                        j++
-                    ) {
-                        const card = panelsGroup.Cards[j];
-                        let cardData = boxData;
-                        if (card.SubDataKey) {
-                            cardData = boxData[card.SubDataKey];
-                        }
-                        switch (card.Kind) {
-                            case "Table":
-                                let tableData: any = [];
-                                if (cardData[card.DataKey]) {
-                                    tableData = cardData[card.DataKey];
-                                }
-                                Table.Render({
-                                    id: `${keyPrefix}${card.Name}`,
-                                    View: card,
-                                    tableData
-                                });
-                                break;
-                        }
-                    }
-                    break;
-                case "SearchForm":
-                    SearchForm.Render({
-                        id: `${keyPrefix}searchForm-${panelsGroup.Name}`,
-                        View: panelsGroup
-                    });
-
-                    break;
-            }
+        for (let i = 0, len = renderHandlers.length; i < len; i++) {
+            const handler = renderHandlers[i];
+            handler.render(handler.input);
         }
     }
     renderPanels();
