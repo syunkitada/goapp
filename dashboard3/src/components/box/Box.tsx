@@ -141,7 +141,6 @@ export function Render(input: any) {
                     if (!metricsGroups) {
                         continue;
                     }
-                    console.log("DEBUG MetricsGroups", metricsGroups);
                     for (
                         let j = 0, jlen = metricsGroups.length;
                         j < jlen;
@@ -159,16 +158,19 @@ export function Render(input: any) {
                         ) {
                             const metric = metricsGroup.Metrics[x];
                             cards.push(`
+                                <div class="col m6">
+                                <h5>${metric.Name}</h5>
                                 <div id="${keyPrefix}metric-${converter.escape_id(
                                 metric.Name
-                            )}" class="col m6"></div>
+                            )}"></div></div>
                             `);
                             renderHandlers.push({
                                 render: LineGraphCard.Render,
                                 input: {
                                     id: `${keyPrefix}metric-${converter.escape_id(
                                         metric.Name
-                                    )}`
+                                    )}`,
+                                    metric: metric
                                 }
                             });
                         }
