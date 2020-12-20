@@ -34,7 +34,6 @@ export function Render(input: any) {
     if (!elem) {
         return;
     }
-    console.log("DEBUG metric", metric);
 
     var datasets: any = [];
     for (let i = 0, len = metric.Keys.length; i < len; i++) {
@@ -57,7 +56,6 @@ export function Render(input: any) {
             });
         }
     }
-    console.log("DEBUG datasets", datasets);
 
     var ctx = elem.getContext("2d");
     var myChart = new Chart(ctx, {
