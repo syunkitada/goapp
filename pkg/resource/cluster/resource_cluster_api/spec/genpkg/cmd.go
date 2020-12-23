@@ -205,7 +205,7 @@ var ResourceVirtualAdminCmdMap = map[string]base_index_model.Cmd{
 				FlagType: "string",
 				FlagKind: "",
 			},
-			"from.time,f": base_index_model.Flag{
+			"time.duration,t": base_index_model.Flag{
 				Required: false,
 				FlagType: "string",
 				FlagKind: "",

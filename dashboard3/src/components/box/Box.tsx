@@ -130,7 +130,21 @@ export function Render(input: any) {
                         render: SearchForm.Render,
                         input: {
                             id: `${keyPrefix}searchForm-${panelsGroup.Name}`,
-                            View: panelsGroup
+                            View: panelsGroup,
+                            onSubmit: function (input: any) {
+                                const { searchQueries } = input;
+                                const newLocation = Object.assign(
+                                    {},
+                                    location,
+                                    {
+                                        SearchQueries: searchQueries
+                                    }
+                                );
+                                service.getQueries({
+                                    view: { id, View },
+                                    location: newLocation
+                                });
+                            }
                         }
                     });
 

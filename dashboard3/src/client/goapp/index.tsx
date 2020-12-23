@@ -18,7 +18,12 @@ function query(input: any) {
         method: "POST",
         mode: "cors"
     })
-        .then(res => res.json())
+        .then(res => {
+            if (res.status != 200) {
+                console.log("Failed", res);
+            }
+            return res.json();
+        })
         .then(payload => {
             console.log("DEBUG payload", payload);
             onSuccess(payload.ResultMap);

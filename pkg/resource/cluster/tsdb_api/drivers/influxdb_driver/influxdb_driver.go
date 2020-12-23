@@ -264,12 +264,27 @@ func (driver *InfluxdbDriver) GetNode(tctx *logger.TraceContext, input *api_spec
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
 	until := "now()"
-	if input.UntilTime != nil {
-		until = fmt.Sprintf("'%s'", input.UntilTime.Format(time.RFC3339))
+	if input.UntilTime != "" {
+		splitedUntilTime := strings.Split(input.UntilTime, "T")
+		if len(splitedUntilTime) == 2 {
+			if splitedUntilTime[1] == "" {
+				now := time.Now().Format(time.RFC3339)
+				until = splitedUntilTime[0] + "T" + strings.Split(now, "T")[1]
+			} else {
+				until = input.UntilTime
+			}
+			if _, tmpErr := time.Parse(time.RFC3339, until); tmpErr != nil {
+				logger.Warningf(tctx, "Invalid UntilTime", tmpErr.Error())
+				until = "now()"
+			}
+			until = "'" + until + "'"
+		} else {
+			until = "now()"
+		}
 	}
 	from := "-6h"
-	if input.FromTime != "" {
-		from = input.FromTime
+	if input.TimeDuration != "" {
+		from = input.TimeDuration
 	}
 
 	whereStr := fmt.Sprintf("WHERE Node = '%s' AND time < %s AND time > %s %s",

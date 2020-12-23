@@ -55,9 +55,12 @@ func (handler *QueryHandler) ExecWs(tctx *logger.TraceContext, httpReq *http.Req
 		switch query.Name {
 		case "GetComputeConsole":
 			var input spec.GetComputeConsole
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.GetComputeConsole(tctx, &input, req.UserAuthority, conn)
 			if tmpErr != nil {

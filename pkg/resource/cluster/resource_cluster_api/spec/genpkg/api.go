@@ -71,9 +71,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 		switch query.Name {
 		case "Login":
 			var input base_spec.Login
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 
 			data, code, tmpErr := handler.resolver.Login(tctx, &input)
@@ -115,9 +118,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 
 		case "LoginWithToken":
 			var input base_spec.LoginWithToken
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 
 			data, code, tmpErr := handler.resolver.LoginWithToken(tctx, &input, req.UserAuthority)
@@ -138,9 +144,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 
 		case "UpdateService":
 			var input base_spec.UpdateService
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 
 			data, code, tmpErr := handler.resolver.UpdateService(tctx, &input)
@@ -161,9 +170,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 
 		case "GetServiceIndex":
 			var input base_spec.GetServiceIndex
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 
 			data, code, tmpErr := handler.resolver.GetServiceIndex(tctx, &input, req.UserAuthority)
@@ -183,9 +195,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "GetProjectServiceIndex":
 			var input base_spec.GetServiceIndex
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 
 			data, code, tmpErr := handler.resolver.GetProjectServiceIndex(tctx, &input, req.UserAuthority)
@@ -205,9 +220,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "GetServiceDashboardIndex":
 			var input base_spec.GetServiceDashboardIndex
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 
 			data, code, tmpErr := handler.resolver.GetServiceDashboardIndex(tctx, &input, req.UserAuthority)
@@ -227,9 +245,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "GetProjectServiceDashboardIndex":
 			var input base_spec.GetServiceDashboardIndex
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 
 			data, code, tmpErr := handler.resolver.GetProjectServiceDashboardIndex(tctx, &input, req.UserAuthority)
@@ -249,9 +270,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "CreateCompute":
 			var input spec.CreateCompute
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.CreateCompute(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -270,9 +294,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "CreateEventRules":
 			var input spec.CreateEventRules
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.CreateEventRules(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -291,9 +318,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "DeleteCompute":
 			var input spec.DeleteCompute
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.DeleteCompute(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -312,9 +342,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "DeleteComputes":
 			var input spec.DeleteComputes
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.DeleteComputes(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -333,9 +366,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "DeleteEventRules":
 			var input spec.DeleteEventRules
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.DeleteEventRules(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -354,9 +390,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "GetCompute":
 			var input spec.GetCompute
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.GetCompute(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -375,9 +414,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "GetComputes":
 			var input spec.GetComputes
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.GetComputes(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -396,9 +438,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "GetEventRule":
 			var input spec.GetEventRule
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.GetEventRule(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -417,9 +462,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "GetEventRules":
 			var input spec.GetEventRules
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.GetEventRules(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -438,9 +486,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "GetEvents":
 			var input spec.GetEvents
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.GetEvents(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -459,9 +510,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "GetLogParams":
 			var input spec.GetLogParams
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.GetLogParams(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -480,9 +534,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "GetLogs":
 			var input spec.GetLogs
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.GetLogs(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -501,9 +558,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "GetNode":
 			var input spec.GetNode
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.GetNode(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -522,9 +582,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "GetNodeMetrics":
 			var input spec.GetNodeMetrics
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.GetNodeMetrics(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -543,9 +606,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "GetNodeServices":
 			var input spec.GetNodeServices
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.GetNodeServices(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -564,9 +630,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "GetNodes":
 			var input spec.GetNodes
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.GetNodes(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -585,9 +654,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "ReportNode":
 			var input spec.ReportNode
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.ReportNode(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -606,9 +678,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "ReportNodeServiceTask":
 			var input spec.ReportNodeServiceTask
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.ReportNodeServiceTask(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -627,9 +702,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "SyncNodeService":
 			var input spec.SyncNodeService
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.SyncNodeService(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -648,9 +726,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "UpdateCompute":
 			var input spec.UpdateCompute
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.UpdateCompute(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -669,9 +750,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "UpdateEventRules":
 			var input spec.UpdateEventRules
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.UpdateEventRules(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -703,9 +787,12 @@ func (handler *QueryHandler) ExecWs(tctx *logger.TraceContext, httpReq *http.Req
 		switch query.Name {
 		case "GetComputeConsole":
 			var input spec.GetComputeConsole
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.GetComputeConsole(tctx, &input, req.UserAuthority, conn)
 			if tmpErr != nil {
