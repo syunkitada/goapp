@@ -126,9 +126,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 		switch query.Name {
 		case "Login":
 			var input base_spec.Login
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 
 			data, code, tmpErr := handler.resolver.Login(tctx, &input)
@@ -170,9 +173,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 
 		case "LoginWithToken":
 			var input base_spec.LoginWithToken
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 
 			data, code, tmpErr := handler.resolver.LoginWithToken(tctx, &input, req.UserAuthority)
@@ -193,9 +199,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 
 		case "UpdateService":
 			var input base_spec.UpdateService
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 
 			data, code, tmpErr := handler.resolver.UpdateService(tctx, &input)
@@ -216,9 +225,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 
 		case "GetServiceIndex":
 			var input base_spec.GetServiceIndex
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 
 			data, code, tmpErr := handler.resolver.GetServiceIndex(tctx, &input, req.UserAuthority)
@@ -238,9 +250,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "GetProjectServiceIndex":
 			var input base_spec.GetServiceIndex
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 
 			data, code, tmpErr := handler.resolver.GetProjectServiceIndex(tctx, &input, req.UserAuthority)
@@ -260,9 +275,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "GetServiceDashboardIndex":
 			var input base_spec.GetServiceDashboardIndex
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 
 			data, code, tmpErr := handler.resolver.GetServiceDashboardIndex(tctx, &input, req.UserAuthority)
@@ -282,9 +300,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "GetProjectServiceDashboardIndex":
 			var input base_spec.GetServiceDashboardIndex
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 
 			data, code, tmpErr := handler.resolver.GetProjectServiceDashboardIndex(tctx, &input, req.UserAuthority)
@@ -304,9 +325,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "CreateCluster":
 			var input spec.CreateCluster
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.CreateCluster(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -325,9 +349,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "CreateDatacenter":
 			var input spec.CreateDatacenter
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.CreateDatacenter(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -346,9 +373,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "CreateEventRules":
 			var input spec.CreateEventRules
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.CreateEventRules(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -367,9 +397,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "CreateFloor":
 			var input spec.CreateFloor
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.CreateFloor(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -388,9 +421,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "CreateImage":
 			var input spec.CreateImage
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.CreateImage(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -409,9 +445,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "CreateNetworkV4":
 			var input spec.CreateNetworkV4
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.CreateNetworkV4(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -430,9 +469,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "CreatePhysicalModel":
 			var input spec.CreatePhysicalModel
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.CreatePhysicalModel(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -451,9 +493,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "CreatePhysicalResource":
 			var input spec.CreatePhysicalResource
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.CreatePhysicalResource(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -472,9 +517,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "CreateRack":
 			var input spec.CreateRack
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.CreateRack(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -493,9 +541,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "CreateRegion":
 			var input spec.CreateRegion
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.CreateRegion(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -514,9 +565,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "CreateRegionService":
 			var input spec.CreateRegionService
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.CreateRegionService(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -535,9 +589,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "DeleteCluster":
 			var input spec.DeleteCluster
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.DeleteCluster(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -556,9 +613,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "DeleteClusters":
 			var input spec.DeleteClusters
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.DeleteClusters(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -577,9 +637,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "DeleteDatacenter":
 			var input spec.DeleteDatacenter
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.DeleteDatacenter(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -598,9 +661,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "DeleteDatacenters":
 			var input spec.DeleteDatacenters
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.DeleteDatacenters(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -619,9 +685,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "DeleteEventRules":
 			var input spec.DeleteEventRules
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.DeleteEventRules(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -640,9 +709,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "DeleteFloor":
 			var input spec.DeleteFloor
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.DeleteFloor(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -661,9 +733,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "DeleteFloors":
 			var input spec.DeleteFloors
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.DeleteFloors(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -682,9 +757,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "DeleteImage":
 			var input spec.DeleteImage
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.DeleteImage(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -703,9 +781,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "DeleteImages":
 			var input spec.DeleteImages
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.DeleteImages(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -724,9 +805,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "DeleteNetworkV4":
 			var input spec.DeleteNetworkV4
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.DeleteNetworkV4(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -745,9 +829,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "DeleteNetworkV4s":
 			var input spec.DeleteNetworkV4s
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.DeleteNetworkV4s(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -766,9 +853,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "DeletePhysicalModel":
 			var input spec.DeletePhysicalModel
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.DeletePhysicalModel(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -787,9 +877,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "DeletePhysicalModels":
 			var input spec.DeletePhysicalModels
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.DeletePhysicalModels(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -808,9 +901,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "DeletePhysicalResource":
 			var input spec.DeletePhysicalResource
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.DeletePhysicalResource(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -829,9 +925,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "DeletePhysicalResources":
 			var input spec.DeletePhysicalResources
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.DeletePhysicalResources(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -850,9 +949,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "DeleteRack":
 			var input spec.DeleteRack
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.DeleteRack(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -871,9 +973,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "DeleteRacks":
 			var input spec.DeleteRacks
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.DeleteRacks(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -892,9 +997,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "DeleteRegion":
 			var input spec.DeleteRegion
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.DeleteRegion(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -913,9 +1021,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "DeleteRegionService":
 			var input spec.DeleteRegionService
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.DeleteRegionService(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -934,9 +1045,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "DeleteRegionServices":
 			var input spec.DeleteRegionServices
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.DeleteRegionServices(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -955,9 +1069,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "DeleteRegions":
 			var input spec.DeleteRegions
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.DeleteRegions(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -976,9 +1093,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "GetCluster":
 			var input spec.GetCluster
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.GetCluster(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -997,9 +1117,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "GetClusters":
 			var input spec.GetClusters
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.GetClusters(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -1018,9 +1141,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "GetCompute":
 			var input spec.GetCompute
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.GetCompute(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -1039,9 +1165,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "GetComputes":
 			var input spec.GetComputes
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.GetComputes(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -1060,9 +1189,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "GetDatacenter":
 			var input spec.GetDatacenter
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.GetDatacenter(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -1081,9 +1213,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "GetDatacenters":
 			var input spec.GetDatacenters
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.GetDatacenters(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -1102,9 +1237,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "GetEventRule":
 			var input spec.GetEventRule
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.GetEventRule(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -1123,9 +1261,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "GetEventRules":
 			var input spec.GetEventRules
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.GetEventRules(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -1144,9 +1285,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "GetEvents":
 			var input spec.GetEvents
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.GetEvents(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -1165,9 +1309,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "GetFloor":
 			var input spec.GetFloor
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.GetFloor(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -1186,9 +1333,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "GetFloors":
 			var input spec.GetFloors
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.GetFloors(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -1207,9 +1357,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "GetImage":
 			var input spec.GetImage
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.GetImage(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -1228,9 +1381,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "GetImages":
 			var input spec.GetImages
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.GetImages(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -1249,9 +1405,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "GetLogParams":
 			var input spec.GetLogParams
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.GetLogParams(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -1270,9 +1429,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "GetLogs":
 			var input spec.GetLogs
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.GetLogs(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -1291,9 +1453,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "GetNetworkV4":
 			var input spec.GetNetworkV4
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.GetNetworkV4(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -1312,9 +1477,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "GetNetworkV4s":
 			var input spec.GetNetworkV4s
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.GetNetworkV4s(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -1333,9 +1501,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "GetNode":
 			var input spec.GetNode
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.GetNode(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -1354,9 +1525,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "GetNodeMetrics":
 			var input spec.GetNodeMetrics
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.GetNodeMetrics(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -1375,9 +1549,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "GetNodeServices":
 			var input spec.GetNodeServices
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.GetNodeServices(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -1396,9 +1573,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "GetNodes":
 			var input spec.GetNodes
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.GetNodes(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -1417,9 +1597,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "GetPhysicalModel":
 			var input spec.GetPhysicalModel
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.GetPhysicalModel(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -1438,9 +1621,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "GetPhysicalModels":
 			var input spec.GetPhysicalModels
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.GetPhysicalModels(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -1459,9 +1645,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "GetPhysicalResource":
 			var input spec.GetPhysicalResource
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.GetPhysicalResource(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -1480,9 +1669,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "GetPhysicalResources":
 			var input spec.GetPhysicalResources
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.GetPhysicalResources(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -1501,9 +1693,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "GetRack":
 			var input spec.GetRack
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.GetRack(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -1522,9 +1717,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "GetRacks":
 			var input spec.GetRacks
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.GetRacks(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -1543,9 +1741,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "GetRegion":
 			var input spec.GetRegion
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.GetRegion(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -1564,9 +1765,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "GetRegionService":
 			var input spec.GetRegionService
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.GetRegionService(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -1585,9 +1789,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "GetRegionServices":
 			var input spec.GetRegionServices
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.GetRegionServices(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -1606,9 +1813,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "GetRegions":
 			var input spec.GetRegions
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.GetRegions(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -1627,9 +1837,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "GetStatistics":
 			var input spec.GetStatistics
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.GetStatistics(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -1648,9 +1861,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "GetTrace":
 			var input spec.GetTrace
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.GetTrace(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -1669,9 +1885,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "UpdateCluster":
 			var input spec.UpdateCluster
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.UpdateCluster(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -1690,9 +1909,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "UpdateDatacenter":
 			var input spec.UpdateDatacenter
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.UpdateDatacenter(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -1711,9 +1933,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "UpdateEventRules":
 			var input spec.UpdateEventRules
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.UpdateEventRules(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -1732,9 +1957,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "UpdateFloor":
 			var input spec.UpdateFloor
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.UpdateFloor(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -1753,9 +1981,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "UpdateImage":
 			var input spec.UpdateImage
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.UpdateImage(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -1774,9 +2005,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "UpdateNetworkV4":
 			var input spec.UpdateNetworkV4
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.UpdateNetworkV4(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -1795,9 +2029,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "UpdatePhysicalModel":
 			var input spec.UpdatePhysicalModel
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.UpdatePhysicalModel(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -1816,9 +2053,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "UpdatePhysicalResource":
 			var input spec.UpdatePhysicalResource
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.UpdatePhysicalResource(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -1837,9 +2077,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "UpdateRack":
 			var input spec.UpdateRack
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.UpdateRack(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -1858,9 +2101,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "UpdateRegion":
 			var input spec.UpdateRegion
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.UpdateRegion(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -1879,9 +2125,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "UpdateRegionService":
 			var input spec.UpdateRegionService
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.UpdateRegionService(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
@@ -1913,9 +2162,12 @@ func (handler *QueryHandler) ExecWs(tctx *logger.TraceContext, httpReq *http.Req
 		switch query.Name {
 		case "GetComputeConsole":
 			var input spec.GetComputeConsole
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 			data, code, tmpErr := handler.resolver.GetComputeConsole(tctx, &input, req.UserAuthority, conn)
 			if tmpErr != nil {

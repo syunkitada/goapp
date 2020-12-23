@@ -46,10 +46,10 @@ type GetNodeData struct {
 }
 
 type GetNodeMetrics struct {
-	Cluster   string `validate:"required"`
-	Name      string `validate:"required"`
-	FromTime  string
-	UntilTime *time.Time
+	Cluster      string `validate:"required"`
+	Name         string `validate:"required"`
+	TimeDuration string
+	UntilTime    string
 }
 
 type GetNodeMetricsData struct {
@@ -285,9 +285,9 @@ var NodesDetail = base_index_model.Tabs{
 					"DataQueries": []string{"GetNodeMetrics"},
 					"Inputs": []interface{}{
 						base_index_model.TableInputField{
-							Name:     "FromTime",
+							Name:     "TimeDuration",
 							Type:     "Select",
-							Data:     []string{"-6h", "-1d", "-3d"},
+							Data:     []string{"-3h", "-6h", "-1d", "-3d", "-7d"},
 							Default:  "-6h",
 							Multiple: false,
 						},

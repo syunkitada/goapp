@@ -48,9 +48,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 		switch query.Name {
 		case "Login":
 			var input base_spec.Login
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 
 			data, code, tmpErr := handler.resolver.Login(tctx, &input)
@@ -92,9 +95,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 
 		case "LoginWithToken":
 			var input base_spec.LoginWithToken
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 
 			data, code, tmpErr := handler.resolver.LoginWithToken(tctx, &input, req.UserAuthority)
@@ -115,9 +121,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 
 		case "UpdateService":
 			var input base_spec.UpdateService
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 
 			data, code, tmpErr := handler.resolver.UpdateService(tctx, &input)
@@ -138,9 +147,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 
 		case "GetServiceIndex":
 			var input base_spec.GetServiceIndex
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 
 			data, code, tmpErr := handler.resolver.GetServiceIndex(tctx, &input, req.UserAuthority)
@@ -160,9 +172,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "GetProjectServiceIndex":
 			var input base_spec.GetServiceIndex
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 
 			data, code, tmpErr := handler.resolver.GetProjectServiceIndex(tctx, &input, req.UserAuthority)
@@ -182,9 +197,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "GetServiceDashboardIndex":
 			var input base_spec.GetServiceDashboardIndex
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 
 			data, code, tmpErr := handler.resolver.GetServiceDashboardIndex(tctx, &input, req.UserAuthority)
@@ -204,9 +222,12 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 			}
 		case "GetProjectServiceDashboardIndex":
 			var input base_spec.GetServiceDashboardIndex
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 
 			data, code, tmpErr := handler.resolver.GetProjectServiceDashboardIndex(tctx, &input, req.UserAuthority)
