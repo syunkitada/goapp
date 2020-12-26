@@ -1,4 +1,4 @@
-# Quick Starting
+# Quick Start Guide
 
 ## Requirements
 

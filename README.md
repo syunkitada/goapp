@@ -2,11 +2,11 @@
 
 - 実験用の GoLang アプリケーションフレームワークです。
 
-## Doc
+## Docs
 
-| Link                                   | Description    |
-| -------------------------------------- | -------------- |
-| [StartingGuid](doc/starting/README.md) | スタートガイド |
+| Link                                     | Description    |
+| ---------------------------------------- | -------------- |
+| [StartGuide](docs/start_guide/README.md) | スタートガイド |
 
 ## License
 
