@@ -162,29 +162,28 @@ export function Render(input: any) {
                     ) {
                         const metricsGroup = metricsGroups[j];
                         const cards: any = [];
-                        if (!metricsGroup.Metrics) {
+                        if (!metricsGroup.MetricsGroup) {
                             continue;
                         }
                         for (
-                            let x = 0, xlen = metricsGroup.Metrics.length;
+                            let x = 0, xlen = metricsGroup.MetricsGroup.length;
                             x < xlen;
                             x++
                         ) {
-                            const metric = metricsGroup.Metrics[x];
+                            const metrics = metricsGroup.MetricsGroup[x];
+                            const cardId = `${keyPrefix}metrics-${converter.escape_id(
+                                metrics.Name
+                            )}`;
                             cards.push(`
                                 <div class="col m6">
-                                <h5>${metric.Name}</h5>
-                                <div id="${keyPrefix}metric-${converter.escape_id(
-                                metric.Name
-                            )}"></div></div>
+                                <h5>${metrics.Name}</h5>
+                                <div id="${cardId}"></div></div>
                             `);
                             renderHandlers.push({
                                 render: LineGraphCard.Render,
                                 input: {
-                                    id: `${keyPrefix}metric-${converter.escape_id(
-                                        metric.Name
-                                    )}`,
-                                    metric: metric
+                                    id: cardId,
+                                    metrics: metrics
                                 }
                             });
                         }

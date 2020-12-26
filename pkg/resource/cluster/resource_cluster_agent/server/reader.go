@@ -25,10 +25,10 @@ func (srv *Server) ReaderLoop() {
 }
 
 func (srv *Server) ReaderTask(tctx *logger.TraceContext) (err error) {
-	for metricName, metricReader := range srv.metricReaderMap {
-		err = metricReader.Read(tctx)
+	for metricsName, metricsReader := range srv.metricsReaderMap {
+		err = metricsReader.Read(tctx)
 		if err != nil {
-			logger.Warningf(tctx, "Failed metricReader.Read(): %s, err=%v", metricName, err)
+			logger.Warningf(tctx, "Failed metricsReader.Read(): %s, err=%v", metricsName, err)
 		}
 	}
 
@@ -80,8 +80,8 @@ func (srv *Server) Report(tctx *logger.TraceContext) (err error) {
 	metrics := make([]resource_api_spec.ResourceMetric, 0, 100)
 	logs := make([]resource_api_spec.ResourceLog, 0, 100)
 
-	for _, metricReader := range srv.metricReaderMap {
-		tmpMetrics, tmpEvents := metricReader.Report()
+	for _, metricsReader := range srv.metricsReaderMap {
+		tmpMetrics, tmpEvents := metricsReader.Report()
 		metrics = append(metrics, tmpMetrics...)
 		events = append(events, tmpEvents...)
 	}
@@ -113,8 +113,8 @@ func (srv *Server) Report(tctx *logger.TraceContext) (err error) {
 		return
 	}
 
-	for _, metricReader := range srv.metricReaderMap {
-		metricReader.Reported()
+	for _, metricsReader := range srv.metricsReaderMap {
+		metricsReader.Reported()
 	}
 	for _, logReader := range srv.logReaderMap {
 		logReader.Reported()

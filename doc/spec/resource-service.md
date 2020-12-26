@@ -608,6 +608,16 @@ internet --- gateway-router --- floor-spine-router --- floor-leaf-router --- rac
     - 用途
       - 年ごと、月ごとのリソースの利用率・稼働率の表示
       - 月ごと、日ごとのエラーレートの遷移
+  - Metrics
+    - 観測する(された)時系列データのこと
+    - 例: Cpu の System メトリクス, User メトリクスなど
+  - MetricsGroup
+    - Metrics を種別ごとに Group 化したもの
+    - 例: Cpu の MetricsGroup, Memory の MetricsGroup
+  - Point
+    - Timestamp と Value からなる一つのデータポイントのこと
+  - Points
+    - Point の集合
 
 ## LogData
 

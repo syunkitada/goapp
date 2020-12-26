@@ -1,4 +1,4 @@
-package system_metric_reader
+package system_metrics_reader
 
 import (
 	"fmt"
@@ -43,13 +43,13 @@ type NetDevStat struct {
 }
 
 type NetDevReader struct {
-	conf               *config.ResourceMetricSystemConfig
-	cacheLength        int
-	systemMetricReader *SystemMetricReader
-	tmpNetDevStatMap   map[string]TmpNetDevStat
-	netDevStats        []NetDevStat
-	netDevStatFilters  []string
-	netDevCheckFilters []string
+	conf                *config.ResourceMetricsSystemConfig
+	cacheLength         int
+	systemMetricsReader *SystemMetricsReader
+	tmpNetDevStatMap    map[string]TmpNetDevStat
+	netDevStats         []NetDevStat
+	netDevStatFilters   []string
+	netDevCheckFilters  []string
 
 	checkBytesOccurences      int
 	checkBytesReissueDuration int
@@ -68,13 +68,13 @@ type NetDevReader struct {
 	checkErrorsCritCounterMap  map[string]int
 }
 
-func NewNetDevReader(conf *config.ResourceMetricSystemConfig, systemMetricReader *SystemMetricReader) SubMetricReader {
+func NewNetDevReader(conf *config.ResourceMetricsSystemConfig, systemMetricsReader *SystemMetricsReader) SubMetricsReader {
 	reader := &NetDevReader{
-		conf:               conf,
-		cacheLength:        conf.CacheLength,
-		systemMetricReader: systemMetricReader,
-		netDevStatFilters:  conf.NetDev.StatFilters,
-		netDevCheckFilters: conf.NetDev.CheckFilters,
+		conf:                conf,
+		cacheLength:         conf.CacheLength,
+		systemMetricsReader: systemMetricsReader,
+		netDevStatFilters:   conf.NetDev.StatFilters,
+		netDevCheckFilters:  conf.NetDev.CheckFilters,
 
 		checkBytesOccurences:      conf.NetDev.CheckBytes.Occurences,
 		checkBytesReissueDuration: conf.NetDev.CheckBytes.ReissueDuration,
@@ -137,7 +137,7 @@ func (reader *NetDevReader) Read(tctx *logger.TraceContext) {
 				TransmitDiffErrors:    transmitDiffErrors,
 				TransmitDiffDrops:     transmitDiffDrops,
 			}
-			reader.systemMetricReader.NetDevStatMap[dev] = netDevStat
+			reader.systemMetricsReader.NetDevStatMap[dev] = netDevStat
 			reader.netDevStats = append(reader.netDevStats, netDevStat)
 
 			isFiltered = false

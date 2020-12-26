@@ -19,7 +19,7 @@ function query(input: any) {
         mode: "cors"
     })
         .then(res => {
-            if (res.status != 200) {
+            if (res.status !== 200) {
                 console.log("Failed", res);
             }
             return res.json();

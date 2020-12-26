@@ -56,17 +56,6 @@ type GetNodeMetricsData struct {
 	NodeMetrics Node
 }
 
-type MetricsGroup struct {
-	Name    string
-	Metrics []Metric
-}
-
-type Metric struct {
-	Name   string
-	Keys   []string
-	Values []map[string]interface{}
-}
-
 var NodesTable = base_index_model.Table{
 	Name:        "Nodes",
 	Kind:        "Table",

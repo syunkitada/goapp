@@ -1,4 +1,4 @@
-package system_metric_reader
+package system_metrics_reader
 
 import (
 	"bufio"
@@ -70,7 +70,7 @@ type TmpCpuStat struct {
 }
 
 type CpuReader struct {
-	conf                 *config.ResourceMetricSystemConfig
+	conf                 *config.ResourceMetricsSystemConfig
 	cpus                 []spec.NumaNodeCpuSpec
 	cacheLength          int
 	cpuStats             []CpuStat
@@ -93,7 +93,7 @@ type CpuReader struct {
 	checkProcsBlockedCritCounter     int
 }
 
-func NewCpuReader(conf *config.ResourceMetricSystemConfig, cpus []spec.NumaNodeCpuSpec) SubMetricReader {
+func NewCpuReader(conf *config.ResourceMetricsSystemConfig, cpus []spec.NumaNodeCpuSpec) SubMetricsReader {
 	var checkProcsRunningWarnLimit int64 = -1
 	var checkProcsRunningCritLimit int64 = -1
 	if conf.Cpu.CheckProcsRunning.WarnRateLimit > 0 {

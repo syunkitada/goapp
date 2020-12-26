@@ -1,4 +1,4 @@
-package system_metric_reader
+package system_metrics_reader
 
 import (
 	"bufio"
@@ -69,13 +69,13 @@ type TmpVmStat struct {
 }
 
 type MemReader struct {
-	conf               *config.ResourceMetricSystemConfig
-	cacheLength        int
-	lenNodes           int
-	memStats           []MemStat
-	systemMetricReader *SystemMetricReader
-	tmpVmStat          *TmpVmStat
-	vmStats            []VmStat
+	conf                *config.ResourceMetricsSystemConfig
+	cacheLength         int
+	lenNodes            int
+	memStats            []MemStat
+	systemMetricsReader *SystemMetricsReader
+	tmpVmStat           *TmpVmStat
+	vmStats             []VmStat
 
 	checkAvailableOccurences         int
 	checkAvailableReissueDuration    int
@@ -88,19 +88,19 @@ type MemReader struct {
 	checkPgscanWarnPgscanDirectCounter int
 }
 
-func NewMemReader(conf *config.ResourceMetricSystemConfig, systemMetricReader *SystemMetricReader) SubMetricReader {
-	lenNodes := len(systemMetricReader.NumaNodes)
+func NewMemReader(conf *config.ResourceMetricsSystemConfig, systemMetricsReader *SystemMetricsReader) SubMetricsReader {
+	lenNodes := len(systemMetricsReader.NumaNodes)
 	return &MemReader{
-		conf:               conf,
-		cacheLength:        conf.CacheLength,
-		memStats:           make([]MemStat, 0, conf.CacheLength),
-		systemMetricReader: systemMetricReader,
-		lenNodes:           lenNodes,
+		conf:                conf,
+		cacheLength:         conf.CacheLength,
+		memStats:            make([]MemStat, 0, conf.CacheLength),
+		systemMetricsReader: systemMetricsReader,
+		lenNodes:            lenNodes,
 
 		checkAvailableOccurences:         conf.Mem.CheckAvailable.Occurences,
 		checkAvailableReissueDuration:    conf.Mem.CheckAvailable.ReissueDuration,
 		checkAvailableWarnAvailableRatio: conf.Mem.CheckAvailable.WarnAvailableRatio,
-		checkAvailableWarnNodeCounters:   make([]int, 0, len(systemMetricReader.NumaNodes)),
+		checkAvailableWarnNodeCounters:   make([]int, 0, len(systemMetricsReader.NumaNodes)),
 
 		checkPgscanOccurences:              conf.Mem.CheckPgscan.Occurences,
 		checkPgscanReissueDuration:         conf.Mem.CheckPgscan.ReissueDuration,
@@ -147,7 +147,7 @@ func (reader *MemReader) Read(tctx *logger.TraceContext) {
 	var tmpBytes []byte
 	var tmpErr error
 	var tmpFile *os.File
-	for id, node := range reader.systemMetricReader.NumaNodes {
+	for id, node := range reader.systemMetricsReader.NumaNodes {
 		tmpBytes, _ = ioutil.ReadFile("/sys/devices/system/node/node" + strconv.Itoa(id) + "/hugepages/hugepages-1048576kB/nr_hugepages")
 		nr1GHugepages, _ := strconv.Atoi(string(tmpBytes))
 

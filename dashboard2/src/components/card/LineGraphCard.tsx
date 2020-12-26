@@ -23,7 +23,7 @@ function formatLabel(label: any) {
 }
 
 export function Render(input: any) {
-    const { id, View, metric } = input;
+    const { id, metrics } = input;
 
     const keyPrefix = `${id}-LineGraphCard-`;
     const canvasId = `${keyPrefix}canvas`;
@@ -36,10 +36,10 @@ export function Render(input: any) {
     }
 
     var datasets: any = [];
-    for (let i = 0, len = metric.Keys.length; i < len; i++) {
+    for (let i = 0, len = metrics.Keys.length; i < len; i++) {
         const data: any = [];
         datasets.push({
-            label: metric.Keys[i],
+            label: metrics.Keys[i],
             data,
             pointRadius: 0,
             backgroundColor: colors[i][0],
@@ -47,18 +47,18 @@ export function Render(input: any) {
             borderWidth: 1
         });
     }
-    for (let i = 0, len = metric.Values.length; i < len; i++) {
-        const value = metric.Values[i];
-        for (let j = 0, lenj = metric.Keys.length; j < lenj; j++) {
+    for (let i = 0, len = metrics.Values.length; i < len; i++) {
+        const value = metrics.Values[i];
+        for (let j = 0, lenj = metrics.Keys.length; j < lenj; j++) {
             datasets[j].data.push({
                 t: new Date(value["time"]),
-                y: value[metric.Keys[j]]
+                y: value[metrics.Keys[j]]
             });
         }
     }
 
     var ctx = elem.getContext("2d");
-    var myChart = new Chart(ctx, {
+    new Chart(ctx, {
         type: "line",
         data: {
             labels: ["Red", "Blue", "Yellow", "Green", "Purple", "Orange"],

@@ -1,4 +1,4 @@
-package system_metric_reader
+package system_metrics_reader
 
 import (
 	"fmt"
@@ -34,7 +34,7 @@ type UserStat struct {
 }
 
 type LoginReader struct {
-	conf        *config.ResourceMetricSystemConfig
+	conf        *config.ResourceMetricsSystemConfig
 	cacheLength int
 	loginStats  []LoginStat
 
@@ -44,7 +44,7 @@ type LoginReader struct {
 	critLoginSec              int64
 }
 
-func NewLoginReader(conf *config.ResourceMetricSystemConfig) SubMetricReader {
+func NewLoginReader(conf *config.ResourceMetricsSystemConfig) SubMetricsReader {
 	return &LoginReader{
 		conf:        conf,
 		cacheLength: conf.CacheLength,

@@ -7,43 +7,43 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
-	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_agent/readers/system_metric_reader"
+	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_agent/readers/system_metrics_reader"
 	"github.com/syunkitada/goapp/pkg/resource/config"
 )
 
 var (
-	systemMetricReaderCmdInterval int
-	systemMetricReaderCmdTarget   string
+	systemMetricsReaderCmdInterval int
+	systemMetricsReaderCmdTarget   string
 )
 
-var systemMetricReaderCmd = &cobra.Command{
-	Use:   "system-metric-reader",
-	Short: "system-metric-reader",
+var systemMetricsReaderCmd = &cobra.Command{
+	Use:   "system-metrics-reader",
+	Short: "system-metrics-reader",
 	Run: func(cmd *cobra.Command, args []string) {
 		ctl := NewCtl(&config.BaseConf, &config.MainConf)
-		if tmpErr := ctl.SystemMetricReader(); tmpErr != nil {
-			logger.StdoutFatalf("Failed SystemMetricReader: %s\n", tmpErr.Error())
+		if tmpErr := ctl.SystemMetricsReader(); tmpErr != nil {
+			logger.StdoutFatalf("Failed SystemMetricsReader: %s\n", tmpErr.Error())
 			os.Exit(1)
 		}
 	},
 }
 
 func init() {
-	systemMetricReaderCmd.PersistentFlags().IntVarP(&systemMetricReaderCmdInterval, "interval", "i", 1, "interval")
-	systemMetricReaderCmd.PersistentFlags().StringVarP(&systemMetricReaderCmdTarget, "target", "t", "all", "metrics target")
-	RootCmd.AddCommand(systemMetricReaderCmd)
+	systemMetricsReaderCmd.PersistentFlags().IntVarP(&systemMetricsReaderCmdInterval, "interval", "i", 1, "interval")
+	systemMetricsReaderCmd.PersistentFlags().StringVarP(&systemMetricsReaderCmdTarget, "target", "t", "all", "metrics target")
+	RootCmd.AddCommand(systemMetricsReaderCmd)
 }
 
-func (ctl *Ctl) SystemMetricReader() (err error) {
-	tctx := logger.NewTraceContext(ctl.baseConf.Host, "system-metric-reader")
+func (ctl *Ctl) SystemMetricsReader() (err error) {
+	tctx := logger.NewTraceContext(ctl.baseConf.Host, "system-metrics-reader")
 	clusterConf, ok := ctl.mainConf.Resource.ClusterMap[ctl.mainConf.Resource.ClusterName]
 	if !ok {
 		err = fmt.Errorf("Invalid conf: cluster is not found: cluster=%s", ctl.mainConf.Resource.ClusterName)
 	}
 
-	interval := time.Duration(systemMetricReaderCmdInterval) * time.Second
+	interval := time.Duration(systemMetricsReaderCmdInterval) * time.Second
 
-	reader := system_metric_reader.New(&clusterConf.Agent.Metric.System)
+	reader := system_metrics_reader.New(&clusterConf.Agent.Metrics.System)
 	if err = reader.Read(tctx); err != nil {
 		return
 	}
@@ -51,59 +51,59 @@ func (ctl *Ctl) SystemMetricReader() (err error) {
 	_, _ = reader.Report()
 
 	isUptimeStat := false
-	if systemMetricReaderCmdTarget == "uptime" {
+	if systemMetricsReaderCmdTarget == "uptime" {
 		isUptimeStat = true
 	}
 	isLoginStat := false
-	if systemMetricReaderCmdTarget == "login" {
+	if systemMetricsReaderCmdTarget == "login" {
 		isLoginStat = true
 	}
 	isBuddyinfoStat := false
-	if systemMetricReaderCmdTarget == "buddyinfo" {
+	if systemMetricsReaderCmdTarget == "buddyinfo" {
 		isBuddyinfoStat = true
 	}
 	isFsStat := false
-	if systemMetricReaderCmdTarget == "fs" {
+	if systemMetricsReaderCmdTarget == "fs" {
 		isFsStat = true
 	}
 	isDiskStat := false
-	if systemMetricReaderCmdTarget == "disk" {
+	if systemMetricsReaderCmdTarget == "disk" {
 		isDiskStat = true
 	}
 	isVmStat := false
-	if systemMetricReaderCmdTarget == "vm" {
+	if systemMetricsReaderCmdTarget == "vm" {
 		isVmStat = true
 	}
 	isMemStat := false
-	if systemMetricReaderCmdTarget == "mem" {
+	if systemMetricsReaderCmdTarget == "mem" {
 		isMemStat = true
 	}
 	isCpuStat := false
-	if systemMetricReaderCmdTarget == "cpu" {
+	if systemMetricsReaderCmdTarget == "cpu" {
 		isCpuStat = true
 	}
 	isProcessorStat := false
-	if systemMetricReaderCmdTarget == "processor" {
+	if systemMetricsReaderCmdTarget == "processor" {
 		isProcessorStat = true
 	}
 	isProcsStat := false
-	if systemMetricReaderCmdTarget == "procs" {
+	if systemMetricsReaderCmdTarget == "procs" {
 		isProcsStat = true
 	}
 	isProcStat := false
-	if systemMetricReaderCmdTarget == "proc" {
+	if systemMetricsReaderCmdTarget == "proc" {
 		isProcStat = true
 	}
 	isNetDevStat := false
-	if systemMetricReaderCmdTarget == "netdev" {
+	if systemMetricsReaderCmdTarget == "netdev" {
 		isNetDevStat = true
 	}
 	isTcpNetStat := false
-	if systemMetricReaderCmdTarget == "tcpnetstat" {
+	if systemMetricsReaderCmdTarget == "tcpnetstat" {
 		isTcpNetStat = true
 	}
 	isIpNetStat := false
-	if systemMetricReaderCmdTarget == "ipnetstat" {
+	if systemMetricsReaderCmdTarget == "ipnetstat" {
 		isIpNetStat = true
 	}
 

@@ -45,7 +45,7 @@ type ResourceClusterAgentConfig struct {
 	Compute       ResourceComputeConfig
 	ReportProject string
 	LogMap        map[string]ResourceLogConfig
-	Metric        ResourceMetricConfig
+	Metrics       ResourceMetricsConfig
 }
 
 // ResourceComputeConfig is config for compute

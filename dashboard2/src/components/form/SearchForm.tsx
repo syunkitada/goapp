@@ -1,5 +1,4 @@
 import locationData from "../../data/locationData";
-import service from "../../apps/service";
 
 export function Render(input: any) {
     const { id, View, onSubmit } = input;
@@ -16,7 +15,6 @@ export function Render(input: any) {
     for (let i = 0, len = View.Inputs.length; i < len; i++) {
         const input = View.Inputs[i];
         const searchQueryValue = location.SearchQueries[input.Name];
-        let defaultValue: any;
         switch (input.Type) {
             case "Select":
                 console.log("DEBUG location", location.SearchQueries);
@@ -59,7 +57,7 @@ export function Render(input: any) {
 
                 if (searchQueryValue) {
                     const splitedDateTime = searchQueryValue.split("T");
-                    if (splitedDateTime.length == 2) {
+                    if (splitedDateTime.length === 2) {
                         defaultDate = splitedDateTime[0];
                         defaultTime = splitedDateTime[1];
                     }
