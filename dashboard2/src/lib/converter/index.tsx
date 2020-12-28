@@ -1,9 +1,11 @@
-function escape_id(str: string): string {
-    str = str.replace("/", "-");
+const regex = /[/ :=,]/gi;
+
+function escapeKey(str: string): string {
+    str = str.replaceAll(regex, "-");
     return str;
 }
 
 const index = {
-    escape_id
+    escapeKey
 };
 export default index;

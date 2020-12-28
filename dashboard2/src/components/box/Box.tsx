@@ -118,10 +118,13 @@ export function Render(input: any) {
                     break;
 
                 case "SearchForm":
+                    const panelId = `${keyPrefix}searchForm-${converter.escapeKey(
+                        panelsGroup.Name
+                    )}`;
                     panelsGroups.push(
                         `<div class="row">
                             <h5>${panelsGroup.Name}</h5>
-                            <div id="${keyPrefix}searchForm-${panelsGroup.Name}">
+                            <div id="${panelId}">
                             </div>
                         </div>`
                     );
@@ -129,7 +132,7 @@ export function Render(input: any) {
                     renderHandlers.push({
                         render: SearchForm.Render,
                         input: {
-                            id: `${keyPrefix}searchForm-${panelsGroup.Name}`,
+                            id: panelId,
                             View: panelsGroup,
                             onSubmit: function (input: any) {
                                 const { searchQueries } = input;
@@ -162,34 +165,34 @@ export function Render(input: any) {
                     ) {
                         const metricsGroup = metricsGroups[j];
                         const cards: any = [];
-                        if (!metricsGroup.Metrics) {
+                        if (!metricsGroup.MetricsGroup) {
                             continue;
                         }
                         for (
-                            let x = 0, xlen = metricsGroup.Metrics.length;
+                            let x = 0, xlen = metricsGroup.MetricsGroup.length;
                             x < xlen;
                             x++
                         ) {
-                            const metric = metricsGroup.Metrics[x];
+                            const metrics = metricsGroup.MetricsGroup[x];
+                            const cardId = `${keyPrefix}metrics-${converter.escapeKey(
+                                metrics.Name
+                            )}`;
                             cards.push(`
                                 <div class="col m6">
-                                <h5>${metric.Name}</h5>
-                                <div id="${keyPrefix}metric-${converter.escape_id(
-                                metric.Name
-                            )}"></div></div>
+                                <h5>${metrics.Name}</h5>
+                                <div id="${cardId}"></div></div>
                             `);
                             renderHandlers.push({
                                 render: LineGraphCard.Render,
                                 input: {
-                                    id: `${keyPrefix}metric-${converter.escape_id(
-                                        metric.Name
-                                    )}`,
-                                    metric: metric
+                                    id: cardId,
+                                    metrics: metrics
                                 }
                             });
                         }
                         panelsGroups.push(`
                           <div class="row">
+                            <h4>${metricsGroup.Name}</h4>
                             ${cards.join("")}
                           </div>
                         `);

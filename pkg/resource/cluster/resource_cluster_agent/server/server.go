@@ -14,7 +14,7 @@ import (
 	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_agent/db_api"
 	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_agent/readers"
 	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_agent/readers/log_reader"
-	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_agent/readers/system_metric_reader"
+	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_agent/readers/system_metrics_reader"
 	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_agent/resolver"
 	"github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_agent/spec/genpkg"
 	resource_cluster_api "github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_api/spec/genpkg"
@@ -42,7 +42,7 @@ type Server struct {
 
 	dbApi *db_api.Api
 
-	metricReaderMap map[string]readers.MetricReader
+	metricsReaderMap map[string]readers.MetricsReader
 
 	logMap                map[string]config.ResourceLogConfig
 	logReaderMap          map[string]*log_reader.LogReader
@@ -96,14 +96,14 @@ func (srv *Server) initDb(tctx *logger.TraceContext) {
 }
 
 func (srv *Server) initReader() {
-	metricReaderMap := map[string]readers.MetricReader{}
-	if srv.clusterConf.Agent.Metric.System.Enable {
-		metricReaderMap["system"] = system_metric_reader.New(&srv.clusterConf.Agent.Metric.System)
+	metricsReaderMap := map[string]readers.MetricsReader{}
+	if srv.clusterConf.Agent.Metrics.System.Enable {
+		metricsReaderMap["system"] = system_metrics_reader.New(&srv.clusterConf.Agent.Metrics.System)
 	}
 
 	srv.reportCount = 0
 	srv.reportSpan = 10
-	srv.metricReaderMap = metricReaderMap
+	srv.metricsReaderMap = metricsReaderMap
 	srv.logMap = srv.clusterConf.Agent.LogMap
 	srv.logReaderMap = map[string]*log_reader.LogReader{}
 	srv.logReaderRefreshSpan = 10

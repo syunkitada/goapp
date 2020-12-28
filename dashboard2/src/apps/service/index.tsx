@@ -103,7 +103,11 @@ function getQueries(input: any) {
     // const params = Object.assign(
     // )
     location.DataQueries = nextView.DataQueries;
-    console.log("DEBUG getQueries", input);
+    if (view && view.View.ViewParams) {
+        location.ViewParams = view.View.ViewParams;
+    } else {
+        location.ViewParams = {};
+    }
 
     locationData.setLocationData(location);
     $("#root-content-progress").html('<div class="indeterminate"></div>');

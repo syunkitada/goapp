@@ -266,7 +266,7 @@ resource:
                 pattern: "E"
                 level: "Critical"
                 reissueDuration: 600
-        metric:
+        metrics:
           system:
             enable: true
             cacheLength: 100

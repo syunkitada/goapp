@@ -1,4 +1,4 @@
-package system_metric_reader
+package system_metrics_reader
 
 import (
 	"bufio"
@@ -11,18 +11,18 @@ import (
 	"github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
 )
 
-type SystemMetricReader struct {
-	conf      *config.ResourceMetricSystemConfig
+type SystemMetricsReader struct {
+	conf      *config.ResourceMetricsSystemConfig
 	name      string
 	NumaNodes []spec.NumaNodeSpec
 	Cpus      []spec.NumaNodeCpuSpec
 
 	NetDevStatMap map[string]NetDevStat
 
-	subReaders []SubMetricReader
+	subReaders []SubMetricsReader
 }
 
-func New(conf *config.ResourceMetricSystemConfig) *SystemMetricReader {
+func New(conf *config.ResourceMetricsSystemConfig) *SystemMetricsReader {
 	var numaNodes []spec.NumaNodeSpec
 	var cpus []spec.NumaNodeCpuSpec
 
@@ -73,7 +73,7 @@ func New(conf *config.ResourceMetricSystemConfig) *SystemMetricReader {
 		}
 	}
 
-	reader := &SystemMetricReader{
+	reader := &SystemMetricsReader{
 		conf:          conf,
 		name:          "system",
 		NumaNodes:     numaNodes,
@@ -81,7 +81,7 @@ func New(conf *config.ResourceMetricSystemConfig) *SystemMetricReader {
 		NetDevStatMap: map[string]NetDevStat{},
 	}
 
-	reader.subReaders = []SubMetricReader{
+	reader.subReaders = []SubMetricsReader{
 		NewCpuReader(conf, cpus),
 		NewProcReader(conf, reader),
 		NewDiskReader(conf),
@@ -101,29 +101,29 @@ const (
 	ReportStatusReported = 2
 )
 
-type SubMetricReader interface {
+type SubMetricsReader interface {
 	Read(tctx *logger.TraceContext)
 	ReportMetrics() []spec.ResourceMetric
 	ReportEvents() []spec.ResourceEvent
 	Reported()
 }
 
-func (reader *SystemMetricReader) GetNumaNodes(tctx *logger.TraceContext) []spec.NumaNodeSpec {
+func (reader *SystemMetricsReader) GetNumaNodes(tctx *logger.TraceContext) []spec.NumaNodeSpec {
 	return reader.NumaNodes
 }
 
-func (reader *SystemMetricReader) Read(tctx *logger.TraceContext) (err error) {
+func (reader *SystemMetricsReader) Read(tctx *logger.TraceContext) (err error) {
 	for _, r := range reader.subReaders {
 		r.Read(tctx)
 	}
 	return
 }
 
-func (reader *SystemMetricReader) GetName() string {
+func (reader *SystemMetricsReader) GetName() string {
 	return reader.name
 }
 
-func (reader *SystemMetricReader) Report() ([]spec.ResourceMetric, []spec.ResourceEvent) {
+func (reader *SystemMetricsReader) Report() ([]spec.ResourceMetric, []spec.ResourceEvent) {
 	metrics := make([]spec.ResourceMetric, 0, 1000)
 	events := make([]spec.ResourceEvent, 0, 1000)
 
@@ -138,7 +138,7 @@ func (reader *SystemMetricReader) Report() ([]spec.ResourceMetric, []spec.Resour
 	return metrics, events
 }
 
-func (reader *SystemMetricReader) Reported() {
+func (reader *SystemMetricsReader) Reported() {
 	for _, r := range reader.subReaders {
 		r.Reported()
 	}

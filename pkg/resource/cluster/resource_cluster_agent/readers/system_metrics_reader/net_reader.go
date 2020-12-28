@@ -1,4 +1,4 @@
-package system_metric_reader
+package system_metrics_reader
 
 import (
 	"bufio"
@@ -290,7 +290,7 @@ type IpExtStat struct {
 }
 
 type NetReader struct {
-	conf          *config.ResourceMetricSystemConfig
+	conf          *config.ResourceMetricsSystemConfig
 	cacheLength   int
 	tmpTcpExtStat *TmpTcpExtStat
 	tmpIpExtStat  *TmpIpExtStat
@@ -305,7 +305,7 @@ type NetReader struct {
 	checkListenDropsCounter              int
 }
 
-func NewNetReader(conf *config.ResourceMetricSystemConfig) SubMetricReader {
+func NewNetReader(conf *config.ResourceMetricsSystemConfig) SubMetricsReader {
 	return &NetReader{
 		conf:        conf,
 		cacheLength: conf.CacheLength,

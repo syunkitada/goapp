@@ -1,4 +1,4 @@
-package system_metric_reader
+package system_metrics_reader
 
 import (
 	"bufio"
@@ -26,7 +26,7 @@ type FsStat struct {
 }
 
 type DiskFsReader struct {
-	conf        *config.ResourceMetricSystemConfig
+	conf        *config.ResourceMetricsSystemConfig
 	cacheLength int
 	fsStats     []FsStat
 	fsStatTypes []string
@@ -39,7 +39,7 @@ type DiskFsReader struct {
 	checkFreeCritCounter     int
 }
 
-func NewDiskFsReader(conf *config.ResourceMetricSystemConfig) SubMetricReader {
+func NewDiskFsReader(conf *config.ResourceMetricsSystemConfig) SubMetricsReader {
 	return &DiskFsReader{
 		conf:        conf,
 		cacheLength: conf.CacheLength,

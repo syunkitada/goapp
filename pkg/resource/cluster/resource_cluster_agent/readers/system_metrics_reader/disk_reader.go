@@ -1,4 +1,4 @@
-package system_metric_reader
+package system_metrics_reader
 
 import (
 	"bufio"
@@ -57,7 +57,7 @@ type TmpDiskStat struct {
 }
 
 type DiskReader struct {
-	conf            *config.ResourceMetricSystemConfig
+	conf            *config.ResourceMetricsSystemConfig
 	cacheLength     int
 	tmpDiskStatMap  map[string]TmpDiskStat
 	diskStats       []DiskStat
@@ -79,7 +79,7 @@ type DiskReader struct {
 	checkWarnProgressIos             int64
 }
 
-func NewDiskReader(conf *config.ResourceMetricSystemConfig) SubMetricReader {
+func NewDiskReader(conf *config.ResourceMetricsSystemConfig) SubMetricsReader {
 	return &DiskReader{
 		conf:            conf,
 		cacheLength:     conf.CacheLength,

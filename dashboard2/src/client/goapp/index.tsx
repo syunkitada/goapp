@@ -19,7 +19,7 @@ function query(input: any) {
         mode: "cors"
     })
         .then(res => {
-            if (res.status != 200) {
+            if (res.status !== 200) {
                 console.log("Failed", res);
             }
             return res.json();
@@ -146,6 +146,7 @@ class Client implements IClient {
             const tmpData = Object.assign(
                 {},
                 location.Params,
+                location.ViewParams,
                 location.SearchQueries
             );
             const data = JSON.stringify(tmpData);
@@ -212,6 +213,7 @@ class Client implements IClient {
         const queryData = Object.assign(
             {},
             location.Params,
+            location.ViewParams,
             location.SearchQueries
         );
         const data = JSON.stringify(queryData);

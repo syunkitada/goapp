@@ -1,4 +1,4 @@
-package system_metric_reader
+package system_metrics_reader
 
 import (
 	"bufio"
@@ -32,7 +32,7 @@ type BuddyinfoStat struct {
 }
 
 type MemBuddyinfoReader struct {
-	conf           *config.ResourceMetricSystemConfig
+	conf           *config.ResourceMetricsSystemConfig
 	cacheLength    int
 	buddyinfoStats []BuddyinfoStat
 
@@ -42,7 +42,7 @@ type MemBuddyinfoReader struct {
 	checkPagesWarnCounter     int
 }
 
-func NewMemBuddyinfoReader(conf *config.ResourceMetricSystemConfig) SubMetricReader {
+func NewMemBuddyinfoReader(conf *config.ResourceMetricsSystemConfig) SubMetricsReader {
 	return &MemBuddyinfoReader{
 		conf:           conf,
 		cacheLength:    conf.CacheLength,

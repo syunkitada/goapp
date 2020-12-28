@@ -1,4 +1,4 @@
-package system_metric_reader
+package system_metrics_reader
 
 import (
 	"bufio"
@@ -21,7 +21,7 @@ type UptimeStat struct {
 }
 
 type UptimeReader struct {
-	conf        *config.ResourceMetricSystemConfig
+	conf        *config.ResourceMetricsSystemConfig
 	uptimeStats []UptimeStat
 	cacheLength int
 
@@ -30,7 +30,7 @@ type UptimeReader struct {
 	readinessSec             int64
 }
 
-func NewUptimeReader(conf *config.ResourceMetricSystemConfig) SubMetricReader {
+func NewUptimeReader(conf *config.ResourceMetricsSystemConfig) SubMetricsReader {
 	return &UptimeReader{
 		conf:        conf,
 		cacheLength: conf.CacheLength,

@@ -1,4 +1,4 @@
-package system_metric_reader
+package system_metrics_reader
 
 import (
 	"bufio"
@@ -94,15 +94,15 @@ type ProcStat struct {
 
 	WarnSchedWaitTimeCounter int
 	CritSchedWaitTimeCounter int
-	checkProc                config.ResourceMetricSystemProcCheckProcConfig
+	checkProc                config.ResourceMetricsSystemProcCheckProcConfig
 }
 
 type ProcReader struct {
-	conf               *config.ResourceMetricSystemConfig
-	cacheLength        int
-	systemMetricReader *SystemMetricReader
+	conf                *config.ResourceMetricsSystemConfig
+	cacheLength         int
+	systemMetricsReader *SystemMetricsReader
 
-	cmdMap         map[string]config.ResourceMetricSystemProcCheckProcConfig
+	cmdMap         map[string]config.ResourceMetricsSystemProcCheckProcConfig
 	pidmax         int
 	tmpProcStatMap map[int]TmpProcStat
 	procsStats     []ProcsStat
@@ -117,27 +117,27 @@ type ProcReader struct {
 	checkProcStatMap map[int]ProcStat
 }
 
-func NewProcReader(conf *config.ResourceMetricSystemConfig, systemMetricReader *SystemMetricReader) SubMetricReader {
+func NewProcReader(conf *config.ResourceMetricsSystemConfig, systemMetricsReader *SystemMetricsReader) SubMetricsReader {
 	pidmaxFile, _ := os.Open("/proc/sys/kernel/pid_max")
 	defer pidmaxFile.Close()
 	tmpReader := bufio.NewReader(pidmaxFile)
 	tmpBytes, _, _ := tmpReader.ReadLine()
 	pidmax, _ := strconv.Atoi(string(tmpBytes))
 
-	cmdMap := map[string]config.ResourceMetricSystemProcCheckProcConfig{}
+	cmdMap := map[string]config.ResourceMetricsSystemProcCheckProcConfig{}
 	for name, check := range conf.Proc.CheckProcMap {
 		check.Name = name
 		cmdMap[check.Cmd] = check
 	}
 
 	return &ProcReader{
-		conf:               conf,
-		cacheLength:        conf.CacheLength,
-		systemMetricReader: systemMetricReader,
-		cmdMap:             cmdMap,
-		pidmax:             pidmax,
-		procsStats:         make([]ProcsStat, 0, conf.CacheLength),
-		procStats:          make([]ProcStat, 0, conf.CacheLength),
+		conf:                conf,
+		cacheLength:         conf.CacheLength,
+		systemMetricsReader: systemMetricsReader,
+		cmdMap:              cmdMap,
+		pidmax:              pidmax,
+		procsStats:          make([]ProcsStat, 0, conf.CacheLength),
+		procStats:           make([]ProcStat, 0, conf.CacheLength),
 
 		checkProcsStatusWarnCounter:     0,
 		checkProcsStatusCritCounter:     0,
@@ -665,7 +665,7 @@ func (reader *ProcReader) GetQemuStat(tctx *logger.TraceContext, procStat *TmpPr
 			for _, option := range splitedOption {
 				splitedKeyValue := strings.Split(option, "=")
 				if splitedKeyValue[0] == "ifname" {
-					netDevStat, ok := reader.systemMetricReader.NetDevStatMap[splitedKeyValue[1]]
+					netDevStat, ok := reader.systemMetricsReader.NetDevStatMap[splitedKeyValue[1]]
 					if !ok {
 						break
 					}
