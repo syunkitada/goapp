@@ -146,6 +146,7 @@ class Client implements IClient {
             const tmpData = Object.assign(
                 {},
                 location.Params,
+                location.ViewParams,
                 location.SearchQueries
             );
             const data = JSON.stringify(tmpData);
@@ -212,6 +213,7 @@ class Client implements IClient {
         const queryData = Object.assign(
             {},
             location.Params,
+            location.ViewParams,
             location.SearchQueries
         );
         const data = JSON.stringify(queryData);

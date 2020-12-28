@@ -77,7 +77,6 @@ export function Render(input: any) {
             const newLocation = Object.assign({}, location);
             newLocation.Path[location.Path.length - 1] = tab.Name;
             service.getQueries({
-                View,
                 location: newLocation,
                 view: { id: content.id, View: tab }
             });

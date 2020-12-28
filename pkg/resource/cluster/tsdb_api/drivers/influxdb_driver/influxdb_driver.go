@@ -291,172 +291,232 @@ func (driver *InfluxdbDriver) GetNode(tctx *logger.TraceContext, input *api_spec
 		input.Name, until, until, from)
 	suffixQuery := fmt.Sprintf("%s GROUP BY time(1m)", whereStr)
 
-	var systemMetricsGroup []api_spec.Metrics
-	driver.GetMetrics(tctx,
-		&systemMetricsGroup,
-		"ProcsRunning",
-		fmt.Sprintf("SELECT max(procs_running), mean(procs_blocked) FROM system_cpu %s fill(null)", suffixQuery),
-		[]string{"procs_running", "procs_blocked"})
+	switch input.Target {
+	case "Proc":
+		var systemProcMetricsGroup []api_spec.Metrics
+		driver.GetMetrics(tctx,
+			&GetMetrics{
+				metricsGroup: &systemProcMetricsGroup,
+				name:         "ProcSched/Min: cmd=%s, pid=%s",
+				nameTags:     []string{"cmd", "pid"},
+				query:        fmt.Sprintf("SELECT non_negative_derivative(max(sched_cpu_time), 1m), non_negative_derivative(max(sched_wait_time), 1m), max(sched_time_slices) FROM system_proc %s, cmd, pid fill(null)", suffixQuery),
+				keys:         []string{"sched_cpu_time", "sched_wait_time", "sched_time_slices"},
+			})
 
-	// Memo: derivativeを使う場合は、mean(processes)も一緒に取得しないと、開始時間からのメトリックスが存在しない期間分が取得できない(nullで埋められない)
-	driver.GetMetrics(tctx,
-		&systemMetricsGroup,
-		"NewProcesses/Min",
-		fmt.Sprintf("SELECT non_negative_derivative(max(processes), 1m), max(processes) FROM system_cpu %s fill(null)", suffixQuery),
-		[]string{"new_processes"})
+		data = append(data, api_spec.MetricsGroup{
+			Name:         "system proc",
+			MetricsGroup: systemProcMetricsGroup,
+		})
 
-	driver.GetMetrics(tctx,
-		&systemMetricsGroup,
-		"Procs",
-		fmt.Sprintf("SELECT max(procs) FROM system_procs %s fill(null)", suffixQuery),
-		[]string{"procs"})
+	default:
+		var systemMetricsGroup []api_spec.Metrics
+		driver.GetMetrics(tctx,
+			&GetMetrics{
+				metricsGroup: &systemMetricsGroup,
+				name:         "ProcsRunning",
+				query:        fmt.Sprintf("SELECT max(procs_running), mean(procs_blocked) FROM system_cpu %s fill(null)", suffixQuery),
+				keys:         []string{"procs_running", "procs_blocked"},
+			})
 
-	data = append(data, api_spec.MetricsGroup{
-		Name:         "system",
-		MetricsGroup: systemMetricsGroup,
-	})
+		// Memo: derivativeを使う場合は、mean(processes)も一緒に取得しないと、開始時間からのメトリックスが存在しない期間分が取得できない(nullで埋められない)
+		driver.GetMetrics(tctx,
+			&GetMetrics{
+				metricsGroup: &systemMetricsGroup,
+				name:         "NewProcesses/Min",
+				query:        fmt.Sprintf("SELECT non_negative_derivative(max(processes), 1m), max(processes) FROM system_cpu %s fill(null)", suffixQuery),
+				keys:         []string{"new_processes"},
+			})
 
-	var systemMemMetricsGroup []api_spec.Metrics
-	driver.GetMetrics(tctx,
-		&systemMemMetricsGroup,
-		"Mem",
-		fmt.Sprintf("SELECT max(mem_total), max(mem_free), max(reclaimable) FROM system_mem %s fill(null)", suffixQuery),
-		[]string{"total", "free", "reclaimable"})
+		driver.GetMetrics(tctx,
+			&GetMetrics{
+				metricsGroup: &systemMetricsGroup,
+				name:         "Procs",
+				query:        fmt.Sprintf("SELECT max(procs) FROM system_procs %s fill(null)", suffixQuery),
+				keys:         []string{"procs"},
+			})
 
-	driver.GetMetrics(tctx,
-		&systemMemMetricsGroup,
-		"Slab",
-		fmt.Sprintf("SELECT max(slab), max(s_reclaimable), max(s_unreclaim) FROM system_mem %s fill(null)", suffixQuery),
-		[]string{"slab", "slab_reclaimable"})
+		data = append(data, api_spec.MetricsGroup{
+			Name:         "system",
+			MetricsGroup: systemMetricsGroup,
+		})
 
-	driver.GetMetrics(tctx,
-		&systemMemMetricsGroup,
-		"PgScan",
-		fmt.Sprintf("SELECT max(pgscan_kswapd), max(pgscan_direct) FROM system_vmstat %s fill(null)", suffixQuery),
-		[]string{"pgscan_kswapd", "pgscan_direct"})
+		var systemMemMetricsGroup []api_spec.Metrics
+		driver.GetMetrics(tctx,
+			&GetMetrics{
+				metricsGroup: &systemMemMetricsGroup,
+				name:         "Mem",
+				query:        fmt.Sprintf("SELECT max(mem_total), max(mem_free), max(reclaimable) FROM system_mem %s fill(null)", suffixQuery),
+				keys:         []string{"total", "free", "reclaimable"},
+			})
 
-	driver.GetMetrics(tctx,
-		&systemMemMetricsGroup,
-		"Pgfault",
-		fmt.Sprintf("SELECT max(pgfault) FROM system_vmstat %s fill(null)", suffixQuery),
-		[]string{"pgfault"})
+		driver.GetMetrics(tctx,
+			&GetMetrics{
+				metricsGroup: &systemMemMetricsGroup,
+				name:         "Slab",
+				query:        fmt.Sprintf("SELECT max(slab), max(s_reclaimable), max(s_unreclaim) FROM system_mem %s fill(null)", suffixQuery),
+				keys:         []string{"slab", "slab_reclaimable"},
+			})
 
-	driver.GetMetrics(tctx,
-		&systemMemMetricsGroup,
-		"Pswap",
-		fmt.Sprintf("SELECT max(pswapin), max(pswapout) FROM system_vmstat %s fill(null)", suffixQuery),
-		[]string{"pswapin", "pswapout"})
+		driver.GetMetrics(tctx,
+			&GetMetrics{
+				metricsGroup: &systemMemMetricsGroup,
+				name:         "PgScan",
+				query:        fmt.Sprintf("SELECT max(pgscan_kswapd), max(pgscan_direct) FROM system_vmstat %s fill(null)", suffixQuery),
+				keys:         []string{"pgscan_kswapd", "pgscan_direct"},
+			})
 
-	data = append(data, api_spec.MetricsGroup{
-		Name:         "system_mem",
-		MetricsGroup: systemMemMetricsGroup,
-	})
+		driver.GetMetrics(tctx,
+			&GetMetrics{
+				metricsGroup: &systemMemMetricsGroup,
+				name:         "Pgfault",
+				query:        fmt.Sprintf("SELECT max(pgfault) FROM system_vmstat %s fill(null)", suffixQuery),
+				keys:         []string{"pgfault"},
+			})
 
-	var systemDiskMetricsGroup []api_spec.Metrics
-	driver.GetMetrics(tctx,
-		&systemDiskMetricsGroup,
-		"Disk",
-		fmt.Sprintf("SELECT max(total_size), max(free_size) FROM system_fsstat %s fill(null)", suffixQuery),
-		[]string{"total_size", "free_size"})
+		driver.GetMetrics(tctx,
+			&GetMetrics{
+				metricsGroup: &systemMemMetricsGroup,
+				name:         "Pswap",
+				query:        fmt.Sprintf("SELECT max(pswapin), max(pswapout) FROM system_vmstat %s fill(null)", suffixQuery),
+				keys:         []string{"pswapin", "pswapout"},
+			})
 
-	driver.GetMetrics(tctx,
-		&systemDiskMetricsGroup,
-		"Block Reads/Writes",
-		fmt.Sprintf("SELECT max(reads_per_sec), max(writes_per_sec) FROM system_diskstat %s fill(null)", suffixQuery),
-		[]string{"reads_per_sec", "writes_per_sec"})
+		data = append(data, api_spec.MetricsGroup{
+			Name:         "system_mem",
+			MetricsGroup: systemMemMetricsGroup,
+		})
 
-	driver.GetMetrics(tctx,
-		&systemDiskMetricsGroup,
-		"Block ReadBytes/WriteBytes",
-		fmt.Sprintf("SELECT max(read_bytes_per_sec), max(write_bytes_per_sec) FROM system_diskstat %s fill(null)", suffixQuery),
-		[]string{"read_bytes_per_sec", "write_bytes_per_sec"})
+		var systemDiskMetricsGroup []api_spec.Metrics
+		driver.GetMetrics(tctx,
+			&GetMetrics{
+				metricsGroup: &systemDiskMetricsGroup,
+				name:         "Disk",
+				query:        fmt.Sprintf("SELECT max(total_size), max(free_size) FROM system_fsstat %s fill(null)", suffixQuery),
+				keys:         []string{"total_size", "free_size"},
+			})
 
-	driver.GetMetrics(tctx,
-		&systemDiskMetricsGroup,
-		"Block ReadMsPerSec/WriteMsPerSec",
-		fmt.Sprintf("SELECT max(read_ms_per_sec), max(write_ms_per_sec) FROM system_diskstat %s fill(null)", suffixQuery),
-		[]string{"read_ms_per_sec", "write_ms_per_sec"})
+		driver.GetMetrics(tctx,
+			&GetMetrics{
+				metricsGroup: &systemDiskMetricsGroup,
+				name:         "Block Reads/Writes",
+				query:        fmt.Sprintf("SELECT max(reads_per_sec), max(writes_per_sec) FROM system_diskstat %s fill(null)", suffixQuery),
+				keys:         []string{"reads_per_sec", "writes_per_sec"},
+			})
 
-	driver.GetMetrics(tctx,
-		&systemDiskMetricsGroup,
-		"Block ProgressIos",
-		fmt.Sprintf("SELECT max(progress_ios) FROM system_diskstat %s fill(null)", suffixQuery),
-		[]string{"progress_ios"})
+		driver.GetMetrics(tctx,
+			&GetMetrics{
+				metricsGroup: &systemDiskMetricsGroup,
+				name:         "Block ReadBytes/WriteBytes",
+				query:        fmt.Sprintf("SELECT max(read_bytes_per_sec), max(write_bytes_per_sec) FROM system_diskstat %s fill(null)", suffixQuery),
+				keys:         []string{"read_bytes_per_sec", "write_bytes_per_sec"},
+			})
 
-	data = append(data, api_spec.MetricsGroup{
-		Name:         "system disk",
-		MetricsGroup: systemDiskMetricsGroup,
-	})
+		driver.GetMetrics(tctx,
+			&GetMetrics{
+				metricsGroup: &systemDiskMetricsGroup,
+				name:         "Block ReadMsPerSec/WriteMsPerSec",
+				query:        fmt.Sprintf("SELECT max(read_ms_per_sec), max(write_ms_per_sec) FROM system_diskstat %s fill(null)", suffixQuery),
+				keys:         []string{"read_ms_per_sec", "write_ms_per_sec"},
+			})
 
-	var systemNetMetricsGroup []api_spec.Metrics
-	driver.GetMetrics(tctx,
-		&systemNetMetricsGroup,
-		"NetDev Bytes/Sec",
-		fmt.Sprintf("SELECT max(receive_bytes_per_sec), max(transmit_bytes_per_sec) FROM system_netdevstat %s fill(null)", suffixQuery),
-		[]string{"receive_bytes_per_sec", "transmit_bytes_per_sec"})
+		driver.GetMetrics(tctx,
+			&GetMetrics{
+				metricsGroup: &systemDiskMetricsGroup,
+				name:         "Block ProgressIos",
+				query:        fmt.Sprintf("SELECT max(progress_ios) FROM system_diskstat %s fill(null)", suffixQuery),
+				keys:         []string{"progress_ios"},
+			})
 
-	driver.GetMetrics(tctx,
-		&systemNetMetricsGroup,
-		"NetDev Packets/Sec",
-		fmt.Sprintf("SELECT max(receive_packets_per_sec), max(transmit_packets_per_sec) FROM system_netdevstat %s fill(null)", suffixQuery),
-		[]string{"receive_packets_per_sec", "transmit_packets_per_sec"})
+		data = append(data, api_spec.MetricsGroup{
+			Name:         "system disk",
+			MetricsGroup: systemDiskMetricsGroup,
+		})
 
-	driver.GetMetrics(tctx,
-		&systemNetMetricsGroup,
-		"NetDev Errors",
-		fmt.Sprintf("SELECT max(receive_errors), max(transmit_errors) FROM system_netdevstat %s fill(null)", suffixQuery),
-		[]string{"receive_errors", "transmit_errors"})
+		var systemNetMetricsGroup []api_spec.Metrics
+		driver.GetMetrics(tctx,
+			&GetMetrics{
+				metricsGroup: &systemNetMetricsGroup,
+				name:         "NetDev Bytes/Sec",
+				query:        fmt.Sprintf("SELECT max(receive_bytes_per_sec), max(transmit_bytes_per_sec) FROM system_netdevstat %s fill(null)", suffixQuery),
+				keys:         []string{"receive_bytes_per_sec", "transmit_bytes_per_sec"},
+			})
 
-	driver.GetMetrics(tctx,
-		&systemNetMetricsGroup,
-		"NetDev Drops",
-		fmt.Sprintf("SELECT max(receive_drops), max(transmit_drops) FROM system_netdevstat %s fill(null)", suffixQuery),
-		[]string{"receive_drops", "transmit_drops"})
+		driver.GetMetrics(tctx,
+			&GetMetrics{
+				metricsGroup: &systemNetMetricsGroup,
+				name:         "NetDev Packets/Sec",
+				query:        fmt.Sprintf("SELECT max(receive_packets_per_sec), max(transmit_packets_per_sec) FROM system_netdevstat %s fill(null)", suffixQuery),
+				keys:         []string{"receive_packets_per_sec", "transmit_packets_per_sec"},
+			})
 
-	data = append(data, api_spec.MetricsGroup{
-		Name:         "system netdev",
-		MetricsGroup: systemNetMetricsGroup,
-	})
+		driver.GetMetrics(tctx,
+			&GetMetrics{
+				metricsGroup: &systemNetMetricsGroup,
+				name:         "NetDev Errors",
+				query:        fmt.Sprintf("SELECT max(receive_errors), max(transmit_errors) FROM system_netdevstat %s fill(null)", suffixQuery),
+				keys:         []string{"receive_errors", "transmit_errors"},
+			})
 
-	var systemProcMetricsGroup []api_spec.Metrics
-	driver.GetMetrics(tctx,
-		&systemProcMetricsGroup,
-		"ProcSched/Min",
-		fmt.Sprintf("SELECT non_negative_derivative(max(sched_cpu_time), 1m), non_negative_derivative(max(sched_wait_time), 1m), max(sched_time_slices) FROM system_proc %s, cmd, pid fill(null)", suffixQuery),
-		[]string{"sched_cpu_time", "sched_wait_time", "sched_time_slices"})
+		driver.GetMetrics(tctx,
+			&GetMetrics{
+				metricsGroup: &systemNetMetricsGroup,
+				name:         "NetDev Drops",
+				query:        fmt.Sprintf("SELECT max(receive_drops), max(transmit_drops) FROM system_netdevstat %s fill(null)", suffixQuery),
+				keys:         []string{"receive_drops", "transmit_drops"},
+			})
 
-	data = append(data, api_spec.MetricsGroup{
-		Name:         "system proc",
-		MetricsGroup: systemProcMetricsGroup,
-	})
+		data = append(data, api_spec.MetricsGroup{
+			Name:         "system netdev",
+			MetricsGroup: systemNetMetricsGroup,
+		})
+
+	}
 
 	return
 }
 
-func (driver *InfluxdbDriver) GetMetrics(tctx *logger.TraceContext, metricsGroup *[]api_spec.Metrics, name string, query string, keys []string) {
+type GetMetrics struct {
+	metricsGroup *[]api_spec.Metrics
+	name         string
+	nameTags     []string
+	query        string
+	keys         []string
+}
+
+func (driver *InfluxdbDriver) GetMetrics(tctx *logger.TraceContext, getMetrics *GetMetrics) {
 	for _, client := range driver.metricClients {
-		queryResult, tmpErr := client.Query(query)
+		queryResult, tmpErr := client.Query(getMetrics.query)
 		if tmpErr != nil {
 			logger.Warningf(tctx, "Failed Query: %s", tmpErr.Error())
 			continue
 		}
 		for _, result := range queryResult.Results {
 			for _, series := range result.Series {
+				fmt.Println("DEBUG series", series.Tags)
 				values := []map[string]interface{}{}
 				for _, value := range series.Values {
 					v := map[string]interface{}{
 						"time": value[0],
 					}
-					for i, key := range keys {
+					for i, key := range getMetrics.keys {
 						v[key] = value[i+1]
 					}
 					values = append(values, v)
 				}
+				name := getMetrics.name
+				if len(getMetrics.nameTags) > 0 {
+					var tags []interface{}
+					for _, tag := range getMetrics.nameTags {
+						tags = append(tags, series.Tags[tag])
+					}
+					fmt.Println("DEBUG tags", tags)
+					name = fmt.Sprintf(name, tags...)
+				}
 				values = values[0 : len(values)-1]
-				*metricsGroup = append(*metricsGroup, api_spec.Metrics{
+				*getMetrics.metricsGroup = append(*getMetrics.metricsGroup, api_spec.Metrics{
 					Name:   name,
 					Values: values,
-					Keys:   keys,
+					Keys:   getMetrics.keys,
 				})
 			}
 		}

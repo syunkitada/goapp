@@ -10,6 +10,7 @@ type View struct {
 	WebSocketKind   string
 	DataQueries     []string
 	DataKey         string
+	ViewParams      map[string]interface{}
 	Fields          []Field
 	PanelsGroups    []interface{}
 }

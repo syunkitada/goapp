@@ -48,6 +48,7 @@ type GetNodeData struct {
 type GetNodeMetrics struct {
 	Cluster      string `validate:"required"`
 	Name         string `validate:"required"`
+	Target       string
 	TimeDuration string
 	UntilTime    string
 }
@@ -269,7 +270,41 @@ var NodesDetail = base_index_model.Tabs{
 			DataKey:     "NodeMetrics",
 			PanelsGroups: []interface{}{
 				map[string]interface{}{
-					"Name":        "Inputs",
+					"Name":        "Display Time",
+					"Kind":        "SearchForm",
+					"DataQueries": []string{"GetNodeMetrics"},
+					"Inputs": []interface{}{
+						base_index_model.TableInputField{
+							Name:     "TimeDuration",
+							Type:     "Select",
+							Data:     []string{"-3h", "-6h", "-1d", "-3d", "-7d"},
+							Default:  "-6h",
+							Multiple: false,
+						},
+						base_index_model.TableInputField{
+							Name: "UntilTime",
+							Type: "DateTime",
+						},
+					},
+				},
+				map[string]string{
+					"Name":    "Metrics",
+					"Kind":    "MetricsGroups",
+					"DataKey": "MetricsGroups",
+				},
+			},
+		},
+		base_index_model.View{
+			Name:        "Proc Metrics",
+			Kind:        "View",
+			DataQueries: []string{"GetNodeMetrics"},
+			DataKey:     "NodeMetrics",
+			ViewParams: map[string]interface{}{
+				"Target": "Proc",
+			},
+			PanelsGroups: []interface{}{
+				map[string]interface{}{
+					"Name":        "Display Time",
 					"Kind":        "SearchForm",
 					"DataQueries": []string{"GetNodeMetrics"},
 					"Inputs": []interface{}{

@@ -118,10 +118,13 @@ export function Render(input: any) {
                     break;
 
                 case "SearchForm":
+                    const panelId = `${keyPrefix}searchForm-${converter.escapeKey(
+                        panelsGroup.Name
+                    )}`;
                     panelsGroups.push(
                         `<div class="row">
                             <h5>${panelsGroup.Name}</h5>
-                            <div id="${keyPrefix}searchForm-${panelsGroup.Name}">
+                            <div id="${panelId}">
                             </div>
                         </div>`
                     );
@@ -129,7 +132,7 @@ export function Render(input: any) {
                     renderHandlers.push({
                         render: SearchForm.Render,
                         input: {
-                            id: `${keyPrefix}searchForm-${panelsGroup.Name}`,
+                            id: panelId,
                             View: panelsGroup,
                             onSubmit: function (input: any) {
                                 const { searchQueries } = input;
@@ -171,7 +174,7 @@ export function Render(input: any) {
                             x++
                         ) {
                             const metrics = metricsGroup.MetricsGroup[x];
-                            const cardId = `${keyPrefix}metrics-${converter.escape_id(
+                            const cardId = `${keyPrefix}metrics-${converter.escapeKey(
                                 metrics.Name
                             )}`;
                             cards.push(`
@@ -189,6 +192,7 @@ export function Render(input: any) {
                         }
                         panelsGroups.push(`
                           <div class="row">
+                            <h4>${metricsGroup.Name}</h4>
                             ${cards.join("")}
                           </div>
                         `);
