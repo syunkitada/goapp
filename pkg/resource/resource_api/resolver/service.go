@@ -259,53 +259,82 @@ func (resolver *Resolver) GetProjectServiceDashboardIndex(tctx *logger.TraceCont
 					Name: "Root",
 					Kind: "Panes",
 					Children: []interface{}{
-						base_index_model.Table{
-							Name:    "Clusters",
-							Kind:    "Table",
-							DataKey: "Clusters",
-							Columns: []base_index_model.TableColumn{
-								base_index_model.TableColumn{
-									Name:     "Name",
-									IsSearch: true,
-									LinkPath: []string{"Resources", "Events"},
-									LinkKey:  "Cluster",
-								},
-								base_index_model.TableColumn{Name: "Region", IsSearch: true},
-								base_index_model.TableColumn{Name: "Datacenter", IsSearch: true},
-								base_index_model.TableColumn{Name: "Criticals"},
-								base_index_model.TableColumn{Name: "Warnings"},
-								base_index_model.TableColumn{Name: "Nodes"},
-								base_index_model.TableColumn{Name: "Instances"},
-								base_index_model.TableColumn{Name: "UpdatedAt", Kind: "Time", Sort: "asc"},
-								base_index_model.TableColumn{Name: "CreatedAt", Kind: "Time"},
-							},
-						},
-						base_index_model.Tabs{
-							Name:     "Resources",
-							Kind:     "Tabs",
-							Subname:  "Kind",
-							TabParam: "Kind",
-							IsSync:   true,
-							Children: []interface{}{
-								spec.EventsTable,
-								spec.EventRulesTable,
-								spec.NodesTable,
-								spec.LogsTable,
-							},
-						},
 						map[string]interface{}{
-							"Name":      "Resource",
-							"Subname":   "Name",
-							"Kind":      "Panes",
-							"PaneParam": "Kind",
+							"Name": "Clusters",
+							"Kind": "Pane",
+							"Views": []interface{}{
+								map[string]interface{}{
+									"Kind":  "Title",
+									"Title": "Clusters",
+								},
+								base_index_model.Table{
+									Kind:               "Table",
+									DataKey:            "Clusters",
+									RowsPerPageOptions: []int{10, 20, 30},
+									Columns: []base_index_model.TableColumn{
+										base_index_model.TableColumn{
+											Name:       "Name",
+											IsSearch:   true,
+											LinkPath:   []string{"Clusters", "Resources", "Events"},
+											LinkKeyMap: map[string]string{"Cluster": "Name"},
+										},
+										base_index_model.TableColumn{Name: "Region", IsSearch: true},
+										base_index_model.TableColumn{Name: "Datacenter", IsSearch: true},
+										base_index_model.TableColumn{Name: "Criticals"},
+										base_index_model.TableColumn{Name: "Warnings"},
+										base_index_model.TableColumn{Name: "Nodes"},
+										base_index_model.TableColumn{Name: "Instances"},
+										base_index_model.TableColumn{Name: "UpdatedAt", Kind: "Time", Sort: "asc"},
+										base_index_model.TableColumn{Name: "CreatedAt", Kind: "Time"},
+									},
+								},
+							},
 							"Children": []interface{}{
-								spec.NodesDetail,
+								base_index_model.Tabs{
+									Name:     "Resources",
+									Kind:     "Tabs",
+									Subname:  "Kind",
+									TabParam: "Kind",
+									IsSync:   true,
+									Children: []interface{}{
+										spec.EventsTable,
+										spec.EventRulesTable,
+										spec.NodesTable,
+										spec.LogsTable,
+									},
+								},
 							},
 						},
 					},
 				},
 			},
 		}
+		// 				base_index_model.Tabs{
+		// 					Name:     "Resources",
+		// 					Kind:     "Tabs",
+		// 					Subname:  "Kind",
+		// 					TabParam: "Kind",
+		// 					IsSync:   true,
+		// 					Children: []interface{}{
+		// 						spec.EventsTable,
+		// 						spec.EventRulesTable,
+		// 						spec.NodesTable,
+		// 						spec.LogsTable,
+		// 					},
+		// 				},
+		// 				map[string]interface{}{
+		// 					"Name":      "Resource",
+		// 					"Subname":   "Name",
+		// 					"Kind":      "Panes",
+		// 					"PaneParam": "Kind",
+		// 					"Children": []interface{}{
+		// 						spec.NodesDetail,
+		// 					},
+		// 				},
+		// 			},
+		// 		},
+		// 	},
+		// }
 		code = base_const.CodeOk
 
 	default:

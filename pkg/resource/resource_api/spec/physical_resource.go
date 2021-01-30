@@ -101,9 +101,9 @@ var PhysicalResourcesTable = base_index_model.Table{
 	Columns: []base_index_model.TableColumn{
 		base_index_model.TableColumn{
 			Name: "Name", IsSearch: true,
-			Link:           "Datacenters/:Datacenter/Resources/Resources/Detail/:0/View",
-			LinkKey:      "Name",
-			LinkSync:       true,
+			Link:            "Datacenters/:Datacenter/Resources/Resources/Detail/:0/View",
+			LinkKeyMap:      map[string]string{"Name": "Name"},
+			LinkSync:        true,
 			LinkDataQueries: []string{"GetPhysicalResource"},
 		},
 		base_index_model.TableColumn{Name: "Kind"},

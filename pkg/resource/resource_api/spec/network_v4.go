@@ -98,7 +98,7 @@ var NetworkV4sTable = base_index_model.Table{
 		base_index_model.TableColumn{
 			Name: "Name", IsSearch: true,
 			Link:            "Regions/:Region/Resources/NetworkV4s/Detail/:0/View",
-			LinkKey:         "Name",
+			LinkKeyMap:      map[string]string{"Name": "Name"},
 			LinkSync:        false,
 			LinkDataQueries: []string{"GetNetworkV4"},
 		},

@@ -1,6 +1,6 @@
-import logger from "../../lib/logger";
-import data from "../../data";
-import { IClient } from "../../client/IClient";
+import logger from "../appui/src/lib/logger";
+import data from "../appui/src/data";
+import { IProvider } from "../appui/src/provider/IProvider";
 
 function query(input: any) {
     const { projectName, serviceName, queries, onSuccess, onError } = input;
@@ -34,7 +34,65 @@ function query(input: any) {
         });
 }
 
-class Client implements IClient {
+class Provider implements IProvider {
+    getInitData(input: any): any {
+        return {
+            DefaultServiceName: "Home",
+            DefaultProjectServiceName: "HomeProject",
+            Logo: {
+                Kind: "Text",
+                Name: "Home"
+            },
+            LoginView: {
+                Name: "Please Log In",
+                Fields: [
+                    {
+                        Name: "User Name",
+                        Key: "User",
+                        Kind: "Text",
+                        Required: true
+                    },
+                    {
+                        Name: "Password",
+                        Key: "Password",
+                        Kind: "Password",
+                        Required: true
+                    },
+                    {
+                        Name: "Remember me",
+                        Key: "rememberMe",
+                        Kind: "Checkbox"
+                    }
+                ]
+            }
+        };
+    }
+
+    getLoginView(input: any): any {
+        return {
+            Name: "Please Log In",
+            Fields: [
+                {
+                    Name: "User Name",
+                    Key: "User",
+                    Kind: "Text",
+                    Required: true
+                },
+                {
+                    Name: "Password",
+                    Key: "Password",
+                    Kind: "Password",
+                    Required: true
+                },
+                {
+                    Name: "Remember me",
+                    Key: "rememberMe",
+                    Kind: "Checkbox"
+                }
+            ]
+        };
+    }
+
     loginWithToken(input: any): void {
         const serviceName = "Auth";
         const queries = [
@@ -63,12 +121,12 @@ class Client implements IClient {
     }
 
     login(input: any): void {
-        const { userName, password } = input;
+        const { params, onError, onSuccess } = input;
 
         const serviceName = "Auth";
         const queries = [
             {
-                Data: JSON.stringify({ User: userName, Password: password }),
+                Data: JSON.stringify(params),
                 Name: "Login"
             }
         ];
@@ -79,14 +137,14 @@ class Client implements IClient {
             onSuccess: function (_input: any) {
                 const result = _input.Login;
                 if (result.Error && result.Error !== "") {
-                    input.onError(result.Error);
+                    onError(result.Error);
                 } else {
                     data.auth = result.Data;
-                    input.onSuccess();
+                    onSuccess();
                 }
             },
             onError: function (_input: any) {
-                input.onError(_input);
+                onError(_input);
             }
         });
     }
@@ -117,7 +175,7 @@ class Client implements IClient {
         });
     }
 
-    get_service_index(input: any): void {
+    getServiceIndex(input: any): void {
         const { serviceName, projectName, location, initLocation } = input;
         let queries: any = null;
 
@@ -141,7 +199,11 @@ class Client implements IClient {
             ];
         }
 
-        if (initLocation && location && location.DataQueries) {
+        if (
+            location &&
+            location.DataQueries &&
+            location.DataQueries.length > 0
+        ) {
             const tmpQueries: any[] = [];
             const tmpData = Object.assign(
                 {},
@@ -207,7 +269,7 @@ class Client implements IClient {
         });
     }
 
-    get_queries(input: any): void {
+    getQueries(input: any): void {
         const { serviceName, projectName, location } = input;
 
         const queryData = Object.assign(
@@ -219,6 +281,10 @@ class Client implements IClient {
         const data = JSON.stringify(queryData);
 
         const queries: any = [];
+        if (!location.DataQueries) {
+            input.onSuccess({});
+            return;
+        }
         for (let i = 0, len = location.DataQueries.length; i < len; i++) {
             queries.push({
                 Data: data,
@@ -263,10 +329,13 @@ class Client implements IClient {
             }
         });
     }
+
+    submitQueries(input: any): void {
+        console.log("DEBUG submit_queries");
+    }
 }
 
 const index = {
-    query,
-    Client
+    Provider
 };
 export default index;

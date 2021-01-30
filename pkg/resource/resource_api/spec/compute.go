@@ -101,9 +101,9 @@ var ComputesTable = base_index_model.Table{
 	Columns: []base_index_model.TableColumn{
 		base_index_model.TableColumn{
 			Name: "Name", IsSearch: true,
-			Align:    "left",
-			LinkPath: []string{"Resource", "Compute", "View"},
-			LinkKey:  "Name",
+			Align:      "left",
+			LinkPath:   []string{"Resource", "Compute", "View"},
+			LinkKeyMap: map[string]string{"Name": "Name"},
 		},
 		base_index_model.TableColumn{Name: "RegionService"},
 		base_index_model.TableColumn{Name: "Kind"},
