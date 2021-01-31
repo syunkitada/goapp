@@ -181,36 +181,25 @@ func (resolver *Resolver) GetProjectServiceDashboardIndex(tctx *logger.TraceCont
 				},
 				View: base_index_model.Panels{
 					Name: "Root",
-					Kind: "Panels",
+					Kind: "Panes",
 					Children: []interface{}{
-						spec.RegionsTable,
-						base_index_model.Tabs{
-							Name:             "RegionResources",
-							SubNameParamKeys: []string{"Region"},
-							Kind:             "Tabs",
-							Children: []interface{}{
-								spec.VirtualAdminClustersTable,
-								spec.RegionServicesTable,
-								spec.ImagesTable,
-							},
-						},
-						base_index_model.Tabs{
-							Name:             "Resources",
-							SubNameParamKeys: []string{"Cluster"},
-							Kind:             "Tabs",
-							Subname:          "ClusterKind",
-							TabParam:         "ClusterKind",
-							IsSync:           true,
-							Children: []interface{}{
-								spec.ComputesTable,
-							},
-						},
 						map[string]interface{}{
-							"Name":             "Resource",
-							"SubNameParamKeys": []string{"Name"},
-							"Kind":             "Panes",
+							"Name": "Regions",
+							"Kind": "Pane",
+							"Views": []interface{}{
+								spec.RegionsTable,
+							},
 							"Children": []interface{}{
-								spec.ComputesDetail,
+								base_index_model.Tabs{
+									Name:             "RegionResources",
+									SubNameParamKeys: []string{"Region"},
+									Kind:             "Tabs",
+									Children: []interface{}{
+										spec.VirtualAdminClustersTable,
+										spec.RegionServicesTable,
+										spec.ImagesTable,
+									},
+								},
 							},
 						},
 					},

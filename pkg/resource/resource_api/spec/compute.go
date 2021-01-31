@@ -84,33 +84,41 @@ type DeleteComputes struct {
 
 type DeleteComputesData struct{}
 
-var ComputesTable = base_index_model.Table{
-	Name:        "Computes",
-	Kind:        "Table",
-	DataQueries: []string{"GetComputes"},
-	DataKey:     "Computes",
-	SelectActions: []base_index_model.Action{
-		base_index_model.Action{
-			Name:      "Delete",
-			Icon:      "Delete",
-			Kind:      "Form",
-			DataKind:  "Compute",
-			SelectKey: "Name",
+var ComputesTable = map[string]interface{}{
+	"Name":        "Computes",
+	"Kind":        "Pane",
+	"DataQueries": []string{"GetComputes"},
+	"Views": []interface{}{
+		base_index_model.Table{
+			Kind:    "Table",
+			DataKey: "Computes",
+			SelectActions: []base_index_model.Action{
+				base_index_model.Action{
+					Name:      "Delete",
+					Icon:      "Delete",
+					Kind:      "Form",
+					DataKind:  "Compute",
+					SelectKey: "Name",
+				},
+			},
+			Columns: []base_index_model.TableColumn{
+				base_index_model.TableColumn{
+					Name: "Name", IsSearch: true,
+					Align:      "left",
+					LinkPath:   []string{"Regions", "RegionResources", "Clusters", "Resources", "Computes", "Compute", "View"},
+					LinkKeyMap: map[string]string{"Name": "Name"},
+				},
+				base_index_model.TableColumn{Name: "RegionService"},
+				base_index_model.TableColumn{Name: "Kind"},
+				base_index_model.TableColumn{Name: "Status"},
+				base_index_model.TableColumn{Name: "StatusReason"},
+				base_index_model.TableColumn{Name: "UpdatedAt", Kind: "Time"},
+				base_index_model.TableColumn{Name: "CreatedAt", Kind: "Time"},
+			},
 		},
 	},
-	Columns: []base_index_model.TableColumn{
-		base_index_model.TableColumn{
-			Name: "Name", IsSearch: true,
-			Align:      "left",
-			LinkPath:   []string{"Resource", "Compute", "View"},
-			LinkKeyMap: map[string]string{"Name": "Name"},
-		},
-		base_index_model.TableColumn{Name: "RegionService"},
-		base_index_model.TableColumn{Name: "Kind"},
-		base_index_model.TableColumn{Name: "Status"},
-		base_index_model.TableColumn{Name: "StatusReason"},
-		base_index_model.TableColumn{Name: "UpdatedAt", Kind: "Time"},
-		base_index_model.TableColumn{Name: "CreatedAt", Kind: "Time"},
+	"Children": []interface{}{
+		ComputesDetail,
 	},
 }
 
@@ -119,12 +127,12 @@ var ComputesDetail = base_index_model.Tabs{
 	Kind:   "Tabs",
 	IsSync: true,
 	Children: []interface{}{
-		base_index_model.View{
-			Name:        "View",
-			Kind:        "View",
-			DataKey:     "Compute",
-			DataQueries: []string{"GetCompute"},
-			PanelsGroups: []interface{}{
+		map[string]interface{}{
+			"Name":        "View",
+			"Kind":        "Box",
+			"DataKey":     "Compute",
+			"DataQueries": []string{"GetCompute"},
+			"PanelsGroups": []interface{}{
 				map[string]interface{}{
 					"Name": "Detail",
 					"Kind": "Cards",
@@ -168,24 +176,12 @@ var ComputesDetail = base_index_model.Tabs{
 		},
 		base_index_model.View{
 			Name:            "Console",
-			Kind:            "ConsoleView",
+			Kind:            "Console",
 			DataKey:         "Compute",
 			EnableWebSocket: true,
 			WebSocketQuery:  "GetComputeConsole",
 			WebSocketKey:    "ComputeConsole",
 			WebSocketKind:   "Console",
-			PanelsGroups: []interface{}{
-				map[string]interface{}{
-					"Name": "Console",
-					"Kind": "Cards",
-					"Cards": []interface{}{
-						map[string]interface{}{
-							"Name": "Console",
-							"Kind": "Console",
-						},
-					},
-				},
-			},
 		},
 	},
 }

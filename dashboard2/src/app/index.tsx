@@ -20,16 +20,17 @@ function query(input: any) {
     })
         .then(res => {
             if (res.status !== 200) {
-                console.log("Failed", res);
+                logger.error("goapp.query.status !== 200", res.status, res);
+                onError({ error: `UnexpectedStatus: ${res.status}` });
             }
             return res.json();
         })
         .then(payload => {
-            console.log("DEBUG payload", payload);
+            logger.info("goapp.query.onSuccess", payload);
             onSuccess(payload.ResultMap);
         })
         .catch(error => {
-            console.log("DEBUG error", error);
+            logger.error("goapp.query.onError", error);
             onError({ error });
         });
 }
@@ -68,31 +69,6 @@ class Provider implements IProvider {
         };
     }
 
-    getLoginView(input: any): any {
-        return {
-            Name: "Please Log In",
-            Fields: [
-                {
-                    Name: "User Name",
-                    Key: "User",
-                    Kind: "Text",
-                    Required: true
-                },
-                {
-                    Name: "Password",
-                    Key: "Password",
-                    Kind: "Password",
-                    Required: true
-                },
-                {
-                    Name: "Remember me",
-                    Key: "rememberMe",
-                    Kind: "Checkbox"
-                }
-            ]
-        };
-    }
-
     loginWithToken(input: any): void {
         const serviceName = "Auth";
         const queries = [
@@ -108,7 +84,7 @@ class Provider implements IProvider {
             onSuccess: function (_input: any) {
                 const result = _input.LoginWithToken;
                 if (result.Error && result.Error !== "") {
-                    input.onError(result.Error);
+                    input.onError({ error: result.Error });
                 } else {
                     data.auth = result.Data;
                     input.onSuccess();
@@ -176,8 +152,9 @@ class Provider implements IProvider {
     }
 
     getServiceIndex(input: any): void {
-        const { serviceName, projectName, location, initLocation } = input;
-        let queries: any = null;
+        const { serviceName, projectName, location, onSuccess } = input;
+        const that = this;
+        let queries: any = [];
 
         if (projectName) {
             queries = [
@@ -199,11 +176,8 @@ class Provider implements IProvider {
             ];
         }
 
-        if (
-            location &&
-            location.DataQueries &&
-            location.DataQueries.length > 0
-        ) {
+        let data = {};
+        if (location && (location.DataQueries || location.WebSocketQuery)) {
             const tmpQueries: any[] = [];
             const tmpData = Object.assign(
                 {},
@@ -211,14 +185,20 @@ class Provider implements IProvider {
                 location.ViewParams,
                 location.SearchQueries
             );
-            const data = JSON.stringify(tmpData);
-            for (let i = 0, len = location.DataQueries.length; i < len; i++) {
-                tmpQueries.push({
-                    Data: data,
-                    Name: location.DataQueries[i]
-                });
+            data = JSON.stringify(tmpData);
+            if (location.DataQueries) {
+                for (
+                    let i = 0, len = location.DataQueries.length;
+                    i < len;
+                    i++
+                ) {
+                    tmpQueries.push({
+                        Data: data,
+                        Name: location.DataQueries[i]
+                    });
+                }
+                queries = queries.concat(tmpQueries);
             }
-            queries = queries.concat(tmpQueries);
         }
 
         query({
@@ -227,7 +207,7 @@ class Provider implements IProvider {
             projectName,
             onSuccess: function (_input: any) {
                 let index: any;
-                const data: any = {};
+                const resultData: any = {};
                 const errors: any = [];
                 for (let i = 0, len = queries.length; i < len; i++) {
                     const query = queries[i];
@@ -247,9 +227,9 @@ class Provider implements IProvider {
                         query.Name === "GetServiceDashboardIndex"
                     ) {
                         index = result.Data.Index;
-                        Object.assign(data, result.Data.Data);
+                        Object.assign(resultData, result.Data.Data);
                     } else {
-                        Object.assign(data, result.Data);
+                        Object.assign(resultData, result.Data);
                     }
                 }
                 if (errors.length > 0) {
@@ -258,19 +238,33 @@ class Provider implements IProvider {
                     });
                     return;
                 }
-                input.onSuccess({
-                    Data: data,
-                    Index: index
-                });
+
+                if (location && location.WebSocketQuery) {
+                    that.startWebSocket({
+                        serviceName,
+                        projectName,
+                        location,
+                        data,
+                        onSuccess,
+                        resultData,
+                        index
+                    });
+                } else {
+                    onSuccess({
+                        data: resultData,
+                        index: index
+                    });
+                }
             },
             onError: function (_input: any) {
-                console.log("error", _input);
+                input.onError(_input);
             }
         });
     }
 
     getQueries(input: any): void {
-        const { serviceName, projectName, location } = input;
+        const { serviceName, projectName, location, onSuccess } = input;
+        const that = this;
 
         const queryData = Object.assign(
             {},
@@ -282,7 +276,18 @@ class Provider implements IProvider {
 
         const queries: any = [];
         if (!location.DataQueries) {
-            input.onSuccess({});
+            if (location.WebSocketQuery) {
+                that.startWebSocket({
+                    serviceName,
+                    projectName,
+                    location,
+                    data,
+                    onSuccess,
+                    resultData: {}
+                });
+            } else {
+                onSuccess({});
+            }
             return;
         }
         for (let i = 0, len = location.DataQueries.length; i < len; i++) {
@@ -297,7 +302,7 @@ class Provider implements IProvider {
             serviceName,
             projectName,
             onSuccess: function (_input: any) {
-                const data: any = {};
+                const resultData: any = {};
                 const errors: any = [];
                 for (let i = 0, len = queries.length; i < len; i++) {
                     const query = queries[i];
@@ -312,7 +317,7 @@ class Provider implements IProvider {
                         });
                         continue;
                     }
-                    Object.assign(data, result.Data);
+                    Object.assign(resultData, result.Data);
                 }
                 if (errors.length > 0) {
                     input.onError({
@@ -320,9 +325,21 @@ class Provider implements IProvider {
                     });
                     return;
                 }
-                input.onSuccess({
-                    data
-                });
+
+                if (location.WebSocketQuery) {
+                    that.startWebSocket({
+                        serviceName,
+                        projectName,
+                        location,
+                        data,
+                        onSuccess,
+                        resultData
+                    });
+                } else {
+                    onSuccess({
+                        data: resultData
+                    });
+                }
             },
             onError: function (_input: any) {
                 input.onError(_input);
@@ -330,8 +347,69 @@ class Provider implements IProvider {
         });
     }
 
+    startWebSocket(input: any) {
+        const {
+            projectName,
+            serviceName,
+            location,
+            data,
+            onSuccess,
+            resultData,
+            index
+        } = input;
+        const queries = [
+            {
+                Data: data,
+                Name: location.WebSocketQuery
+            }
+        ];
+
+        const url: any = process.env.REACT_APP_AUTHPROXY_URL;
+        const wsUrl: any = url.replace("http", "ws");
+        const socket = new WebSocket(wsUrl + "/ws");
+
+        let isInit = true;
+        socket.onclose = event => {
+            logger.info("index.startWebSocket.onclose", event);
+        };
+        socket.onerror = event => {
+            logger.error("index.startWebSocket.onerror", event);
+        };
+        socket.onmessage = event => {
+            const eventData = JSON.parse(event.data);
+            if (isInit) {
+                const newResultData = Object.assign(resultData, eventData);
+
+                if (index) {
+                    // getServiceindex
+                    onSuccess({
+                        index,
+                        data: newResultData,
+                        websocket: socket
+                    });
+                } else {
+                    onSuccess({
+                        data: newResultData,
+                        websocket: socket
+                    });
+                }
+                isInit = false;
+                return;
+            }
+        };
+        socket.onopen = event => {
+            logger.info("index.startWebSocket.onopen", event);
+            const initMessage = JSON.stringify({
+                Project: projectName,
+                Service: serviceName,
+                Queries: queries
+            });
+            socket.send(initMessage);
+        };
+    }
+
     submitQueries(input: any): void {
-        console.log("DEBUG submit_queries");
+        console.log("TODO submit_queries");
     }
 }
 

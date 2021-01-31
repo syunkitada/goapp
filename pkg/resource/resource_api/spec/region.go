@@ -60,7 +60,7 @@ var RegionsTable = base_index_model.Table{
 			Name:       "Name",
 			IsSearch:   true,
 			Align:      "left",
-			LinkPath:   []string{"RegionResources", "Clusters"},
+			LinkPath:   []string{"Regions", "RegionResources", "Clusters"},
 			LinkKeyMap: map[string]string{"Region": "Name"},
 		},
 		base_index_model.TableColumn{Name: "Kind"},

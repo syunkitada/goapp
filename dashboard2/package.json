@@ -3,7 +3,9 @@
     "version": "0.1.0",
     "private": true,
     "dependencies": {
-        "appui": "link:./src/appui"
+        "appui": "link:./src/appui",
+        "xterm": "^4.5.0",
+        "xterm-addon-fit": "^0.3.0"
     },
     "scripts": {
         "start": "react-scripts start",
