@@ -77,8 +77,9 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 				Value:    data.Token,
 				Secure:   true,
 				HttpOnly: true,
+				SameSite: http.SameSiteNoneMode,         // TODO Configurable
 				Expires:  time.Now().Add(1 * time.Hour), // TODO Configurable
-			} // FIXME SameSite
+			}
 			http.SetCookie(rw, &cookie)
 
 		case "Logout":
@@ -90,6 +91,7 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Reque
 				Value:    "",
 				Secure:   true,
 				HttpOnly: true,
+				SameSite: http.SameSiteNoneMode,
 			}
 			http.SetCookie(rw, &cookie)
 

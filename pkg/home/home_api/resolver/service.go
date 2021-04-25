@@ -65,7 +65,7 @@ func (resolver *Resolver) GetServiceDashboardIndex(tctx *logger.TraceContext, in
 				},
 				View: base_index_model.Panels{
 					Name: "Root",
-					Kind: "Panels",
+					Kind: "Panes",
 					Children: []interface{}{
 						map[string]interface{}{
 							"Name": "User",
@@ -131,7 +131,7 @@ func (resolver *Resolver) GetProjectServiceDashboardIndex(tctx *logger.TraceCont
 				},
 				View: base_index_model.Panels{
 					Name: "Root",
-					Kind: "Panels",
+					Kind: "Panes",
 					Children: []interface{}{
 						base_index_model.Tabs{
 							Name: "User",

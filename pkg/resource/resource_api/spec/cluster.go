@@ -77,11 +77,11 @@ var ClustersTable = base_index_model.Table{
 	DataKey: "Clusters",
 	Columns: []base_index_model.TableColumn{
 		base_index_model.TableColumn{
-			Name:     "Name",
-			IsSearch: true,
-			Link:     "Clusters/:0/Resources/Computes",
-			LinkKey:  "cluster",
-			LinkSync: true,
+			Name:       "Name",
+			IsSearch:   true,
+			Link:       "Clusters/:0/Resources/Computes",
+			LinkKeyMap: map[string]string{"Cluster": "Cluster"},
+			LinkSync:   true,
 		},
 		base_index_model.TableColumn{Name: "Datacenter", IsSearch: true},
 		base_index_model.TableColumn{Name: "UpdatedAt", Kind: "Time", Sort: "asc"},
@@ -89,29 +89,49 @@ var ClustersTable = base_index_model.Table{
 	},
 }
 
-var VirtualAdminClustersTable = base_index_model.Table{
-	Name:        "Clusters",
-	Kind:        "Table",
-	DataKey:     "Clusters",
-	DataQueries: []string{"GetClusters"},
-	Columns: []base_index_model.TableColumn{
-		base_index_model.TableColumn{
-			Name:            "Name",
-			IsSearch:        true,
-			Align:           "left",
-			LinkPath:        []string{"Resources", "Computes"},
-			LinkKey:         "Cluster",
-			LinkDataQueries: []string{"GetComputes"},
+var VirtualAdminClustersTable = map[string]interface{}{
+	"Name":        "Clusters",
+	"Kind":        "Pane",
+	"DataQueries": []string{"GetClusters"},
+	"Views": []interface{}{
+		base_index_model.Table{
+			Name:        "Clusters",
+			Kind:        "Table",
+			DataKey:     "Clusters",
+			DataQueries: []string{"GetClusters"},
+			Columns: []base_index_model.TableColumn{
+				base_index_model.TableColumn{
+					Name:            "Name",
+					IsSearch:        true,
+					Align:           "left",
+					LinkPath:        []string{"Regions", "RegionResources", "Clusters", "Resources", "Computes"},
+					LinkKeyMap:      map[string]string{"Cluster": "Name"},
+					LinkDataQueries: []string{"GetComputes"},
+				},
+				base_index_model.TableColumn{Name: "Datacenter", IsSearch: true},
+				base_index_model.TableColumn{Name: "UpdatedAt", Kind: "Time", Sort: "asc"},
+				base_index_model.TableColumn{Name: "CreatedAt", Kind: "Time"},
+			},
+			SelectActions: []base_index_model.Action{
+				base_index_model.Action{Name: "Delete", Icon: "Delete",
+					Kind:      "Form",
+					DataKind:  "Region",
+					SelectKey: "Name",
+				},
+			},
 		},
-		base_index_model.TableColumn{Name: "Datacenter", IsSearch: true},
-		base_index_model.TableColumn{Name: "UpdatedAt", Kind: "Time", Sort: "asc"},
-		base_index_model.TableColumn{Name: "CreatedAt", Kind: "Time"},
 	},
-	SelectActions: []base_index_model.Action{
-		base_index_model.Action{Name: "Delete", Icon: "Delete",
-			Kind:      "Form",
-			DataKind:  "Region",
-			SelectKey: "Name",
+	"Children": []interface{}{
+		base_index_model.Tabs{
+			Name:             "Resources",
+			SubNameParamKeys: []string{"Cluster"},
+			Kind:             "Tabs",
+			Subname:          "ClusterKind",
+			TabParam:         "ClusterKind",
+			IsSync:           true,
+			Children: []interface{}{
+				ComputesTable,
+			},
 		},
 	},
 }

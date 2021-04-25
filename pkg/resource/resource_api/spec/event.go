@@ -142,12 +142,19 @@ var EventsTable = base_index_model.Table{
 			RowColoringMap: map[string]string{"Warning": "Warning", "Critical": "Critical"},
 			FilterValues: []map[string]string{
 				map[string]string{
+					"Icon":  "Success",
+					"Value": "Success",
+					"Color": "Green",
+				},
+				map[string]string{
 					"Icon":  "Warning",
 					"Value": "Warning",
+					"Color": "Orange",
 				},
 				map[string]string{
 					"Icon":  "Critical",
 					"Value": "Critical",
+					"Color": "Red",
 				},
 			},
 		},

@@ -69,9 +69,9 @@ var RacksTable = base_index_model.Table{
 	Columns: []base_index_model.TableColumn{
 		base_index_model.TableColumn{
 			Name: "Name", IsSearch: true,
-			Link:           "Datacenters/:Datacenter/Resources/Racks/Detail/:0/View",
-			LinkKey:      "Name",
-			LinkSync:       false,
+			Link:            "Datacenters/:Datacenter/Resources/Racks/Detail/:0/View",
+			LinkKeyMap:      map[string]string{"Name": "Name"},
+			LinkSync:        false,
 			LinkDataQueries: []string{"GetRack"},
 		},
 		base_index_model.TableColumn{Name: "Kind"},

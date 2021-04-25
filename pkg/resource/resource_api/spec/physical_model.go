@@ -82,11 +82,11 @@ var PhysicalModelsTable = base_index_model.Table{
 	},
 	Columns: []base_index_model.TableColumn{
 		base_index_model.TableColumn{
-			Name:           "Name",
-			IsSearch:       true,
-			Link:           "Datacenters/:Datacenter/Resources/Models/Detail/:0/View",
-			LinkKey:      "resource",
-			LinkSync:       false,
+			Name:            "Name",
+			IsSearch:        true,
+			Link:            "Datacenters/:Datacenter/Resources/Models/Detail/:0/View",
+			LinkKeyMap:      map[string]string{"Resource": "Name"},
+			LinkSync:        false,
 			LinkDataQueries: []string{"GetPhysicalModel"}},
 		base_index_model.TableColumn{Name: "Kind"},
 		base_index_model.TableColumn{Name: "UpdatedAt", Kind: "Time", Sort: "desc"},

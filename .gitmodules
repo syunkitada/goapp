@@ -1,0 +1,3 @@
+[submodule "dashboard2/src/appui"]
+	path = dashboard2/src/appui
+	url = git@github.com:syunkitada/appui.git

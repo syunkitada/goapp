@@ -1661,6 +1661,11 @@ var ResourceMonitorCmdMap = map[string]base_index_model.Cmd{
 				FlagType: "string",
 				FlagKind: "",
 			},
+			"target,t": base_index_model.Flag{
+				Required: false,
+				FlagType: "string",
+				FlagKind: "",
+			},
 			"time.duration,t": base_index_model.Flag{
 				Required: false,
 				FlagType: "string",
@@ -1668,7 +1673,7 @@ var ResourceMonitorCmdMap = map[string]base_index_model.Cmd{
 			},
 			"until.time,u": base_index_model.Flag{
 				Required: false,
-				FlagType: "*time.Time",
+				FlagType: "string",
 				FlagKind: "",
 			},
 		},

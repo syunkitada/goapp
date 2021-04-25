@@ -62,11 +62,11 @@ var DatacentersTable = base_index_model.Table{
 	DataKey:     "Datacenters",
 	Columns: []base_index_model.TableColumn{
 		base_index_model.TableColumn{
-			Name:      "Name",
-			IsSearch:  true,
-			Link:      "Datacenters/:0/Resources/Resources",
-			LinkKey: "Datacenter",
-			LinkSync:  true,
+			Name:       "Name",
+			IsSearch:   true,
+			Link:       "Datacenters/:0/Resources/Resources",
+			LinkKeyMap: map[string]string{"Datacenter": "Datacenter"},
+			LinkSync:   true,
 			LinkDataQueries: []string{
 				"GetPhysicalResources", "GetRacks", "GetFloors", "GetPhysicalModels"},
 		},

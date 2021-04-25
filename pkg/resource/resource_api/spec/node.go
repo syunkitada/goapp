@@ -57,83 +57,91 @@ type GetNodeMetricsData struct {
 	NodeMetrics Node
 }
 
-var NodesTable = base_index_model.Table{
-	Name:        "Nodes",
-	Kind:        "Table",
-	DataQueries: []string{"GetNodes"},
-	DataKey:     "Nodes",
-	SelectActions: []base_index_model.Action{
-		base_index_model.Action{
-			Name:      "Delete",
-			Icon:      "Delete",
-			Kind:      "Form",
-			DataKind:  "Node",
-			SelectKey: "Name",
+var NodesTable = map[string]interface{}{
+	"Name":        "Nodes",
+	"DataQueries": []string{"GetNodes"},
+	"Kind":        "Pane",
+	"Views": []interface{}{
+		base_index_model.Table{
+			Kind:    "Table",
+			DataKey: "Nodes",
+			SelectActions: []base_index_model.Action{
+				base_index_model.Action{
+					Name:      "Delete",
+					Icon:      "Delete",
+					Kind:      "Form",
+					DataKind:  "Node",
+					SelectKey: "Name",
+				},
+			},
+			Columns: []base_index_model.TableColumn{
+				base_index_model.TableColumn{
+					Name: "Name", IsSearch: true,
+					LinkPath:   []string{"Clusters", "Resources", "Nodes", "Node", "View"},
+					LinkKeyMap: map[string]string{"Name": "Name"},
+				},
+				base_index_model.TableColumn{
+					Name: "ActiveServices", Kind: "Popover", Icon: "Success", Color: "Success", InactiveColor: "Default",
+					View: base_index_model.Table{
+						Kind:    "Table",
+						DataKey: "ActiveServicesData",
+						Columns: NodeServicesTableColumns,
+					},
+				},
+				base_index_model.TableColumn{
+					Name: "CriticalServices", Kind: "Popover", Icon: "Critical", Color: "Critical", InactiveColor: "Default",
+					View: base_index_model.Table{
+						Kind:    "Table",
+						DataKey: "CriticalServicesData",
+						Columns: NodeServicesTableColumns,
+					},
+				},
+				base_index_model.TableColumn{
+					Name: "DisabledServices", Kind: "Popover", Icon: "Silenced", Color: "Silenced", InactiveColor: "Default",
+					View: base_index_model.Table{
+						Kind:    "Table",
+						DataKey: "DisabledServicesData",
+						Columns: NodeServicesTableColumns,
+					},
+				},
+				base_index_model.TableColumn{
+					Name: "SuccessEvents", Kind: "Popover", Icon: "Success", Color: "Success", InactiveColor: "Default",
+					View: base_index_model.Table{
+						Kind:    "Table",
+						DataKey: "SuccessEventsData",
+						Columns: NodeEventsTableColumns,
+					},
+				},
+				base_index_model.TableColumn{
+					Name: "CriticalEvents", Kind: "Popover", Icon: "Critical", Color: "Critical", InactiveColor: "Default",
+					View: base_index_model.Table{
+						Kind:    "Table",
+						DataKey: "CriticalEventsData",
+						Columns: NodeEventsTableColumns,
+					},
+				},
+				base_index_model.TableColumn{
+					Name: "WarningEvents", Kind: "Popover", Icon: "Warning", Color: "Warning", InactiveColor: "Default",
+					View: base_index_model.Table{
+						Kind:    "Table",
+						DataKey: "WarningEventsData",
+						Columns: NodeEventsTableColumns,
+					},
+				},
+				base_index_model.TableColumn{
+					Name: "SilencedEvents", Kind: "Popover", Icon: "Silenced", Color: "Silenced", InactiveColor: "Default",
+					View: base_index_model.Table{
+						Kind:    "Table",
+						DataKey: "SilencedEventsData",
+						Columns: NodeEventsTableColumns,
+					},
+				},
+				base_index_model.TableColumn{Name: "UpdatedAt", Kind: "Time"},
+			},
 		},
 	},
-	Columns: []base_index_model.TableColumn{
-		base_index_model.TableColumn{
-			Name: "Name", IsSearch: true,
-			LinkPath: []string{"Resource", "Node", "View"},
-			LinkKey:  "Name",
-		},
-		base_index_model.TableColumn{
-			Name: "ActiveServices", Kind: "Popover", Icon: "Success", Color: "Success", InactiveColor: "Default",
-			View: base_index_model.Table{
-				Kind:    "Table",
-				DataKey: "ActiveServicesData",
-				Columns: NodeServicesTableColumns,
-			},
-		},
-		base_index_model.TableColumn{
-			Name: "CriticalServices", Kind: "Popover", Icon: "Critical", Color: "Critical", InactiveColor: "Default",
-			View: base_index_model.Table{
-				Kind:    "Table",
-				DataKey: "CriticalServicesData",
-				Columns: NodeServicesTableColumns,
-			},
-		},
-		base_index_model.TableColumn{
-			Name: "DisabledServices", Kind: "Popover", Icon: "Silenced", Color: "Silenced", InactiveColor: "Default",
-			View: base_index_model.Table{
-				Kind:    "Table",
-				DataKey: "DisabledServicesData",
-				Columns: NodeServicesTableColumns,
-			},
-		},
-		base_index_model.TableColumn{
-			Name: "SuccessEvents", Kind: "Popover", Icon: "Success", Color: "Success", InactiveColor: "Default",
-			View: base_index_model.Table{
-				Kind:    "Table",
-				DataKey: "SuccessEventsData",
-				Columns: NodeEventsTableColumns,
-			},
-		},
-		base_index_model.TableColumn{
-			Name: "CriticalEvents", Kind: "Popover", Icon: "Critical", Color: "Critical", InactiveColor: "Default",
-			View: base_index_model.Table{
-				Kind:    "Table",
-				DataKey: "CriticalEventsData",
-				Columns: NodeEventsTableColumns,
-			},
-		},
-		base_index_model.TableColumn{
-			Name: "WarningEvents", Kind: "Popover", Icon: "Warning", Color: "Warning", InactiveColor: "Default",
-			View: base_index_model.Table{
-				Kind:    "Table",
-				DataKey: "WarningEventsData",
-				Columns: NodeEventsTableColumns,
-			},
-		},
-		base_index_model.TableColumn{
-			Name: "SilencedEvents", Kind: "Popover", Icon: "Silenced", Color: "Silenced", InactiveColor: "Default",
-			View: base_index_model.Table{
-				Kind:    "Table",
-				DataKey: "SilencedEventsData",
-				Columns: NodeEventsTableColumns,
-			},
-		},
-		base_index_model.TableColumn{Name: "UpdatedAt", Kind: "Time"},
+	"Children": []interface{}{
+		NodesDetail,
 	},
 }
 

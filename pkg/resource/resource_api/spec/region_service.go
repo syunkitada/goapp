@@ -122,10 +122,10 @@ var RegionServicesTable = base_index_model.Table{
 	Columns: []base_index_model.TableColumn{
 		base_index_model.TableColumn{
 			Name: "Name", IsSearch: true,
-			Align:          "left",
-			Link:           "Regions/:Region/RegionResources/RegionServices/Detail/:0/View",
-			LinkKey:        "Name",
-			LinkSync:       false,
+			Align:           "left",
+			Link:            "Regions/:Region/RegionResources/RegionServices/Detail/:0/View",
+			LinkKeyMap:      map[string]string{"Name": "Name"},
+			LinkSync:        false,
 			LinkDataQueries: []string{"GetRegionService"},
 		},
 		base_index_model.TableColumn{Name: "Kind"},
