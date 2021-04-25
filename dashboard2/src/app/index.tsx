@@ -2,6 +2,12 @@ import logger from "../appui/src/lib/logger";
 import data from "../appui/src/data";
 import { IProvider } from "../appui/src/provider/IProvider";
 
+declare global {
+    interface Window {
+        conf: any;
+    }
+}
+
 function query(input: any) {
     const { projectName, serviceName, queries, onSuccess, onError } = input;
 
@@ -12,7 +18,7 @@ function query(input: any) {
     });
     logger.info("goapp.query", body);
 
-    return fetch(process.env.REACT_APP_AUTHPROXY_URL + "/q", {
+    return fetch(window.conf.authproxy_url + "/q", {
         body,
         credentials: "include",
         method: "POST",
@@ -27,7 +33,11 @@ function query(input: any) {
         })
         .then(payload => {
             logger.info("goapp.query.onSuccess", payload);
-            onSuccess(payload.ResultMap);
+            if (payload.Error) {
+                onError({ error: payload.Error });
+            } else {
+                onSuccess(payload.ResultMap);
+            }
         })
         .catch(error => {
             logger.error("goapp.query.onError", error);
@@ -40,9 +50,11 @@ class Provider implements IProvider {
         return {
             DefaultServiceName: "Home",
             DefaultProjectServiceName: "HomeProject",
-            Logo: {
-                Kind: "Text",
-                Name: "Home"
+            DashboardView: {
+                Logo: {
+                    Kind: "Text",
+                    Name: "Home"
+                }
             },
             LoginView: {
                 Name: "Please Log In",
@@ -69,7 +81,7 @@ class Provider implements IProvider {
         };
     }
 
-    loginWithToken(input: any): void {
+    init(input: any): void {
         const serviceName = "Auth";
         const queries = [
             {
@@ -364,7 +376,7 @@ class Provider implements IProvider {
             }
         ];
 
-        const url: any = process.env.REACT_APP_AUTHPROXY_URL;
+        const url: any = window.conf.authproxy_url;
         const wsUrl: any = url.replace("http", "ws");
         const socket = new WebSocket(wsUrl + "/ws");
 
