@@ -184,7 +184,7 @@ var NodesDetail = base_index_model.Tabs{
 	Children: []interface{}{
 		base_index_model.View{
 			Name:        "View",
-			Kind:        "View",
+			Kind:        "Box",
 			DataQueries: []string{"GetNode"},
 			DataKey:     "Node",
 			PanelsGroups: []interface{}{
@@ -273,7 +273,7 @@ var NodesDetail = base_index_model.Tabs{
 		},
 		base_index_model.View{
 			Name:        "Metrics",
-			Kind:        "View",
+			Kind:        "Box",
 			DataQueries: []string{"GetNodeMetrics"},
 			DataKey:     "NodeMetrics",
 			PanelsGroups: []interface{}{
@@ -281,17 +281,17 @@ var NodesDetail = base_index_model.Tabs{
 					"Name":        "Display Time",
 					"Kind":        "SearchForm",
 					"DataQueries": []string{"GetNodeMetrics"},
-					"Inputs": []interface{}{
-						base_index_model.TableInputField{
-							Name:     "TimeDuration",
-							Type:     "Select",
-							Data:     []string{"-3h", "-6h", "-1d", "-3d", "-7d"},
-							Default:  "-6h",
-							Multiple: false,
+					"Fields": []interface{}{
+						map[string]interface{}{
+							"Name":     "TimeDuration",
+							"Kind":     "Select",
+							"Data":     []string{"-3h", "-6h", "-1d", "-3d", "-7d"},
+							"Default":  "-6h",
+							"Multiple": false,
 						},
-						base_index_model.TableInputField{
-							Name: "UntilTime",
-							Type: "DateTime",
+						map[string]interface{}{
+							"Name": "UntilTime",
+							"Kind": "DateTime",
 						},
 					},
 				},
@@ -304,7 +304,7 @@ var NodesDetail = base_index_model.Tabs{
 		},
 		base_index_model.View{
 			Name:        "Proc Metrics",
-			Kind:        "View",
+			Kind:        "Box",
 			DataQueries: []string{"GetNodeMetrics"},
 			DataKey:     "NodeMetrics",
 			ViewParams: map[string]interface{}{
@@ -315,17 +315,17 @@ var NodesDetail = base_index_model.Tabs{
 					"Name":        "Display Time",
 					"Kind":        "SearchForm",
 					"DataQueries": []string{"GetNodeMetrics"},
-					"Inputs": []interface{}{
-						base_index_model.TableInputField{
-							Name:     "TimeDuration",
-							Type:     "Select",
-							Data:     []string{"-3h", "-6h", "-1d", "-3d", "-7d"},
-							Default:  "-6h",
-							Multiple: false,
+					"Fields": []interface{}{
+						map[string]interface{}{
+							"Name":     "TimeDuration",
+							"Kind":     "Select",
+							"Data":     []string{"-3h", "-6h", "-1d", "-3d", "-7d"},
+							"Default":  "-6h",
+							"Multiple": false,
 						},
-						base_index_model.TableInputField{
-							Name: "UntilTime",
-							Type: "DateTime",
+						map[string]interface{}{
+							"Name": "UntilTime",
+							"Kind": "DateTime",
 						},
 					},
 				},

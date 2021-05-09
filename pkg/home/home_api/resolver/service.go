@@ -99,9 +99,9 @@ func (resolver *Resolver) GetServiceDashboardIndex(tctx *logger.TraceContext, in
 									"SubmitButtonName": "Change Password",
 									"SubmitQueries":    []string{"UpdateUserPassword"},
 									"Fields": []base_index_model.Field{
-										base_index_model.Field{Name: "CurrentPassword", Kind: "password", Updatable: true, Required: true},
-										base_index_model.Field{Name: "NewPassword", Kind: "password", Updatable: true, Required: true},
-										base_index_model.Field{Name: "NewPasswordConfirm", Kind: "password", Updatable: true, Required: true},
+										base_index_model.Field{Name: "CurrentPassword", Kind: "Password", Updatable: true, Required: true},
+										base_index_model.Field{Name: "NewPassword", Kind: "Password", Updatable: true, Required: true},
+										base_index_model.Field{Name: "NewPasswordConfirm", Kind: "Password", Updatable: true, Required: true},
 									},
 								},
 							},

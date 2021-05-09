@@ -291,6 +291,8 @@ func (driver *InfluxdbDriver) GetNode(tctx *logger.TraceContext, input *api_spec
 		input.Name, until, until, from)
 	suffixQuery := fmt.Sprintf("%s GROUP BY time(1m)", whereStr)
 
+	fmt.Println("DEBUG GetNode", input.Target)
+
 	switch input.Target {
 	case "Proc":
 		var systemProcMetricsGroup []api_spec.Metrics
@@ -485,6 +487,7 @@ type GetMetrics struct {
 
 func (driver *InfluxdbDriver) GetMetrics(tctx *logger.TraceContext, getMetrics *GetMetrics) {
 	for _, client := range driver.metricClients {
+		fmt.Println("DEBUG query", getMetrics.query)
 		queryResult, tmpErr := client.Query(getMetrics.query)
 		if tmpErr != nil {
 			logger.Warningf(tctx, "Failed Query: %s", tmpErr.Error())
