@@ -18,6 +18,7 @@ type Compute struct {
 	Project       string
 	Spec          interface{}
 	LinkSpec      string
+	IpAddrs       string
 	Image         string
 	Vcpus         uint
 	Memory        uint
