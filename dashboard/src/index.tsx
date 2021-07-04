@@ -1,7 +1,14 @@
-import * as React from "react";
-import * as ReactDOM from "react-dom";
-import "typeface-roboto";
+import auth from "./appui/src/apps/auth";
+import service from "./appui/src/apps/service";
+import provider from "./appui/src/provider";
+import app from "./app";
 
-import Root from "./containers/Root";
+$(function () {
+    provider.register(new app.Provider());
 
-ReactDOM.render(<Root />, document.getElementById("root"));
+    if ("auth" in window) {
+        service.init();
+    } else {
+        auth.init();
+    }
+});
