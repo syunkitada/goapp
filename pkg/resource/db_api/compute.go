@@ -49,9 +49,40 @@ func (api *Api) GetCompute(tctx *logger.TraceContext, input *spec.GetCompute, us
 }
 
 func (api *Api) GetComputes(tctx *logger.TraceContext, input *spec.GetComputes, user *base_spec.UserAuthority) (data []spec.Compute, err error) {
+	var computes []db_model.Compute
 	err = api.DB.Table("computes").
-		Select("region, cluster, region_service, project, name, kind, status, status_reason, updated_at, created_at").
-		Where("region = ? AND deleted_at IS NULL", input.Region).Scan(&data).Error
+		Select("region, cluster, region_service, project, name, kind, spec, image, vcpus, memory, disk, status, status_reason, updated_at, created_at").
+		Where("region = ? AND deleted_at IS NULL", input.Region).Scan(&computes).Error
+
+	for _, compute := range computes {
+		var specData spec.RegionServiceComputeSpec
+		if err = json_utils.Unmarshal(compute.Spec, &specData); err != nil {
+			return
+		}
+		ipaddrs := []string{}
+		for _, port := range specData.Ports {
+			ipaddrs = append(ipaddrs, port.Ip)
+		}
+		data = append(data, spec.Compute{
+			Region:        compute.Region,
+			Cluster:       compute.Cluster,
+			RegionService: compute.RegionService,
+			Name:          compute.Name,
+			Kind:          compute.Kind,
+			Labels:        compute.Labels,
+			Status:        compute.Status,
+			StatusReason:  compute.StatusReason,
+			Project:       compute.Project,
+			IpAddrs:       strings.Join(ipaddrs, ","),
+			Image:         compute.Image,
+			Vcpus:         compute.Vcpus,
+			Memory:        compute.Memory,
+			Disk:          compute.Disk,
+			UpdatedAt:     compute.UpdatedAt,
+			CreatedAt:     compute.CreatedAt,
+		})
+	}
+
 	return
 }
 

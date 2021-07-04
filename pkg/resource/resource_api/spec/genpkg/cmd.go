@@ -1183,7 +1183,7 @@ var ResourceVirtualAdminCmdMap = map[string]base_index_model.Cmd{
 		},
 		Kind:         "",
 		OutputKind:   "table",
-		OutputFormat: "Region,Cluster,RegionService,Name,Kind,Labels,Status,StatusReason,Project,Spec,LinkSpec,Image,Vcpus,Memory,Disk,UpdatedAt,CreatedAt",
+		OutputFormat: "Region,Cluster,RegionService,Name,Kind,Labels,Status,StatusReason,Project,Spec,LinkSpec,IpAddrs,Image,Vcpus,Memory,Disk,UpdatedAt,CreatedAt",
 		Ws:           false,
 	},
 	"get.computes": base_index_model.Cmd{
@@ -1197,7 +1197,7 @@ var ResourceVirtualAdminCmdMap = map[string]base_index_model.Cmd{
 		},
 		Kind:         "",
 		OutputKind:   "table",
-		OutputFormat: "Region,Cluster,RegionService,Name,Kind,Labels,Status,StatusReason,Project,Spec,LinkSpec,Image,Vcpus,Memory,Disk,UpdatedAt,CreatedAt",
+		OutputFormat: "Region,Cluster,RegionService,Name,Kind,Labels,Status,StatusReason,Project,Spec,LinkSpec,IpAddrs,Image,Vcpus,Memory,Disk,UpdatedAt,CreatedAt",
 		Ws:           false,
 	},
 	"get.compute.console": base_index_model.Cmd{
@@ -1216,7 +1216,7 @@ var ResourceVirtualAdminCmdMap = map[string]base_index_model.Cmd{
 		},
 		Kind:         "Terminal",
 		OutputKind:   "table",
-		OutputFormat: "Region,Cluster,RegionService,Name,Kind,Labels,Status,StatusReason,Project,Spec,LinkSpec,Image,Vcpus,Memory,Disk,UpdatedAt,CreatedAt",
+		OutputFormat: "Region,Cluster,RegionService,Name,Kind,Labels,Status,StatusReason,Project,Spec,LinkSpec,IpAddrs,Image,Vcpus,Memory,Disk,UpdatedAt,CreatedAt",
 		Ws:           true,
 	},
 }

@@ -25,7 +25,7 @@ var ResourceVirtualAdminCmdMap = map[string]base_index_model.Cmd{
 		},
 		Kind:         "",
 		OutputKind:   "table",
-		OutputFormat: "Region,Cluster,RegionService,Name,Kind,Labels,Status,StatusReason,Project,Spec,LinkSpec,Image,Vcpus,Memory,Disk,UpdatedAt,CreatedAt",
+		OutputFormat: "Region,Cluster,RegionService,Name,Kind,Labels,Status,StatusReason,Project,Spec,LinkSpec,IpAddrs,Image,Vcpus,Memory,Disk,UpdatedAt,CreatedAt",
 		Ws:           true,
 	},
 }

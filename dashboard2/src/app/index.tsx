@@ -58,6 +58,8 @@ class Provider implements IProvider {
             },
             LoginView: {
                 Name: "Please Log In",
+                SubmitButtonStyle: "wide",
+                SubmitButtonName: "Log In",
                 Fields: [
                     {
                         Name: "User Name",
