@@ -8,7 +8,7 @@ import (
 	"github.com/syunkitada/goapp/pkg/base/base_client"
 	"github.com/syunkitada/goapp/pkg/base/base_config"
 	"github.com/syunkitada/goapp/pkg/base/base_const"
-	"github.com/syunkitada/goapp/pkg/base/base_model"
+	"github.com/syunkitada/goapp/pkg/base/base_protocol"
 	"github.com/syunkitada/goapp/pkg/base/base_spec"
 	"github.com/syunkitada/goapp/pkg/lib/error_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
@@ -30,7 +30,7 @@ func NewClient(conf *base_config.ClientConfig) *Client {
 
 {{- range $query := $spec.QuerySet }}
 type {{ $query.Name }}Response struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap {{ $query.Name }}ResultMap
 }
 
@@ -47,14 +47,16 @@ type {{ $query.Name }}Result struct {
 
 {{- range $api := $spec.Apis }}
 {{- range $query := $api.Queries }}
-func (client *Client) {{ $api.Name }}{{ $query.Name }}(tctx *logger.TraceContext, queries []base_client.Query) (data *{{ $query.PkgName }}.{{ $query.Name }}Data, err error) {
+
+{{- if $query.Ws }}
+func (client *Client) {{ $api.Name }}{{ $query.Name }}(tctx *logger.TraceContext, queries []base_client.Query) (data *{{ $query.PkgName }}.{{ $query.Name }}Data, conn *websocket.Conn, err error) {
 	var res {{ $query.Name }}Response
-	err = client.Request(tctx, "{{ $api.Name }}", queries, &res, true)
+	conn, err = client.RequestWs(tctx, "{{ $api.Name }}", queries, &res, true)
 	if err != nil {
 		return
 	}
 	result := res.ResultMap.{{ $query.Name }}
-    if result.Code >= 100 || result.Error != "" {
+	if result.Code >= 100 || result.Error != "" {
 		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
 		return
 	}
@@ -62,5 +64,24 @@ func (client *Client) {{ $api.Name }}{{ $query.Name }}(tctx *logger.TraceContext
 	data = &result.Data
 	return
 }
+
+{{- else }}
+func (client *Client) {{ $api.Name }}{{ $query.Name }}(tctx *logger.TraceContext, queries []base_client.Query) (data *{{ $query.PkgName }}.{{ $query.Name }}Data, err error) {
+	var res {{ $query.Name }}Response
+	err = client.Request(tctx, "{{ $api.Name }}", queries, &res, true)
+	if err != nil {
+		return
+	}
+	result := res.ResultMap.{{ $query.Name }}
+	if result.Code >= 100 || result.Error != "" {
+		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
+		return
+	}
+
+	data = &result.Data
+	return
+}
+{{- end }}
+
 {{- end }}
 {{- end }}

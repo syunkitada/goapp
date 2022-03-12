@@ -1,6 +1,6 @@
 package spec
 
-import "github.com/syunkitada/goapp/pkg/authproxy/index_model"
+import "github.com/syunkitada/goapp/pkg/base/base_index_model"
 
 type NetworkV4 struct {
 	Kind        string `validate:"required"`
@@ -11,6 +11,21 @@ type NetworkV4 struct {
 	StartIp     string `validate:"required"`
 	EndIp       string `validate:"required"`
 	Gateway     string `validate:"required"`
+	Spec        interface{}
+}
+
+type NetworkV4LocalSpec struct {
+	Resolvers []Resolver
+	Nat       Nat
+}
+
+type Resolver struct {
+	Resolver string
+}
+
+type Nat struct {
+	Enable bool
+	Ports  string
 }
 
 type GetNetworkV4 struct {
@@ -43,8 +58,8 @@ type UpdateNetworkV4 struct {
 type UpdateNetworkV4Data struct{}
 
 type DeleteNetworkV4 struct {
-	Name   string `validate:"required"`
-	Region string `validate:"required"`
+	Name    string `validate:"required"`
+	Cluster string `validate:"required"`
 }
 
 type DeleteNetworkV4Data struct{}
@@ -61,15 +76,17 @@ type Network struct {
 	Subnet       string
 	Gateway      string
 	AvailableIps []string
+	Kind         string
+	Spec         string
 }
 
-var NetworkV4sTable = index_model.Table{
+var NetworkV4sTable = base_index_model.Table{
 	Name:    "NetworkV4s",
 	Route:   "/NetworkV4s",
 	Kind:    "Table",
 	DataKey: "NetworkV4s",
-	SelectActions: []index_model.Action{
-		index_model.Action{
+	SelectActions: []base_index_model.Action{
+		base_index_model.Action{
 			Name:      "Delete",
 			Icon:      "Delete",
 			Kind:      "Form",
@@ -77,16 +94,16 @@ var NetworkV4sTable = index_model.Table{
 			SelectKey: "Name",
 		},
 	},
-	Columns: []index_model.TableColumn{
-		index_model.TableColumn{
+	Columns: []base_index_model.TableColumn{
+		base_index_model.TableColumn{
 			Name: "Name", IsSearch: true,
-			Link:           "Regions/:Region/Resources/NetworkV4s/Detail/:0/View",
-			LinkParam:      "Name",
-			LinkSync:       false,
-			LinkGetQueries: []string{"GetNetworkV4"},
+			Link:            "Regions/:Region/Resources/NetworkV4s/Detail/:0/View",
+			LinkKeyMap:      map[string]string{"Name": "Name"},
+			LinkSync:        false,
+			LinkDataQueries: []string{"GetNetworkV4"},
 		},
-		index_model.TableColumn{Name: "Kind"},
-		index_model.TableColumn{Name: "UpdatedAt", Kind: "Time"},
-		index_model.TableColumn{Name: "CreatedAt", Kind: "Time"},
+		base_index_model.TableColumn{Name: "Kind"},
+		base_index_model.TableColumn{Name: "UpdatedAt", Kind: "Time"},
+		base_index_model.TableColumn{Name: "CreatedAt", Kind: "Time"},
 	},
 }

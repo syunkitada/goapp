@@ -1,6 +1,7 @@
 package base_db_api
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -149,6 +150,7 @@ func (api *Api) SyncNodeServiceState(tctx *logger.TraceContext) (err error) {
 
 		downTime := time.Now().Add(api.nodeDownTimeDuration)
 		for _, node := range nodes {
+			fmt.Println("DEBUG SyncNodeServiceState", node.UpdatedAt, downTime)
 			if node.UpdatedAt.After(downTime) {
 				node.State = resource_model.StateDown
 				if err = tx.Save(&node).Error; err != nil {

@@ -3,7 +3,7 @@ package spec
 import (
 	"time"
 
-	"github.com/syunkitada/goapp/pkg/base/base_model/index_model"
+	"github.com/syunkitada/goapp/pkg/base/base_index_model"
 	"github.com/syunkitada/goapp/pkg/base/base_spec"
 )
 
@@ -46,123 +46,118 @@ type GetNodeData struct {
 }
 
 type GetNodeMetrics struct {
-	Cluster   string `validate:"required"`
-	Name      string `validate:"required"`
-	FromTime  string
-	UntilTime *time.Time
+	Cluster      string `validate:"required"`
+	Name         string `validate:"required"`
+	Target       string
+	TimeDuration string
+	UntilTime    string
 }
 
 type GetNodeMetricsData struct {
 	NodeMetrics Node
 }
 
-type MetricsGroup struct {
-	Name    string
-	Metrics []Metric
-}
-
-type Metric struct {
-	Name   string
-	Keys   []string
-	Values []map[string]interface{}
-}
-
-var NodesTable = index_model.Table{
-	Name:        "Nodes",
-	Route:       "/Nodes",
-	Kind:        "Table",
-	DataQueries: []string{"GetNodes"},
-	DataKey:     "Nodes",
-	SelectActions: []index_model.Action{
-		index_model.Action{
-			Name:      "Delete",
-			Icon:      "Delete",
-			Kind:      "Form",
-			DataKind:  "Node",
-			SelectKey: "Name",
+var NodesTable = map[string]interface{}{
+	"Name":        "Nodes",
+	"DataQueries": []string{"GetNodes"},
+	"Kind":        "Pane",
+	"Views": []interface{}{
+		base_index_model.Table{
+			Kind:    "Table",
+			DataKey: "Nodes",
+			SelectActions: []base_index_model.Action{
+				base_index_model.Action{
+					Name:      "Delete",
+					Icon:      "Delete",
+					Kind:      "Form",
+					DataKind:  "Node",
+					SelectKey: "Name",
+				},
+			},
+			Columns: []base_index_model.TableColumn{
+				base_index_model.TableColumn{
+					Name: "Name", IsSearch: true,
+					LinkPath:   []string{"Clusters", "Resources", "Nodes", "Node", "View"},
+					LinkKeyMap: map[string]string{"Name": "Name"},
+				},
+				base_index_model.TableColumn{
+					Name: "ActiveServices", Kind: "Popover", Icon: "Success", Color: "Success", InactiveColor: "Default",
+					View: base_index_model.Table{
+						Kind:    "Table",
+						DataKey: "ActiveServicesData",
+						Columns: NodeServicesTableColumns,
+					},
+				},
+				base_index_model.TableColumn{
+					Name: "CriticalServices", Kind: "Popover", Icon: "Critical", Color: "Critical", InactiveColor: "Default",
+					View: base_index_model.Table{
+						Kind:    "Table",
+						DataKey: "CriticalServicesData",
+						Columns: NodeServicesTableColumns,
+					},
+				},
+				base_index_model.TableColumn{
+					Name: "DisabledServices", Kind: "Popover", Icon: "Silenced", Color: "Silenced", InactiveColor: "Default",
+					View: base_index_model.Table{
+						Kind:    "Table",
+						DataKey: "DisabledServicesData",
+						Columns: NodeServicesTableColumns,
+					},
+				},
+				base_index_model.TableColumn{
+					Name: "SuccessEvents", Kind: "Popover", Icon: "Success", Color: "Success", InactiveColor: "Default",
+					View: base_index_model.Table{
+						Kind:    "Table",
+						DataKey: "SuccessEventsData",
+						Columns: NodeEventsTableColumns,
+					},
+				},
+				base_index_model.TableColumn{
+					Name: "CriticalEvents", Kind: "Popover", Icon: "Critical", Color: "Critical", InactiveColor: "Default",
+					View: base_index_model.Table{
+						Kind:    "Table",
+						DataKey: "CriticalEventsData",
+						Columns: NodeEventsTableColumns,
+					},
+				},
+				base_index_model.TableColumn{
+					Name: "WarningEvents", Kind: "Popover", Icon: "Warning", Color: "Warning", InactiveColor: "Default",
+					View: base_index_model.Table{
+						Kind:    "Table",
+						DataKey: "WarningEventsData",
+						Columns: NodeEventsTableColumns,
+					},
+				},
+				base_index_model.TableColumn{
+					Name: "SilencedEvents", Kind: "Popover", Icon: "Silenced", Color: "Silenced", InactiveColor: "Default",
+					View: base_index_model.Table{
+						Kind:    "Table",
+						DataKey: "SilencedEventsData",
+						Columns: NodeEventsTableColumns,
+					},
+				},
+				base_index_model.TableColumn{Name: "UpdatedAt", Kind: "Time"},
+			},
 		},
 	},
-	Columns: []index_model.TableColumn{
-		index_model.TableColumn{
-			Name: "Name", IsSearch: true,
-			Link:           "Clusters/:Cluster/Resources/Nodes/Detail/:0/View",
-			LinkParam:      "Name",
-			LinkSync:       false,
-			LinkGetQueries: []string{"GetNode"},
-		},
-		index_model.TableColumn{
-			Name: "ActiveServices", Kind: "Popover", Icon: "Success", Color: "Success", InactiveColor: "Default",
-			View: index_model.Table{
-				Kind:    "Table",
-				DataKey: "ActiveServicesData",
-				Columns: NodeServicesTableColumns,
-			},
-		},
-		index_model.TableColumn{
-			Name: "CriticalServices", Kind: "Popover", Icon: "Critical", Color: "Critical", InactiveColor: "Default",
-			View: index_model.Table{
-				Kind:    "Table",
-				DataKey: "CriticalServicesData",
-				Columns: NodeServicesTableColumns,
-			},
-		},
-		index_model.TableColumn{
-			Name: "DisabledServices", Kind: "Popover", Icon: "Silenced", Color: "Silenced", InactiveColor: "Default",
-			View: index_model.Table{
-				Kind:    "Table",
-				DataKey: "DisabledServicesData",
-				Columns: NodeServicesTableColumns,
-			},
-		},
-		index_model.TableColumn{
-			Name: "SuccessEvents", Kind: "Popover", Icon: "Success", Color: "Success", InactiveColor: "Default",
-			View: index_model.Table{
-				Kind:    "Table",
-				DataKey: "SuccessEventsData",
-				Columns: NodeEventsTableColumns,
-			},
-		},
-		index_model.TableColumn{
-			Name: "CriticalEvents", Kind: "Popover", Icon: "Critical", Color: "Critical", InactiveColor: "Default",
-			View: index_model.Table{
-				Kind:    "Table",
-				DataKey: "CriticalEventsData",
-				Columns: NodeEventsTableColumns,
-			},
-		},
-		index_model.TableColumn{
-			Name: "WarningEvents", Kind: "Popover", Icon: "Warning", Color: "Warning", InactiveColor: "Default",
-			View: index_model.Table{
-				Kind:    "Table",
-				DataKey: "WarningEventsData",
-				Columns: NodeEventsTableColumns,
-			},
-		},
-		index_model.TableColumn{
-			Name: "SilencedEvents", Kind: "Popover", Icon: "Silenced", Color: "Silenced", InactiveColor: "Default",
-			View: index_model.Table{
-				Kind:    "Table",
-				DataKey: "SilencedEventsData",
-				Columns: NodeEventsTableColumns,
-			},
-		},
-		index_model.TableColumn{Name: "UpdatedAt", Kind: "Time"},
+	"Children": []interface{}{
+		NodesDetail,
 	},
 }
 
-var NodeServicesTableColumns = []index_model.TableColumn{
-	index_model.TableColumn{Name: "Kind"},
-	index_model.TableColumn{Name: "Role"},
-	index_model.TableColumn{Name: "Status"},
-	index_model.TableColumn{Name: "StatusReason"},
-	index_model.TableColumn{Name: "State"},
-	index_model.TableColumn{Name: "StateReason"},
+var NodeServicesTableColumns = []base_index_model.TableColumn{
+	base_index_model.TableColumn{Name: "Kind"},
+	base_index_model.TableColumn{Name: "Role"},
+	base_index_model.TableColumn{Name: "Status"},
+	base_index_model.TableColumn{Name: "StatusReason"},
+	base_index_model.TableColumn{Name: "State"},
+	base_index_model.TableColumn{Name: "StateReason"},
 }
 
-var NodeEventsTableColumns = []index_model.TableColumn{
-	index_model.TableColumn{Name: "Check"},
-	index_model.TableColumn{Name: "Node"},
-	index_model.TableColumn{
+var NodeEventsTableColumns = []base_index_model.TableColumn{
+	base_index_model.TableColumn{Name: "Check"},
+	base_index_model.TableColumn{Name: "Node"},
+	base_index_model.TableColumn{
 		Name:           "Level",
 		RowColoringMap: map[string]string{"Warning": "Warning", "Critical": "Critical"},
 		FilterValues: []map[string]string{
@@ -176,24 +171,20 @@ var NodeEventsTableColumns = []index_model.TableColumn{
 			},
 		},
 	},
-	index_model.TableColumn{Name: "Msg"},
-	index_model.TableColumn{Name: "Time", Kind: "Time"},
+	base_index_model.TableColumn{Name: "Msg"},
+	base_index_model.TableColumn{Name: "Time", Kind: "Time"},
 }
 
-var NodesDetail = index_model.Tabs{
-	Name:             "Nodes",
-	Kind:             "RouteTabs",
-	RouteParamKey:    "Kind",
-	RouteParamValue:  "Nodes",
-	Route:            "/Clusters/:Cluster/Resources/Nodes/Detail/:Name/:Subkind",
-	TabParam:         "Subkind",
-	ExpectedDataKeys: []string{"Node"},
-	IsSync:           true,
-	Tabs: []interface{}{
-		index_model.View{
+var NodesDetail = base_index_model.Tabs{
+	Name:            "Node",
+	Kind:            "Tabs",
+	RouteParamKey:   "Kind",
+	RouteParamValue: "Nodes",
+	TabParam:        "Subkind",
+	Children: []interface{}{
+		base_index_model.View{
 			Name:        "View",
-			Route:       "/View",
-			Kind:        "View",
+			Kind:        "Box",
 			DataQueries: []string{"GetNode"},
 			DataKey:     "Node",
 			PanelsGroups: []interface{}{
@@ -204,8 +195,8 @@ var NodesDetail = index_model.Tabs{
 						map[string]interface{}{
 							"Name": "Node",
 							"Kind": "Fields",
-							"Fields": []index_model.Field{
-								index_model.Field{Name: "Name", Kind: "text"},
+							"Fields": []base_index_model.Field{
+								base_index_model.Field{Name: "Name", Kind: "text"},
 							},
 						},
 					},
@@ -214,7 +205,7 @@ var NodesDetail = index_model.Tabs{
 					"Name": "Node Services",
 					"Kind": "Cards",
 					"Cards": []interface{}{
-						index_model.Table{
+						base_index_model.Table{
 							Name:           "ActiveServices",
 							Kind:           "Table",
 							DisableToolbar: true,
@@ -222,7 +213,7 @@ var NodesDetail = index_model.Tabs{
 							DataKey:        "ActiveServicesData",
 							Columns:        NodeServicesTableColumns,
 						},
-						index_model.Table{
+						base_index_model.Table{
 							Name:           "CriticalServices",
 							Kind:           "Table",
 							DisableToolbar: true,
@@ -230,7 +221,7 @@ var NodesDetail = index_model.Tabs{
 							DataKey:        "CriticalServicesData",
 							Columns:        NodeServicesTableColumns,
 						},
-						index_model.Table{
+						base_index_model.Table{
 							Name:           "DisableServices",
 							Kind:           "Table",
 							DisableToolbar: true,
@@ -244,7 +235,7 @@ var NodesDetail = index_model.Tabs{
 					"Name": "Node Events",
 					"Kind": "Cards",
 					"Cards": []interface{}{
-						index_model.Table{
+						base_index_model.Table{
 							Name:           "SuccessEvents",
 							Kind:           "Table",
 							DisableToolbar: true,
@@ -252,7 +243,7 @@ var NodesDetail = index_model.Tabs{
 							DataKey:        "SuccessEventsData",
 							Columns:        NodeEventsTableColumns,
 						},
-						index_model.Table{
+						base_index_model.Table{
 							Name:           "CriticalEvents",
 							Kind:           "Table",
 							DisableToolbar: true,
@@ -260,7 +251,7 @@ var NodesDetail = index_model.Tabs{
 							DataKey:        "CriticalEventsData",
 							Columns:        NodeEventsTableColumns,
 						},
-						index_model.Table{
+						base_index_model.Table{
 							Name:           "WarningEvents",
 							Kind:           "Table",
 							DisableToolbar: true,
@@ -268,7 +259,7 @@ var NodesDetail = index_model.Tabs{
 							DataKey:        "WarningEventsData",
 							Columns:        NodeEventsTableColumns,
 						},
-						index_model.Table{
+						base_index_model.Table{
 							Name:           "SilencedEvents",
 							Kind:           "Table",
 							DisableToolbar: true,
@@ -280,28 +271,61 @@ var NodesDetail = index_model.Tabs{
 				},
 			},
 		},
-		index_model.View{
+		base_index_model.View{
 			Name:        "Metrics",
-			Route:       "/Metrics",
-			Kind:        "View",
+			Kind:        "Box",
 			DataQueries: []string{"GetNodeMetrics"},
 			DataKey:     "NodeMetrics",
 			PanelsGroups: []interface{}{
 				map[string]interface{}{
-					"Name":        "Inputs",
+					"Name":        "Display Time",
 					"Kind":        "SearchForm",
 					"DataQueries": []string{"GetNodeMetrics"},
-					"Inputs": []interface{}{
-						index_model.TableInputField{
-							Name:     "FromTime",
-							Type:     "Select",
-							Data:     []string{"-6h", "-1d", "-3d"},
-							Default:  "-6h",
-							Multiple: false,
+					"Fields": []interface{}{
+						map[string]interface{}{
+							"Name":     "TimeDuration",
+							"Kind":     "Select",
+							"Data":     []string{"-3h", "-6h", "-1d", "-3d", "-7d"},
+							"Default":  "-6h",
+							"Multiple": false,
 						},
-						index_model.TableInputField{
-							Name: "UntilTime",
-							Type: "DateTime",
+						map[string]interface{}{
+							"Name": "UntilTime",
+							"Kind": "DateTime",
+						},
+					},
+				},
+				map[string]string{
+					"Name":    "Metrics",
+					"Kind":    "MetricsGroups",
+					"DataKey": "MetricsGroups",
+				},
+			},
+		},
+		base_index_model.View{
+			Name:        "Proc Metrics",
+			Kind:        "Box",
+			DataQueries: []string{"GetNodeMetrics"},
+			DataKey:     "NodeMetrics",
+			ViewParams: map[string]interface{}{
+				"Target": "Proc",
+			},
+			PanelsGroups: []interface{}{
+				map[string]interface{}{
+					"Name":        "Display Time",
+					"Kind":        "SearchForm",
+					"DataQueries": []string{"GetNodeMetrics"},
+					"Fields": []interface{}{
+						map[string]interface{}{
+							"Name":     "TimeDuration",
+							"Kind":     "Select",
+							"Data":     []string{"-3h", "-6h", "-1d", "-3d", "-7d"},
+							"Default":  "-6h",
+							"Multiple": false,
+						},
+						map[string]interface{}{
+							"Name": "UntilTime",
+							"Kind": "DateTime",
 						},
 					},
 				},

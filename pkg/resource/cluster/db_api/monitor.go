@@ -35,6 +35,7 @@ func (api *Api) MonitorEvents(tctx *logger.TraceContext) (err error) {
 		return
 	}
 
+	// eventRuleを種類ごとに分ける
 	var silenceEventRules []EventRule
 	var aggregateEventRules []EventRule
 	var actionEventRules []EventRule
@@ -117,10 +118,10 @@ func (api *Api) MonitorEvents(tctx *logger.TraceContext) (err error) {
 	checkEventsMap := map[string][]api_spec.Event{}
 	nonAggregatedEvents := []api_spec.Event{}
 
-	silenceEvent := false
-	aggregateEvent := false
-	aggregateNode := false
-	aggregateCheck := false
+	var silenceEvent bool
+	var aggregateEvent bool
+	var aggregateNode bool
+	var aggregateCheck bool
 	for _, event := range getEventsData.Events {
 		key := event.Node + "@" + event.Check
 		issuedEvent, ok := issuedEventMap[key]
@@ -133,6 +134,7 @@ func (api *Api) MonitorEvents(tctx *logger.TraceContext) (err error) {
 			}
 		}
 
+		// Silenced に引っかかったEventは、Issueだけ行い、Actionはしない
 		silenceEvent = false
 		for _, rule := range silenceEventRules {
 			if rule.ReCheck != nil {
@@ -159,7 +161,6 @@ func (api *Api) MonitorEvents(tctx *logger.TraceContext) (err error) {
 			}
 		}
 		if silenceEvent {
-			fmt.Println("DEBUG sileceneEvent", event.Node, event.Check)
 			event.Silenced = 1
 			if tmpErr := api.tsdbApi.IssueEvent(tctx, &api_spec.IssueEvent{Event: event}); tmpErr != nil {
 				logger.Warningf(tctx, "Failed IssueEvent: %s", tmpErr.Error())
@@ -167,6 +168,7 @@ func (api *Api) MonitorEvents(tctx *logger.TraceContext) (err error) {
 			continue
 		}
 
+		// 各AggregateごとのActionキューにEventを積む
 		aggregateNode = false
 		aggregateCheck = false
 		for _, rule := range aggregateEventRules {
@@ -218,37 +220,36 @@ func (api *Api) MonitorEvents(tctx *logger.TraceContext) (err error) {
 		}
 	}
 
-	actionEvent := false
+	var actionEvent bool
+	// aggregateされてないEventキューのAction処理
 	for _, event := range nonAggregatedEvents {
 		for i, rule := range actionEventRules {
+			// アクションを実行するかを判定する(actionEvent)
 			actionEvent = false
-			for _, rule := range actionEventRules {
-				if rule.ReCheck != nil {
-					if rule.ReCheck.MatchString(event.Check) {
-						actionEvent = true
-					}
-				}
-				if rule.ReNode != nil {
-					if rule.ReNode.MatchString(event.Node) {
-						actionEvent = true
-					} else {
-						actionEvent = false
-					}
-				}
-				if rule.ReMsg != nil {
-					if rule.ReMsg.MatchString(event.Msg) {
-						actionEvent = true
-					} else {
-						actionEvent = false
-					}
-				}
-				if actionEvent {
-					break
+			if rule.ReCheck != nil {
+				if rule.ReCheck.MatchString(event.Check) {
+					actionEvent = true
 				}
 			}
+			if rule.ReNode != nil {
+				if rule.ReNode.MatchString(event.Node) {
+					actionEvent = true
+				} else {
+					actionEvent = false
+				}
+			}
+			if rule.ReMsg != nil {
+				if rule.ReMsg.MatchString(event.Msg) {
+					actionEvent = true
+				} else {
+					actionEvent = false
+				}
+			}
+
 			if actionEvent {
-				fmt.Println("Exec handler", rule.Actions, []api_spec.Event{event})
+				api.ExecActionsEvents(tctx, AggregateTypeNone, rule.Actions, []api_spec.Event{event})
 			}
+
 			if !rule.ContinueNext || i == len(actionEventRules)-1 {
 				if tmpErr := api.tsdbApi.IssueEvent(tctx, &api_spec.IssueEvent{Event: event}); tmpErr != nil {
 					logger.Warningf(tctx, "Failed IssueEvent: %s", tmpErr.Error())
@@ -258,39 +259,37 @@ func (api *Api) MonitorEvents(tctx *logger.TraceContext) (err error) {
 		}
 	}
 
+	// nodeでaggregateされたEventキューのAction処理
 	for node, events := range nodeEventsMap {
 		for i, rule := range actionEventRules {
+			// アクションを実行するかを判定する(actionEvent)
 			actionEvent = false
-			for _, rule := range actionEventRules {
-				if rule.ReCheck != nil {
-					for _, event := range events {
-						if rule.ReCheck.MatchString(event.Check) {
-							actionEvent = true
-							break
-						}
-					}
-				}
-				if rule.ReNode != nil {
-					if rule.ReNode.MatchString(node) {
+			if rule.ReCheck != nil {
+				for _, event := range events {
+					if rule.ReCheck.MatchString(event.Check) {
 						actionEvent = true
-					} else {
-						actionEvent = false
+						break
 					}
-				}
-				if rule.ReMsg != nil {
-					for _, event := range events {
-						if rule.ReMsg.MatchString(event.Msg) {
-							actionEvent = true
-							break
-						}
-					}
-				}
-				if actionEvent {
-					break
 				}
 			}
+			if rule.ReNode != nil {
+				if rule.ReNode.MatchString(node) {
+					actionEvent = true
+				} else {
+					actionEvent = false
+				}
+			}
+			if rule.ReMsg != nil {
+				for _, event := range events {
+					if rule.ReMsg.MatchString(event.Msg) {
+						actionEvent = true
+						break
+					}
+				}
+			}
+
 			if actionEvent {
-				fmt.Println("Exec handler aggregated by node", rule.Actions, events)
+				api.ExecActionsEvents(tctx, AggregateTypeNode, rule.Actions, events)
 			}
 			if !rule.ContinueNext || i == len(actionEventRules)-1 {
 				for _, event := range events {
@@ -303,39 +302,37 @@ func (api *Api) MonitorEvents(tctx *logger.TraceContext) (err error) {
 		}
 	}
 
+	// checkでaggregateされたEventキューのAction処理
 	for check, events := range checkEventsMap {
 		for i, rule := range actionEventRules {
+			// アクションを実行するかを判定する(actionEvent)
 			actionEvent = false
-			for _, rule := range actionEventRules {
-				if rule.ReCheck != nil {
-					if rule.ReCheck.MatchString(check) {
-						actionEvent = true
-					} else {
-						actionEvent = false
-					}
-				}
-				if rule.ReNode != nil {
-					for _, event := range events {
-						if rule.ReNode.MatchString(event.Node) {
-							actionEvent = true
-							break
-						}
-					}
-				}
-				if rule.ReMsg != nil {
-					for _, event := range events {
-						if rule.ReMsg.MatchString(event.Msg) {
-							actionEvent = true
-							break
-						}
-					}
-				}
-				if actionEvent {
-					break
+			if rule.ReCheck != nil {
+				if rule.ReCheck.MatchString(check) {
+					actionEvent = true
+				} else {
+					actionEvent = false
 				}
 			}
+			if rule.ReNode != nil {
+				for _, event := range events {
+					if rule.ReNode.MatchString(event.Node) {
+						actionEvent = true
+						break
+					}
+				}
+			}
+			if rule.ReMsg != nil {
+				for _, event := range events {
+					if rule.ReMsg.MatchString(event.Msg) {
+						actionEvent = true
+						break
+					}
+				}
+			}
+
 			if actionEvent {
-				fmt.Println("Exec handler aggregated by check", rule.Actions, events)
+				api.ExecActionsEvents(tctx, AggregateTypeCheck, rule.Actions, events)
 			}
 			if !rule.ContinueNext || i == len(actionEventRules)-1 {
 				for _, event := range events {
@@ -349,6 +346,17 @@ func (api *Api) MonitorEvents(tctx *logger.TraceContext) (err error) {
 	}
 
 	return
+}
+
+const (
+	AggregateTypeNone  = 1
+	AggregateTypeNode  = 2
+	AggregateTypeCheck = 3
+)
+
+func (api *Api) ExecActionsEvents(tctx *logger.TraceContext, aggregateType int, actions []string, events []api_spec.Event) {
+	// TODO
+	fmt.Println("TODO Exec handler aggregated by check", aggregateType, actions, events)
 }
 
 func (api *Api) GetEventRule(tctx *logger.TraceContext, input *api_spec.GetEventRule, user *base_spec.UserAuthority) (data *api_spec.EventRule, err error) {
@@ -370,7 +378,7 @@ func (api *Api) GetFilterEventRules(tctx *logger.TraceContext) (data []db_model.
 }
 
 func (api *Api) GetControllerEventRules(tctx *logger.TraceContext) (data []db_model.EventRule, err error) {
-	err = api.DB.Table("event_rules").Select("name, kind, `check`, level, project, node, msg, until").
+	err = api.DB.Table("event_rules").Select("name, kind, `check`, level, project, node, msg, until, spec").
 		Where("kind != ? AND deleted_at IS NULL", "Filter").Scan(&data).Error
 	return
 }

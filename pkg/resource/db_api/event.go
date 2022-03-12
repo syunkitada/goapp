@@ -34,6 +34,7 @@ func (api *Api) GetEvents(tctx *logger.TraceContext, input *spec.GetEvents, user
 }
 
 func (api *Api) GetEventRule(tctx *logger.TraceContext, input *spec.GetEventRule, user *base_spec.UserAuthority) (data *spec.GetEventRuleData, err error) {
+	data = &spec.GetEventRuleData{}
 	// client, ok := api.clusterClientMap[input.Cluster]
 	// if !ok {
 	// 	err = error_utils.NewNotFoundError("clusterClient")
@@ -127,6 +128,7 @@ func (api *Api) UpdateEventRules(tctx *logger.TraceContext, input *spec.UpdateEv
 }
 
 func (api *Api) DeleteEventRules(tctx *logger.TraceContext, input *spec.DeleteEventRules, user *base_spec.UserAuthority) (data *spec.DeleteEventRulesData, err error) {
+	fmt.Println("DEBUG getEventRules", input)
 	client, ok := api.clusterClientMap[input.Cluster]
 	if !ok {
 		err = error_utils.NewNotFoundError("clusterClient")
@@ -142,7 +144,7 @@ func (api *Api) DeleteEventRules(tctx *logger.TraceContext, input *spec.DeleteEv
 
 	deleteEventRulesData, tmpErr := client.ResourceVirtualAdminDeleteEventRules(tctx, queries)
 	if tmpErr != nil {
-		err = fmt.Errorf("Failed GetEvents: %s", tmpErr.Error())
+		err = fmt.Errorf("Failed GetEventRules: %s", tmpErr.Error())
 		return
 	}
 	data = deleteEventRulesData

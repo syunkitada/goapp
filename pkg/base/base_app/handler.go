@@ -7,13 +7,17 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
+	"sync"
 	"time"
+
+	"github.com/gorilla/websocket"
 
 	"github.com/gin-gonic/gin"
 	"github.com/syunkitada/goapp/pkg/base/base_const"
-	"github.com/syunkitada/goapp/pkg/base/base_model"
-	"github.com/syunkitada/goapp/pkg/base/base_model/spec_model"
+	"github.com/syunkitada/goapp/pkg/base/base_protocol"
 	"github.com/syunkitada/goapp/pkg/base/base_spec"
+	"github.com/syunkitada/goapp/pkg/base/base_spec_model"
 	"github.com/syunkitada/goapp/pkg/lib/error_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
@@ -27,14 +31,18 @@ func (app *BaseApp) ExecQuery(w http.ResponseWriter, r *http.Request, isProxy bo
 			w.WriteHeader(http.StatusInternalServerError)
 			err = error_utils.NewRecoveredError(p)
 			logger.Errorf(tctx, err, "Panic occured")
-			fmt.Println("panic occured", err)
 		}
 	}()
 
-	w.Header().Set("Access-Control-Allow-Origin", "http://192.168.10.121:3000") // TODO FIXME
-	w.Header().Set("Access-Control-Allow-Credentials", "true")                  // TODO FIXME
+	w.Header().Set("Access-Control-Allow-Origin", app.accessControlAllowOrigin)
+	w.Header().Set("Access-Control-Allow-Credentials", app.accessControlAllowCredential)
 
-	service, userAuthority, rawReq, req, rep, err := app.Start(tctx, r, isProxy)
+	bufbody := new(bytes.Buffer)
+	if _, err = bufbody.ReadFrom(r.Body); err != nil {
+		return
+	}
+	rawReq := bufbody.Bytes()
+	service, req, rep, err := app.Start(tctx, r, rawReq, isProxy)
 
 	defer func() { app.End(tctx, startTime, err) }()
 	if err != nil {
@@ -45,22 +53,31 @@ func (app *BaseApp) ExecQuery(w http.ResponseWriter, r *http.Request, isProxy bo
 			logger.Error(tctx, err, "Failed json.Marshal")
 			return
 		}
-		w.Write(bytes)
+		if _, err = w.Write(bytes); err != nil {
+			return
+		}
 		return
 	}
 
 	statusCode := 0
 	var repBytes []byte
+	var proxyReq []byte
 	for _, endpoint := range service.Endpoints {
 		if endpoint == "" {
-			if err = app.queryHandler.Exec(tctx, userAuthority, r, w, req, rep); err != nil {
+			if err = app.queryHandler.Exec(tctx, r, w, req, rep); err != nil {
 				break
 			}
 			repBytes, err = json.Marshal(&rep)
 			break
 		}
 
-		if repBytes, statusCode, err = app.Proxy(tctx, service, endpoint, rawReq); err != nil {
+		if len(proxyReq) == 0 {
+			if proxyReq, err = json.Marshal(req); err != nil {
+				return
+			}
+		}
+
+		if repBytes, statusCode, err = app.Proxy(tctx, service, endpoint, proxyReq); err != nil {
 			fmt.Println("DEBUG proxy failed", err, req.Queries)
 			continue
 		} else {
@@ -78,7 +95,181 @@ func (app *BaseApp) ExecQuery(w http.ResponseWriter, r *http.Request, isProxy bo
 			w.WriteHeader(http.StatusInternalServerError)
 		}
 	}
-	w.Write(repBytes)
+	if _, err = w.Write(repBytes); err != nil {
+		return
+	}
+}
+
+var upgrader = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
+}
+
+func (app *BaseApp) Ws(w http.ResponseWriter, r *http.Request, isProxy bool) {
+	var err error
+	var tmpErr error
+	conMutex := sync.Mutex{}
+	tctx := logger.NewTraceContext(app.host, app.name)
+	startTime := logger.StartTrace(tctx)
+	defer func() {
+		if p := recover(); p != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			err = error_utils.NewRecoveredError(p)
+			logger.Errorf(tctx, err, "Panic occured")
+		}
+	}()
+
+	w.Header().Set("Access-Control-Allow-Origin", app.accessControlAllowOrigin)
+	w.Header().Set("Access-Control-Allow-Credentials", app.accessControlAllowCredential)
+
+	defer func() { app.End(tctx, startTime, err) }()
+
+	var wsConn *websocket.Conn
+	wsConn, err = upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		return
+	}
+
+	var proxyWsConn *websocket.Conn
+	wsDone := false
+	defer func() {
+		conMutex.Lock()
+		if wsConn != nil {
+			if tmpErr = wsConn.Close(); tmpErr != nil {
+				logger.Warningf(tctx, "Failed  proxyWsConn.Close: err=%s", tmpErr.Error())
+			} else {
+				logger.Info(tctx, "Success proxyWsConn.Close")
+			}
+		}
+		if proxyWsConn != nil {
+			if tmpErr = proxyWsConn.Close(); tmpErr != nil {
+				logger.Warningf(tctx, "Failed  proxyWsConn.Close: err=%s", tmpErr.Error())
+			} else {
+				logger.Info(tctx, "Success proxyWsConn.Close")
+			}
+		}
+		wsDone = true
+		conMutex.Unlock()
+	}()
+
+	var service *base_spec_model.ServiceRouter
+	var repBytes []byte
+
+	// 初回のQueryにより認証を行う
+	mt, message, err := wsConn.ReadMessage()
+	if err != nil {
+		return
+	}
+	rawReq := []byte(message)
+
+	var req *base_protocol.Request
+	var res *base_protocol.Response
+	var bytes []byte
+	service, req, res, err = app.Start(tctx, r, rawReq, isProxy)
+	if err != nil {
+		bytes, err = json.Marshal(&res)
+		if err != nil {
+			logger.Error(tctx, err, "Failed json.Marshal")
+			return
+		}
+		err = wsConn.WriteMessage(mt, bytes)
+		return
+	}
+
+	// TODO loadbalancing service endpoints
+	for _, endpoint := range service.Endpoints {
+		if endpoint == "" {
+			if err = app.queryHandler.ExecWs(tctx, r, w, req, res, nil); err != nil {
+				bytes, err = json.Marshal(&res)
+				if err != nil {
+					logger.Error(tctx, err, "Failed json.Marshal")
+					return
+				}
+				err = wsConn.WriteMessage(mt, bytes)
+				return
+			}
+			repBytes, err = json.Marshal(&res)
+			err = wsConn.WriteMessage(mt, repBytes)
+			if err != nil {
+				logger.Error(tctx, err, "Failed Write First Message")
+				return
+			}
+			break
+		}
+
+		// プロキシ先とWsをつなげる
+		endpoint := strings.Replace(endpoint, "http", "ws", -1) + "/wp"
+		dialer := websocket.Dialer{
+			Proxy:            http.ProxyFromEnvironment,
+			HandshakeTimeout: 45 * time.Second,
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: true,
+			},
+		}
+		header := http.Header{}
+		header.Add("X-Service-Token", service.Token)
+		proxyWsConn, _, err = dialer.Dial(endpoint, header)
+		if err != nil {
+			logger.Errorf(tctx, err, "Failed dial to %s", endpoint)
+			continue
+		}
+		break
+	}
+
+	if proxyWsConn != nil { // Proxy
+		isInitProxy := true
+		for {
+			if isInitProxy {
+				if err = proxyWsConn.WriteMessage(mt, rawReq); err != nil {
+					logger.Warningf(tctx, "Failed WriteMessage: %s", err.Error())
+					return
+				}
+				go func() {
+					for {
+						mt, message, tmpErr := proxyWsConn.ReadMessage()
+						if tmpErr != nil {
+							conMutex.Lock()
+							if !wsDone {
+								logger.Warningf(tctx, "Failed proxyWsConn.ReadMessage: err=%s", tmpErr.Error())
+							}
+							conMutex.Unlock()
+							return
+						}
+						if tmpErr := wsConn.WriteMessage(mt, message); tmpErr != nil {
+							conMutex.Lock()
+							if !wsDone {
+								logger.Warningf(tctx, "Failed proxyWsConn.WriteMessage: err=%s", tmpErr.Error())
+							}
+							conMutex.Unlock()
+							return
+						}
+					}
+				}()
+				isInitProxy = false
+			}
+
+			fmt.Println("Proxy: Waiting Message from client")
+			mt, message, tmpErr := wsConn.ReadMessage()
+			fmt.Println("Proxy: Recieved Message", string(message))
+			if tmpErr != nil {
+				logger.Warningf(tctx, "Failed ReadMessage: %s", tmpErr.Error())
+				fmt.Println("DEBUG Failed ReadMessage: ", tmpErr.Error())
+				return
+			}
+			rawReq := []byte(message)
+			if err = proxyWsConn.WriteMessage(mt, rawReq); err != nil {
+				logger.Warningf(tctx, "Failed WriteMessage: %s", err.Error())
+			}
+			continue
+		}
+	} else { // App handle ws
+		if err = app.queryHandler.ExecWs(tctx, r, w, req, res, wsConn); err != nil {
+			return
+		}
+	}
 }
 
 func (app *BaseApp) NewHandler() http.Handler {
@@ -89,18 +280,21 @@ func (app *BaseApp) NewHandler() http.Handler {
 	handler.HandleFunc("/p", func(w http.ResponseWriter, r *http.Request) {
 		app.ExecQuery(w, r, true)
 	})
+	handler.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
+		app.Ws(w, r, false)
+	})
+	handler.HandleFunc("/wp", func(w http.ResponseWriter, r *http.Request) {
+		app.Ws(w, r, true)
+	})
 
 	return handler
 }
 
-func (app *BaseApp) Start(tctx *logger.TraceContext, httpReq *http.Request, isProxy bool) (service *spec_model.ServiceRouter,
-	userAuthority *base_spec.UserAuthority, rawReq []byte, req *base_model.Request, res *base_model.Response, err error) {
-	res = &base_model.Response{TraceId: tctx.GetTraceId(), ResultMap: map[string]base_model.Result{}}
+func (app *BaseApp) Start(tctx *logger.TraceContext, httpReq *http.Request, rawReq []byte, isProxy bool) (service *base_spec_model.ServiceRouter,
+	req *base_protocol.Request, res *base_protocol.Response, err error) {
+	res = &base_protocol.Response{TraceId: tctx.GetTraceId(), Code: base_const.CodeOk, ResultMap: map[string]base_protocol.Result{}}
 
-	req = &base_model.Request{}
-	bufbody := new(bytes.Buffer)
-	bufbody.ReadFrom(httpReq.Body)
-	rawReq = bufbody.Bytes()
+	req = &base_protocol.Request{}
 	if err = json.Unmarshal(rawReq, &req); err != nil {
 		res.Code = base_const.CodeServerInternalError
 		res.Error = err.Error()
@@ -137,10 +331,14 @@ func (app *BaseApp) Start(tctx *logger.TraceContext, httpReq *http.Request, isPr
 		}
 	}
 	var tokenErr error
+	var userAuthority *base_spec.UserAuthority
 	if token != "" {
 		userAuthority, tokenErr = app.dbApi.LoginWithToken(tctx, token)
 		if tokenErr != nil {
 			logger.Warningf(tctx, "Failed LoginWithToken: %v", tokenErr)
+		}
+		if !isProxy {
+			req.UserAuthority = userAuthority
 		}
 	}
 
@@ -232,7 +430,7 @@ func (app *BaseApp) ValidateHeaders() gin.HandlerFunc {
 	}
 }
 
-func (app *BaseApp) Proxy(tctx *logger.TraceContext, service *spec_model.ServiceRouter, endpoint string, rawReq []byte) (repBytes []byte, statusCode int, err error) {
+func (app *BaseApp) Proxy(tctx *logger.TraceContext, service *base_spec_model.ServiceRouter, endpoint string, rawReq []byte) (repBytes []byte, statusCode int, err error) {
 	var httpResp *http.Response
 	reqBuffer := bytes.NewBuffer(rawReq)
 	var httpReq *http.Request

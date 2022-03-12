@@ -2,14 +2,14 @@ package spec
 
 import (
 	"github.com/syunkitada/goapp/pkg/base/base_const"
-	"github.com/syunkitada/goapp/pkg/base/base_model/spec_model"
+	"github.com/syunkitada/goapp/pkg/base/base_spec_model"
 )
 
 type Meta struct{}
 
-var Spec = spec_model.Spec{
+var Spec = base_spec_model.Spec{
 	Meta: Meta{},
 	Name: "ResourceController",
 	Kind: base_const.KindAgent,
-	Apis: []spec_model.Api{},
+	Apis: []base_spec_model.Api{},
 }

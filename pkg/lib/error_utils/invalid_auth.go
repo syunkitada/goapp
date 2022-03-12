@@ -12,6 +12,12 @@ func NewInvalidAuthError(data interface{}) *InvalidAuthError {
 	}
 }
 
+func NewInvalidAuthErrorf(format string, args ...interface{}) *InvalidAuthError {
+	return &InvalidAuthError{
+		data: fmt.Sprintf(format, args...),
+	}
+}
+
 func (err *InvalidAuthError) Error() string {
 	return fmt.Sprintf("InvalidAuth: %v", err.data)
 }

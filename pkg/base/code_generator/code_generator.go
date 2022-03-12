@@ -10,12 +10,12 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/syunkitada/goapp/pkg/base/base_model/spec_model"
+	"github.com/syunkitada/goapp/pkg/base/base_spec_model"
 	"github.com/syunkitada/goapp/pkg/lib/os_utils"
 	"github.com/syunkitada/goapp/pkg/lib/str_utils"
 )
 
-func Generate(spec *spec_model.Spec) {
+func Generate(spec *base_spec_model.Spec) {
 	specType := reflect.TypeOf(spec.Meta)
 	specPkgPath := specType.PkgPath()
 	splitedPkg := strings.Split(specPkgPath, "/")
@@ -44,7 +44,7 @@ func Generate(spec *spec_model.Spec) {
 	fmt.Println("DEBUG")
 	fmt.Println(specPath)
 	fmt.Println(pkgDir)
-	spec.QuerySet = map[string]spec_model.Query{}
+	spec.QuerySet = map[string]base_spec_model.Query{}
 	for i, api := range spec.Apis {
 		convertApi(&api)
 		spec.Apis[i] = api
@@ -83,8 +83,8 @@ func generateCodeFromTemplate(templatePath string, pkgDir string, outputFile str
 	fmt.Printf("Generated: %s\n", filePath)
 }
 
-func convertApi(api *spec_model.Api) {
-	queries := []spec_model.Query{}
+func convertApi(api *base_spec_model.Api) {
+	queries := []base_spec_model.Query{}
 	for _, queryModel := range api.QueryModels {
 		reqType := reflect.TypeOf(queryModel.Req)
 		pkgPath := reqType.PkgPath()
@@ -93,7 +93,7 @@ func convertApi(api *spec_model.Api) {
 		name := reqType.Name()
 		actionName, dataName := str_utils.SplitActionDataName(name)
 
-		flags := []spec_model.Flag{}
+		flags := []base_spec_model.Flag{}
 		lenFields := reqType.NumField()
 		for i := 0; i < lenFields; i++ {
 			f := reqType.Field(i)
@@ -124,7 +124,7 @@ func convertApi(api *spec_model.Api) {
 				flagKind = ""
 			}
 			flagType := f.Type.String()
-			flags = append(flags, spec_model.Flag{
+			flags = append(flags, base_spec_model.Flag{
 				Name:     f.Name,
 				FlagName: flagName,
 				FlagType: flagType,
@@ -156,6 +156,15 @@ func convertApi(api *spec_model.Api) {
 					}
 					outputFormat = strings.Join(columns, ",")
 				}
+			case reflect.Struct:
+				lenFields := f.Type.NumField()
+				outputKind = "table"
+				columns := []string{}
+				for j := 0; j < lenFields; j++ {
+					c := f.Type.Field(j)
+					columns = append(columns, c.Name)
+				}
+				outputFormat = strings.Join(columns, ",")
 			}
 		}
 
@@ -166,9 +175,11 @@ func convertApi(api *spec_model.Api) {
 			queryModel.RequiredProject = api.RequiredProject
 		}
 
-		queries = append(queries, spec_model.Query{
+		queries = append(queries, base_spec_model.Query{
 			RequiredAuth:    queryModel.RequiredAuth,
 			RequiredProject: queryModel.RequiredProject,
+			Ws:              queryModel.Ws,
+			Kind:            queryModel.Kind,
 			PkgPath:         pkgPath,
 			PkgName:         pkgName,
 			Name:            name,

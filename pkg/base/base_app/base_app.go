@@ -10,12 +10,12 @@ import (
 
 	"golang.org/x/net/context"
 
+	"github.com/gorilla/websocket"
 	"github.com/syunkitada/goapp/pkg/base/base_client"
 	"github.com/syunkitada/goapp/pkg/base/base_config"
 	"github.com/syunkitada/goapp/pkg/base/base_db_api"
-	"github.com/syunkitada/goapp/pkg/base/base_model"
-	"github.com/syunkitada/goapp/pkg/base/base_model/spec_model"
-	"github.com/syunkitada/goapp/pkg/base/base_spec"
+	"github.com/syunkitada/goapp/pkg/base/base_protocol"
+	"github.com/syunkitada/goapp/pkg/base/base_spec_model"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
 
@@ -24,23 +24,26 @@ type BaseAppDriver interface {
 }
 
 type BaseApp struct {
-	host               string
-	name               string
-	conf               *base_config.Config
-	appConf            *base_config.AppConfig
-	driver             BaseAppDriver
-	loopInterval       time.Duration
-	isGracefulShutdown bool
-	server             *http.Server
-	shutdownTimeout    time.Duration
-	rootClient         *base_client.Client
-	dbApi              base_db_api.IApi
-	serviceMap         map[string]spec_model.ServiceRouter
-	queryHandler       IQueryHandler
+	host                         string
+	name                         string
+	conf                         *base_config.Config
+	appConf                      *base_config.AppConfig
+	driver                       BaseAppDriver
+	loopInterval                 time.Duration
+	isGracefulShutdown           bool
+	server                       *http.Server
+	shutdownTimeout              time.Duration
+	rootClient                   *base_client.Client
+	dbApi                        base_db_api.IApi
+	serviceMap                   map[string]base_spec_model.ServiceRouter
+	queryHandler                 IQueryHandler
+	accessControlAllowOrigin     string
+	accessControlAllowCredential string
 }
 
 type IQueryHandler interface {
-	Exec(tctx *logger.TraceContext, userAuthority *base_spec.UserAuthority, httpReq *http.Request, rw http.ResponseWriter, req *base_model.Request, rep *base_model.Response) error
+	Exec(tctx *logger.TraceContext, httpReq *http.Request, rw http.ResponseWriter, req *base_protocol.Request, rep *base_protocol.Response) error
+	ExecWs(tctx *logger.TraceContext, httpReq *http.Request, rw http.ResponseWriter, req *base_protocol.Request, rep *base_protocol.Response, conn *websocket.Conn) error
 }
 
 func New(conf *base_config.Config, appConf *base_config.AppConfig, dbApi base_db_api.IApi, queryHandler IQueryHandler) BaseApp {
@@ -54,21 +57,19 @@ func New(conf *base_config.Config, appConf *base_config.AppConfig, dbApi base_db
 		appConf.KeyFile = "server.key"
 	}
 
-	if dbApi != nil {
-		dbApi.MustOpen()
-	}
-
 	return BaseApp{
-		host:               conf.Host,
-		name:               appConf.Name,
-		conf:               conf,
-		appConf:            appConf,
-		loopInterval:       time.Duration(appConf.LoopInterval) * time.Second,
-		isGracefulShutdown: false,
-		shutdownTimeout:    time.Duration(appConf.ShutdownTimeout) * time.Second,
-		rootClient:         base_client.NewClient(&appConf.RootClient),
-		dbApi:              dbApi,
-		queryHandler:       queryHandler,
+		host:                         conf.Host,
+		name:                         appConf.Name,
+		conf:                         conf,
+		appConf:                      appConf,
+		loopInterval:                 time.Duration(appConf.LoopInterval) * time.Second,
+		isGracefulShutdown:           false,
+		shutdownTimeout:              time.Duration(appConf.ShutdownTimeout) * time.Second,
+		rootClient:                   base_client.NewClient(&appConf.RootClient),
+		dbApi:                        dbApi,
+		queryHandler:                 queryHandler,
+		accessControlAllowOrigin:     appConf.AccessControlAllowOrigin,
+		accessControlAllowCredential: appConf.AccessControlAllowCredentials,
 	}
 }
 
@@ -89,30 +90,35 @@ func (app *BaseApp) StartMainLoop() {
 
 func (app *BaseApp) mainLoop() {
 	var tctx *logger.TraceContext
-	var startTime time.Time
-	var err error
 	logger.StdoutInfof("Start mainLoop")
 	for {
 		tctx = logger.NewTraceContext(app.host, app.name)
 		app.mainTask(tctx)
 		if app.isGracefulShutdown {
-			logger.Info(tctx, "Completed graceful shutdown mainTask")
-			logger.Info(tctx, "Starting graceful shutdown server")
-			startTime = logger.StartTrace(tctx)
-
-			ctx, cancel := context.WithTimeout(context.Background(), app.shutdownTimeout)
-			defer cancel()
-			if err = app.server.Shutdown(ctx); err != nil {
-				logger.Fatalf(tctx, "Failed graceful shutdown: %v", err)
-			}
-
-			app.dbApi.MustClose()
-			logger.Info(tctx, "Completed graceful shutdown")
-			logger.EndTrace(tctx, startTime, nil, 0)
-			os.Exit(0)
+			app.gracefulShutdownMainLoop(tctx)
 		}
 		time.Sleep(app.loopInterval)
+		if app.isGracefulShutdown {
+			app.gracefulShutdownMainLoop(tctx)
+		}
 	}
+}
+
+func (app *BaseApp) gracefulShutdownMainLoop(tctx *logger.TraceContext) {
+	logger.Info(tctx, "Completed graceful shutdown mainTask")
+	logger.Info(tctx, "Starting graceful shutdown server")
+	startTime := logger.StartTrace(tctx)
+
+	ctx, cancel := context.WithTimeout(context.Background(), app.shutdownTimeout)
+	if err := app.server.Shutdown(ctx); err != nil {
+		logger.Fatalf(tctx, "Failed graceful shutdown: %v", err)
+	}
+	cancel()
+
+	app.dbApi.MustClose()
+	logger.Info(tctx, "Completed graceful shutdown")
+	logger.EndTrace(tctx, startTime, nil, 0)
+	os.Exit(0)
 }
 
 func (app *BaseApp) mainTask(tctx *logger.TraceContext) {
@@ -179,11 +185,8 @@ func (app *BaseApp) gracefulShutdown(ctx context.Context) error {
 
 	app.isGracefulShutdown = true
 
-	select {
-	case <-ctx.Done():
-		err = ctx.Err()
-		os.Exit(1)
-	}
-
+	<-ctx.Done()
+	err = ctx.Err()
+	os.Exit(1)
 	return nil
 }

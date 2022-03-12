@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/syunkitada/goapp/pkg/base/base_db_model"
-	"github.com/syunkitada/goapp/pkg/base/base_model/spec_model"
 	"github.com/syunkitada/goapp/pkg/base/base_spec"
+	"github.com/syunkitada/goapp/pkg/base/base_spec_model"
 	"github.com/syunkitada/goapp/pkg/lib/exec_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
@@ -77,15 +77,16 @@ func (api *Api) Bootstrap(tctx *logger.TraceContext, isRecreate bool) (err error
 
 	if err = api.CreateOrUpdateService(tctx, &base_spec.UpdateService{
 		Name:            "Auth",
+		Icon:            "Person",
 		Scope:           "user",
 		SyncRootCluster: false,
 		ProjectRoles:    projectRoles,
 		Endpoints:       []string{},
-		QueryMap: map[string]spec_model.QueryModel{
-			"Login":          spec_model.QueryModel{},
-			"LoginWithToken": spec_model.QueryModel{},
-			"Logout":         spec_model.QueryModel{},
-			"UpdateService":  spec_model.QueryModel{},
+		QueryMap: map[string]base_spec_model.QueryModel{
+			"Login":          base_spec_model.QueryModel{},
+			"LoginWithToken": base_spec_model.QueryModel{},
+			"Logout":         base_spec_model.QueryModel{},
+			"UpdateService":  base_spec_model.QueryModel{},
 		},
 	}); err != nil {
 		return err
@@ -97,11 +98,14 @@ func (api *Api) Bootstrap(tctx *logger.TraceContext, isRecreate bool) (err error
 			fmt.Printf("Invalid service: querymap not found: %s\n", service.Name)
 			continue
 		}
-		queryMap["GetServiceIndex"] = spec_model.QueryModel{}
-		queryMap["GetServiceDashboardIndex"] = spec_model.QueryModel{}
+		queryMap["GetServiceIndex"] = base_spec_model.QueryModel{RequiredAuth: true}
+		queryMap["GetProjectServiceIndex"] = base_spec_model.QueryModel{RequiredAuth: true, RequiredProject: true}
+		queryMap["GetServiceDashboardIndex"] = base_spec_model.QueryModel{RequiredAuth: true}
+		queryMap["GetProjectServiceDashboardIndex"] = base_spec_model.QueryModel{RequiredAuth: true, RequiredProject: true}
 
 		if err = api.CreateOrUpdateService(tctx, &base_spec.UpdateService{
 			Name:            service.Name,
+			Icon:            service.Icon,
 			Scope:           service.Scope,
 			SyncRootCluster: service.SyncRootCluster,
 			ProjectRoles:    service.ProjectRoles,

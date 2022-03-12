@@ -2,29 +2,87 @@ package db_api
 
 import (
 	"fmt"
+	"strings"
+	"sync"
 
+	"github.com/gorilla/websocket"
 	"github.com/jinzhu/gorm"
 
 	"github.com/syunkitada/goapp/pkg/base/base_client"
+	"github.com/syunkitada/goapp/pkg/base/base_config"
 	"github.com/syunkitada/goapp/pkg/base/base_const"
 	"github.com/syunkitada/goapp/pkg/base/base_spec"
 	"github.com/syunkitada/goapp/pkg/lib/error_utils"
 	"github.com/syunkitada/goapp/pkg/lib/json_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
+	resource_cluster_api "github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_api/spec/genpkg"
 	"github.com/syunkitada/goapp/pkg/resource/consts"
 	"github.com/syunkitada/goapp/pkg/resource/db_model"
 	"github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
 	"github.com/syunkitada/goapp/pkg/resource/resource_model"
 )
 
-func (api *Api) GetCompute(tctx *logger.TraceContext, name string, user *base_spec.UserAuthority) (data *spec.Compute, err error) {
-	data = &spec.Compute{}
-	err = api.DB.Where("name = ?", name).First(data).Error
+func (api *Api) GetCompute(tctx *logger.TraceContext, input *spec.GetCompute, user *base_spec.UserAuthority) (data *spec.Compute, err error) {
+	var dbData db_model.Compute
+	if err = api.DB.Where("name = ? AND deleted_at IS NULL", input.Name).First(&dbData).Error; err != nil {
+		data = &spec.Compute{}
+		return
+	}
+
+	data = &spec.Compute{
+		Region:        dbData.Region,
+		Cluster:       dbData.Cluster,
+		RegionService: dbData.RegionService,
+		Name:          dbData.Name,
+		Kind:          dbData.Kind,
+		Project:       dbData.Project,
+		Status:        dbData.Status,
+		StatusReason:  dbData.StatusReason,
+	}
+	var specData spec.RegionServiceComputeSpec
+	if err = json_utils.Unmarshal(dbData.Spec, &specData); err != nil {
+		return
+	}
+	data.Spec = &specData
+
 	return
 }
 
-func (api *Api) GetComputes(tctx *logger.TraceContext, db *gorm.DB, user *base_spec.UserAuthority) (data []spec.Compute, err error) {
-	err = api.DB.Find(&data).Error
+func (api *Api) GetComputes(tctx *logger.TraceContext, input *spec.GetComputes, user *base_spec.UserAuthority) (data []spec.Compute, err error) {
+	var computes []db_model.Compute
+	err = api.DB.Table("computes").
+		Select("region, cluster, region_service, project, name, kind, spec, image, vcpus, memory, disk, status, status_reason, updated_at, created_at").
+		Where("region = ? AND deleted_at IS NULL", input.Region).Scan(&computes).Error
+
+	for _, compute := range computes {
+		var specData spec.RegionServiceComputeSpec
+		if err = json_utils.Unmarshal(compute.Spec, &specData); err != nil {
+			return
+		}
+		ipaddrs := []string{}
+		for _, port := range specData.Ports {
+			ipaddrs = append(ipaddrs, port.Ip)
+		}
+		data = append(data, spec.Compute{
+			Region:        compute.Region,
+			Cluster:       compute.Cluster,
+			RegionService: compute.RegionService,
+			Name:          compute.Name,
+			Kind:          compute.Kind,
+			Labels:        compute.Labels,
+			Status:        compute.Status,
+			StatusReason:  compute.StatusReason,
+			Project:       compute.Project,
+			IpAddrs:       strings.Join(ipaddrs, ","),
+			Image:         compute.Image,
+			Vcpus:         compute.Vcpus,
+			Memory:        compute.Memory,
+			Disk:          compute.Disk,
+			UpdatedAt:     compute.UpdatedAt,
+			CreatedAt:     compute.CreatedAt,
+		})
+	}
+
 	return
 }
 
@@ -99,6 +157,112 @@ func (api *Api) CreateOrUpdateCompute(tctx *logger.TraceContext, tx *gorm.DB,
 	return
 }
 
+func (api *Api) ProxyComputeConsole(tctx *logger.TraceContext, input *spec.GetComputeConsole, user *base_spec.UserAuthority, wsConn *websocket.Conn) (err error) {
+	var compute db_model.Compute
+	var tmpErr error
+	err = api.DB.Where("name = ? AND deleted_at IS NULL", input.Name).First(&compute).Error
+
+	var clusters []db_model.Cluster
+	if err = api.DB.Where("name = ?", compute.Cluster).Find(&clusters).Error; err != nil {
+		return
+	}
+	if len(clusters) != 1 {
+		err = fmt.Errorf("Invalid Cluster: %s", compute.Cluster)
+		return
+	}
+	cluster := clusters[0]
+	endpoints := strings.Split(cluster.Endpoints, ",")
+
+	client := resource_cluster_api.NewClient(&base_config.ClientConfig{
+		Endpoints:             endpoints,
+		Token:                 cluster.Token,
+		Project:               cluster.Project,
+		TlsInsecureSkipVerify: true,
+	})
+
+	queries := []base_client.Query{
+		base_client.Query{
+			Name: "GetComputeConsole",
+			Data: *input,
+		},
+	}
+	_, proxyWsConn, tmpErr := client.ResourceVirtualAdminGetComputeConsole(tctx, queries)
+	if tmpErr != nil {
+		logger.Warningf(tctx, "Failed GetNodeServices: %s", tmpErr.Error())
+		return
+	}
+
+	var isDone bool
+	doneCh := make(chan bool, 2)
+	conMutex := sync.Mutex{}
+	defer func() {
+		conMutex.Lock()
+		if tmpErr = proxyWsConn.Close(); tmpErr != nil {
+			logger.Warningf(tctx, "Failed proxyWsConn.Close: err=%s", tmpErr.Error())
+		} else {
+			logger.Info(tctx, "Success proxyWsConn.Close")
+		}
+		isDone = true
+		close(doneCh)
+		conMutex.Unlock()
+	}()
+
+	go func() {
+		var messageType int
+		var message []byte
+		for {
+			fmt.Println("Waiting Messages on client WebSocket")
+			if messageType, message, tmpErr = wsConn.ReadMessage(); tmpErr != nil {
+				conMutex.Lock()
+				if !isDone {
+					logger.Warningf(tctx, "Faild ReadMessage: %s", tmpErr.Error())
+					doneCh <- true
+				}
+				conMutex.Unlock()
+				return
+			}
+			if tmpErr = proxyWsConn.WriteMessage(messageType, message); tmpErr != nil {
+				conMutex.Lock()
+				if !isDone {
+					logger.Warningf(tctx, "Faild WriteMessage: %s", tmpErr.Error())
+					doneCh <- true
+				}
+				conMutex.Unlock()
+				return
+			}
+		}
+	}()
+
+	go func() {
+		var messageType int
+		var message []byte
+		for {
+			fmt.Println("Waiting Messages on proxy WebSocket")
+			if messageType, message, tmpErr = proxyWsConn.ReadMessage(); tmpErr != nil {
+				conMutex.Lock()
+				if !isDone {
+					logger.Warningf(tctx, "Faild ReadMessage: %s", tmpErr.Error())
+					doneCh <- true
+				}
+				conMutex.Unlock()
+				return
+			}
+			if tmpErr = wsConn.WriteMessage(messageType, message); tmpErr != nil {
+				conMutex.Lock()
+				if !isDone {
+					logger.Warningf(tctx, "Faild WriteMessage: %s", tmpErr.Error())
+					doneCh <- true
+				}
+				conMutex.Unlock()
+				return
+			}
+		}
+	}()
+
+	<-doneCh
+	return
+}
+
 func (api *Api) DeleteCompute(tctx *logger.TraceContext, name string) (err error) {
 	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
 		err = tx.Table("computes").Where("name = ?", name).Updates(map[string]interface{}{
@@ -155,7 +319,6 @@ func (api *Api) CreateClusterCompute(tctx *logger.TraceContext,
 		}).Error
 		return
 	})
-	return
 }
 
 func (api *Api) ConfirmCreatingOrUpdatingScheduledCompute(tctx *logger.TraceContext,
@@ -188,7 +351,6 @@ func (api *Api) ConfirmCreatingOrUpdatingScheduledCompute(tctx *logger.TraceCont
 		}).Error
 		return
 	})
-	return
 }
 
 func (api *Api) UpdateClusterCompute(tctx *logger.TraceContext,
@@ -226,7 +388,6 @@ func (api *Api) UpdateClusterCompute(tctx *logger.TraceContext,
 		}).Error
 		return
 	})
-	return
 }
 
 func (api *Api) DeleteClusterCompute(tctx *logger.TraceContext,
@@ -263,7 +424,6 @@ func (api *Api) DeleteClusterCompute(tctx *logger.TraceContext,
 		}).Error
 		return
 	})
-	return
 }
 
 func (api *Api) ConfirmDeletingScheduledCompute(tctx *logger.TraceContext,
@@ -291,5 +451,4 @@ func (api *Api) ConfirmDeletingScheduledCompute(tctx *logger.TraceContext,
 		err = tx.Where("id = ?", compute.ID).Unscoped().Delete(&db_model.Compute{}).Error
 		return
 	})
-	return
 }

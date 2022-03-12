@@ -3,15 +3,21 @@ package db_api
 import (
 	"fmt"
 	"strings"
+	"sync"
 
+	"github.com/gorilla/websocket"
 	"github.com/jinzhu/gorm"
+	"github.com/syunkitada/goapp/pkg/base/base_client"
+	"github.com/syunkitada/goapp/pkg/base/base_config"
 	"github.com/syunkitada/goapp/pkg/base/base_const"
 	"github.com/syunkitada/goapp/pkg/lib/error_utils"
 	"github.com/syunkitada/goapp/pkg/lib/json_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
+	resource_cluster_agent "github.com/syunkitada/goapp/pkg/resource/cluster/resource_cluster_agent/spec/genpkg"
 	"github.com/syunkitada/goapp/pkg/resource/consts"
 	"github.com/syunkitada/goapp/pkg/resource/db_model"
 	"github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
+	resource_api_spec "github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
 	"github.com/syunkitada/goapp/pkg/resource/resource_model"
 )
 
@@ -23,6 +29,114 @@ func (api *Api) GetCompute(tctx *logger.TraceContext, input *spec.GetCompute) (d
 
 func (api *Api) GetComputes(tctx *logger.TraceContext, input *spec.GetComputes) (data []spec.Compute, err error) {
 	err = api.DB.Find(&data).Error
+	return
+}
+
+func (api *Api) ProxyComputeConsole(tctx *logger.TraceContext, input *spec.GetComputeConsole,
+	wsConn *websocket.Conn) (err error) {
+	var tmpErr error
+	var assignments []db_model.ComputeAssignmentWithComputeAndNodeService
+	query := api.DB.Table("compute_assignments as ca").
+		Select("ca.id, ca.status, ca.updated_at, ca.compute_id, c.name as compute_name, c.spec as compute_spec, ca.node_service_id, ns.name as node_name, ns.endpoints as service_endpoints, ns.token as service_token").
+		Joins("INNER JOIN computes AS c ON c.id = ca.compute_id").
+		Joins("INNER JOIN node_services AS ns ON ns.id = ca.node_service_id").
+		Where("c.name = ?", input.Name)
+	err = query.Find(&assignments).Error
+	if len(assignments) != 1 {
+		err = fmt.Errorf("Invalid compute length: %d", len(assignments))
+		return
+	}
+	assignment := assignments[0]
+	endpoints := strings.Split(assignment.ServiceEndpoints, ",")
+
+	client := resource_cluster_agent.NewClient(&base_config.ClientConfig{
+		Endpoints:             endpoints,
+		Token:                 assignment.ServiceToken,
+		Project:               "service",
+		TlsInsecureSkipVerify: true,
+	})
+
+	queries := []base_client.Query{
+		base_client.Query{
+			Name: "GetComputeConsole",
+			Data: resource_api_spec.GetComputeConsole{Name: input.Name},
+		},
+	}
+	_, proxyWsConn, tmpErr := client.ResourceVirtualAdminGetComputeConsole(tctx, queries)
+	if tmpErr != nil {
+		logger.Warningf(tctx, "Failed GetNodeServices: %s", tmpErr.Error())
+		return
+	}
+
+	conMutex := sync.Mutex{}
+	doneCh := make(chan bool, 2)
+	var isDone bool
+	defer func() {
+		conMutex.Lock()
+		if tmpErr = proxyWsConn.Close(); tmpErr != nil {
+			logger.Warningf(tctx, "Failed wsConn.Close: err=%s", tmpErr.Error())
+		} else {
+			logger.Info(tctx, "Success wsConn.Close")
+		}
+		isDone = true
+		close(doneCh)
+		conMutex.Unlock()
+	}()
+
+	go func() {
+		var messageType int
+		var message []byte
+		for {
+			fmt.Println("Waiting Messages on client WebSocket")
+			messageType, message, tmpErr = wsConn.ReadMessage()
+			if tmpErr != nil {
+				conMutex.Lock()
+				if !isDone {
+					logger.Warningf(tctx, "Faild ReadMessage: %s", tmpErr.Error())
+					doneCh <- true
+				}
+				conMutex.Unlock()
+				return
+			}
+			if tmpErr = proxyWsConn.WriteMessage(messageType, message); tmpErr != nil {
+				conMutex.Lock()
+				if !isDone {
+					logger.Warningf(tctx, "Faild WriteMessage: %s", tmpErr.Error())
+					doneCh <- true
+				}
+				conMutex.Unlock()
+				return
+			}
+		}
+	}()
+
+	go func() {
+		var messageType int
+		var message []byte
+		for {
+			fmt.Println("Waiting Messages on proxy WebSocket")
+			if messageType, message, tmpErr = proxyWsConn.ReadMessage(); tmpErr != nil {
+				conMutex.Lock()
+				if !isDone {
+					logger.Warningf(tctx, "Faild ReadMessage: %s", tmpErr.Error())
+					doneCh <- true
+				}
+				conMutex.Unlock()
+				return
+			}
+			if tmpErr = wsConn.WriteMessage(messageType, message); tmpErr != nil {
+				conMutex.Lock()
+				if !isDone {
+					logger.Warningf(tctx, "Faild WriteMessage: %s", tmpErr.Error())
+					doneCh <- true
+				}
+				conMutex.Unlock()
+				return
+			}
+		}
+	}()
+
+	<-doneCh
 	return
 }
 
@@ -71,7 +185,6 @@ func (api *Api) UpdateComputes(tctx *logger.TraceContext, specs []spec.RegionSer
 				err = fmt.Errorf("updated rows is nothing: count=%d", rows)
 				return
 			}
-			return
 		}
 		return
 	})
@@ -121,6 +234,8 @@ func (api *Api) DeleteComputes(tctx *logger.TraceContext, specs []spec.RegionSer
 
 func (api *Api) SyncCompute(tctx *logger.TraceContext) (err error) {
 	fmt.Println("SyncCompute")
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
 	var computes []db_model.Compute
 	var nodes []db_model.NodeServiceWithMeta
@@ -132,7 +247,7 @@ func (api *Api) SyncCompute(tctx *logger.TraceContext) (err error) {
 
 		// TODO filter by resource driver
 		if err = tx.Table("node_services as n").Select("*").
-			Joins("INNER JOIN node_meta as nm ON n.id = nm.node_service_id").
+			Joins("INNER JOIN node_service_meta as nm ON n.id = nm.node_service_id").
 			Where("n.kind = ?", consts.KindResourceClusterAgent).Scan(&nodes).Error; err != nil {
 			return
 		}
@@ -190,11 +305,11 @@ func (api *Api) GetComputeAssignments(tctx *logger.TraceContext, db *gorm.DB,
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
 	query := db.Table("compute_assignments as ca").
-		Select("ca.id, ca.status, ca.updated_at, ca.compute_id, c.name as compute_name, c.spec as compute_spec, ca.node_id, n.name as node_name").
+		Select("ca.id, ca.status, ca.updated_at, ca.compute_id, c.name as compute_name, c.spec as compute_spec, ca.node_service_id, ns.name as node_name").
 		Joins("INNER JOIN computes AS c ON c.id = ca.compute_id").
-		Joins("INNER JOIN nodes AS n ON n.id = ca.node_id")
+		Joins("INNER JOIN node_services AS ns ON ns.id = ca.node_service_id")
 	if nodeName != "" {
-		query = query.Where("n.name = ?", nodeName)
+		query = query.Where("ns.name = ?", nodeName)
 	}
 
 	err = query.Find(&assignments).Error
@@ -261,7 +376,6 @@ func (api *Api) AssignCompute(tctx *logger.TraceContext,
 	labelNodeServicesMap := map[string][]*db_model.NodeServiceWithMeta{} // LabelごとのNodeService候補
 	for _, node := range nodeMap {
 		labels := []string{}
-		ok := true
 		if enableNodeServiceFilters {
 			ok = false
 			for _, nodeName := range policy.NodeServiceFilters {
@@ -278,7 +392,7 @@ func (api *Api) AssignCompute(tctx *logger.TraceContext,
 		if enableLabelFilters {
 			ok = false
 			for _, label := range policy.NodeServiceLabelFilters {
-				if strings.Index(node.Labels, label) >= 0 {
+				if strings.Contains(node.Labels, label) {
 					ok = true
 					break
 				}
@@ -291,7 +405,7 @@ func (api *Api) AssignCompute(tctx *logger.TraceContext,
 		if enableHardAffinites {
 			ok = false
 			for _, label := range policy.NodeServiceLabelHardAffinities {
-				if strings.Index(node.Labels, label) >= 0 {
+				if strings.Contains(node.Labels, label) {
 					ok = true
 					labels = append(labels, label)
 					break
@@ -305,7 +419,7 @@ func (api *Api) AssignCompute(tctx *logger.TraceContext,
 		if enableHardAntiAffinites {
 			ok = false
 			for _, label := range policy.NodeServiceLabelHardAntiAffinities {
-				if strings.Index(node.Labels, label) >= 0 {
+				if strings.Contains(node.Labels, label) {
 					ok = true
 					labels = append(labels, label)
 					break
@@ -319,7 +433,7 @@ func (api *Api) AssignCompute(tctx *logger.TraceContext,
 		if enableSoftAffinites {
 			ok = false
 			for _, label := range policy.NodeServiceLabelSoftAffinities {
-				if strings.Index(node.Labels, label) >= 0 {
+				if strings.Contains(node.Labels, label) {
 					ok = true
 					labels = append(labels, label)
 					break
@@ -333,7 +447,7 @@ func (api *Api) AssignCompute(tctx *logger.TraceContext,
 		if enableSoftAntiAffinites {
 			ok = false
 			for _, label := range policy.NodeServiceLabelSoftAntiAffinities {
-				if strings.Index(node.Labels, label) >= 0 {
+				if strings.Contains(node.Labels, label) {
 					ok = true
 					labels = append(labels, label)
 					break
@@ -435,9 +549,7 @@ func (api *Api) AssignCompute(tctx *logger.TraceContext,
 				tmpCandidates := []*db_model.NodeServiceWithMeta{}
 				nodes := labelNodeServicesMap[label]
 				if len(candidates) == 0 && len(assignNodeServices) == 0 && len(updateNodeServices) == 0 {
-					for _, node := range nodes {
-						tmpCandidates = append(tmpCandidates, node)
-					}
+					tmpCandidates = append(tmpCandidates, nodes...)
 					candidates = tmpCandidates
 					break
 				} else if len(assignNodeServices) > 0 {
@@ -465,9 +577,7 @@ func (api *Api) AssignCompute(tctx *logger.TraceContext,
 
 			if !enableNodeServiceFilters && !enableLabelFilters && !enableHardAffinites && !enableHardAntiAffinites {
 				if len(candidates) == 0 {
-					for _, node := range filteredNodeServices {
-						candidates = append(candidates, node)
-					}
+					candidates = append(candidates, filteredNodeServices...)
 				}
 			}
 
@@ -611,12 +721,17 @@ func (api *Api) ConfirmCreatingOrUpdatingScheduledCompute(tctx *logger.TraceCont
 	})
 }
 
-func (api *Api) DeleteComputeAssignments(tctx *logger.TraceContext, compute *db_model.Compute) (err error) {
+func (api *Api) DeleteComputeAssignments(tctx *logger.TraceContext, compute *db_model.Compute) {
+	var err error
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 	err = api.Transact(tctx, func(tx *gorm.DB) (err error) {
-		err = tx.Table("computes").Where("id = ?", compute.ID).Updates(map[string]interface{}{
+		if err = tx.Table("computes").Where("id = ?", compute.ID).Updates(map[string]interface{}{
 			"status":        base_const.StatusDeletingScheduled,
 			"status_reason": "DeleteComputeAssignments",
-		}).Error
+		}).Error; err != nil {
+			return
+		}
 
 		err = tx.Table("compute_assignments").Where("compute_id = ?", compute.ID).
 			Updates(map[string]interface{}{
@@ -625,7 +740,6 @@ func (api *Api) DeleteComputeAssignments(tctx *logger.TraceContext, compute *db_
 			}).Error
 		return
 	})
-	return
 }
 
 func (api *Api) ConfirmDeletingScheduledCompute(tctx *logger.TraceContext,

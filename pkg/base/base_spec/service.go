@@ -1,18 +1,19 @@
 package base_spec
 
 import (
-	"github.com/syunkitada/goapp/pkg/base/base_model/index_model"
-	"github.com/syunkitada/goapp/pkg/base/base_model/spec_model"
+	"github.com/syunkitada/goapp/pkg/base/base_index_model"
+	"github.com/syunkitada/goapp/pkg/base/base_spec_model"
 )
 
 type UpdateService struct {
 	Name            string
+	Icon            string
 	Token           string
 	Scope           string
 	SyncRootCluster bool
 	ProjectRoles    []string
 	Endpoints       []string
-	QueryMap        map[string]spec_model.QueryModel
+	QueryMap        map[string]base_spec_model.QueryModel
 }
 
 type UpdateServiceData struct {
@@ -27,6 +28,7 @@ type GetServicesData struct {
 
 type Service struct {
 	Name            string
+	Icon            string
 	Token           string
 	Scope           string
 	Endpoints       string
@@ -40,7 +42,7 @@ type GetServiceIndex struct {
 }
 
 type GetServiceIndexData struct {
-	Index index_model.Index
+	Index base_index_model.Index
 }
 
 type GetServiceDashboardIndex struct {
@@ -48,6 +50,6 @@ type GetServiceDashboardIndex struct {
 }
 
 type GetServiceDashboardIndexData struct {
-	Index index_model.DashboardIndex
+	Index base_index_model.DashboardIndex
 	Data  interface{}
 }

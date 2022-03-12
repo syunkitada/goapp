@@ -9,9 +9,11 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/gorilla/websocket"
+
 	"github.com/syunkitada/goapp/pkg/base/base_config"
 	"github.com/syunkitada/goapp/pkg/base/base_const"
-	"github.com/syunkitada/goapp/pkg/base/base_model"
+	"github.com/syunkitada/goapp/pkg/base/base_protocol"
 	"github.com/syunkitada/goapp/pkg/base/base_spec"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 	"github.com/syunkitada/goapp/pkg/resource/resource_api/spec"
@@ -22,7 +24,9 @@ type QueryResolver interface {
 	LoginWithToken(tctx *logger.TraceContext, input *base_spec.LoginWithToken, user *base_spec.UserAuthority) (*base_spec.LoginWithTokenData, uint8, error)
 	UpdateService(tctx *logger.TraceContext, input *base_spec.UpdateService) (*base_spec.UpdateServiceData, uint8, error)
 	GetServiceIndex(tctx *logger.TraceContext, input *base_spec.GetServiceIndex, user *base_spec.UserAuthority) (*base_spec.GetServiceIndexData, uint8, error)
+	GetProjectServiceIndex(tctx *logger.TraceContext, input *base_spec.GetServiceIndex, user *base_spec.UserAuthority) (*base_spec.GetServiceIndexData, uint8, error)
 	GetServiceDashboardIndex(tctx *logger.TraceContext, input *base_spec.GetServiceDashboardIndex, user *base_spec.UserAuthority) (*base_spec.GetServiceDashboardIndexData, uint8, error)
+	GetProjectServiceDashboardIndex(tctx *logger.TraceContext, input *base_spec.GetServiceDashboardIndex, user *base_spec.UserAuthority) (*base_spec.GetServiceDashboardIndexData, uint8, error)
 	CreateCluster(tctx *logger.TraceContext, input *spec.CreateCluster, user *base_spec.UserAuthority) (*spec.CreateClusterData, uint8, error)
 	CreateDatacenter(tctx *logger.TraceContext, input *spec.CreateDatacenter, user *base_spec.UserAuthority) (*spec.CreateDatacenterData, uint8, error)
 	CreateEventRules(tctx *logger.TraceContext, input *spec.CreateEventRules, user *base_spec.UserAuthority) (*spec.CreateEventRulesData, uint8, error)
@@ -57,6 +61,9 @@ type QueryResolver interface {
 	DeleteRegions(tctx *logger.TraceContext, input *spec.DeleteRegions, user *base_spec.UserAuthority) (*spec.DeleteRegionsData, uint8, error)
 	GetCluster(tctx *logger.TraceContext, input *spec.GetCluster, user *base_spec.UserAuthority) (*spec.GetClusterData, uint8, error)
 	GetClusters(tctx *logger.TraceContext, input *spec.GetClusters, user *base_spec.UserAuthority) (*spec.GetClustersData, uint8, error)
+	GetCompute(tctx *logger.TraceContext, input *spec.GetCompute, user *base_spec.UserAuthority) (*spec.GetComputeData, uint8, error)
+	GetComputeConsole(tctx *logger.TraceContext, input *spec.GetComputeConsole, user *base_spec.UserAuthority, conn *websocket.Conn) (*spec.GetComputeConsoleData, uint8, error)
+	GetComputes(tctx *logger.TraceContext, input *spec.GetComputes, user *base_spec.UserAuthority) (*spec.GetComputesData, uint8, error)
 	GetDatacenter(tctx *logger.TraceContext, input *spec.GetDatacenter, user *base_spec.UserAuthority) (*spec.GetDatacenterData, uint8, error)
 	GetDatacenters(tctx *logger.TraceContext, input *spec.GetDatacenters, user *base_spec.UserAuthority) (*spec.GetDatacentersData, uint8, error)
 	GetEventRule(tctx *logger.TraceContext, input *spec.GetEventRule, user *base_spec.UserAuthority) (*spec.GetEventRuleData, uint8, error)
@@ -113,16 +120,18 @@ func NewQueryHandler(baseConf *base_config.Config, appConf *base_config.AppConfi
 	}
 }
 
-func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.UserAuthority, httpReq *http.Request, rw http.ResponseWriter,
-	req *base_model.Request, rep *base_model.Response) error {
-	var err error
+func (handler *QueryHandler) Exec(tctx *logger.TraceContext, httpReq *http.Request, rw http.ResponseWriter,
+	req *base_protocol.Request, rep *base_protocol.Response) (err error) {
 	for _, query := range req.Queries {
 		switch query.Name {
 		case "Login":
 			var input base_spec.Login
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 
 			data, code, tmpErr := handler.resolver.Login(tctx, &input)
@@ -130,13 +139,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
@@ -146,12 +155,13 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				Value:    data.Token,
 				Secure:   true,
 				HttpOnly: true,
+				SameSite: http.SameSiteNoneMode,         // TODO Configurable
 				Expires:  time.Now().Add(1 * time.Hour), // TODO Configurable
-			} // FIXME SameSite
+			}
 			http.SetCookie(rw, &cookie)
 
 		case "Logout":
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: base_const.CodeOk,
 			}
 			cookie := http.Cookie{
@@ -159,37 +169,44 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				Value:    "",
 				Secure:   true,
 				HttpOnly: true,
+				SameSite: http.SameSiteNoneMode,
 			}
 			http.SetCookie(rw, &cookie)
 
 		case "LoginWithToken":
 			var input base_spec.LoginWithToken
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 
-			data, code, tmpErr := handler.resolver.LoginWithToken(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.LoginWithToken(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 
 		case "UpdateService":
 			var input base_spec.UpdateService
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 
 			data, code, tmpErr := handler.resolver.UpdateService(tctx, &input)
@@ -197,1612 +214,1938 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 
 		case "GetServiceIndex":
 			var input base_spec.GetServiceIndex
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 
-			data, code, tmpErr := handler.resolver.GetServiceIndex(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.GetServiceIndex(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
+				Code: code,
+				Data: data,
+			}
+		case "GetProjectServiceIndex":
+			var input base_spec.GetServiceIndex
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
+			}
+
+			data, code, tmpErr := handler.resolver.GetProjectServiceIndex(tctx, &input, req.UserAuthority)
+			if tmpErr != nil {
+				if code == 0 {
+					code = base_const.CodeServerInternalError
+				}
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  code,
+					Error: tmpErr.Error(),
+				}
+				break
+			}
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "GetServiceDashboardIndex":
 			var input base_spec.GetServiceDashboardIndex
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
 
-			data, code, tmpErr := handler.resolver.GetServiceDashboardIndex(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.GetServiceDashboardIndex(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap["GetServiceDashboardIndex"] = base_model.Result{
+				rep.ResultMap["GetServiceDashboardIndex"] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
+				Code: code,
+				Data: data,
+			}
+		case "GetProjectServiceDashboardIndex":
+			var input base_spec.GetServiceDashboardIndex
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
+			}
+
+			data, code, tmpErr := handler.resolver.GetProjectServiceDashboardIndex(tctx, &input, req.UserAuthority)
+			if tmpErr != nil {
+				if code == 0 {
+					code = base_const.CodeServerInternalError
+				}
+				rep.ResultMap["GetServiceDashboardIndex"] = base_protocol.Result{
+					Code:  code,
+					Error: tmpErr.Error(),
+				}
+				break
+			}
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "CreateCluster":
 			var input spec.CreateCluster
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.CreateCluster(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.CreateCluster(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "CreateDatacenter":
 			var input spec.CreateDatacenter
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.CreateDatacenter(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.CreateDatacenter(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "CreateEventRules":
 			var input spec.CreateEventRules
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.CreateEventRules(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.CreateEventRules(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "CreateFloor":
 			var input spec.CreateFloor
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.CreateFloor(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.CreateFloor(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "CreateImage":
 			var input spec.CreateImage
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.CreateImage(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.CreateImage(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "CreateNetworkV4":
 			var input spec.CreateNetworkV4
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.CreateNetworkV4(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.CreateNetworkV4(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "CreatePhysicalModel":
 			var input spec.CreatePhysicalModel
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.CreatePhysicalModel(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.CreatePhysicalModel(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "CreatePhysicalResource":
 			var input spec.CreatePhysicalResource
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.CreatePhysicalResource(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.CreatePhysicalResource(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "CreateRack":
 			var input spec.CreateRack
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.CreateRack(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.CreateRack(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "CreateRegion":
 			var input spec.CreateRegion
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.CreateRegion(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.CreateRegion(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "CreateRegionService":
 			var input spec.CreateRegionService
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.CreateRegionService(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.CreateRegionService(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "DeleteCluster":
 			var input spec.DeleteCluster
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.DeleteCluster(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.DeleteCluster(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "DeleteClusters":
 			var input spec.DeleteClusters
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.DeleteClusters(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.DeleteClusters(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "DeleteDatacenter":
 			var input spec.DeleteDatacenter
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.DeleteDatacenter(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.DeleteDatacenter(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "DeleteDatacenters":
 			var input spec.DeleteDatacenters
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.DeleteDatacenters(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.DeleteDatacenters(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "DeleteEventRules":
 			var input spec.DeleteEventRules
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.DeleteEventRules(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.DeleteEventRules(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "DeleteFloor":
 			var input spec.DeleteFloor
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.DeleteFloor(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.DeleteFloor(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "DeleteFloors":
 			var input spec.DeleteFloors
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.DeleteFloors(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.DeleteFloors(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "DeleteImage":
 			var input spec.DeleteImage
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.DeleteImage(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.DeleteImage(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "DeleteImages":
 			var input spec.DeleteImages
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.DeleteImages(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.DeleteImages(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "DeleteNetworkV4":
 			var input spec.DeleteNetworkV4
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.DeleteNetworkV4(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.DeleteNetworkV4(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "DeleteNetworkV4s":
 			var input spec.DeleteNetworkV4s
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.DeleteNetworkV4s(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.DeleteNetworkV4s(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "DeletePhysicalModel":
 			var input spec.DeletePhysicalModel
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.DeletePhysicalModel(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.DeletePhysicalModel(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "DeletePhysicalModels":
 			var input spec.DeletePhysicalModels
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.DeletePhysicalModels(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.DeletePhysicalModels(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "DeletePhysicalResource":
 			var input spec.DeletePhysicalResource
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.DeletePhysicalResource(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.DeletePhysicalResource(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "DeletePhysicalResources":
 			var input spec.DeletePhysicalResources
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.DeletePhysicalResources(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.DeletePhysicalResources(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "DeleteRack":
 			var input spec.DeleteRack
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.DeleteRack(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.DeleteRack(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "DeleteRacks":
 			var input spec.DeleteRacks
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.DeleteRacks(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.DeleteRacks(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "DeleteRegion":
 			var input spec.DeleteRegion
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.DeleteRegion(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.DeleteRegion(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "DeleteRegionService":
 			var input spec.DeleteRegionService
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.DeleteRegionService(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.DeleteRegionService(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "DeleteRegionServices":
 			var input spec.DeleteRegionServices
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.DeleteRegionServices(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.DeleteRegionServices(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "DeleteRegions":
 			var input spec.DeleteRegions
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.DeleteRegions(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.DeleteRegions(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "GetCluster":
 			var input spec.GetCluster
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.GetCluster(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.GetCluster(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "GetClusters":
 			var input spec.GetClusters
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.GetClusters(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.GetClusters(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
+				Code: code,
+				Data: data,
+			}
+		case "GetCompute":
+			var input spec.GetCompute
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
+			}
+			data, code, tmpErr := handler.resolver.GetCompute(tctx, &input, req.UserAuthority)
+			if tmpErr != nil {
+				if code == 0 {
+					code = base_const.CodeServerInternalError
+				}
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  code,
+					Error: tmpErr.Error(),
+				}
+				break
+			}
+			rep.ResultMap[query.Name] = base_protocol.Result{
+				Code: code,
+				Data: data,
+			}
+		case "GetComputes":
+			var input spec.GetComputes
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
+			}
+			data, code, tmpErr := handler.resolver.GetComputes(tctx, &input, req.UserAuthority)
+			if tmpErr != nil {
+				if code == 0 {
+					code = base_const.CodeServerInternalError
+				}
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  code,
+					Error: tmpErr.Error(),
+				}
+				break
+			}
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "GetDatacenter":
 			var input spec.GetDatacenter
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.GetDatacenter(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.GetDatacenter(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "GetDatacenters":
 			var input spec.GetDatacenters
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.GetDatacenters(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.GetDatacenters(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "GetEventRule":
 			var input spec.GetEventRule
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.GetEventRule(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.GetEventRule(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "GetEventRules":
 			var input spec.GetEventRules
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.GetEventRules(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.GetEventRules(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "GetEvents":
 			var input spec.GetEvents
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.GetEvents(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.GetEvents(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "GetFloor":
 			var input spec.GetFloor
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.GetFloor(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.GetFloor(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "GetFloors":
 			var input spec.GetFloors
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.GetFloors(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.GetFloors(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "GetImage":
 			var input spec.GetImage
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.GetImage(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.GetImage(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "GetImages":
 			var input spec.GetImages
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.GetImages(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.GetImages(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "GetLogParams":
 			var input spec.GetLogParams
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.GetLogParams(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.GetLogParams(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "GetLogs":
 			var input spec.GetLogs
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.GetLogs(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.GetLogs(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "GetNetworkV4":
 			var input spec.GetNetworkV4
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.GetNetworkV4(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.GetNetworkV4(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "GetNetworkV4s":
 			var input spec.GetNetworkV4s
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.GetNetworkV4s(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.GetNetworkV4s(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "GetNode":
 			var input spec.GetNode
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.GetNode(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.GetNode(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "GetNodeMetrics":
 			var input spec.GetNodeMetrics
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.GetNodeMetrics(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.GetNodeMetrics(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "GetNodeServices":
 			var input spec.GetNodeServices
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.GetNodeServices(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.GetNodeServices(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "GetNodes":
 			var input spec.GetNodes
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.GetNodes(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.GetNodes(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "GetPhysicalModel":
 			var input spec.GetPhysicalModel
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.GetPhysicalModel(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.GetPhysicalModel(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "GetPhysicalModels":
 			var input spec.GetPhysicalModels
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.GetPhysicalModels(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.GetPhysicalModels(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "GetPhysicalResource":
 			var input spec.GetPhysicalResource
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.GetPhysicalResource(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.GetPhysicalResource(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "GetPhysicalResources":
 			var input spec.GetPhysicalResources
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.GetPhysicalResources(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.GetPhysicalResources(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "GetRack":
 			var input spec.GetRack
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.GetRack(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.GetRack(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "GetRacks":
 			var input spec.GetRacks
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.GetRacks(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.GetRacks(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "GetRegion":
 			var input spec.GetRegion
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.GetRegion(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.GetRegion(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "GetRegionService":
 			var input spec.GetRegionService
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.GetRegionService(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.GetRegionService(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "GetRegionServices":
 			var input spec.GetRegionServices
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.GetRegionServices(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.GetRegionServices(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "GetRegions":
 			var input spec.GetRegions
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.GetRegions(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.GetRegions(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "GetStatistics":
 			var input spec.GetStatistics
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.GetStatistics(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.GetStatistics(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "GetTrace":
 			var input spec.GetTrace
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.GetTrace(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.GetTrace(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "UpdateCluster":
 			var input spec.UpdateCluster
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.UpdateCluster(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.UpdateCluster(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "UpdateDatacenter":
 			var input spec.UpdateDatacenter
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.UpdateDatacenter(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.UpdateDatacenter(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "UpdateEventRules":
 			var input spec.UpdateEventRules
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.UpdateEventRules(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.UpdateEventRules(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "UpdateFloor":
 			var input spec.UpdateFloor
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.UpdateFloor(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.UpdateFloor(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "UpdateImage":
 			var input spec.UpdateImage
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.UpdateImage(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.UpdateImage(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "UpdateNetworkV4":
 			var input spec.UpdateNetworkV4
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.UpdateNetworkV4(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.UpdateNetworkV4(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "UpdatePhysicalModel":
 			var input spec.UpdatePhysicalModel
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.UpdatePhysicalModel(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.UpdatePhysicalModel(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "UpdatePhysicalResource":
 			var input spec.UpdatePhysicalResource
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.UpdatePhysicalResource(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.UpdatePhysicalResource(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "UpdateRack":
 			var input spec.UpdateRack
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.UpdateRack(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.UpdateRack(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "UpdateRegion":
 			var input spec.UpdateRegion
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.UpdateRegion(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.UpdateRegion(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
 		case "UpdateRegionService":
 			var input spec.UpdateRegionService
-			err = json.Unmarshal([]byte(query.Data), &input)
-			if err != nil {
-				return err
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
 			}
-			data, code, tmpErr := handler.resolver.UpdateRegionService(tctx, &input, user)
+			data, code, tmpErr := handler.resolver.UpdateRegionService(tctx, &input, req.UserAuthority)
 			if tmpErr != nil {
 				if code == 0 {
 					code = base_const.CodeServerInternalError
 				}
-				rep.ResultMap[query.Name] = base_model.Result{
+				rep.ResultMap[query.Name] = base_protocol.Result{
 					Code:  code,
 					Error: tmpErr.Error(),
 				}
 				break
 			}
-			rep.ResultMap[query.Name] = base_model.Result{
+			rep.ResultMap[query.Name] = base_protocol.Result{
 				Code: code,
 				Data: data,
 			}
@@ -1813,4 +2156,41 @@ func (handler *QueryHandler) Exec(tctx *logger.TraceContext, user *base_spec.Use
 		}
 	}
 	return nil
+}
+
+func (handler *QueryHandler) ExecWs(tctx *logger.TraceContext, httpReq *http.Request, rw http.ResponseWriter,
+	req *base_protocol.Request, rep *base_protocol.Response, conn *websocket.Conn) (err error) {
+	for _, query := range req.Queries {
+		switch query.Name {
+		case "GetComputeConsole":
+			var input spec.GetComputeConsole
+			if tmpErr := json.Unmarshal([]byte(query.Data), &input); tmpErr != nil {
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  base_const.CodeClientBadRequest,
+					Error: tmpErr.Error(),
+				}
+				break
+			}
+			data, code, tmpErr := handler.resolver.GetComputeConsole(tctx, &input, req.UserAuthority, conn)
+			if tmpErr != nil {
+				if code == 0 {
+					code = base_const.CodeServerInternalError
+				}
+				rep.ResultMap[query.Name] = base_protocol.Result{
+					Code:  code,
+					Error: tmpErr.Error(),
+				}
+				break
+			}
+			rep.ResultMap[query.Name] = base_protocol.Result{
+				Code: code,
+				Data: data,
+			}
+
+		default:
+			err = fmt.Errorf("InvalidQueryName: %s", query.Name)
+			return err
+		}
+	}
+	return
 }

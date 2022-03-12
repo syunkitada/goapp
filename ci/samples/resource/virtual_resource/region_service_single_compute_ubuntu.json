@@ -1,7 +1,7 @@
 {
   "Kind": "RegionService",
   "Spec": {
-    "Name": "service01",
+    "Name": "ubuntu18-service01",
     "Kind": "Compute",
     "Region": "kanto",
     "ExpireDate": -1,

@@ -5,40 +5,42 @@
 package genpkg
 
 import (
-    "github.com/syunkitada/goapp/pkg/base/base_model/index_model"
-    "github.com/syunkitada/goapp/pkg/base/base_model/spec_model"
+    "github.com/syunkitada/goapp/pkg/base/base_index_model"
+    "github.com/syunkitada/goapp/pkg/base/base_spec_model"
 )
 
 {{- range $api := $spec.Apis }}
-var {{ $api.Name }}CmdMap = map[string]index_model.Cmd{
+var {{ $api.Name }}CmdMap = map[string]base_index_model.Cmd{
 {{- range $query := $api.Queries }}
-    "{{ $query.CmdName }}": index_model.Cmd{
+    "{{ $query.CmdName }}": base_index_model.Cmd{
         QueryName:   "{{ $query.Name }}",
-        FlagMap:     map[string]index_model.Flag{
+        FlagMap:     map[string]base_index_model.Flag{
         {{- range $flag := $query.Flags }}
-            "{{ $flag.FlagName }}": index_model.Flag{
+            "{{ $flag.FlagName }}": base_index_model.Flag{
                 Required: {{ $flag.Required }},
                 FlagType: "{{ $flag.FlagType }}",
                 FlagKind: "{{ $flag.FlagKind }}",
             },
         {{- end }}
         },
+        Kind: "{{ $query.Kind }}",
         OutputKind: "{{ $query.CmdOutputKind }}",
         OutputFormat: "{{ $query.CmdOutputFormat }}",
+        Ws: {{ $query.Ws }},
     },
 {{- end }}
 }
 {{- end }}
 
-var ApiQueryMap = map[string]map[string]spec_model.QueryModel{
-    "Auth": map[string]spec_model.QueryModel{
-        "Login": spec_model.QueryModel{},
-        "UpdateService": spec_model.QueryModel{},
+var ApiQueryMap = map[string]map[string]base_spec_model.QueryModel{
+    "Auth": map[string]base_spec_model.QueryModel{
+        "Login": base_spec_model.QueryModel{},
+        "UpdateService": base_spec_model.QueryModel{},
     },
 {{- range $api := $spec.Apis }}
-    "{{ $api.Name }}": map[string]spec_model.QueryModel{
+    "{{ $api.Name }}": map[string]base_spec_model.QueryModel{
     {{- range $query := $api.Queries }}
-        "{{ $query.Name }}": spec_model.QueryModel{
+        "{{ $query.Name }}": base_spec_model.QueryModel{
             RequiredAuth: {{ $query.RequiredAuth }},
             RequiredProject: {{ $query.RequiredProject }},
         },

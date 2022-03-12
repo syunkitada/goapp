@@ -1,6 +1,10 @@
 package spec
 
-import "github.com/syunkitada/goapp/pkg/authproxy/index_model"
+import (
+	"time"
+
+	"github.com/syunkitada/goapp/pkg/base/base_index_model"
+)
 
 type Compute struct {
 	Region        string
@@ -14,10 +18,13 @@ type Compute struct {
 	Project       string
 	Spec          interface{}
 	LinkSpec      string
+	IpAddrs       string
 	Image         string
 	Vcpus         uint
 	Memory        uint
 	Disk          uint
+	UpdatedAt     time.Time
+	CreatedAt     time.Time
 }
 
 type GetCompute struct {
@@ -27,6 +34,23 @@ type GetCompute struct {
 
 type GetComputeData struct {
 	Compute Compute
+}
+
+type GetComputeConsole struct {
+	Name   string `validate:"required"`
+	Region string `validate:"required"`
+}
+
+type GetComputeConsoleData struct {
+	Compute Compute
+}
+
+type WsComputeConsoleInput struct {
+	Bytes []byte
+}
+
+type WsComputeConsoleOutput struct {
+	Bytes []byte
 }
 
 type GetComputes struct {
@@ -61,76 +85,104 @@ type DeleteComputes struct {
 
 type DeleteComputesData struct{}
 
-var ComputesTable = index_model.Table{
-	Name:    "Computes",
-	Route:   "/Computes",
-	Kind:    "Table",
-	DataKey: "Computes",
-	SelectActions: []index_model.Action{
-		index_model.Action{
-			Name:      "Delete",
-			Icon:      "Delete",
-			Kind:      "Form",
-			DataKind:  "Compute",
-			SelectKey: "Name",
+var ComputesTable = map[string]interface{}{
+	"Name":        "Computes",
+	"Kind":        "Pane",
+	"DataQueries": []string{"GetComputes"},
+	"Views": []interface{}{
+		base_index_model.Table{
+			Kind:    "Table",
+			DataKey: "Computes",
+			SelectActions: []base_index_model.Action{
+				base_index_model.Action{
+					Name:      "Delete",
+					Icon:      "Delete",
+					Kind:      "Form",
+					DataKind:  "Compute",
+					SelectKey: "Name",
+				},
+			},
+			Columns: []base_index_model.TableColumn{
+				base_index_model.TableColumn{
+					Name: "Name", IsSearch: true,
+					Align:      "left",
+					LinkPath:   []string{"Regions", "RegionResources", "Clusters", "Resources", "Computes", "Compute", "View"},
+					LinkKeyMap: map[string]string{"Name": "Name"},
+				},
+				base_index_model.TableColumn{Name: "RegionService"},
+				base_index_model.TableColumn{Name: "Kind"},
+				base_index_model.TableColumn{Name: "Status"},
+				base_index_model.TableColumn{Name: "StatusReason"},
+				base_index_model.TableColumn{Name: "UpdatedAt", Kind: "Time"},
+				base_index_model.TableColumn{Name: "CreatedAt", Kind: "Time"},
+			},
 		},
 	},
-	Columns: []index_model.TableColumn{
-		index_model.TableColumn{
-			Name: "Name", IsSearch: true,
-			Link:           "Datacenters/:Datacenter/Resources/Computes/Detail/:0/View",
-			LinkParam:      "Name",
-			LinkSync:       false,
-			LinkGetQueries: []string{"GetCompute"},
-		},
-		index_model.TableColumn{Name: "Kind"},
-		index_model.TableColumn{Name: "UpdatedAt", Kind: "Time"},
-		index_model.TableColumn{Name: "CreatedAt", Kind: "Time"},
+	"Children": []interface{}{
+		ComputesDetail,
 	},
 }
 
-var ComputesDetail = index_model.Tabs{
-	Name:            "Computes",
-	Kind:            "RouteTabs",
-	RouteParamKey:   "Kind",
-	RouteParamValue: "Computes",
-	Route:           "/Clusters/:Cluster/Resources/Computes/Detail/:Name/:Subkind",
-	TabParam:        "Subkind",
-	GetQueries: []string{
-		"GetCompute",
-		"GetComputes", "GetImages"},
-	ExpectedDataKeys: []string{"Compute"},
-	IsSync:           true,
-	Tabs: []interface{}{
-		index_model.View{
-			Name:    "View",
-			Route:   "/View",
-			Kind:    "View",
-			DataKey: "Compute",
-			Fields: []index_model.Field{
-				index_model.Field{Name: "Name", Kind: "text"},
-				index_model.Field{Name: "Kind", Kind: "select"},
+var ComputesDetail = base_index_model.Tabs{
+	Name:   "Compute",
+	Kind:   "Tabs",
+	IsSync: true,
+	Children: []interface{}{
+		map[string]interface{}{
+			"Name":        "View",
+			"Kind":        "Box",
+			"DataKey":     "Compute",
+			"DataQueries": []string{"GetCompute"},
+			"PanelsGroups": []interface{}{
+				map[string]interface{}{
+					"Name": "Detail",
+					"Kind": "Cards",
+					"Cards": []interface{}{
+						map[string]interface{}{
+							"Name": "Detail",
+							"Kind": "Fields",
+							"Fields": []base_index_model.Field{
+								base_index_model.Field{Name: "Name"},
+								base_index_model.Field{Name: "RegionService"},
+								base_index_model.Field{Name: "Region"},
+								base_index_model.Field{Name: "Cluster"},
+								base_index_model.Field{Name: "Kind"},
+								base_index_model.Field{Name: "Status"},
+								base_index_model.Field{Name: "StatusReason"},
+								base_index_model.Field{Name: "UpdatedAt"},
+							},
+						},
+						map[string]interface{}{
+							"Name":       "Spec",
+							"Kind":       "Fields",
+							"SubDataKey": "Spec",
+							"Fields": []base_index_model.Field{
+								base_index_model.Field{Name: "Kind"},
+								base_index_model.Field{Name: "Image"},
+								base_index_model.Field{Name: "Vcpus"},
+								base_index_model.Field{Name: "Memory (MB)", DataKey: "Memory"},
+								base_index_model.Field{Name: "Disk (GB)", DataKey: "Disk"},
+								base_index_model.Field{Name: "Ips", DataKey: "Ports", Kind: "List",
+									ListKey: "Ip",
+									Fields: []base_index_model.Field{
+										base_index_model.Field{Name: "Subnet"},
+										base_index_model.Field{Name: "Gateway"},
+									},
+								},
+							},
+						},
+					},
+				},
 			},
 		},
-		index_model.Form{
-			Name:         "Edit",
-			Route:        "/Edit",
-			Kind:         "Form",
-			DataKey:      "Compute",
-			SubmitAction: "update compute",
-			Icon:         "Update",
-			Fields: []index_model.Field{
-				index_model.Field{Name: "Name", Kind: "text", Require: true,
-					Updatable: false,
-					Min:       5, Max: 200, RegExp: "^[0-9a-zA-Z]+$",
-					RegExpMsg: "Please enter alphanumeric characters."},
-				index_model.Field{Name: "Kind", Kind: "select", Require: true,
-					Updatable: true,
-					Options: []string{
-						"Server", "Pdu", "RackSpineRouter",
-						"FloorLeafRouter", "FloorSpineRouter", "GatewayRouter",
-					}},
-			},
+		base_index_model.View{
+			Name:            "Console",
+			Kind:            "Console",
+			DataKey:         "Compute",
+			EnableWebSocket: true,
+			WebSocketQuery:  "GetComputeConsole",
+			WebSocketKey:    "ComputeConsole",
+			WebSocketKind:   "Console",
 		},
 	},
 }

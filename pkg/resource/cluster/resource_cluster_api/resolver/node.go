@@ -27,6 +27,7 @@ func (resolver *Resolver) ReportNode(tctx *logger.TraceContext, input *api_spec.
 	}
 	fmt.Println("DEBUG logs:", len(input.Logs))
 	fmt.Println("DEBUG metrics:", len(input.Metrics))
+	fmt.Println("DEBUG events:", len(input.Events))
 	code = base_const.CodeOk
 	data = &api_spec.ReportNodeData{}
 	return
@@ -51,7 +52,7 @@ func (resolver *Resolver) GetNodes(tctx *logger.TraceContext, input *api_spec.Ge
 	for _, event := range getIssuedEventsData.Events {
 		node, ok := nodeMap[event.Node]
 		if !ok {
-			node = api_spec.Node{}
+			node = api_spec.Node{Name: event.Node}
 		}
 		if event.Silenced > 0 {
 			node.SilencedEventsData = append(node.SilencedEventsData, event)

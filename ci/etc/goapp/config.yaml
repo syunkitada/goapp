@@ -1,205 +1,368 @@
 authproxy:
   api:
-    listen: '0.0.0.0:8000'
-    allowedHosts: ['127.0.0.1:8000']
-    accessControlAllowOrigin: '127.0.0.1:3000'
-    certFile: 'tls-assets/server.pem'
-    keyFile: 'tls-assets/server.key'
+    listen: "0.0.0.0:8000"
+    allowedHosts: ["127.0.0.1:8000"]
+    accessControlAllowOrigin: "http://192.168.10.121:3000"
+    accessControlAllowCredentials: "true"
+    certFile: "tls-assets/server.pem"
+    keyFile: "tls-assets/server.key"
     gracefulTimeout: 10
     database:
-      connection: 'goapp:goapppass@tcp(127.0.0.1:3306)/goapp_authproxy?charset=utf8&parseTime=true'
+      connection: "goapp:goapppass@tcp(127.0.0.1:3306)/goapp_authproxy?charset=utf8&parseTime=true"
     auth:
-      secrets: ['changeme1', 'changeme2']
+      secrets: ["changeme1", "changeme2"]
       defaultUsers:
-        - {name: 'admin', password: 'admin', roles: ['admin']}
-        - {name: 'service', password: 'service', roles: ['service']}
-        - {name: 'guest', password: 'guest', roles: ['guestpj-member']}
+        - { name: "admin", password: "admin", roles: ["admin"] }
+        - { name: "service", password: "service", roles: ["service"] }
+        - { name: "guest", password: "guest", roles: ["guestpj-member"] }
       defaultRoles:
-        - {name: 'admin', project: 'admin'}
-        - {name: 'service', project: 'service'}
-        - {name: 'guestpj-member', project: 'guestpj'}
+        - { name: "admin", project: "admin" }
+        - { name: "service", project: "service" }
+        - { name: "guestpj-member", project: "guestpj" }
       defaultProjects:
-        - {name: 'admin', projectRole: 'admin'}
-        - {name: 'service', projectRole: 'service'}
-        - {name: 'guestpj', projectRole: 'tenant'}
+        - { name: "admin", projectRole: "admin" }
+        - { name: "service", projectRole: "service" }
+        - { name: "guestpj", projectRole: "tenant" }
       defaultProjectRoles:
-        - {name: 'admin'}
-        - {name: 'service'}
-        - {name: 'tenant'}
-      defaultServices:
-        - name: 'Home'
-          scope: 'user'
-          projectRoles: ['admin', 'tenant']
-        - name: 'HomeProject'
-          scope: 'project'
-          projectRoles: ['admin', 'tenant']
+        - { name: "admin" }
+        - { name: "service" }
+        - { name: "tenant" }
   controller:
-    listen: '0.0.0.0:8000'
-    allowedHosts: ['127.0.0.1:8000']
-    accessControlAllowOrigin: '127.0.0.1:3000'
-    certFile: 'tls-assets/server.pem'
-    keyFile: 'tls-assets/server.key'
+    listen: "0.0.0.0:8000"
+    allowedHosts: ["127.0.0.1:8000"]
+    accessControlAllowOrigin: "127.0.0.1:3000"
+    certFile: "tls-assets/server.pem"
+    keyFile: "tls-assets/server.key"
+    gracefulTimeout: 10
+
+home:
+  api:
+    listen: "0.0.0.0:9000"
+    endpoints: ["https://127.0.0.1:9000"]
+    allowedHosts: ["127.0.0.1:9000"]
+    accessControlAllowOrigin: "127.0.0.1:9000"
+    accessControlAllowCredentials: "true"
+    certFile: "tls-assets/server.pem"
+    keyFile: "tls-assets/server.key"
+    gracefulTimeout: 10
+    database:
+      connection: "goapp:goapppass@tcp(127.0.0.1:3306)/goapp_home?charset=utf8&parseTime=true"
+    auth:
+      secrets: ["changeme1", "changeme2"]
+      defaultUsers:
+        - { name: "admin", password: "admin", roles: ["admin"] }
+        - { name: "service", password: "service", roles: ["service"] }
+        - { name: "guest", password: "guest", roles: ["guestpj-member"] }
+      defaultRoles:
+        - { name: "admin", project: "admin" }
+        - { name: "service", project: "service" }
+        - { name: "guestpj-member", project: "guestpj" }
+      defaultProjects:
+        - { name: "admin", projectRole: "admin" }
+        - { name: "service", projectRole: "service" }
+        - { name: "guestpj", projectRole: "tenant" }
+      defaultProjectRoles:
+        - { name: "admin" }
+        - { name: "service" }
+        - { name: "tenant" }
+      defaultServices:
+        - name: "Home"
+          icon: "Home"
+          scope: "user"
+          projectRoles: ["admin", "tenant"]
+          syncRootCluster: true
+        - name: "HomeProject"
+          icon: "Home"
+          scope: "project"
+          projectRoles: ["admin", "tenant"]
+          syncRootCluster: true
+    rootClient:
+      user: "service"
+      password: "service"
+      tlsInsecureSkipVerify: true
+      endpoints: ["https://127.0.0.1:8000"]
+  controller:
+    listen: "0.0.0.0:9001"
+    allowedHosts: ["127.0.0.1:9001"]
+    accessControlAllowOrigin: "127.0.0.1:9001"
+    certFile: "tls-assets/server.pem"
+    keyFile: "tls-assets/server.key"
     gracefulTimeout: 10
 
 resource:
   api:
-    listen: '0.0.0.0:13300'
-    endpoints: ['https://127.0.0.1:13300']
-    allowedHosts: ['127.0.0.1:13300']
-    accessControlAllowOrigin: '127.0.0.1:13300'
-    certFile: 'tls-assets/server.pem'
-    keyFile: 'tls-assets/server.key'
+    listen: "0.0.0.0:13300"
+    endpoints: ["https://127.0.0.1:13300"]
+    allowedHosts: ["127.0.0.1:13300"]
+    accessControlAllowOrigin: "127.0.0.1:13300"
+    accessControlAllowCredentials: "true"
+    certFile: "tls-assets/server.pem"
+    keyFile: "tls-assets/server.key"
     gracefulTimeout: 10
     database:
-      connection: 'goapp:goapppass@tcp(127.0.0.1:3306)/goapp_resource?charset=utf8&parseTime=true'
+      connection: "goapp:goapppass@tcp(127.0.0.1:3306)/goapp_resource?charset=utf8&parseTime=true"
     auth:
-      secrets: ['changeme1', 'changeme2']
+      secrets: ["changeme1", "changeme2"]
       defaultUsers:
-        - {name: 'admin', password: 'admin', roles: ['admin']}
-        - {name: 'service', password: 'service', roles: ['service']}
-        - {name: 'guest', password: 'guest', roles: ['guestpj-member']}
+        - { name: "admin", password: "admin", roles: ["admin"] }
+        - { name: "service", password: "service", roles: ["service"] }
+        - { name: "guest", password: "guest", roles: ["guestpj-member"] }
       defaultRoles:
-        - {name: 'admin', project: 'admin'}
-        - {name: 'service', project: 'service'}
-        - {name: 'guestpj-member', project: 'guestpj'}
+        - { name: "admin", project: "admin" }
+        - { name: "service", project: "service" }
+        - { name: "guestpj-member", project: "guestpj" }
       defaultProjects:
-        - {name: 'admin', projectRole: 'admin'}
-        - {name: 'service', projectRole: 'service'}
-        - {name: 'guestpj', projectRole: 'tenant'}
+        - { name: "admin", projectRole: "admin" }
+        - { name: "service", projectRole: "service" }
+        - { name: "guestpj", projectRole: "tenant" }
       defaultProjectRoles:
-        - {name: 'admin'}
-        - {name: 'service'}
-        - {name: 'tenant'}
+        - { name: "admin" }
+        - { name: "service" }
+        - { name: "tenant" }
       defaultServices:
-        - name: 'ResourcePhysicalAdmin'
-          scope: 'project'
-          projectRoles: ['admin', 'service']
+        - name: "ResourcePhysicalAdmin"
+          icon: "Cloud"
+          scope: "project"
+          projectRoles: ["admin", "service"]
           syncRootCluster: true
-        - name: 'ResourceVirtualAdmin'
-          scope: 'project'
-          projectRoles: ['admin', 'service']
+        - name: "ResourceVirtualAdmin"
+          icon: "CloudQueue"
+          scope: "project"
+          projectRoles: ["admin", "service"]
           syncRootCluster: true
-        - name: 'ResourcePhysical'
-          scope: 'project'
-          projectRoles: ['tenant']
+        - name: "ResourcePhysical"
+          icon: "Cloud"
+          scope: "project"
+          projectRoles: ["tenant"]
           syncRootCluster: true
-        - name: 'ResourceVirtual'
-          scope: 'project'
-          projectRoles: ['tenant']
+        - name: "ResourceVirtual"
+          icon: "CloudQueue"
+          scope: "project"
+          projectRoles: ["tenant"]
           syncRootCluster: true
-        - name: 'ResourceMonitor'
-          scope: 'project'
-          projectRoles: ['admin', 'tenant']
+        - name: "ResourceMonitor"
+          icon: "CloudCircle"
+          scope: "project"
+          projectRoles: ["admin", "tenant"]
           syncRootCluster: true
     rootClient:
-      user: 'service'
-      password: 'service'
+      user: "service"
+      password: "service"
       tlsInsecureSkipVerify: true
-      endpoints: ['https://127.0.0.1:8000']
+      endpoints: ["https://127.0.0.1:8000"]
   controller:
-    listen: '0.0.0.0:13305'
-    endpoints: ['https://127.0.0.1:13305']
-    allowedHosts: ['127.0.0.1:13305']
-    accessControlAllowOrigin: '127.0.0.1:13305'
-    certFile: 'tls-assets/server.pem'
-    keyFile: 'tls-assets/server.key'
+    listen: "0.0.0.0:13305"
+    endpoints: ["https://127.0.0.1:13305"]
+    allowedHosts: ["127.0.0.1:13305"]
+    accessControlAllowOrigin: "127.0.0.1:13305"
+    certFile: "tls-assets/server.pem"
+    keyFile: "tls-assets/server.key"
     gracefulTimeout: 10
-  clusterName: 'tokyo1'
+  clusterName: "tokyo1"
   clusterMap:
     tokyo1:
-      region: 'kanto'
-      datacenter: 'tokyo'
-      kind: 'public'
-      domainSuffix: 'tokyo1.example.com'
+      region: "kanto"
+      datacenter: "tokyo"
+      kind: "public"
+      domainSuffix: "tokyo1.example.com"
       timeSeriesDatabase:
-        driver: 'influxdb'
+        driver: "influxdb"
         eventDatabases:
-          - 'goapp:goapppass@http://127.0.0.1:8086@goapp_monitor_events'
+          - "goapp:goapppass@http://127.0.0.1:8086@goapp_monitor_events"
         logDatabases:
-          - 'goapp:goapppass@http://127.0.0.1:8086@goapp_monitor_logs'
+          - "goapp:goapppass@http://127.0.0.1:8086@goapp_monitor_logs"
         metricDatabases:
-          - 'goapp:goapppass@http://127.0.0.1:8086@goapp_monitor_metrics'
+          - "goapp:goapppass@http://127.0.0.1:8086@goapp_monitor_metrics"
       api:
-        listen: '0.0.0.0:13400'
-        endpoints: ['https://127.0.0.1:13400']
-        allowedHosts: ['127.0.0.1:13400']
-        accessControlAllowOrigin: '127.0.0.1:13400'
-        certFile: 'tls-assets/server.pem'
-        keyFile: 'tls-assets/server.key'
+        listen: "0.0.0.0:13400"
+        endpoints: ["https://127.0.0.1:13400"]
+        allowedHosts: ["127.0.0.1:13400"]
+        accessControlAllowOrigin: "127.0.0.1:13400"
+        certFile: "tls-assets/server.pem"
+        keyFile: "tls-assets/server.key"
         nodeDownTimeDuration: 60
         gracefulTimeout: 10
         database:
-          connection: 'goapp:goapppass@tcp(127.0.0.1:3306)/goapp_resource_tokyo1?charset=utf8&parseTime=true'
+          connection: "goapp:goapppass@tcp(127.0.0.1:3306)/goapp_resource_tokyo1?charset=utf8&parseTime=true"
         rootClient:
-          user: 'service'
-          password: 'service'
-          project: 'service'
+          user: "service"
+          password: "service"
+          project: "service"
           tlsInsecureSkipVerify: true
-          endpoints: ['https://127.0.0.1:13300']
+          endpoints: ["https://127.0.0.1:13300"]
         auth:
-          secrets: ['changeme1', 'changeme2']
+          secrets: ["changeme1", "changeme2"]
           defaultUsers:
-            - {name: 'service', password: 'service', roles: ['service']}
+            - { name: "service", password: "service", roles: ["service"] }
           defaultRoles:
-            - {name: 'service', project: 'service'}
+            - { name: "service", project: "service" }
           defaultProjects:
-            - {name: 'service', projectRole: 'service'}
+            - { name: "service", projectRole: "service" }
           defaultProjectRoles:
-            - {name: 'service'}
+            - { name: "service" }
           defaultServices:
-            - name: 'ResourceVirtualAdmin'
-              scope: 'project'
-              projectRoles: ['service']
+            - name: "ResourceVirtualAdmin"
+              scope: "project"
+              projectRoles: ["service"]
       controller:
-        listen: '0.0.0.0:13405'
-        endpoints: ['https://127.0.0.1:13405']
-        allowedHosts: ['127.0.0.1:13405']
-        accessControlAllowOrigin: '127.0.0.1:13405'
-        certFile: 'tls-assets/server.pem'
-        keyFile: 'tls-assets/server.key'
+        listen: "0.0.0.0:13405"
+        endpoints: ["https://127.0.0.1:13405"]
+        allowedHosts: ["127.0.0.1:13405"]
+        accessControlAllowOrigin: "127.0.0.1:13405"
+        certFile: "tls-assets/server.pem"
+        keyFile: "tls-assets/server.key"
         gracefulTimeout: 10
       agent:
-        listen: '0.0.0.0:13410'
-        endpoints: ['https://127.0.0.1:13410']
-        allowedHosts: ['127.0.0.1:13410']
-        accessControlAllowOrigin: '127.0.0.1:13410'
-        certFile: 'tls-assets/server.pem'
-        keyFile: 'tls-assets/server.key'
+        listen: "0.0.0.0:13410"
+        endpoints: ["https://127.0.0.1:13410"]
+        allowedHosts: ["127.0.0.1:13410"]
+        accessControlAllowOrigin: "127.0.0.1:13410"
+        certFile: "tls-assets/server.pem"
+        keyFile: "tls-assets/server.key"
         gracefulTimeout: 10
+        database:
+          connection: "goapp:goapppass@tcp(127.0.0.1:3306)/goapp_resource_node1?charset=utf8&parseTime=true"
+        auth:
+          secrets: ["changeme1", "changeme2"]
+          defaultUsers:
+            - { name: "service", password: "service", roles: ["service"] }
+          defaultRoles:
+            - { name: "service", project: "service" }
+          defaultProjects:
+            - { name: "service", projectRole: "service" }
+          defaultProjectRoles:
+            - { name: "service" }
+          defaultServices:
+            - name: "ResourceVirtualAdmin"
+              scope: "project"
+              projectRoles: ["service"]
         rootClient:
-          user: 'service'
-          password: 'service'
-          project: 'service'
+          user: "service"
+          password: "service"
+          project: "service"
           tlsInsecureSkipVerify: true
-          endpoints: ['https://127.0.0.1:13400']
+          endpoints: ["https://127.0.0.1:13400"]
         compute:
           enable: true
           confirmRetryCount: 2
           confirmRetryInterval: 10
-          vmNetnsGatewayStartIp: '169.254.1.1'
-          vmNetnsGatewayEndIp: '169.254.1.100'
-          vmNetnsServiceIp: '169.254.1.200'
-          vmNetnsStartIp: '169.254.32.1'
-          vmNetnsEndIp: '169.254.63.254'
-          configDir: '/home/owner/.goapp/etc/resource/compute/'
-          varDir: '/home/owner/.goapp/var/compute'
-          driver: 'mock'
-        reportProject: 'admin'
+          vmNetnsGatewayStartIp: "169.254.1.1"
+          vmNetnsGatewayEndIp: "169.254.1.100"
+          vmNetnsServiceIp: "169.254.1.200"
+          vmNetnsStartIp: "169.254.32.1"
+          vmNetnsEndIp: "169.254.63.254"
+          configDir: "/home/owner/.goapp/etc/resource/compute/"
+          varDir: "/home/owner/.goapp/var/compute"
+          driver: "qemu"
+        reportProject: "admin"
         logMap:
           goapp-resource-cluster-agent:
-            path: 'goapp-resource-cluster-agent.log'
+            path: "goapp-resource-cluster-agent.log"
             maxInitialReadSize: 1000
-            checkPrefix: 'log-'
+            checkPrefix: "log-"
             checkMap:
               noerror:
-                key: 'Level'
-                pattern: 'E'
-                level: 'Critical'
+                key: "Level"
+                pattern: "E"
+                level: "Critical"
                 reissueDuration: 600
-        metric:
+        metrics:
           system:
             enable: true
-            enableLogin: true
-            enableCpu: true
-            enableMemory: true
-            cacheLength: 10
+            cacheLength: 100
+            uptime:
+              enable: true
+              checkBoot:
+                occurences: 1
+                reissueDuration: 600
+                readinessSec: 600
+            login:
+              enable: true
+              checkLogin:
+                occurences: 1
+                reissueDuration: 600
+                warnLoginSec: 3600
+                critLoginSec: 83400
+            cpu:
+              enable: true
+              checkProcsRunning:
+                warnRateLimit: 1.5
+                critRateLimit: 0
+                occurences: 3
+                reissueDuration: 600
+              checkProcsBlocked:
+                warnLimit: 1.5
+                critLimit: 0
+                occurences: 3
+                reissueDuration: 600
+            proc:
+              enable: true
+              checkProcsStatus:
+                occurences: 3
+                reissueDuration: 600
+              checkProcMap:
+                qemu:
+                  occurences: 3
+                  reissueDuration: 600
+                  cmd: qemu-system-x86
+                  warnSchedWaitTime: 100000
+                  critSchedWaitTime: 1000000
+            mem:
+              enable: true
+              checkAvailable:
+                warnAvailableRatio: 0.05
+                occurences: 2
+                reissueDuration: 600
+              checkPgscan:
+                warnPgscanDirect: 1
+                occurences: 1
+                reissueDuration: 600
+            memBuddyinfo:
+              enable: true
+              checkPages:
+                warnMinPages: 1
+                occurences: 3
+                reissueDuration: 600
+            disk:
+              enable: true
+              checkIoDelay:
+                occurences: 3
+                reissueDuration: 600
+                warnReadMsPerSec: 60
+                critReadMsPerSec: 120
+                warnWriteMsPerSec: 60
+                critWriteMsPerSec: 120
+                warnProgressIos: 5
+                critProgressIos: 10
+            diskFs:
+              enable: true
+              checkFree:
+                warnFreeRatio: 0.1
+                critFreeRatio: 0.01
+                occurences: 3
+                reissueDuration: 600
+            net:
+              enable: true
+              checkTcpErrors:
+                occurences: 1
+                reissueDuration: 600
+                warnOnPressures: true
+                warnOnListenDrops: true
+                warnOnListenOverflows: true
+                critOnTcpAbortOnMemory: true
+            netDev:
+              enable: true
+              statFilters: ["lo"]
+              checkFilters: ["docker", "com-"]
+              checkBytes:
+                occurences: 3
+                reissueDuration: 600
+                warnRatio: 0.8
+                critRatio: 0.95
+              checkErrors:
+                occurences: 3
+                reissueDuration: 600
+                warnErrors: 1
+                critErrors: 1000
+                warnDrops: 1
+                critDrops: 1000

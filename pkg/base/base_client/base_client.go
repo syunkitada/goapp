@@ -12,9 +12,10 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/gorilla/websocket"
 	"github.com/syunkitada/goapp/pkg/base/base_config"
 	"github.com/syunkitada/goapp/pkg/base/base_const"
-	"github.com/syunkitada/goapp/pkg/base/base_model"
+	"github.com/syunkitada/goapp/pkg/base/base_protocol"
 	"github.com/syunkitada/goapp/pkg/base/base_spec"
 	"github.com/syunkitada/goapp/pkg/lib/error_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
@@ -74,20 +75,20 @@ func (client *Client) Request(tctx *logger.TraceContext, service string, queries
 	startTime := logger.StartTrace(tctx)
 	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
 
-	reqQueries := []base_model.ReqQuery{}
+	reqQueries := []base_protocol.ReqQuery{}
 	var queryBytes []byte
 	for _, query := range queries {
 		if queryBytes, err = json.Marshal(query.Data); err != nil {
 			return err
 		} else {
-			reqQueries = append(reqQueries, base_model.ReqQuery{
+			reqQueries = append(reqQueries, base_protocol.ReqQuery{
 				Name: query.Name,
 				Data: string(queryBytes),
 			})
 		}
 	}
 
-	req := base_model.Request{
+	req := base_protocol.Request{
 		Tctx:    tctx,
 		Service: service,
 		Project: client.project,
@@ -135,8 +136,9 @@ func (client *Client) Request(tctx *logger.TraceContext, service string, queries
 			httpResp, err = client.httpClient.Do(httpReq)
 			if err != nil {
 				return err
+			} else {
+				break
 			}
-			break
 		}
 
 		defer func() {
@@ -157,7 +159,7 @@ func (client *Client) Request(tctx *logger.TraceContext, service string, queries
 	}
 
 	if statusCode != 200 {
-		var baseResponse base_model.Response
+		var baseResponse base_protocol.Response
 		if err = json.Unmarshal(body, &baseResponse); err != nil {
 			return fmt.Errorf("Invalid StatusCode: got=%d, want=%d", statusCode, 200)
 		}
@@ -165,6 +167,83 @@ func (client *Client) Request(tctx *logger.TraceContext, service string, queries
 	}
 
 	return nil
+}
+
+func (client *Client) RequestWs(tctx *logger.TraceContext, service string, queries []Query, resp interface{}, requiredAuth bool) (wsConn *websocket.Conn, err error) {
+	startTime := logger.StartTrace(tctx)
+	defer func() { logger.EndTrace(tctx, startTime, err, 1) }()
+
+	reqQueries := []base_protocol.ReqQuery{}
+	var queryBytes []byte
+	for _, query := range queries {
+		if queryBytes, err = json.Marshal(query.Data); err != nil {
+			return
+		} else {
+			reqQueries = append(reqQueries, base_protocol.ReqQuery{
+				Name: query.Name,
+				Data: string(queryBytes),
+			})
+		}
+	}
+
+	req := base_protocol.Request{
+		Tctx:    tctx,
+		Service: service,
+		Project: client.project,
+		Queries: reqQueries,
+	}
+
+	var reqJson []byte
+	if reqJson, err = json.Marshal(req); err != nil {
+		return
+	}
+
+	var body []byte
+	dialer := websocket.Dialer{
+		Proxy:            http.ProxyFromEnvironment,
+		HandshakeTimeout: 45 * time.Second,
+		TLSClientConfig: &tls.Config{
+			InsecureSkipVerify: true,
+		},
+	}
+
+	if client.localHandler != nil {
+		fmt.Println("TODO not supported")
+	} else {
+		for _, target := range client.endpoints {
+			endpoint := strings.Replace(target, "http", "ws", -1) + "/ws"
+			header := http.Header{}
+			if requiredAuth {
+				if err = client.Auth(tctx); err != nil {
+					return
+				}
+
+				header.Add("X-Auth-Token", client.token)
+			}
+			wsConn, _, err = dialer.Dial(endpoint, header)
+			if err != nil {
+				logger.Errorf(tctx, err, "Failed dial to %s", endpoint)
+				continue
+			}
+			break
+		}
+
+		if err = wsConn.WriteMessage(websocket.TextMessage, reqJson); err != nil {
+			logger.Warningf(tctx, "Failed WriteMessage: %s", err.Error())
+			return
+		}
+
+	}
+
+	_, body, err = wsConn.ReadMessage()
+	if err != nil {
+		return
+	}
+
+	if err = json.Unmarshal(body, resp); err != nil {
+		return
+	}
+	return
 }
 
 func (client *Client) Auth(tctx *logger.TraceContext) (err error) {
@@ -200,7 +279,7 @@ func (client *Client) Auth(tctx *logger.TraceContext) (err error) {
 }
 
 type LoginResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap LoginResultMap
 }
 
@@ -238,7 +317,7 @@ func (client *Client) Login(tctx *logger.TraceContext, input *base_spec.Login) (
 }
 
 type GetServiceIndexResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap GetServiceIndexResultMap
 }
 type GetServiceIndexResultMap struct {
@@ -254,7 +333,7 @@ type GetServiceIndexResult struct {
 func (client *Client) GetServiceIndex(tctx *logger.TraceContext, input *base_spec.GetServiceIndex) (data *base_spec.GetServiceIndexData, err error) {
 	queries := []Query{Query{Name: "GetServiceIndex", Data: input}}
 	var res GetServiceIndexResponse
-	err = client.Request(tctx, input.Name, queries, &res, false)
+	err = client.Request(tctx, input.Name, queries, &res, true)
 	if err != nil {
 		return
 	}
@@ -274,8 +353,40 @@ func (client *Client) GetServiceIndex(tctx *logger.TraceContext, input *base_spe
 	return
 }
 
+type GetProjectServiceIndexResponse struct {
+	base_protocol.Response
+	ResultMap GetProjectServiceIndexResultMap
+}
+
+type GetProjectServiceIndexResultMap struct {
+	GetProjectServiceIndex GetServiceIndexResult
+}
+
+func (client *Client) GetProjectServiceIndex(tctx *logger.TraceContext, input *base_spec.GetServiceIndex) (data *base_spec.GetServiceIndexData, err error) {
+	queries := []Query{Query{Name: "GetProjectServiceIndex", Data: input}}
+	var res GetProjectServiceIndexResponse
+	err = client.Request(tctx, input.Name, queries, &res, true)
+	if err != nil {
+		return
+	}
+
+	if res.Code >= 100 || res.Error != "" {
+		err = error_utils.NewInvalidResponseError(res.Code, res.Error)
+		return
+	}
+
+	result := res.ResultMap.GetProjectServiceIndex
+	if result.Code != base_const.CodeOk || result.Error != "" {
+		err = error_utils.NewInvalidResponseError(result.Code, result.Error)
+		return
+	}
+
+	data = &result.Data
+	return
+}
+
 type UpdateServiceResponse struct {
-	base_model.Response
+	base_protocol.Response
 	ResultMap UpdateServiceResultMap
 }
 

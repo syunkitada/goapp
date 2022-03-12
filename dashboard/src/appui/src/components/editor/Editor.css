@@ -1,0 +1,10 @@
+.editor-hr {
+    display: none;
+    border-top: 1px solid rgba(246, 178, 181, 0.9);
+}
+
+@media (max-width: 767px) {
+    .editor-hr {
+        display: block;
+    }
+}

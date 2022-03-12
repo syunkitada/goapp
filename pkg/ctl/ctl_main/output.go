@@ -7,35 +7,19 @@ import (
 
 	"github.com/olekukonko/tablewriter"
 
-	"github.com/syunkitada/goapp/pkg/base/base_model/index_model"
+	"github.com/syunkitada/goapp/pkg/base/base_index_model"
 	"github.com/syunkitada/goapp/pkg/lib/json_utils"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
 
-func (ctl *Ctl) outputCmdHelp(cmd string, cmdInfo index_model.Cmd) {
-	cmdHelp := cmd
-	if cmdInfo.Arg != "" {
-		cmdHelp += fmt.Sprintf(" [%s:%s]", cmdInfo.ArgType, cmdInfo.Arg)
-	}
-	table := tablewriter.NewWriter(os.Stdout)
-	table.SetBorder(false)
-	table.SetRowLine(false)
-	table.SetColumnSeparator("")
-	table.SetCenterSeparator("")
-	for key, flag := range cmdInfo.FlagMap {
-		table.Append([]string{cmdHelp, cmdInfo.Help})
-		table.Append([]string{fmt.Sprintf("--%s [%s:%s]", key, flag.FlagType, flag.Flag), flag.Help})
-	}
-	table.Render()
-
-	// fmt.Printf("Invalid args: %s %s %v :%s\n", cmd, cmdInfo.Arg, cmdInfo.FlagMap, cmdInfo.Help)
-}
-
-func (ctl *Ctl) output(cmdInfo *index_model.Cmd, resp *Response,
+func (ctl *Ctl) output(cmdInfo *base_index_model.Cmd, resp *Response,
 	flagMap map[string]interface{}, shortFlagMap map[string]interface{}) {
 	outputFormat, ok := flagMap["out"]
 	if !ok {
 		outputFormat, ok = shortFlagMap["o"]
+		if !ok {
+			outputFormat = "table"
+		}
 	}
 
 	switch outputFormat {
@@ -69,7 +53,7 @@ func (ctl *Ctl) output(cmdInfo *index_model.Cmd, resp *Response,
 		}
 
 		for query, result := range resp.ResultMap {
-			fmt.Printf("# Status: query=%s, code=%d, err=%s\n", query, result.Code, result.Error)
+			fmt.Printf("# QueryStatus: query=%s, code=%d, err=%s\n", query, result.Code, result.Error)
 			for key, data := range result.Data {
 				fmt.Printf("# %s\n", key)
 
@@ -95,6 +79,16 @@ func (ctl *Ctl) output(cmdInfo *index_model.Cmd, resp *Response,
 								table.Append(r)
 							}
 						}
+					case map[string]interface{}:
+						r := make([]string, len(tableHeader))
+						for i, head := range tableHeader {
+							if v, ok := data[head]; ok {
+								r[i] = fmt.Sprint(v)
+							} else {
+								r[i] = "None"
+							}
+						}
+						table.Append(r)
 					}
 					table.Render()
 				default:

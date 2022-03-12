@@ -24,13 +24,10 @@ var (
 )
 
 const (
-	debugLog   = "DEBUG"
 	infoLog    = "INFO"
 	warningLog = "WARNING"
 	errorLog   = "ERROR"
 	fatalLog   = "FATAL"
-	benchLog   = "BENCH"
-	traceLog   = "TRACE"
 )
 
 type TraceContext struct {
@@ -261,7 +258,7 @@ func StartTrace(tctx *TraceContext) time.Time {
 func EndTrace(tctx *TraceContext, startTime time.Time, err error, depth int) {
 	tctx.mtx.Lock()
 	tctx.function = getFunc(depth)
-	tctx.metadata["Latency"] = strconv.FormatInt(time.Now().Sub(startTime).Nanoseconds()/1000000, 10)
+	tctx.metadata["Latency"] = strconv.FormatInt(time.Since(startTime).Nanoseconds()/1000000, 10)
 	if err != nil {
 		Logger.Print(timePrefix() + " Level=\"" + errorLog + "\" Msg=\"EndTrace\" Err=\"" + err.Error() + "\"" + convertTags(tctx))
 	} else {
@@ -273,7 +270,7 @@ func EndTrace(tctx *TraceContext, startTime time.Time, err error, depth int) {
 func EndGrpcTrace(tctx *TraceContext, startTime time.Time, statusCode int64, err string) {
 	tctx.mtx.Lock()
 	tctx.function = getFunc(0)
-	tctx.metadata["Latency"] = strconv.FormatInt(time.Now().Sub(startTime).Nanoseconds()/1000000, 10)
+	tctx.metadata["Latency"] = strconv.FormatInt(time.Since(startTime).Nanoseconds()/1000000, 10)
 	tctx.metadata["StatusCode"] = strconv.FormatInt(statusCode, 10)
 	if err != "" {
 		Logger.Print(timePrefix() + " Level=\"" + errorLog + "\" Msg=\"EndTrace\"" + convertTags(tctx))

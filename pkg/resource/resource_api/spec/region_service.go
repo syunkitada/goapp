@@ -1,6 +1,10 @@
 package spec
 
-import "github.com/syunkitada/goapp/pkg/authproxy/index_model"
+import (
+	"time"
+
+	"github.com/syunkitada/goapp/pkg/base/base_index_model"
+)
 
 type RegionService struct {
 	Region       string `validate:"required"`
@@ -8,7 +12,8 @@ type RegionService struct {
 	Kind         string `validate:"required"`
 	Status       string
 	StatusReason string
-	Cluster      string
+	UpdatedAt    time.Time
+	CreatedAt    time.Time
 	Spec         interface{} `validate:"required"`
 }
 
@@ -28,9 +33,9 @@ type RegionServiceComputeSpec struct {
 }
 
 type SchedulePolicySpec struct {
-	Replicas                    int `validate:"required"`
-	ClusterFilters              []string
-	ClusterLabelFilters         []string
+	Replicas                           int `validate:"required"`
+	ClusterFilters                     []string
+	ClusterLabelFilters                []string
 	NodeServiceFilters                 []string
 	NodeServiceLabelFilters            []string
 	NodeServiceLabelHardAffinities     []string
@@ -53,6 +58,8 @@ type PortSpec struct {
 	Gateway   string
 	Ip        string
 	Mac       string
+	Kind      string
+	Spec      string
 }
 
 type GetRegionService struct {
@@ -97,13 +104,14 @@ type DeleteRegionServices struct {
 
 type DeleteRegionServicesData struct{}
 
-var RegionServicesTable = index_model.Table{
-	Name:    "RegionServices",
-	Route:   "/RegionServices",
-	Kind:    "Table",
-	DataKey: "RegionServices",
-	SelectActions: []index_model.Action{
-		index_model.Action{
+var RegionServicesTable = base_index_model.Table{
+	Name:        "RegionServices",
+	Route:       "/RegionServices",
+	Kind:        "Table",
+	DataKey:     "RegionServices",
+	DataQueries: []string{"GetRegionServices"},
+	SelectActions: []base_index_model.Action{
+		base_index_model.Action{
 			Name:      "Delete",
 			Icon:      "Delete",
 			Kind:      "Form",
@@ -111,56 +119,59 @@ var RegionServicesTable = index_model.Table{
 			SelectKey: "Name",
 		},
 	},
-	Columns: []index_model.TableColumn{
-		index_model.TableColumn{
+	Columns: []base_index_model.TableColumn{
+		base_index_model.TableColumn{
 			Name: "Name", IsSearch: true,
-			Link:           "Regions/:Region/Resources/RegionServices/Detail/:0/View",
-			LinkParam:      "Name",
-			LinkSync:       false,
-			LinkGetQueries: []string{"GetRegionService"},
+			Align:           "left",
+			Link:            "Regions/:Region/RegionResources/RegionServices/Detail/:0/View",
+			LinkKeyMap:      map[string]string{"Name": "Name"},
+			LinkSync:        false,
+			LinkDataQueries: []string{"GetRegionService"},
 		},
-		index_model.TableColumn{Name: "Kind"},
-		index_model.TableColumn{Name: "UpdatedAt", Kind: "Time"},
-		index_model.TableColumn{Name: "CreatedAt", Kind: "Time"},
+		base_index_model.TableColumn{Name: "Kind"},
+		base_index_model.TableColumn{Name: "Status"},
+		base_index_model.TableColumn{Name: "StatusReason"},
+		base_index_model.TableColumn{Name: "UpdatedAt", Kind: "Time"},
+		base_index_model.TableColumn{Name: "CreatedAt", Kind: "Time"},
 	},
 }
 
-var RegionServicesDetail = index_model.Tabs{
+var RegionServicesDetail = base_index_model.Tabs{
 	Name:            "RegionServices",
 	Kind:            "RouteTabs",
 	RouteParamKey:   "kind",
 	RouteParamValue: "RegionServices",
 	Route:           "/Regions/:Region/Resources/RegionServices/Detail/:Name/:Subkind",
 	TabParam:        "Subkind",
-	GetQueries: []string{
+	DataQueries: []string{
 		"GetRegionService",
 		"GetRegionServices", "GetImages"},
 	ExpectedDataKeys: []string{"RegionService"},
 	IsSync:           true,
 	Tabs: []interface{}{
-		index_model.View{
+		base_index_model.View{
 			Name:    "View",
 			Route:   "/View",
 			Kind:    "View",
 			DataKey: "RegionService",
-			Fields: []index_model.Field{
-				index_model.Field{Name: "Name", Kind: "text"},
-				index_model.Field{Name: "Kind", Kind: "select"},
+			Fields: []base_index_model.Field{
+				base_index_model.Field{Name: "Name", Kind: "text"},
+				base_index_model.Field{Name: "Kind", Kind: "select"},
 			},
 		},
-		index_model.Form{
+		base_index_model.Form{
 			Name:         "Edit",
 			Route:        "/Edit",
 			Kind:         "Form",
 			DataKey:      "RegionService",
 			SubmitAction: "update image",
 			Icon:         "Update",
-			Fields: []index_model.Field{
-				index_model.Field{Name: "Name", Kind: "text", Require: true,
+			Fields: []base_index_model.Field{
+				base_index_model.Field{Name: "Name", Kind: "text", Required: true,
 					Updatable: false,
 					Min:       5, Max: 200, RegExp: "^[0-9a-zA-Z]+$",
 					RegExpMsg: "Please enter alphanumeric characters."},
-				index_model.Field{Name: "Kind", Kind: "select", Require: true,
+				base_index_model.Field{Name: "Kind", Kind: "select", Required: true,
 					Updatable: true,
 					Options: []string{
 						"Compute",

@@ -27,24 +27,25 @@ type Config struct {
 }
 
 type AppConfig struct {
-	Name                     string   `validate:"required"`
-	ClientTimeout            int      `validate:"required"`
-	ShutdownTimeout          int      `validate:"required"`
-	LoopInterval             int      `validate:"required"`
-	Listen                   string   `validate:"required"`
-	HttpListen               string   `validate:"required"`
-	Endpoints                []string `validate:"required"`
-	CertFile                 string   `validate:"required"`
-	KeyFile                  string   `validate:"required"`
-	CaFile                   string   `validate:"required"`
-	AccessControlAllowOrigin string   `validate:"required"`
-	ServerHostOverride       string   `validate:"required"`
-	Targets                  []string `validate:"required"`
-	Labels                   []string `validate:"required"`
-	NodeServiceDownTimeDuration     int      `validate:"required"`
-	Database                 DatabaseConfig
-	Auth                     AuthConfig
-	RootClient               ClientConfig
+	Name                          string   `validate:"required"`
+	ClientTimeout                 int      `validate:"required"`
+	ShutdownTimeout               int      `validate:"required"`
+	LoopInterval                  int      `validate:"required"`
+	Listen                        string   `validate:"required"`
+	HttpListen                    string   `validate:"required"`
+	Endpoints                     []string `validate:"required"`
+	CertFile                      string   `validate:"required"`
+	KeyFile                       string   `validate:"required"`
+	CaFile                        string   `validate:"required"`
+	AccessControlAllowOrigin      string   `validate:"required"`
+	AccessControlAllowCredentials string   `validate:"required"`
+	ServerHostOverride            string   `validate:"required"`
+	Targets                       []string `validate:"required"`
+	Labels                        []string `validate:"required"`
+	NodeServiceDownTimeDuration   int      `validate:"required"`
+	Database                      DatabaseConfig
+	Auth                          AuthConfig
+	RootClient                    ClientConfig
 }
 
 type ClientConfig struct {
@@ -93,6 +94,7 @@ type AuthProjectRole struct {
 
 type AuthService struct {
 	Name            string
+	Icon            string
 	Scope           string
 	SyncRootCluster bool
 	ProjectRoles    []string
@@ -106,6 +108,7 @@ func InitFlags(rootCmd *cobra.Command, conf *Config) {
 	rootCmd.PersistentFlags().StringVar(&conf.TmpDir, "tmp-dir", "", "tmp directory")
 	rootCmd.PersistentFlags().StringVar(&conf.VarDir, "var-dir", "", "var directory")
 	rootCmd.PersistentFlags().BoolVar(&conf.EnableDebug, "debug", false, "enable debug mode")
+	rootCmd.PersistentFlags().BoolVar(&conf.EnableTest, "test", false, "enable test mode")
 	rootCmd.PersistentFlags().BoolVar(&conf.EnableDevelop, "develop", false, "enable develop mode")
 	rootCmd.PersistentFlags().BoolVar(&conf.EnableDatabaseLog, "database-log", false, "enable database logging")
 }
@@ -120,6 +123,8 @@ func InitConfig(conf *Config, appConf interface{}) {
 
 	if conf.ConfigFile == "" {
 		conf.ConfigFile = filepath.Join(conf.ConfigDir, "config.yaml")
+	} else {
+		conf.ConfigFile = filepath.Join(conf.ConfigDir, conf.ConfigFile)
 	}
 
 	if conf.TmpDir == "" {
@@ -163,5 +168,7 @@ func mustLoadConf(filePath string, data interface{}) {
 	if err != nil {
 		log.Fatalf("Failed ReadFile: path=%s, err=%v", filePath, err)
 	}
-	err = yaml.Unmarshal(bytes, data)
+	if err = yaml.Unmarshal(bytes, data); err != nil {
+		log.Fatalf("Failed ReadFile: path=%s, err=%v", filePath, err)
+	}
 }

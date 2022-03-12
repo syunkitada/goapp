@@ -1,76 +1,73 @@
-#!/bin/bash
+#!/bin/bash -e
 
 COMMAND="${@:-start}"
 LOG_DIR=~/.goapp/logs
 
-declare -a SERVICES=("authproxy")
-declare -a RESOURCE_SERVICES=("resource-api" "resource-controller" "resource-cluster-api" "resource-cluster-controller")
-declare -a MONITOR_SERVICES=("monitor-api" "monitor-alert-manager" "monitor-agent")
+declare -a DOCKER_SERVICES=("mysql" "influxdb")
+declare -a AUTHPROXY_SERVICES=("authproxy-api")
+declare -a HOME_SERVICES=("home-api" "home-controller")
+declare -a RESOURCE_SERVICES=("resource-api" "resource-controller" "resource-cluster-api" "resource-cluster-controller" "resource-cluster-agent")
 
-start_all() {
-    for service in ${SERVICES[@]}
+start_docker_services() {
+    for service in ${DOCKER_SERVICES[@]}
     do
-        go run cmd/goapp-godo/main.go goapp-${service} --watch &> ${LOG_DIR}/stdout-${service}.log &
-        echo "Started goapp-${service}"
+        sudo docker ps | grep ${service} || sudo docker start ${service}
+        echo "Started ${service}"
     done
-
-    start_resource
+}
+stop_docker_services() {
+    for service in ${DOCKER_SERVICES[@]}
+    do
+        sudo docker ps | grep ${service} || sudo docker stop ${service}
+        echo "Stoped ${service}"
+    done
 }
 
-start_resource() {
-    sudo ls
+stop_service() {
+    service=$1
+    for pid in `ps ax | grep ${service} | egrep -v 'make|service.sh|grep' | awk '{print $1}'`
+    do
+        kill -9 $pid
+    done
+}
+
+start_service() {
+    service=$1
+    psax=`ps ax`
+    echo $psax | grep $service || go run cmd/goapp-godo/main.go goapp-${service} --watch &> ${LOG_DIR}/stdout-${service}.log &
+    echo "Started ${service}"
+}
+
+start_authproxy_services() {
+    for service in ${AUTHPROXY_SERVICES[@]}
+    do
+        start_service $service
+    done
+}
+stop_authproxy_services() {
+    stop_service "authproxy"
+}
+
+start_home_services() {
+    for service in ${HOME_SERVICES[@]}
+    do
+        start_service $service
+    done
+}
+stop_home_services() {
+    stop_service "home"
+}
+
+start_resource_services() {
     for service in ${RESOURCE_SERVICES[@]}
     do
-        go run cmd/goapp-godo/main.go goapp-${service} --watch &> ${LOG_DIR}/stdout-${service}.log &
-        echo "Started goapp-${service}"
-    done
-
-    service="resource-cluster-agent"
-    sudo -E sh -c "export PATH=$PATH; go run cmd/goapp-godo/main.go goapp-${service} --watch" &> ${LOG_DIR}/stdout-${service}.log &
-    echo "Started goapp-${service}"
-
-    echo "If you want to logs, you watch ${LOG_DIR}/*.log"
-}
-
-start_monitor() {
-    for service in ${MONITOR_SERVICES[@]}
-    do
-        go run cmd/goapp-godo/main.go goapp-${service} --watch &> ${LOG_DIR}/stdout-${service}.log &
-        echo "Started goapp-${service}"
-    done
-
-    echo "If you want to logs, you watch ${LOG_DIR}/*.log"
-}
-
-start_multi() {
-    for service in ${SERVICES[@]}
-    do
-        go run cmd/goapp-godo/main.go goapp-${service} --watch &> ${LOG_DIR}/stdout-${service}.log &
-        echo "Started goapp-${service}"
-    done
-
-    for service in ${SERVICES2[@]}
-    do
-        go run cmd/goapp-godo/main.go goapp-${service} --watch &> ${LOG_DIR}/stdout-${service}2.log &
-        echo "Started goapp-${service}"
-    done
-
-    for service in ${SERVICES3[@]}
-    do
-        go run cmd/goapp-godo/main.go goapp-${service} --watch &> ${LOG_DIR}/stdout-${service}3.log &
-        echo "Started goapp-${service}"
-    done
-
-    echo "If you want to logs, you watch .goapp/logs/*.log"
-}
-
-stop_all() {
-    sudo ls
-    for pid in `ps ax | grep goapp | grep -v grep | grep -v vim | awk '{print $1}'`
-    do
-        sudo kill $pid
+        start_service $service
     done
 }
+stop_resource_services() {
+    stop_service "resource"
+}
+
 
 status() {
     ps ax | grep "go run " | grep -v grep || echo "NotFound Processes"

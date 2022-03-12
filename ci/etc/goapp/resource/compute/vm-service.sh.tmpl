@@ -7,6 +7,10 @@ set -xem
 
 function startpre {
     {{- range $i, $port := .Ports }}
+
+    #
+    # Setup netns
+    #
     netns={{ $port.Name }}
     exLink={{ $port.Name }}-ex
     inLink={{ $port.Name }}-in
@@ -31,7 +35,17 @@ function startpre {
     ip netns exec $netns ip route | grep {{ $port.NetnsGateway }} || ip netns exec $netns ip route add {{ $port.NetnsGateway }} dev $inLink
     ip netns exec $netns ip route | grep default || ip netns exec $netns ip route add default via {{ $port.NetnsGateway }}
 
+
+    #
+    # Setup NAT by iptables
+    #
+    iptables -t nat -L | grep MASQUERADE | grep 'tcp  --  {{ $port.VmSubnet }}' || iptables -t nat -A POSTROUTING -p TCP -s {{ $port.VmSubnet }} ! -d {{ $port.VmSubnet }} -j MASQUERADE --to-ports {{ $port.NetworkV4LocalSpec.Nat.Ports }}
+    iptables -t nat -L | grep MASQUERADE | grep 'udp  --  {{ $port.VmSubnet }}' || iptables -t nat -A POSTROUTING -p UDP -s {{ $port.VmSubnet }} ! -d {{ $port.VmSubnet }} -j MASQUERADE --to-ports {{ $port.NetworkV4LocalSpec.Nat.Ports }}
+    iptables -t nat -L | grep RETURN | grep '{{ $port.VmSubnet }}' || iptables -t nat -A POSTROUTING -s {{ $port.VmSubnet }} -d 255.255.255.255 -j RETURN
+
     {{- end }}
+
+    iptables -P FORWARD ACCEPT
 }
 
 function start {
@@ -39,18 +53,19 @@ function start {
         -enable-kvm -machine q35,accel=kvm \
         -cpu host \
         -smp cores={{ .Compute.Vcpus }} \
-        -m slots=64,maxmem=1024G \
-        -object memory-backend-file,id=mem1,size={{ .Compute.Memory }}M,mem-path=/dev/hugepages \
-        -device pc-dimm,id=dimm1,memdev=mem1 \
-        -drive file={{ .VmImagePath }},if=virtio \
+        -m {{ .Compute.Memory }}M,slots=64,maxmem=1024G \
+        -object memory-backend-file,id=mem1,size={{ .Compute.Memory }}M,mem-path=/dev/hugepages/{{ .Compute.Name }} \
+        -numa node,nodeid=0,memdev=mem1 \
+        -drive id=bootdisk1,file={{ .VmImagePath }},if=none \
+        -device virtio-blk-pci,scsi=off,drive=bootdisk1,bootindex=1 \
         -drive file={{ .VmConfigImagePath }},format=raw,if=none,id=drive-ide0-1-0,readonly=on \
         -device amd-iommu \
         -device ide-cd,bus=ide.1,unit=0,drive=drive-ide0-1-0,id=ide0-1-0 \
         {{- range $i, $port := .Ports }}
         -nic tap,ifname={{ $port.Name }}-tap,model=virtio-net-pci,mac={{ $port.VmMac }},script=no,script=no,downscript=no \
         {{- end }}
-        -monitor telnet::4444,server,nowait \
-        -nographic -serial telnet:localhost:4321,server,nowait &
+        -monitor unix:{{ .MonitorSocketPath }},server,nowait \
+        -nographic -serial unix:{{ .SerialSocketPath }},server,nowait &
     pid=$!
 
     sleep 2s
@@ -68,7 +83,18 @@ function start {
 }
 
 function stop {
-    echo "stop"
+    {{- range $i, $port := .Ports }}
+
+    #
+    # Cleanup netns
+    #
+    netns={{ $port.Name }}
+    exLink={{ $port.Name }}-ex
+    inLink={{ $port.Name }}-in
+
+    ip netns | grep $netns && ip netns del $netns || echo "delete ip ${netns}"
+
+    {{- end }}
 }
 
 case "$1" in

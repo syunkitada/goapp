@@ -5,25 +5,25 @@ import (
 	"strings"
 
 	"github.com/syunkitada/goapp/pkg/base/base_client"
-	"github.com/syunkitada/goapp/pkg/base/base_model/spec_model"
 	"github.com/syunkitada/goapp/pkg/base/base_spec"
+	"github.com/syunkitada/goapp/pkg/base/base_spec_model"
 	"github.com/syunkitada/goapp/pkg/lib/logger"
 )
 
-func (app *BaseApp) SyncService(tctx *logger.TraceContext) (err error) {
+func (app *BaseApp) SyncService(tctx *logger.TraceContext, syncRoot bool) (err error) {
 	queries := []base_client.Query{}
 	var data *base_spec.GetServicesData
 	if data, err = app.dbApi.GetServices(tctx, &base_spec.GetServices{}); err != nil {
 		return
 	}
 
-	serviceMap := map[string]spec_model.ServiceRouter{}
+	serviceMap := map[string]base_spec_model.ServiceRouter{}
 	for _, service := range data.Services {
-		var queryMap map[string]spec_model.QueryModel
+		var queryMap map[string]base_spec_model.QueryModel
 		if err = json.Unmarshal([]byte(service.QueryMap), &queryMap); err != nil {
 			return
 		}
-		serviceMap[service.Name] = spec_model.ServiceRouter{
+		serviceMap[service.Name] = base_spec_model.ServiceRouter{
 			Token:     service.Token,
 			Endpoints: strings.Split(service.Endpoints, ","),
 			QueryMap:  queryMap,
@@ -39,6 +39,7 @@ func (app *BaseApp) SyncService(tctx *logger.TraceContext) (err error) {
 				Name: "UpdateService",
 				Data: base_spec.UpdateService{
 					Name:            service.Name,
+					Icon:            service.Icon,
 					Token:           token,
 					Scope:           service.Scope,
 					Endpoints:       app.appConf.Endpoints,
@@ -51,7 +52,7 @@ func (app *BaseApp) SyncService(tctx *logger.TraceContext) (err error) {
 	}
 	app.serviceMap = serviceMap
 
-	if len(queries) > 0 {
+	if syncRoot && len(queries) > 0 {
 		if _, err = app.rootClient.UpdateServices(tctx, queries); err != nil {
 			return
 		}

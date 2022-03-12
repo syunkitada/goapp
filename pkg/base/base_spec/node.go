@@ -8,6 +8,8 @@ type NodeService struct {
 	StatusReason string
 	State        string
 	StateReason  string
+	Token        string
+	Endpoints    []string
 	Labels       string
 	Spec         interface{}
 }

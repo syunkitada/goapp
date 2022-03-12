@@ -1,0 +1,19 @@
+{
+  "Kind": "NetworkV4",
+  "Spec": {
+    "Kind": "Local",
+    "Name": "local-net-2",
+    "Cluster": "tokyo1",
+    "Subnet": "192.168.101.0/24",
+    "StartIp": "192.168.101.2",
+    "EndIp": "192.168.101.254",
+    "Gateway": "192.168.101.1",
+    "Spec": {
+      "Resolvers": [{ "Resolver": "192.168.10.1" }],
+      "Nat": {
+        "Enable": true,
+        "Ports": "30000-40000"
+      }
+    }
+  }
+}

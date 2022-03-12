@@ -7,16 +7,25 @@ import (
 )
 
 type NodeServiceSpec struct {
-	NumaNodeServices []NumaNodeServiceSpec
-	Storages         []StorageSpec
+	NumaNodes []NumaNodeSpec
+	Storages  []StorageSpec
 }
 
-type NumaNodeServiceSpec struct {
-	Id              int
-	AvailableCpus   int
-	UsedCpus        int
-	AvailableMemory int
-	UsedMemory      int
+type NumaNodeSpec struct {
+	Id            int
+	Cpus          []NumaNodeCpuSpec
+	TotalMemory   int
+	UsedMemory    int
+	Total1GMemory int
+	Used1GMemory  int
+}
+
+type NumaNodeCpuSpec struct {
+	Reserved   bool
+	Used       bool
+	PhysicalId int // numa
+	CoreId     int // core
+	Processor  int // thread
 }
 
 type StorageSpec struct {

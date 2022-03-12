@@ -2,7 +2,7 @@ package base_spec
 
 import (
 	"github.com/syunkitada/goapp/pkg/base/base_const"
-	"github.com/syunkitada/goapp/pkg/base/base_model/index_model"
+	"github.com/syunkitada/goapp/pkg/base/base_index_model"
 )
 
 type GetUser struct {
@@ -31,32 +31,32 @@ type GetUsersData struct {
 
 const UserKind = "User"
 
-var UserCmd map[string]index_model.Cmd = map[string]index_model.Cmd{
-	"create_user": index_model.Cmd{
+var UserCmd map[string]base_index_model.Cmd = map[string]base_index_model.Cmd{
+	"create_user": base_index_model.Cmd{
 		Arg:     base_const.ArgRequired,
 		ArgType: base_const.ArgTypeFile,
 		ArgKind: UserKind,
 		Help:    "helptext",
 	},
-	"update_user": index_model.Cmd{
+	"update_user": base_index_model.Cmd{
 		Arg:     base_const.ArgRequired,
 		ArgType: base_const.ArgTypeFile,
 		ArgKind: UserKind,
 		Help:    "helptext",
 	},
-	"get_users": index_model.Cmd{
+	"get_users": base_index_model.Cmd{
 		Arg:     base_const.ArgOptional,
 		ArgType: base_const.ArgTypeString,
 		ArgKind: UserKind,
 		Help:    "helptext",
 	},
-	"get_user": index_model.Cmd{
+	"get_user": base_index_model.Cmd{
 		Arg:     base_const.ArgRequired,
 		ArgType: base_const.ArgTypeString,
 		ArgKind: UserKind,
 		Help:    "helptext",
 	},
-	"delete_user": index_model.Cmd{
+	"delete_user": base_index_model.Cmd{
 		Arg:     base_const.ArgRequired,
 		ArgType: base_const.ArgTypeString,
 		ArgKind: UserKind,
